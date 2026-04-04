@@ -8,17 +8,17 @@
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Globs GPI"/>
-  <meta name="theme-color" content="#080b12"/>
+  <meta name="theme-color" content="#000000"/>
   <link id="apple-touch-icon" rel="apple-touch-icon" href=""/>
   <link id="gpi-favicon" rel="icon" type="image/png" href=""/>
   <style>
     :root {
-      --bg:#080b12; --surface:#0d1117; --raised:#131929; --border:#1e2736; --border-hi:#2d3f5a;
-      --text:#ffffff; --muted:#8892a4; --dim:#3d4559;
-      --accent:#2196f3; --accent-glow:rgba(33,150,243,0.15);
-      --danger:#f44336; --danger-bg:#1a0000; --danger-bdr:#4d0000;
-      --warn:#ff9800; --warn-bg:#1a0e00; --warn-bdr:#4d2d00;
-      --good:#00e676; --good-bg:#001a0d; --good-bdr:#004d25;
+      --bg:#000000; --surface:#0a0a0a; --raised:#111111; --border:#1a1a1a; --border-hi:#333333;
+      --text:#ffffff; --muted:#999999; --dim:#444444;
+      --accent:#ffffff; --accent-glow:rgba(255,255,255,0.08);
+      --danger:#ff3333; --danger-bg:#160000; --danger-bdr:#380000;
+      --warn:#ff8800; --warn-bg:#1a0e00; --warn-bdr:#3a2000;
+      --good:#33cc66; --good-bg:#001a0d; --good-bdr:#004d20;
     }
     body.light-mode {
       --bg:#f0f4f8; --surface:#ffffff; --raised:#e8edf2; --border:#d1dbe6; --border-hi:#a8bdd0;
@@ -319,12 +319,12 @@
 
     // ── CONSTANTS ─────────────────────────────────────────────────────────────
     const DARK_C = {
-      bg:"#080b12",surface:"#0d1117",raised:"#131929",border:"#1e2736",borderHi:"#2d3f5a",
-      text:"#ffffff",muted:"#8892a4",dim:"#3d4559",
-      danger:"#f44336",dangerBg:"#1a0000",dangerBdr:"#4d0000",
-      warn:"#ff9800",warnBg:"#1a0e00",warnBdr:"#4d2d00",
-      good:"#00e676",goodBg:"#001a0d",goodBdr:"#004d25",
-      accent:"#2196f3",accentGlow:"rgba(33,150,243,0.15)"
+      bg:"#000000",surface:"#0a0a0a",raised:"#111111",border:"#1a1a1a",borderHi:"#333333",
+      text:"#ffffff",muted:"#999999",dim:"#444444",
+      danger:"#ff3333",dangerBg:"#160000",dangerBdr:"#380000",
+      warn:"#ff8800",warnBg:"#1a0e00",warnBdr:"#3a2000",
+      good:"#33cc66",goodBg:"#001a0d",goodBdr:"#004d20",
+      accent:"#ffffff",accentGlow:"rgba(255,255,255,0.08)"
     };
     const LIGHT_C = {
       bg:"#f0f4f8",surface:"#ffffff",raised:"#e8edf2",border:"#d1dbe6",borderHi:"#a8bdd0",
@@ -889,13 +889,13 @@
                           <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,overflow:'auto',maxHeight:520}}>
                             <div style={{padding:16}}>
                               <svg viewBox="-5 0 300 410" width="100%" style={{display:'block',overflow:'visible'}} onClick={function(e){if(e.target.tagName==='svg'||e.target.tagName==='path')setDSelCity(null);}}>
-                                <path d={CA_D} fill={lightMode?"#dce8f5":"#070707"} stroke={lightMode?"#a8bdd0":"#181818"} strokeWidth={0.7} strokeLinejoin="round"/>
-                                <path d={dbz(DML,DRV,1,15)} fill="none" stroke={C.text} strokeWidth={3} opacity={0.4}/>
-                                {dHasAR&&<path d={dbz(DRV,DAR,-1,30)} fill="none" stroke="#ffeb3b" strokeWidth={2} opacity={0.35}/>}
-                                {dHasLA&&<path d={dbz(DRV,DLA,1,30)} fill="none" stroke="#f44336" strokeWidth={2} opacity={0.35}/>}
-                                {dHubGrps.map(function(g){return g.c.map(function(c,i){return React.createElement('line',{key:'hl-'+c.ct+i,x1:g.h.x,y1:g.h.y,x2:c.x,y2:c.y,stroke:DZC[c.z],strokeWidth:0.5,opacity:0.18});});})}
-                                <circle cx={DML.x} cy={DML.y} r={4} fill={C.text}/><text x={DML.x} y={DML.y+13} fontSize={4.5} fill={C.muted} fontFamily="monospace" fontWeight={700} letterSpacing={0.8} textAnchor="middle">MOSS LANDING</text>
-                                <circle cx={DRV.x} cy={DRV.y} r={3} fill={C.text}/><text x={DRV.x+7} y={DRV.y-4} fontSize={4.5} fill={C.muted} fontFamily="monospace" fontWeight={700}>Riverbank</text>
+                                <path d={CA_D} fill={lightMode?"#dce8f5":"#050505"} stroke={lightMode?"#a8bdd0":"#1a1a1a"} strokeWidth={0.7} strokeLinejoin="round"/>
+                                {React.createElement('path',{d:dbz(DML,DRV,1,15),fill:'none',stroke:C.text,strokeWidth:2.5,opacity:0.6,strokeDasharray:200,strokeDashoffset:200,style:{animation:'dash 1.5s ease-out 0.2s forwards'}})}
+                                {dHasAR&&React.createElement('path',{d:dbz(DRV,DAR,-1,30),fill:'none',stroke:'#ffeb3b',strokeWidth:1.8,opacity:0.5,strokeDasharray:400,strokeDashoffset:400,style:{animation:'dash 2s ease-out 1s forwards'}})}
+                                {dHasLA&&React.createElement('path',{d:dbz(DRV,DLA,1,30),fill:'none',stroke:'#f44336',strokeWidth:1.8,opacity:0.5,strokeDasharray:400,strokeDashoffset:400,style:{animation:'dash 2s ease-out 1.2s forwards'}})}
+                                {dHubGrps.map(function(g,gi){return g.c.map(function(c,i){var dist=Math.hypot(c.x-g.h.x,c.y-g.h.y);return React.createElement('line',{key:'hl-'+c.ct+i,x1:g.h.x,y1:g.h.y,x2:c.x,y2:c.y,stroke:DZC[c.z],strokeWidth:0.5,opacity:0.2,strokeDasharray:dist*2,strokeDashoffset:dist*2,style:{animation:'dash 0.8s ease-out '+(1.8+i*0.05)+'s forwards'}});});})}
+                                <circle cx={DML.x} cy={DML.y} r={4} fill={C.text} className="zone-pulse"/><text x={DML.x} y={DML.y+13} fontSize={4.5} fill={C.muted} fontFamily="monospace" fontWeight={700} letterSpacing={0.8} textAnchor="middle">MOSS LANDING</text>
+                                <circle cx={DRV.x} cy={DRV.y} r={3} fill={C.text} className="zone-pulse" style={{animationDelay:'0.5s'}}/><text x={DRV.x+7} y={DRV.y-4} fontSize={4.5} fill={C.muted} fontFamily="monospace" fontWeight={700}>Riverbank</text>
                                 {dHasAR&&<g><circle cx={DAR.x} cy={DAR.y} r={2.5} fill="#ffeb3b"/><text x={DAR.x+7} y={DAR.y-5} fontSize={4.5} fill="#ffeb3b" fontFamily="monospace" fontWeight={700} opacity={0.7}>Arcata</text></g>}
                                 {dHasLA&&<g><circle cx={DLA.x} cy={DLA.y} r={2.5} fill="#f44336"/><text x={DLA.x+7} y={DLA.y+12} fontSize={4.5} fill="#f44336" fontFamily="monospace" fontWeight={700} opacity={0.7}>Los Angeles</text></g>}
                                 {dcities.map(function(c,i){var isA=dActive&&dActive.ct===c.ct,r=Math.max(2.5,Math.min(6,c.tot/8000));return React.createElement('g',{key:'c-'+c.ct,style:{cursor:'pointer'}},React.createElement('circle',{cx:c.x,cy:c.y,r:Math.max(8,r+4),fill:'transparent',stroke:'none',style:{pointerEvents:'all'},onMouseEnter:function(){setDHovCity(c);},onMouseLeave:function(){setDHovCity(null);},onClick:function(e){e.stopPropagation();setDSelCity(dSelCity&&dSelCity.ct===c.ct?null:c);}}),isA&&React.createElement('circle',{cx:c.x,cy:c.y,r:r+3,fill:'none',stroke:DZC[c.z],strokeWidth:0.5,opacity:0.5}),React.createElement('circle',{cx:c.x,cy:c.y,r:r,fill:DZC[c.z],opacity:isA?1:0.75,stroke:isA?C.text:'none',strokeWidth:0.7,style:{pointerEvents:'none'}}),c.accts.length>1&&React.createElement('text',{x:c.x,y:c.y+1.2,fontSize:3.2,fill:lightMode?'#fff':'#000',fontFamily:'monospace',fontWeight:800,textAnchor:'middle',style:{pointerEvents:'none'}},c.accts.length),React.createElement('text',{x:c.x+(c.x>140?-r-3:r+3),y:c.y+1,fontSize:3.5,fill:DZC[c.z],opacity:isA?0.9:0.4,fontFamily:'monospace',textAnchor:c.x>140?'end':'start',style:{pointerEvents:'none'}},c.ct));})}
