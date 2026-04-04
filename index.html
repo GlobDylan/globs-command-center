@@ -145,8 +145,7 @@
   <div id="root"></div>
 
   <script>
-window.DISPATCH_DD=[
-["Ganjery","DNU",14,55,"Arcata","L",2296,5436,7156,17207,26926,40409],
+window._DD=[["Ganjery","DNU",14,55,"Arcata","L",2296,5436,7156,17207,26926,40409],
 ["Fifth and Green","RB",51,159,"Cotati","L",1680,3760,4440,12901,21621,34141],
 ["Urbana on Geary","RB",55,180,"SF","L",1520,1520,1520,8968,16207,24848],
 ["PCF Distro","RB",99,183,"Riverbank","L",1125,1720,2732,12858,16148,24739],
@@ -373,9 +372,8 @@ window.DISPATCH_DD=[
 ["Stash","ZASP",169,334,"LA","N",0,0,0,0,0,0],
 ["Sticky Thumb SF","RB",55,180,"SF","N",0,0,0,0,0,0],
 ["The Herbivore","RB",55,180,"SF","N",0,0,0,0,0,0],
-["The Ounce","ZASP",169,334,"LA","N",0,0,0,0,0,0]
-];
-window.DISPATCH_LBL={"Arcata":[-6,48,"end"],"Eureka":[-6,56,"end"],"Humboldt":[-6,64,"end"],"Lucerne":[2,118,"end"],"Ukiah":[2,126,"end"],"Healdsburg":[4,144,"end"],"Santa Rosa":[4,152,"end"],"Cotati":[4,160,"end"],"Petaluma":[4,168,"end"],"Vallejo":[14,166,"end"],"San Rafael":[6,174,"end"],"Berkeley":[14,174,"end"],"Oakland":[18,182,"end"],"SF":[8,186,"end"],"San Leandro":[20,190,"end"],"Pacifica":[6,194,"end"],"San Mateo":[16,198,"end"],"Redwood City":[16,206,"end"],"San Jose":[28,210,"end"],"Santa Cruz":[24,218,"end"],"Capitola":[24,226,"end"],"Watsonville":[26,234,"end"],"Monterey":[28,242,"end"],"SLO":[78,308,"end"],"Goleta":[84,316,"end"],"Santa Barbara":[86,324,"end"],"Oxnard":[106,330,"end"],"LA":[128,336,"end"],"Eagle Rock":[128,328,"end"],"Long Beach":[132,346,"end"],"Harbor City":[130,354,"end"],"Artesia":[132,362,"end"],"Costa Mesa":[134,370,"end"],"Santa Ana":[134,378,"end"],"Encinitas":[148,386,"end"],"Vista":[148,394,"end"],"Miramar":[152,402,"end"],"Bay Park":[152,410,"end"],"La Mesa":[154,418,"end"],"National City":[152,380,"end"],"Redding":[108,67,"start"],"Red Bluff":[112,78,"start"],"Willows":[98,105,"start"],"Grass Valley":[112,138,"start"],"Auburn":[108,146,"start"],"Woodland":[100,154,"start"],"Sacramento":[106,162,"start"],"Dixon":[96,170,"start"],"Napa":[66,158,"start"],"Walnut Creek":[84,178,"start"],"Antioch":[90,170,"start"],"Riverbank":[112,183,"start"],"Stockton":[108,190,"start"],"Manteca":[106,197,"start"],"Modesto":[112,204,"start"],"Merced":[122,200,"start"],"Fresno":[142,224,"start"],"Mcfarland":[152,260,"start"],"Sylmar":[178,318,"start"],"Reseda":[178,326,"start"],"Van Nuys":[178,334,"start"],"Palm Springs":[210,338,"start"],"Cathedral City":[210,346,"start"]};
+["The Ounce","ZASP",169,334,"LA","N",0,0,0,0,0,0]];
+window._LBL={"Arcata":[-6,48,"end"],"Eureka":[-6,56,"end"],"Humboldt":[-6,64,"end"],"Lucerne":[2,118,"end"],"Ukiah":[2,126,"end"],"Healdsburg":[4,144,"end"],"Santa Rosa":[4,152,"end"],"Cotati":[4,160,"end"],"Petaluma":[4,168,"end"],"Vallejo":[14,166,"end"],"San Rafael":[6,174,"end"],"Berkeley":[14,174,"end"],"Oakland":[18,182,"end"],"SF":[8,186,"end"],"San Leandro":[20,190,"end"],"Pacifica":[6,194,"end"],"San Mateo":[16,198,"end"],"Redwood City":[16,206,"end"],"San Jose":[28,210,"end"],"Santa Cruz":[24,218,"end"],"Capitola":[24,226,"end"],"Watsonville":[26,234,"end"],"Monterey":[28,242,"end"],"SLO":[78,308,"end"],"Goleta":[84,316,"end"],"Santa Barbara":[86,324,"end"],"Oxnard":[106,330,"end"],"LA":[128,336,"end"],"Eagle Rock":[128,328,"end"],"Long Beach":[132,346,"end"],"Harbor City":[130,354,"end"],"Artesia":[132,362,"end"],"Costa Mesa":[134,370,"end"],"Santa Ana":[134,378,"end"],"Encinitas":[148,386,"end"],"Vista":[148,394,"end"],"Miramar":[152,402,"end"],"Bay Park":[152,410,"end"],"La Mesa":[154,418,"end"],"National City":[152,380,"end"],"Redding":[108,67,"start"],"Red Bluff":[112,78,"start"],"Willows":[98,105,"start"],"Grass Valley":[112,138,"start"],"Auburn":[108,146,"start"],"Woodland":[100,154,"start"],"Sacramento":[106,162,"start"],"Dixon":[96,170,"start"],"Napa":[66,158,"start"],"Walnut Creek":[84,178,"start"],"Antioch":[90,170,"start"],"Riverbank":[112,183,"start"],"Stockton":[108,190,"start"],"Manteca":[106,197,"start"],"Modesto":[112,204,"start"],"Merced":[122,200,"start"],"Fresno":[142,224,"start"],"Mcfarland":[152,260,"start"],"Sylmar":[178,318,"start"],"Reseda":[178,326,"start"],"Van Nuys":[178,334,"start"],"Palm Springs":[210,338,"start"],"Cathedral City":[210,346,"start"]};
 </script>
 <script type="text/babel" data-presets="react">
     // ─── Hooks from global React ──────────────────────────────────────────────
@@ -1116,35 +1114,43 @@ window.DISPATCH_LBL={"Arcata":[-6,48,"end"],"Eureka":[-6,56,"end"],"Humboldt":[-
                   var PI2={30:6,60:7,90:8,180:9,270:10,365:11};
                   var ML={x:76,y:221},RV={x:99,y:183},AR2={x:14,y:55},LA2={x:172,y:334};
                   function hub2(z){return z==="ZASP"?LA2:z==="DNU"?AR2:RV;}
-                  var DD=window.DISPATCH_DD||[];
-                  var LBL=window.DISPATCH_LBL||{};
+                  var DD=window._DD||[];
+                  var LBL=window._LBL||{};
                   var dpi=PI2[periodDays]||11;
                   var accts=DD.filter(function(d){return d[dpi]>0;}).map(function(d){return{nm:d[0],z:d[1],x:d[2],y:d[3],ct:d[4],tr:d[5],rv:d[dpi]};});
                   var cm={};accts.forEach(function(a){var k=a.ct;if(!cm[k])cm[k]={ct:k,accts:[],tot:0};cm[k].accts.push(a);cm[k].tot+=a.rv;});
                   var cities=Object.values(cm);cities.forEach(function(c2){c2.accts.sort(function(a,b){return b.rv-a.rv;});c2.z=c2.accts[0].z;c2.x=Math.round(c2.accts.reduce(function(s,a){return s+a.x;},0)/c2.accts.length);c2.y=Math.round(c2.accts.reduce(function(s,a){return s+a.y;},0)/c2.accts.length);});
                   var totRev=accts.reduce(function(s,a){return s+a.rv;},0);
                   var tC={L:0,R:0,N:0};accts.forEach(function(a){tC[a.tr]++;});
-                  var [dSel,setDSel]=useState(null);
                   var CA="M6,8 L70,8 L124,8 L124,131 L124,152 L151,172 L165,193 L178,213 L189,234 L189,254 L189,262 L219,262 L240,275 L259,291 L270,303 L275,316 L281,324 L275,336 L273,348 L267,361 L267,377 L267,389 L267,396 L202,396 L201,391 L198,389 L198,383 L197,377 L194,369 L189,361 L182,355 L180,352 L176,348 L171,347 L167,348 L168,344 L166,339 L165,336 L164,335 L161,334 L157,332 L150,334 L147,330 L143,325 L132,320 L127,319 L112,318 L107,314 L108,310 L107,299 L107,290 L101,284 L101,280 L94,273 L92,269 L85,258 L82,250 L77,245 L73,236 L73,230 L76,221 L69,215 L65,213 L60,209 L59,201 L56,193 L56,189 L56,182 L57,180 L56,179 L55,175 L56,173 L51,171 L49,169 L45,168 L44,165 L42,159 L40,154 L34,150 L30,142 L27,139 L26,134 L25,129 L23,121 L21,114 L22,106 L22,100 L16,96 L15,89 L7,81 L6,76 L5,72 L9,67 L10,64 L11,59 L12,57 L14,55 L13,47 L12,42 L15,33 L14,27 L12,20 L11,14 L11,9 L6,8 Z";
                   function bz(a,b,d,c3){return"M"+a.x+","+a.y+" Q"+((a.x+b.x)/2+d*c3)+","+((a.y+b.y)/2)+" "+b.x+","+b.y;}
                   var hasAR=accts.some(function(a){return hub2(a.z)===AR2;});
                   var hasLA=accts.some(function(a){return hub2(a.z)===LA2;});
-                  var E=React.createElement;
                   var svgKids=[];
-                  svgKids.push(E('path',{key:'ca',d:CA,fill:'#0a0a0a',stroke:'#222',strokeWidth:0.8}));
-                  svgKids.push(E('path',{key:'arc-ml',d:bz(ML,RV,-1,15),fill:'none',stroke:'#fff',strokeWidth:1.5,opacity:0.25}));
-                  if(hasAR)svgKids.push(E('path',{key:'arc-ar',d:bz(RV,AR2,-1,30),fill:'none',stroke:'#ffeb3b',strokeWidth:1.5,opacity:0.25}));
-                  if(hasLA)svgKids.push(E('path',{key:'arc-la',d:bz(RV,LA2,1,30),fill:'none',stroke:'#f44336',strokeWidth:1.5,opacity:0.25}));
-                  cities.forEach(function(c2,ci){var hb=hub2(c2.z);svgKids.push(E('line',{key:'hl-'+ci,x1:hb.x,y1:hb.y,x2:c2.x,y2:c2.y,stroke:ZC[c2.z],strokeWidth:0.5,opacity:0.15}));});
-                  svgKids.push(E('polygon',{key:'s-ml',points:'76,214 78,219 84,219 79,223 81,228 76,224 71,228 73,223 68,219 74,219',fill:'#fff',stroke:'#000',strokeWidth:0.3}));
-                  svgKids.push(E('polygon',{key:'s-rv',points:'99,176 101,181 107,181 102,185 104,190 99,186 94,190 96,185 91,181 97,181',fill:'#2196f3',stroke:'#fff',strokeWidth:0.3}));
-                  if(hasAR)svgKids.push(E('polygon',{key:'s-ar',points:'14,48 16,53 22,53 17,57 19,62 14,58 9,62 11,57 6,53 12,53',fill:'#ffeb3b',stroke:'#000',strokeWidth:0.3}));
-                  if(hasLA)svgKids.push(E('polygon',{key:'s-la',points:'172,327 174,332 180,332 175,336 177,341 172,337 167,341 169,336 164,332 170,332',fill:'#f44336',stroke:'#fff',strokeWidth:0.3}));
-                  cities.forEach(function(c2,i){var r=Math.max(2.5,Math.min(6,c2.tot/8000));var isA=dSel&&dSel.ct===c2.ct;var kids=[];kids.push(E('circle',{key:'hit',cx:c2.x,cy:c2.y,r:Math.max(8,r+4),fill:'transparent'}));if(isA)kids.push(E('circle',{key:'glow',cx:c2.x,cy:c2.y,r:r+3,fill:'none',stroke:ZC[c2.z],strokeWidth:0.5,opacity:0.5}));kids.push(E('circle',{key:'dot',cx:c2.x,cy:c2.y,r:r,fill:ZC[c2.z],opacity:isA?1:0.75,stroke:isA?'#fff':'none',strokeWidth:0.7,style:{pointerEvents:'none'}}));if(c2.accts.length>1)kids.push(E('text',{key:'num',x:c2.x,y:c2.y+1,fontSize:3,fill:'#000',fontFamily:'monospace',fontWeight:800,textAnchor:'middle',style:{pointerEvents:'none'}},c2.accts.length));var lb=LBL[c2.ct];if(lb){var lx=lb[0],ly=lb[1],anc=lb[2];var dist=Math.sqrt(Math.pow(c2.x-lx,2)+Math.pow(c2.y-ly,2));if(dist>12)kids.push(E('line',{key:'ldr',x1:c2.x,y1:c2.y,x2:lx+(anc==='end'?3:-3),y2:ly,stroke:ZC[c2.z],strokeWidth:0.25,opacity:0.18,strokeDasharray:'1,1'}));kids.push(E('text',{key:'lbl',x:lx,y:ly+1,fontSize:4,fill:ZC[c2.z],opacity:0.85,fontFamily:'monospace',fontWeight:600,textAnchor:anc,style:{pointerEvents:'none'}},c2.ct));}svgKids.push(E('g',{key:'c-'+i,style:{cursor:'pointer'},onClick:function(ev){ev.stopPropagation();setDSel(dSel&&dSel.ct===c2.ct?null:c2);}},kids));});
-                  var detEl=null;
-                  if(dSel){var detKids=[];detKids.push(E('div',{key:'hdr',style:{display:'flex',justifyContent:'space-between',marginBottom:6}},E('span',{style:{fontWeight:800,fontSize:13}},dSel.ct),E('span',{style:{fontWeight:800,color:ZC[dSel.z]}},curK(dSel.tot))));dSel.accts.forEach(function(a,ai){detKids.push(E('div',{key:'a-'+ai,style:{display:'flex',justifyContent:'space-between',padding:'4px 0',borderBottom:'1px solid '+(C.border||'#1a1a1a')}},E('span',{style:{color:TC2[a.tr],fontWeight:600}},a.nm),E('span',{style:{color:'#888',fontWeight:700}},curK(a.rv))));});detKids.push(E('div',{key:'ft',style:{marginTop:6,fontSize:8,color:'#555',cursor:'pointer'},onClick:function(){setDSel(null);}},'tap to dismiss'));detEl=E('div',{style:{marginTop:8,background:C.surface||'#0a0a0a',border:'1px solid '+ZC[dSel.z]+'44',borderRadius:4,padding:'10px 14px',fontSize:10}},detKids);}
-                  return E('div',null,E('div',{style:{display:'flex',gap:10,marginBottom:12,flexWrap:'wrap',alignItems:'center'}},E('div',null,E('span',{style:{fontSize:22,fontWeight:800}},accts.length),E('span',{style:{fontSize:8,color:'#666',marginLeft:6,letterSpacing:1,textTransform:'uppercase'}},'accounts')),E('div',null,E('span',{style:{fontSize:22,fontWeight:800}},cities.length),E('span',{style:{fontSize:8,color:'#666',marginLeft:6,letterSpacing:1,textTransform:'uppercase'}},'cities')),E('div',null,E('span',{style:{fontSize:22,fontWeight:800}},curK(totRev)),E('span',{style:{fontSize:8,color:'#666',marginLeft:6,letterSpacing:1,textTransform:'uppercase'}},'rev ('+periodDays+'d)'))),E('svg',{viewBox:'-46 -5 300 430',onClick:function(){setDSel(null);},style:{width:'100%',background:'#050505',borderRadius:6,border:'1px solid #1a1a1a'}},svgKids),detEl);
+                  svgKids.push(React.createElement('path',{key:'ca',d:CA,fill:'#0a0a0a',stroke:'#222',strokeWidth:0.8}));
+                  svgKids.push(React.createElement('path',{key:'arc0',d:bz(ML,RV,-1,15),fill:'none',stroke:'#fff',strokeWidth:1.5,opacity:0.25}));
+                  if(hasAR)svgKids.push(React.createElement('path',{key:'arc1',d:bz(RV,AR2,-1,30),fill:'none',stroke:'#ffeb3b',strokeWidth:1.5,opacity:0.25}));
+                  if(hasLA)svgKids.push(React.createElement('path',{key:'arc2',d:bz(RV,LA2,1,30),fill:'none',stroke:'#f44336',strokeWidth:1.5,opacity:0.25}));
+                  cities.forEach(function(c2,ci){var hb=hub2(c2.z);svgKids.push(React.createElement('line',{key:'hl'+ci,x1:hb.x,y1:hb.y,x2:c2.x,y2:c2.y,stroke:ZC[c2.z],strokeWidth:0.5,opacity:0.15}));});
+                  svgKids.push(React.createElement('polygon',{key:'sml',points:'76,214 78,219 84,219 79,223 81,228 76,224 71,228 73,223 68,219 74,219',fill:'#fff',stroke:'#000',strokeWidth:0.3}));
+                  svgKids.push(React.createElement('polygon',{key:'srv',points:'99,176 101,181 107,181 102,185 104,190 99,186 94,190 96,185 91,181 97,181',fill:'#2196f3',stroke:'#fff',strokeWidth:0.3}));
+                  if(hasAR)svgKids.push(React.createElement('polygon',{key:'sar',points:'14,48 16,53 22,53 17,57 19,62 14,58 9,62 11,57 6,53 12,53',fill:'#ffeb3b',stroke:'#000',strokeWidth:0.3}));
+                  if(hasLA)svgKids.push(React.createElement('polygon',{key:'sla',points:'172,327 174,332 180,332 175,336 177,341 172,337 167,341 169,336 164,332 170,332',fill:'#f44336',stroke:'#fff',strokeWidth:0.3}));
+                  cities.forEach(function(c2,i){var r=Math.max(2.5,Math.min(6,c2.tot/8000));var kids=[];kids.push(React.createElement('circle',{key:'d',cx:c2.x,cy:c2.y,r:r,fill:ZC[c2.z],opacity:0.75}));if(c2.accts.length>1)kids.push(React.createElement('text',{key:'n',x:c2.x,y:c2.y+1,fontSize:3,fill:'#000',fontFamily:'monospace',fontWeight:800,textAnchor:'middle',style:{pointerEvents:'none'}},c2.accts.length));var lb=LBL[c2.ct];if(lb){var lx=lb[0],ly=lb[1],anc=lb[2];var dist=Math.sqrt(Math.pow(c2.x-lx,2)+Math.pow(c2.y-ly,2));if(dist>12)kids.push(React.createElement('line',{key:'lr',x1:c2.x,y1:c2.y,x2:lx+(anc==='end'?3:-3),y2:ly,stroke:ZC[c2.z],strokeWidth:0.25,opacity:0.18,strokeDasharray:'1,1'}));kids.push(React.createElement('text',{key:'lb',x:lx,y:ly+1,fontSize:4,fill:ZC[c2.z],opacity:0.85,fontFamily:'monospace',fontWeight:600,textAnchor:anc,style:{pointerEvents:'none'}},c2.ct));}svgKids.push(React.createElement('g',{key:'c'+i},kids));});
+                  return(
+                    <div>
+                      <div style={{display:'flex',gap:10,marginBottom:12,flexWrap:'wrap',alignItems:'center'}}>
+                        <div><span style={{fontSize:22,fontWeight:800}}>{accts.length}</span><span style={{fontSize:8,color:C.dim,marginLeft:6,letterSpacing:1,textTransform:'uppercase'}}>accounts</span></div>
+                        <div><span style={{fontSize:22,fontWeight:800}}>{cities.length}</span><span style={{fontSize:8,color:C.dim,marginLeft:6,letterSpacing:1,textTransform:'uppercase'}}>cities</span></div>
+                        <div><span style={{fontSize:22,fontWeight:800}}>{curK(totRev)}</span><span style={{fontSize:8,color:C.dim,marginLeft:6,letterSpacing:1,textTransform:'uppercase'}}>rev ({periodDays}d)</span></div>
+                      </div>
+                      <div style={{display:'flex',gap:8,marginBottom:10,flexWrap:'wrap'}}>{["RB","DNU","ZASP"].map(function(k){return React.createElement('div',{key:k,style:{display:'flex',alignItems:'center',gap:4}},React.createElement('span',{style:{width:7,height:7,borderRadius:'50%',background:ZC[k],display:'inline-block'}}),React.createElement('span',{style:{fontSize:8,color:C.muted}},ZN[k]));})}{["L","R","N"].map(function(k){return React.createElement('div',{key:k,style:{display:'flex',alignItems:'center',gap:4}},React.createElement('span',{style:{width:6,height:6,borderRadius:'50%',background:TC2[k]}}),React.createElement('span',{style:{fontSize:9,color:TC2[k]}},TN2[k]+' ('+tC[k]+')'));})}</div>
+                      {React.createElement('svg',{viewBox:'-46 -5 300 430',style:{width:'100%',background:'#050505',borderRadius:6,border:'1px solid #1a1a1a'}},svgKids)}
+                    </div>
+                  );
                 })()}
+
+                
 
                 
 
