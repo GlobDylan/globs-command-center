@@ -56,6 +56,19 @@
       .acct-stat-value{font-size:13px;}
     }
 
+    /* Global mobile responsive */
+    @media(max-width:768px){
+      .gpi-header{padding:0 12px !important;height:48px !important;}
+      .gpi-header img{height:28px !important;}
+      .gpi-tab-bar{padding:0 12px !important;gap:14px !important;-webkit-overflow-scrolling:touch;scroll-behavior:smooth;}
+      .gpi-tab-bar::after{content:'';position:sticky;right:0;min-width:24px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none;flex-shrink:0;}
+      .gpi-tab-bar button{font-size:9px !important;padding:10px 0 !important;white-space:nowrap;letter-spacing:1px !important;}
+      .gpi-content{padding:14px 12px !important;}
+    }
+    @media(max-width:480px){
+      .gpi-tab-bar{gap:10px !important;}
+    }
+
     /* Missile arc animation */
     @keyframes dash {
       to { stroke-dashoffset: 0; }
@@ -647,7 +660,7 @@
       return(
         <div style={{fontFamily:"'DM Mono','Courier New',monospace",background:C.bg,minHeight:'100vh',color:C.text,transition:'background 0.2s,color 0.2s'}}>
           {/* HEADER */}
-          <div style={{background:C.bg,borderBottom:'1px solid '+C.border,padding:'0 20px',height:58,display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:50,backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)'}}>
+          <div className="gpi-header" style={{background:C.bg,borderBottom:'1px solid '+C.border,padding:'0 20px',height:58,display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:50,backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)'}}>
             <div style={{display:'flex',alignItems:'center',gap:12}}>
               <img src={lightMode?LOGO_LIGHT:LOGO_DARK} alt="Globs" style={{height:38,width:'auto',objectFit:'contain',filter:lightMode?'none':'none'}}/>
               <div>
@@ -681,10 +694,10 @@
 
           {(hasData||tab==="cashflow")&&(
             <>
-              <div style={{background:C.bg,borderBottom:'1px solid '+C.border,padding:'0 24px',display:'flex',gap:28,overflowX:'auto'}}>
-                {[["accounts","Accounts"],["executive","Executive"],["dashboard","Dashboard"],["mfg","MFG"],["packaging","Packaging"],["velocity","Velocity"],["cashflow","Cash Flow"],["dispatch","Dispatch"],["opportunities","Opportunities"]].map(function(tl){return<button key={tl[0]} style={tabSt(tab===tl[0])} onClick={function(){setTab(tl[0]);}}>{tl[1]}</button>;})}
+              <div className="gpi-tab-bar" style={{background:C.bg,borderBottom:'1px solid '+C.border,padding:'0 24px',display:'flex',gap:20,overflowX:'auto',WebkitOverflowScrolling:'touch'}}>
+                {[["accounts","Accounts"],["executive","Executive"],["dashboard","Dashboard"],["mfg","MFG"],["packaging","Packaging"],["velocity","Velocity"],["cashflow","Cash Flow"],["dispatch","Dispatch"],["opportunities","Opps"]].map(function(tl){return<button key={tl[0]} style={tabSt(tab===tl[0])} onClick={function(){setTab(tl[0]);}}>{tl[1]}</button>;})}
               </div>
-              <div style={{padding:'22px 24px',maxWidth:1300,margin:'0 auto'}}>
+              <div className="gpi-content" style={{padding:'22px 24px',maxWidth:1300,margin:'0 auto'}}>
 
                 {/* ══ ACCOUNTS ══ */}
                 {tab==="accounts"&&(
@@ -893,7 +906,7 @@
                         <div style={{flex:'1 1 420px',minWidth:300}}>
                           <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6}}>
                             <div style={{padding:12}}>
-                              <svg viewBox="-5 0 300 410" width="100%" style={{display:'block',overflow:'visible'}} onClick={function(e){if(e.target.tagName==='svg'||e.target.tagName==='path')setDSelCity(null);}}>
+                              <svg key={'dmap-'+periodDays} viewBox="-5 0 300 410" width="100%" style={{display:'block',overflow:'visible'}} onClick={function(e){if(e.target.tagName==='svg'||e.target.tagName==='path')setDSelCity(null);}}>
                                 <path d={CA_D} fill={lightMode?"#dce8f5":"#050505"} stroke={lightMode?"#a8bdd0":"#1a1a1a"} strokeWidth={0.7} strokeLinejoin="round"/>
                                 {React.createElement('path',{d:dbz(DML,DRV,1,15),fill:'none',stroke:'#fff',strokeWidth:3,opacity:0.5,strokeDasharray:200,strokeDashoffset:200,style:{animation:'dash 0.8s ease-out 0.1s forwards'}})}
                                 {dHasAR&&React.createElement('path',{d:dbz(DRV,DAR,-1,30),fill:'none',stroke:'#ffeb3b',strokeWidth:2,opacity:0.35,strokeDasharray:350,strokeDashoffset:350,style:{animation:'dash 0.7s ease-out 1s forwards'}})}
