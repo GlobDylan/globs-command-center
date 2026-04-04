@@ -357,6 +357,8 @@
       Badder:{label:"Badder",wholesale:8,cost:3.36,distroRate:0.16},
       Sauce:{label:"Sauce",wholesale:8,cost:3.36,distroRate:0.16},
       Shatter:{label:"Shatter",wholesale:7,cost:3.36,distroRate:0.16},
+      Battery:{label:"Battery",wholesale:13,cost:6.50,distroRate:0.16},
+      Promo:{label:"Sample/Promo",wholesale:0.01,cost:3.00,distroRate:0},
       Other:{label:"Other",wholesale:8.5,cost:3.85,distroRate:0.16}
     };
     function cogsFor(cat) {
@@ -366,6 +368,8 @@
       if(c.includes("badder"))return COGS.Badder;
       if(c.includes("sauce"))return COGS.Sauce;
       if(c.includes("shatter"))return COGS.Shatter;
+      if(c.includes("battery"))return COGS.Battery;
+      if(c.includes("promo")||c.includes("sample"))return COGS.Promo;
       return COGS.Other;
     }
     const PKG = {
@@ -429,7 +433,7 @@
     function getWeekKey(){const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toISOString().split("T")[0];}
     function fuzzyMatch(a,b){const norm=function(s){return s.toLowerCase().replace(/\s*-\s*corporate/gi,"").replace(/\s*\(.*?\)/g,"").replace(/[^a-z0-9\s]/g,"").replace(/\s+/g," ").trim();};const na=norm(a),nb=norm(b);if(na===nb)return true;const wa=na.split(" ").filter(function(w){return w.length>3;}),wb=nb.split(" ").filter(function(w){return w.length>3;});return wa.filter(function(w){return wb.includes(w);}).length>=Math.min(2,wa.length,wb.length);}
     function parseWMSku(name){const p=name.replace(/^Globs\s*\|\s*/i,"").split(/\s*\|\s*/);return{strain:(p[0]&&p[0].trim())||""};}
-    function skuCat(wmName){const n=wmName.toLowerCase();if(n.includes("badder"))return"Badder";if(n.includes("cartridge")||n.includes("cart"))return"Cart";if(n.includes("sauce"))return"Sauce";if(n.includes("diamonds"))return"Diamonds";return"Other";}
+    function skuCat(wmName){const n=wmName.toLowerCase();if(n.includes("badder"))return"Badder";if(n.includes("cartridge")||n.includes("cart"))return"Cart";if(n.includes("sauce"))return"Sauce";if(n.includes("diamonds")||n.includes("diamond"))return"Diamonds";if(n.includes("shatter"))return"Shatter";if(n.includes("battery"))return"Battery";if(n.includes("promo")||n.includes("sample"))return"Promo";return"Other";}
     function normStr(s){return s.toLowerCase().replace(/[^a-z]/g,'');}
 
     // ── SMALL COMPONENTS ──────────────────────────────────────────────────────
@@ -914,7 +918,7 @@
 ["Satori Wellness Center","DNU",51,159,"Cotati","L",0,480,1200,3380,4221,6141],
 ["Purple Lotus","RB",73,200,"San Jose","L",0,640,3640,5980,5980,5980],
 ["Merced Business Ventures","RB",110,200,"Merced","R",480,1100,1100,2140,4020,5800],
-["EcoCannabis Oakland","RB",64,179,"Oakland","L",600,600,1070,2426,3726,5426],
+["EcoCannabis Oakland","DNU",64,179,"Oakland","L",600,600,1070,2426,3726,5426],
 ["NUG x Sundial Collective","DNU",95,67,"Redding","R",0,0,760,1840,5371,5371],
 ["Root'd","RB",63,190,"San Mateo","L",800,1120,1700,2460,2940,5320],
 ["Humble Root","RB",93,160,"Sacramento","L",1920,1920,1920,3360,3360,4960],
@@ -984,7 +988,7 @@
 ["Off the Charts Costa Mesa Harbor Blvd","ZASP",175,347,"Costa Mesa","L",1000,1000,1000,1000,1450,1450],
 ["Essentials","ZASP",169,334,"LA","N",0,0,0,0,640,1440],
 ["Barbary Coast","RB",55,180,"SF","L",480,480,480,960,1430,1430],
-["Cali Love 101","RB",86,105,"Willows","N",0,0,0,0,1400,1400],
+["Cali Love 101","DNU",86,105,"Willows","N",0,0,0,0,1400,1400],
 ["Humanity Wellness","DNU",14,62,"Humboldt","R",0,0,0,200,200,1400],
 ["Off the Charts Indio","ZASP",205,340,"Indio","L",1000,1000,1000,1000,1400,1400],
 ["Off the Charts SF","RB",55,180,"SF","L",1000,1000,1000,1000,1400,1400],
@@ -1105,7 +1109,7 @@
 ["Surf City Original","RB",69,213,"Santa Cruz","N",0,0,0,0,0,0],
 ["The Herbivore","RB",55,180,"SF","N",0,0,0,0,0,0],
 ["The Ounce","ZASP",169,334,"LA","N",0,0,0,0,0,0],
-["UpNorth Samples","ZASP",14,55,"Arcata","N",0,0,0,0,0,0],
+["UpNorth Samples","RB",14,55,"Arcata","N",0,0,0,0,0,0],
 ["WHTC","ZASP",169,334,"LA","N",0,0,0,0,0,0]
                   ];
                   var dpi=DDPI[periodDays]||11;
@@ -1142,7 +1146,7 @@
                                 <g style={{animation:'fadeIn 0.3s ease-out 0.7s both'}}><circle cx={DRV.x} cy={DRV.y} r={3} fill={C.text}/><text x={DRV.x+7} y={DRV.y-4} fontSize={4.5} fill={C.muted} fontFamily="monospace" fontWeight={700}>Riverbank</text></g>
                                 {dHasAR&&<g style={{animation:'fadeIn 0.3s ease-out 1.3s both'}}><circle cx={DAR.x} cy={DAR.y} r={2.5} fill="#ffeb3b"/><text x={DAR.x+7} y={DAR.y-5} fontSize={4.5} fill="#ffeb3b" fontFamily="monospace" fontWeight={700} opacity={0.7}>Arcata</text></g>}
                                 {dHasLA&&<g style={{animation:'fadeIn 0.3s ease-out 1.4s both'}}><circle cx={DLA.x} cy={DLA.y} r={2.5} fill="#f44336"/><text x={DLA.x+7} y={DLA.y+12} fontSize={4.5} fill="#f44336" fontFamily="monospace" fontWeight={700} opacity={0.7}>Los Angeles</text></g>}
-                                {dcities.map(function(c,i){var isA=dActive&&dActive.ct===c.ct,r=Math.max(2.5,Math.min(6,c.tot/8000));var delay=(3.5+i*0.02)+'s';return React.createElement('g',{key:'c-'+c.ct,style:{transformOrigin:c.x+'px '+c.y+'px',animation:'popIn 0.35s ease-out '+delay+' both',cursor:'pointer'}},React.createElement('circle',{cx:c.x,cy:c.y,r:Math.max(8,r+4),fill:'transparent',stroke:'none',style:{pointerEvents:'all'},onMouseEnter:function(){setDHovCity(c);},onMouseLeave:function(){setDHovCity(null);},onClick:function(e){e.stopPropagation();setDSelCity(dSelCity&&dSelCity.ct===c.ct?null:c);}}),isA&&React.createElement('circle',{cx:c.x,cy:c.y,r:r+3,fill:'none',stroke:DZC[c.z],strokeWidth:0.5,opacity:0.5}),React.createElement('circle',{cx:c.x,cy:c.y,r:r,fill:DZC[c.z],opacity:isA?1:0.75,stroke:isA?C.text:'none',strokeWidth:0.7,style:{pointerEvents:'none'}}),c.accts.length>1&&React.createElement('text',{x:c.x,y:c.y+1.2,fontSize:3.2,fill:lightMode?'#fff':'#000',fontFamily:'monospace',fontWeight:800,textAnchor:'middle',style:{pointerEvents:'none'}},c.accts.length),React.createElement('text',{x:c.x+(c.x>140?-r-3:r+3),y:c.y+1,fontSize:3.5,fill:DZC[c.z],opacity:isA?0.9:0.4,fontFamily:'monospace',textAnchor:c.x>140?'end':'start',style:{pointerEvents:'none'}},c.ct));})}
+                                {dcities.map(function(c,i){var isA=dActive&&dActive.ct===c.ct,r=Math.max(2.5,Math.min(6,c.tot/8000));var delay=(3.5+i*0.02)+'s';return React.createElement('g',{key:'c-'+c.ct,style:{transformOrigin:c.x+'px '+c.y+'px',animation:'popIn 0.35s ease-out '+delay+' both',cursor:'pointer'}},React.createElement('circle',{cx:c.x,cy:c.y,r:Math.max(8,r+4),fill:'transparent',stroke:'none',style:{pointerEvents:'all'},onMouseEnter:function(){setDHovCity(c);},onMouseLeave:function(){setDHovCity(null);},onClick:function(e){e.stopPropagation();setDSelCity(dSelCity&&dSelCity.ct===c.ct?null:c);}}),isA&&React.createElement('circle',{cx:c.x,cy:c.y,r:r+3,fill:'none',stroke:DZC[c.z],strokeWidth:0.5,opacity:0.5}),React.createElement('circle',{cx:c.x,cy:c.y,r:r,fill:DZC[c.z],opacity:isA?1:0.75,stroke:isA?C.text:'none',strokeWidth:0.7,style:{pointerEvents:'none'}}),c.accts.length>1&&React.createElement('text',{x:c.x,y:c.y+1.2,fontSize:3.2,fill:lightMode?'#fff':'#000',fontFamily:'monospace',fontWeight:800,textAnchor:'middle',style:{pointerEvents:'none'}},c.accts.length),React.createElement('text',{x:c.x+(c.x>140?-r-3:r+3),y:c.y+1,fontSize:4.5,fill:DZC[c.z],opacity:isA?1:0.7,fontFamily:'monospace',fontWeight:600,textAnchor:c.x>140?'end':'start',style:{pointerEvents:'none'}},c.ct));})}
                               </svg>
                             </div>
                           </div>
