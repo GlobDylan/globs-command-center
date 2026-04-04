@@ -665,7 +665,6 @@
               <img src={lightMode?LOGO_LIGHT:LOGO_DARK} alt="Globs" style={{height:38,width:'auto',objectFit:'contain',filter:lightMode?'none':'none'}}/>
               <div>
                 <div style={{fontWeight:900,fontSize:11,letterSpacing:5,color:C.text}}>GLOBS</div>
-                <div style={{fontSize:7,color:C.dim,letterSpacing:3,textTransform:'uppercase'}}>Price Intelligence</div>
               </div>
             </div>
             <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',justifyContent:'flex-end'}}>
@@ -695,7 +694,7 @@
           {(hasData||tab==="cashflow")&&(
             <>
               <div className="gpi-tab-bar" style={{background:C.bg,borderBottom:'1px solid '+C.border,padding:'0 24px',display:'flex',gap:20,overflowX:'auto',WebkitOverflowScrolling:'touch'}}>
-                {[["accounts","Accounts"],["executive","Executive"],["dashboard","Dashboard"],["mfg","MFG"],["packaging","Packaging"],["velocity","Velocity"],["cashflow","Cash Flow"],["dispatch","Dispatch"],["opportunities","Opps"]].map(function(tl){return<button key={tl[0]} style={tabSt(tab===tl[0])} onClick={function(){setTab(tl[0]);}}>{tl[1]}</button>;})}
+                {[["accounts","Accounts"],["executive","Executive"],["mfg","MFG"],["packaging","Packaging"],["cashflow","Cash Flow"],["dispatch","Dispatch"],["opportunities","Opps"]].map(function(tl){return<button key={tl[0]} style={tabSt(tab===tl[0])} onClick={function(){setTab(tl[0]);}}>{tl[1]}</button>;})}
               </div>
               <div className="gpi-content" style={{padding:'22px 24px',maxWidth:1300,margin:'0 auto'}}>
 
@@ -1288,7 +1287,7 @@
         {date:'2026-02-05',vendor:'Elfsight',desc:'Age verification widget',amount:60,cat:'Software'},
         {date:'2026-02-19',vendor:'VapeCartsCC',desc:'#1945 — 5,000 carts',amount:9527.50,cat:'Hardware'},
         {date:'2026-02-27',vendor:'QuickBooks',desc:'Monthly subscription',amount:25,cat:'Software'},
-        {date:'2026-02-15',vendor:'Encore Labs',desc:'Lab testing (est.)',amount:2000,cat:'Lab/Testing'},
+        {date:'2026-02-15',vendor:'Encore Labs',desc:'5 strains × $400/strain',amount:2000,cat:'Lab/Testing'},
         {date:'2026-02-23',vendor:'UpNorth (Trim Sale)',desc:'SO-0061246 biomass to GON Inc',amount:6000,cat:'COGS/Biomass'},
         {date:'2026-03-10',vendor:'Treeform',desc:'INV38610+38884',amount:1574.88,cat:'Packaging'},
         {date:'2026-03-16',vendor:'Staybridge',desc:'HOF Ventura 4 nights',amount:915.39,cat:'Travel'},
@@ -1322,6 +1321,30 @@
       ];
 
       var payout84=totalRev*0.84;
+
+      // ── Growth Projections ──
+      var [growthPct,setGrowthPct]=useState(15);
+      var monthNames=['Apr','May','Jun','Jul','Aug','Sep'];
+      var baseMonthRev=70954; // March 2026 as baseline
+      var baseUnits=8675;
+      var projMonths=monthNames.map(function(m,i){
+        var g=Math.pow(1+growthPct/100,i+1);
+        var rev=Math.round(baseMonthRev*g);
+        var units=Math.round(baseUnits*g);
+        // Costs: biomass $0.46/g ($25/lb÷54g yield), hardware $1.80/cart (70% mix),
+        // cart pkg $0.36, conc pkg $0.62, lab $400/strain×6=$2400/mo, fixed $125/mo
+        var cartUnits=Math.round(units*0.70);
+        var concUnits=units-cartUnits;
+        var apBiomass=Math.round(units*0.46);
+        var apHardware=Math.round(cartUnits*1.80);
+        var apPackaging=Math.round(cartUnits*0.36+concUnits*0.62);
+        var apLab=2400;
+        var apFixed=125;
+        var apTotal=apBiomass+apHardware+apPackaging+apLab+apFixed;
+        var payout=Math.round(rev*0.84);
+        var cashGap=payout-apTotal;
+        return {month:m,rev:rev,units:units,payout:payout,apBiomass:apBiomass,apHardware:apHardware,apPackaging:apPackaging,apLab:apLab,apFixed:apFixed,apTotal:apTotal,cashGap:cashGap};
+      });
 
       const STORE_KEY = 'gpi-cashflow-entries';
       const [entries, setEntries] = useState([]);
@@ -1547,6 +1570,77 @@
               <div style={{fontSize:9,color:C.dim}}>Payout (84%): <span style={{color:C.good,fontWeight:700}}>{cur(payout84)}</span></div>
               <div style={{fontSize:9,color:C.dim}}>AP: <span style={{color:C.danger,fontWeight:700}}>-{cur(totalAP)}</span></div>
               <div style={{fontSize:22,fontWeight:900,color:payout84-totalAP>0?C.good:C.danger,marginTop:4}}>{payout84-totalAP>=0?'+':''}{curK(payout84-totalAP)}</div>
+            </div>
+          </div>
+
+          <div style={{fontSize:9,color:C.dim,letterSpacing:2,textTransform:'uppercase',marginBottom:14}}>AR Payout Schedule — UpNorth → Family Tree Consulting</div>
+          <div style={{overflowX:'auto',marginBottom:24}}>
+            <table style={{width:'100%',minWidth:500,borderCollapse:'collapse',background:C.surface,border:'1px solid '+C.border,borderRadius:6}}>
+              <thead><tr>{['Sales Period','Gross Revenue','Distro (16%)','Your Payout (84%)','Due Date','Status'].map(function(h,i){return <th key={h} style={{padding:'8px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>1?'right':'left',borderBottom:'1px solid '+C.border,textTransform:'uppercase'}}>{h}</th>;})}</tr></thead>
+              <tbody>
+                {[{m:'Dec 2025',rev:57556,dist:9209,pay:39997.74,due:'Feb 13',st:'received'},
+                  {m:'Jan 2026',rev:44329,dist:7093,pay:37236,due:'Mar 13',st:'received'},
+                  {m:'Feb 2026',rev:46297,dist:7407,pay:38396.91,due:'Apr 13',st:'due'},
+                  {m:'Mar 2026',rev:70954,dist:11353,pay:59601,due:'May 8',st:'projected'}
+                ].map(function(r,i){var sc=r.st==='received'?C.good:r.st==='due'?C.warn:C.muted;return <tr key={i} style={{background:i%2===0?'transparent':C.raised}}>
+                  <td style={{padding:'8px 10px',fontSize:11,fontWeight:600}}>{r.m}</td>
+                  <td style={{padding:'8px 10px',fontSize:11,color:C.muted}}>{curK(r.rev)}</td>
+                  <td style={{padding:'8px 10px',textAlign:'right',fontSize:10,color:C.dim}}>-{curK(r.dist)}</td>
+                  <td style={{padding:'8px 10px',textAlign:'right',fontSize:12,fontWeight:800}}>{cur(r.pay)}</td>
+                  <td style={{padding:'8px 10px',textAlign:'right',fontSize:10,color:C.muted}}>{r.due}</td>
+                  <td style={{padding:'8px 10px',textAlign:'right'}}><span style={{fontSize:8,fontWeight:700,padding:'2px 8px',borderRadius:2,background:sc+'18',border:'1px solid '+sc+'44',color:sc,textTransform:'uppercase'}}>{r.st}</span></td>
+                </tr>;})}
+                <tr style={{borderTop:'1px solid '+C.borderHi,background:C.raised}}>
+                  <td colSpan={3} style={{padding:'8px 10px',fontSize:11,fontWeight:800}}>Outstanding AR</td>
+                  <td style={{padding:'8px 10px',textAlign:'right',fontSize:13,fontWeight:900,color:C.warn}}>{cur(38396.91+59601)}</td>
+                  <td colSpan={2} style={{padding:'8px 10px',textAlign:'right',fontSize:9,color:C.dim}}>Feb + Mar payouts</td>
+                </tr>
+              </tbody>
+            </table>
+            <div style={{fontSize:9,color:C.dim,marginTop:6}}>Per contract §5(d): payment on 2nd Friday of month following sales period close. 100% to Family Tree Consulting.</div>
+          </div>
+
+          {/* ═══ GROWTH PROJECTION ═══ */}
+          <div style={{marginBottom:24}}>
+            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14,flexWrap:'wrap'}}>
+              <span style={{fontSize:9,color:C.dim,letterSpacing:2,textTransform:'uppercase'}}>Growth Projection</span>
+              <span style={{fontSize:9,color:C.muted}}>Base: Mar $71K</span>
+              <div style={{display:'flex',gap:4,marginLeft:'auto'}}>
+                {[5,10,15,20,25].map(function(g){return <button key={g} onClick={function(){setGrowthPct(g);}} style={{padding:'4px 10px',borderRadius:2,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(growthPct===g?C.text:C.border),background:growthPct===g?C.text:'transparent',color:growthPct===g?C.bg:C.dim,fontWeight:growthPct===g?700:400}}>{g}%</button>;})}
+              </div>
+            </div>
+
+            <div style={{overflowX:'auto'}}>
+              <table style={{width:'100%',minWidth:600,borderCollapse:'collapse',background:C.surface,border:'1px solid '+C.border,borderRadius:6}}>
+                <thead><tr>{['Month','Revenue','Units','Payout (84%)','Biomass','Hardware','Packaging','Lab','Fixed','Total AP','Cash Gap'].map(function(h,i){return <th key={h} style={{padding:'5px 6px',fontSize:7,fontWeight:700,letterSpacing:0.8,color:C.dim,textAlign:i===0?'left':'right',borderBottom:'1px solid '+C.border,textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead>
+                <tbody>
+                  {projMonths.map(function(m,i){return <tr key={i} style={{background:i%2===0?'transparent':C.raised}}>
+                    <td style={{padding:'6px',fontSize:11,fontWeight:700}}>{m.month}</td>
+                    <td style={{padding:'6px',textAlign:'right',fontSize:11,fontWeight:700}}>{curK(m.rev)}</td>
+                    <td style={{padding:'6px',textAlign:'right',fontSize:9,color:C.muted}}>{m.units.toLocaleString()}</td>
+                    <td style={{padding:'6px',textAlign:'right',fontSize:10,color:C.good,fontWeight:700}}>{curK(m.payout)}</td>
+                    <td style={{padding:'6px',textAlign:'right',fontSize:9,color:C.muted}}>{curK(m.apBiomass)}</td>
+                    <td style={{padding:'6px',textAlign:'right',fontSize:9,color:C.muted}}>{curK(m.apHardware)}</td>
+                    <td style={{padding:'6px',textAlign:'right',fontSize:9,color:C.dim}}>{curK(m.apPackaging)}</td>
+                    <td style={{padding:'6px',textAlign:'right',fontSize:9,color:C.dim}}>{curK(m.apLab)}</td>
+                    <td style={{padding:'6px',textAlign:'right',fontSize:9,color:C.dim}}>{curK(m.apFixed)}</td>
+                    <td style={{padding:'6px',textAlign:'right',fontSize:10,fontWeight:700,color:C.danger}}>{curK(m.apTotal)}</td>
+                    <td style={{padding:'6px',textAlign:'right',fontSize:11,fontWeight:800,color:m.cashGap>0?C.good:C.danger}}>{m.cashGap>=0?'+':''}{curK(m.cashGap)}</td>
+                  </tr>;})}
+                </tbody>
+              </table>
+            </div>
+
+            <div style={{marginTop:12,background:C.raised,border:'1px solid '+C.borderHi,borderRadius:6,padding:14}}>
+              <div style={{fontSize:8,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:8}}>6-Month Forecast at {growthPct}% MoM Growth</div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(110px,1fr))',gap:10}}>
+                {[{l:'Projected Revenue',v:curK(projMonths.reduce(function(s,m){return s+m.rev;},0)),c:C.text},
+                  {l:'Projected AP',v:curK(projMonths.reduce(function(s,m){return s+m.apTotal;},0)),c:C.danger},
+                  {l:'Net Cash 6mo',v:curK(projMonths.reduce(function(s,m){return s+m.cashGap;},0)),c:projMonths.reduce(function(s,m){return s+m.cashGap;},0)>0?C.good:C.danger},
+                  {l:'Avg Monthly Gap',v:curK(projMonths.reduce(function(s,m){return s+m.cashGap;},0)/6),c:C.muted}
+                ].map(function(s){return <div key={s.l}><div style={{fontSize:7,color:C.dim,letterSpacing:1,textTransform:'uppercase',marginBottom:2}}>{s.l}</div><div style={{fontSize:16,fontWeight:800,color:s.c}}>{s.v}</div></div>;})}
+              </div>
+              <div style={{marginTop:10,fontSize:9,color:C.dim}}>⚠ AP timing note: Materials AP hits 21-42 days BEFORE production. Payouts arrive 30-45 days AFTER sales. At {growthPct}% growth, budget {curK(Math.max.apply(null,projMonths.map(function(m){return m.apTotal;})))} working capital for peak month.</div>
             </div>
           </div>
 
