@@ -1284,16 +1284,32 @@
       var AP_DATA=[
         {date:'2026-01-06',vendor:'Two Packaging',desc:'Cart boxes deposit',amount:0,cat:'Packaging'},
         {date:'2026-01-27',vendor:'QuickBooks',desc:'Monthly subscription',amount:25,cat:'Software'},
-        {date:'2026-02-05',vendor:'Elfsight',desc:'Age verification widget',amount:60,cat:'Software'},
-        {date:'2026-02-19',vendor:'VapeCartsCC',desc:'#1945 — 5,000 carts',amount:9527.50,cat:'Hardware'},
-        {date:'2026-02-27',vendor:'QuickBooks',desc:'Monthly subscription',amount:25,cat:'Software'},
+        {date:'2026-01-01',vendor:'Home Office',desc:'37.5% of $2,200 rent',amount:825,cat:'Overhead'},
+        {date:'2026-01-01',vendor:'Cell Phone',desc:'90% business use',amount:135,cat:'Overhead'},
+        {date:'2026-01-01',vendor:'Internet',desc:'90% business use',amount:126,cat:'Overhead'},
+        {date:'2026-01-01',vendor:'Weedmaps',desc:'Monthly listing',amount:99,cat:'Software'},
+        {date:'2026-01-01',vendor:'Claude Max',desc:'Monthly subscription',amount:200,cat:'Software'},
+        {date:'2026-02-01',vendor:'Home Office',desc:'37.5% of $2,200 rent',amount:825,cat:'Overhead'},
+        {date:'2026-02-01',vendor:'Cell/Internet',desc:'90% business use',amount:261,cat:'Overhead'},
+        {date:'2026-02-01',vendor:'Weedmaps',desc:'Monthly listing',amount:99,cat:'Software'},
+        {date:'2026-02-01',vendor:'Claude Max',desc:'Monthly subscription',amount:200,cat:'Software'},
+        {date:'2026-02-02',vendor:'Lava Rubber / Moodmats',desc:'Invoice #9155 merch order',amount:3261.40,cat:'Merch/Equipment'},
+        {date:'2026-02-05',vendor:'Elfsight',desc:'Age verification (annual)',amount:60,cat:'Software'},
         {date:'2026-02-15',vendor:'Encore Labs',desc:'5 strains × $400/strain',amount:2000,cat:'Lab/Testing'},
+        {date:'2026-02-19',vendor:'VapeCartsCC',desc:'#1945 — 5,000 carts',amount:9527.50,cat:'Hardware'},
         {date:'2026-02-23',vendor:'UpNorth (Trim Sale)',desc:'SO-0061246 biomass to GON Inc',amount:6000,cat:'COGS/Biomass'},
+        {date:'2026-02-27',vendor:'QuickBooks',desc:'Monthly subscription',amount:25,cat:'Software'},
+        {date:'2026-03-01',vendor:'Home Office',desc:'37.5% of $2,200 rent',amount:825,cat:'Overhead'},
+        {date:'2026-03-01',vendor:'Cell/Internet',desc:'90% business use',amount:261,cat:'Overhead'},
+        {date:'2026-03-01',vendor:'Weedmaps',desc:'Monthly listing',amount:99,cat:'Software'},
+        {date:'2026-03-01',vendor:'Claude Max',desc:'Monthly subscription',amount:200,cat:'Software'},
         {date:'2026-03-10',vendor:'Treeform',desc:'INV38610+38884',amount:1574.88,cat:'Packaging'},
         {date:'2026-03-16',vendor:'Staybridge',desc:'HOF Ventura 4 nights',amount:915.39,cat:'Travel'},
         {date:'2026-03-24',vendor:'VapeCartsCC',desc:'#1953 partial payment',amount:4034.17,cat:'Hardware'},
         {date:'2026-03-27',vendor:'QuickBooks',desc:'Monthly subscription',amount:25,cat:'Software'},
         {date:'2026-03-27',vendor:'VapeCartsCC',desc:'#1956 — 10,000 carts',amount:19447.95,cat:'Hardware'},
+        {date:'2026-04-01',vendor:'Home Office',desc:'37.5% of $2,200 rent',amount:825,cat:'Overhead'},
+        {date:'2026-04-01',vendor:'Cell/Internet',desc:'90% business use',amount:261,cat:'Overhead'},
         {date:'2026-04-02',vendor:'Rapacke Law',desc:'USPTO trademark',amount:2250,cat:'Legal/IP'},
         {date:'2026-04-02',vendor:'Weedmaps',desc:'SIN810743 monthly listing',amount:99,cat:'Software'},
         {date:'2026-04-04',vendor:'Claude Max',desc:'Monthly subscription',amount:200,cat:'Software'},
@@ -1335,14 +1351,14 @@
         var units=Math.round(baseUnits*g);
         // Costs: biomass $0.46/g ($25/lb÷54g yield), hardware $1.80/cart (70% mix),
         // cart pkg $0.36, conc pkg $0.62, lab $400/strain×6=$2400/mo,
-        // fixed: QB $25 + Elfsight $5 + Weedmaps $99 + Max $200 + Squarespace ~$16 = $345/mo
+        // fixed: QB $25 + WM $99 + Max $200 + Elfsight $5 + Rent $825 + Cell $135 + Internet $126 = $1,415/mo
         var cartUnits=Math.round(units*0.70);
         var concUnits=units-cartUnits;
         var apBiomass=Math.round(units*0.46);
         var apHardware=Math.round(cartUnits*1.80);
         var apPackaging=Math.round(cartUnits*0.36+concUnits*0.62);
         var apLab=2400;
-        var apFixed=345;
+        var apFixed=1415;
         var apTotal=apBiomass+apHardware+apPackaging+apLab+apFixed;
         var payout=Math.round(rev*0.84);
         var cashGap=payout-apTotal;
