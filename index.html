@@ -868,7 +868,7 @@
                 )}
 
                 {/* ══ CASH FLOW ══ */}
-                {tab==="cashflow"&&<CashFlow C={C}/>}
+                {tab==="cashflow"&&<CashFlow C={C} accounts={accounts} periodDays={periodDays} setPeriodDays={setPeriodDays}/>}
 
                 {/* ══ DISPATCH MAP ══ */}
                 {tab==="dispatch"&&(function(){
@@ -1256,8 +1256,73 @@
     }
 
     // ── CASH FLOW TAB ─────────────────────────────────────────────────────────
-    function CashFlow({C}) {
-      if (!C) C = DARK_C; // fallback
+    function CashFlow({C,accounts,periodDays,setPeriodDays}) {
+      if (!C) C = DARK_C;
+      var pd = periodDays||365;
+      // ── Compute P&L from accounts data ──
+      var byType={};var totalRev=0,totalUnits=0;
+      (accounts||[]).forEach(function(a){
+        if(!a.hasSalesData)return;
+        (a.orderedSkus||[]).forEach(function(s){
+          var pu=(s.periodUnits&&s.periodUnits[pd])||0;
+          if(pu<=0)return;
+          var cat=s.category||'Other';
+          var cg=cogsFor(cat);
+          var rev=pu*cg.wholesale;
+          if(!byType[cat])byType[cat]={label:cg.label||cat,units:0,rev:0,cost:0};
+          byType[cat].units+=pu;byType[cat].rev+=rev;byType[cat].cost+=pu*cg.cost;
+          totalRev+=rev;totalUnits+=pu;
+        });
+      });
+      var totalCOGS=0,totalDistro=totalRev*0.16;
+      Object.values(byType).forEach(function(t){totalCOGS+=t.cost;});
+      var grossProfit=totalRev-totalCOGS;
+      var netProfit=grossProfit-totalDistro;
+      var margin=totalRev>0?(netProfit/totalRev*100):0;
+      var types=Object.values(byType).sort(function(a,b){return b.rev-a.rev;});
+
+      // ── AP ledger ──
+      var AP_DATA=[
+        {date:'2026-01-06',vendor:'Two Packaging',desc:'Cart boxes deposit',amount:0,cat:'Packaging'},
+        {date:'2026-01-27',vendor:'QuickBooks',desc:'Monthly subscription',amount:25,cat:'Software'},
+        {date:'2026-02-05',vendor:'Elfsight',desc:'Age verification widget',amount:60,cat:'Software'},
+        {date:'2026-02-19',vendor:'VapeCartsCC',desc:'#1945 — 5,000 carts',amount:9527.50,cat:'Hardware'},
+        {date:'2026-02-27',vendor:'QuickBooks',desc:'Monthly subscription',amount:25,cat:'Software'},
+        {date:'2026-02-15',vendor:'Encore Labs',desc:'Lab testing (est.)',amount:2000,cat:'Lab/Testing'},
+        {date:'2026-02-23',vendor:'UpNorth (Trim Sale)',desc:'SO-0061246 biomass to GON Inc',amount:6000,cat:'COGS/Biomass'},
+        {date:'2026-03-10',vendor:'Treeform',desc:'INV38610+38884',amount:1574.88,cat:'Packaging'},
+        {date:'2026-03-16',vendor:'Staybridge',desc:'HOF Ventura 4 nights',amount:915.39,cat:'Travel'},
+        {date:'2026-03-24',vendor:'VapeCartsCC',desc:'#1953 partial payment',amount:4034.17,cat:'Hardware'},
+        {date:'2026-03-27',vendor:'QuickBooks',desc:'Monthly subscription',amount:25,cat:'Software'},
+        {date:'2026-03-27',vendor:'VapeCartsCC',desc:'#1956 — 10,000 carts',amount:19447.95,cat:'Hardware'},
+        {date:'2026-04-02',vendor:'Rapacke Law',desc:'USPTO trademark',amount:2250,cat:'Legal/IP'},
+        {date:'2026-04-17',vendor:'Treeform',desc:'INV39774 foam sign',amount:52.71,cat:'Packaging'}
+      ];
+      var now=new Date(2026,3,4);
+      var cutoff=new Date(now.getTime()-pd*86400000);
+      var periodAP=AP_DATA.filter(function(a){
+        if(!a.amount)return false;
+        var parts=a.date.split('-');
+        var d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2])||1);
+        return d>=cutoff;
+      });
+      var totalAP=periodAP.reduce(function(s,a){return s+(a.amount||0);},0);
+
+      // ── AP by category ──
+      var apByCat={};
+      periodAP.forEach(function(a){if(a.amount){apByCat[a.cat]=(apByCat[a.cat]||0)+a.amount;}});
+      var apCats=Object.entries(apByCat).sort(function(a,b){return b[1]-a[1];});
+
+      // ── AR schedule ──
+      var AR_DATA=[
+        {m:'Dec 2025',rev:57556,pay:39997.74,due:'Feb 13',st:'received'},
+        {m:'Jan 2026',rev:44329,pay:37236,due:'Mar 13',st:'received'},
+        {m:'Feb 2026',rev:46297,pay:38396.91,due:'Apr 13',st:'due'},
+        {m:'Mar 2026',rev:70954,pay:59601,due:'May 8',st:'projected'}
+      ];
+
+      var payout84=totalRev*0.84;
+
       const STORE_KEY = 'gpi-cashflow-entries';
       const [entries, setEntries] = useState([]);
       const [loading, setLoading] = useState(true);
@@ -1433,31 +1498,56 @@
 
       return (
         <div>
+          {/* ═══ PERIOD SELECTOR ═══ */}
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14}}>
+            <span style={{fontSize:9,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>Revenue Window</span>
+            {[30,60,90,180,270,365].map(function(d){return<button key={d} onClick={function(){setPeriodDays(d);}} style={{padding:'4px 11px',borderRadius:2,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(pd===d?C.text:C.border),background:pd===d?C.text:'transparent',color:pd===d?C.bg:C.dim,fontWeight:pd===d?700:400}}>{d}d</button>;})}
+          </div>
+
           {/* ═══ P&L SUMMARY ═══ */}
-          <div style={{marginBottom:24}}>
-            <div style={{fontSize:9,color:C.dim,letterSpacing:2,textTransform:'uppercase',marginBottom:14}}>Profit & Loss — Last 12 Months (Salesforce Data)</div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(120px,1fr))',gap:10,marginBottom:16}}>
-              {[{l:'Feb Revenue',v:'$46.3k',c:C.text},{l:'Mar Revenue',v:'$70.9k',c:C.text},{l:'Feb Net',v:'$17.8k',c:C.good},{l:'Mar Net',v:'$27.2k',c:C.good},{l:'Net Margin',v:'38.3%',c:C.good},{l:'12mo Total',v:'$746k',c:C.text}].map(function(s){return <div key={s.l} style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'12px 14px'}}><div style={{fontSize:8,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:4}}>{s.l}</div><div style={{fontSize:18,fontWeight:800,color:s.c}}>{s.v}</div></div>;})}
+          <div style={{display:'flex',gap:10,marginBottom:16,flexWrap:'wrap'}}>
+            {[{l:'Revenue ('+pd+'d)',v:curK(totalRev),c:C.text},{l:'Prod COGS',v:'-'+curK(totalCOGS),c:C.muted},{l:'Distro (16%)',v:'-'+curK(totalDistro),c:C.muted},{l:'Net Profit',v:curK(netProfit),c:netProfit>0?C.good:C.danger},{l:'Net Margin',v:margin.toFixed(1)+'%',c:margin>35?C.good:margin>20?C.warn:C.danger},{l:'Units',v:totalUnits.toLocaleString(),c:C.text}].map(function(s){return <div key={s.l} style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'14px 16px',flex:1,minWidth:120}}><div style={{fontSize:8,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:4}}>{s.l}</div><div style={{fontSize:20,fontWeight:800,color:s.c}}>{s.v}</div></div>;})}
+          </div>
+
+          {/* ═══ COGS BY PRODUCT TYPE ═══ */}
+          <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16,marginBottom:16}}>
+            <div style={{fontSize:9,color:C.dim,letterSpacing:2,textTransform:'uppercase',marginBottom:10}}>P&L by Product Type — {pd}d Window</div>
+            <div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:500,borderCollapse:'collapse'}}>
+              <thead><tr>{['Type','Units','Revenue','Prod Cost','Distro','Net Profit','Margin'].map(function(h,i){return <th key={h} style={{padding:'5px 8px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i===0?'left':'right',borderBottom:'1px solid '+C.border,textTransform:'uppercase'}}>{h}</th>;})}</tr></thead>
+              <tbody>
+                {types.map(function(t,i){var d2=t.rev*0.16,n2=t.rev-t.cost-d2,mg=t.rev>0?n2/t.rev*100:0;return <tr key={t.label} style={{background:i%2===0?'transparent':C.raised}}><td style={{padding:'7px 8px',fontSize:11,fontWeight:600}}>{t.label}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:10,color:C.muted}}>{t.units.toLocaleString()}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:11,fontWeight:700}}>{curK(t.rev)}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:10,color:C.muted}}>{curK(t.cost)}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:10,color:C.dim}}>{curK(d2)}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:11,fontWeight:700,color:n2>0?C.good:C.danger}}>{curK(n2)}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:10,color:mg>35?C.good:mg>20?C.warn:C.danger}}>{mg.toFixed(1)}%</td></tr>;})}
+                <tr style={{borderTop:'1px solid '+C.borderHi,background:C.raised}}><td style={{padding:'7px 8px',fontSize:11,fontWeight:800}}>TOTAL</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:10,fontWeight:700}}>{totalUnits.toLocaleString()}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:11,fontWeight:800}}>{curK(totalRev)}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:10,fontWeight:700}}>{curK(totalCOGS)}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:10,fontWeight:700}}>{curK(totalDistro)}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:12,fontWeight:800,color:C.good}}>{curK(netProfit)}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:10,fontWeight:800,color:C.good}}>{margin.toFixed(1)}%</td></tr>
+              </tbody>
+            </table></div>
+          </div>
+
+          {/* ═══ CASH FLOW POSITION ═══ */}
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:16}}>
+            <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16}}>
+              <div style={{fontSize:9,color:C.dim,letterSpacing:2,textTransform:'uppercase',marginBottom:10}}>AP — Expenses ({pd}d)</div>
+              {periodAP.map(function(a,i){return <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'4px 0',borderBottom:'1px solid '+C.border}}><div><div style={{fontSize:10,fontWeight:600}}>{a.vendor}</div><div style={{fontSize:8,color:C.dim}}>{a.desc}</div></div><div style={{fontSize:11,fontWeight:700,color:C.danger,flexShrink:0,marginLeft:8}}>{cur(a.amount)}</div></div>;})}
+              <div style={{display:'flex',justifyContent:'space-between',paddingTop:8,marginTop:4}}><span style={{fontSize:10,fontWeight:800}}>Total AP</span><span style={{fontSize:13,fontWeight:900,color:C.danger}}>{cur(totalAP)}</span></div>
+              {apCats.length>0&&<div style={{marginTop:12,paddingTop:10,borderTop:'1px solid '+C.border}}><div style={{fontSize:8,color:C.dim,letterSpacing:1.5,marginBottom:6,textTransform:'uppercase'}}>By Category</div>{apCats.map(function(e){var pct=totalAP>0?e[1]/totalAP*100:0;return <div key={e[0]} style={{marginBottom:4}}><div style={{display:'flex',justifyContent:'space-between',fontSize:9}}><span style={{color:C.muted}}>{e[0]}</span><span style={{fontWeight:700}}>{cur(e[1])}</span></div><div style={{height:3,background:C.border,borderRadius:2,overflow:'hidden',marginTop:2}}><div style={{height:'100%',width:pct+'%',background:C.text,borderRadius:2}}></div></div></div>;})}</div>}
             </div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:16}}>
-              {[{label:'February 2026',rev:46297,cogs:21096,distro:7407,net:17792,payout:38397,payDate:'Apr 13',payStatus:'due',ap:11613},
-                {label:'March 2026',rev:70954,cogs:32400,distro:11352,net:27201,payout:59601,payDate:'May 8',payStatus:'projected',ap:37276}].map(function(m){var cashNet=m.payout-m.ap;return <div key={m.label} style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:14}}><div style={{fontSize:10,color:C.muted,letterSpacing:1,marginBottom:10,fontWeight:700}}>{m.label}</div><div style={{display:'flex',justifyContent:'space-between',marginBottom:3}}><span style={{fontSize:9,color:C.dim}}>Revenue</span><span style={{fontSize:12,fontWeight:800}}>{curK(m.rev)}</span></div><div style={{display:'flex',justifyContent:'space-between',marginBottom:3}}><span style={{fontSize:9,color:C.dim}}>Production COGS</span><span style={{fontSize:10,color:C.muted}}>-{curK(m.cogs)}</span></div><div style={{display:'flex',justifyContent:'space-between',marginBottom:3}}><span style={{fontSize:9,color:C.dim}}>Distro Fee (16%)</span><span style={{fontSize:10,color:C.muted}}>-{curK(m.distro)}</span></div><div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}><span style={{fontSize:9,color:C.good}}>Net Profit</span><span style={{fontSize:12,fontWeight:800,color:C.good}}>{curK(m.net)}</span></div><div style={{height:1,background:C.border,margin:'6px 0'}}></div><div style={{fontSize:8,color:C.dim,letterSpacing:1.5,marginBottom:6,textTransform:'uppercase'}}>Cash Flow</div><div style={{display:'flex',justifyContent:'space-between',marginBottom:3}}><span style={{fontSize:9,color:C.dim}}>Payout (84%)</span><span style={{fontSize:11,fontWeight:700,color:C.good}}>+{curK(m.payout)}</span></div><div style={{display:'flex',justifyContent:'space-between',marginBottom:3}}><span style={{fontSize:9,color:C.dim}}>Due</span><span style={{fontSize:9,color:m.payStatus==='due'?C.warn:C.muted}}>{m.payDate} ({m.payStatus})</span></div><div style={{display:'flex',justifyContent:'space-between',marginBottom:3}}><span style={{fontSize:9,color:C.dim}}>AP spent</span><span style={{fontSize:11,fontWeight:700,color:C.danger}}>-{curK(m.ap)}</span></div><div style={{height:1,background:C.borderHi,margin:'6px 0'}}></div><div style={{display:'flex',justifyContent:'space-between'}}><span style={{fontSize:9,fontWeight:700}}>Net Cash</span><span style={{fontSize:13,fontWeight:800,color:cashNet>0?C.good:C.danger}}>{cashNet>=0?'+':''}{curK(cashNet)}</span></div></div>;})}
-            </div>
-            <div style={{background:C.raised,border:'1px solid '+C.borderHi,borderRadius:6,padding:14,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-              <div><div style={{fontSize:8,color:C.dim,letterSpacing:1,textTransform:'uppercase'}}>Combined 2-Month Net Cash</div><div style={{fontSize:9,color:C.muted,marginTop:2}}>Feb + Mar payouts - all AP (Feb-Apr)</div></div>
-              <div style={{fontSize:22,fontWeight:900,color:C.good}}>+{curK(38397+59601-11613-37276-2303)}</div>
+
+            <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16}}>
+              <div style={{fontSize:9,color:C.dim,letterSpacing:2,textTransform:'uppercase',marginBottom:10}}>AR — UpNorth Payout Schedule</div>
+              {AR_DATA.map(function(r,i){var sc=r.st==='received'?C.good:r.st==='due'?C.warn:C.muted;return <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 0',borderBottom:'1px solid '+C.border}}><div><div style={{fontSize:10,fontWeight:600}}>{r.m}</div><div style={{fontSize:8,color:C.dim}}>Due {r.due}</div></div><div style={{textAlign:'right'}}><div style={{fontSize:11,fontWeight:800}}>{cur(r.pay)}</div><span style={{fontSize:7,fontWeight:700,padding:'1px 6px',borderRadius:2,background:sc+'18',border:'1px solid '+sc+'44',color:sc,textTransform:'uppercase'}}>{r.st}</span></div></div>;})}
+              <div style={{display:'flex',justifyContent:'space-between',paddingTop:8,marginTop:4}}><span style={{fontSize:10,fontWeight:800}}>Outstanding</span><span style={{fontSize:13,fontWeight:900,color:C.warn}}>{cur(AR_DATA.filter(function(r){return r.st!=='received';}).reduce(function(s,r){return s+r.pay;},0))}</span></div>
             </div>
           </div>
 
-          {/* ═══ AR SCHEDULE ═══ */}
-          <div style={{marginBottom:24}}>
-            <div style={{fontSize:9,color:C.dim,letterSpacing:2,textTransform:'uppercase',marginBottom:10}}>AR Schedule — UpNorth Payouts to Family Tree Consulting</div>
-            <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',background:C.surface,border:'1px solid '+C.border,borderRadius:6}}>
-              <thead><tr>{['Sales Period','Revenue','Payout','Due Date','Status'].map(function(h,i){return <th key={h} style={{padding:'6px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>1?'right':'left',borderBottom:'1px solid '+C.border,textTransform:'uppercase'}}>{h}</th>;})}</tr></thead>
-              <tbody>
-                {[{m:'Dec 2025',rev:'$57.6k',pay:'$39,998',due:'Feb 13',st:'received',sc:C.good},{m:'Jan 2026',rev:'$44.3k',pay:'~$37,236',due:'Mar 13',st:'received',sc:C.good},{m:'Feb 2026',rev:'$46.3k',pay:'$38,397',due:'Apr 13',st:'due',sc:C.warn},{m:'Mar 2026',rev:'$70.9k',pay:'~$59,601',due:'May 8',st:'projected',sc:C.muted}].map(function(r,i){return <tr key={i} style={{background:i%2===0?'transparent':C.raised}}><td style={{padding:'6px 10px',fontSize:11,fontWeight:600}}>{r.m}</td><td style={{padding:'6px 10px',fontSize:10,color:C.muted}}>{r.rev}</td><td style={{padding:'6px 10px',textAlign:'right',fontSize:11,fontWeight:800}}>{r.pay}</td><td style={{padding:'6px 10px',textAlign:'right',fontSize:10,color:C.muted}}>{r.due}</td><td style={{padding:'6px 10px',textAlign:'right'}}><span style={{fontSize:8,fontWeight:700,padding:'2px 8px',borderRadius:2,background:r.sc+'18',border:'1px solid '+r.sc+'44',color:r.sc,textTransform:'uppercase'}}>{r.st}</span></td></tr>;})}
-              </tbody>
-            </table></div>
+          {/* ═══ NET CASH POSITION ═══ */}
+          <div style={{background:C.raised,border:'1px solid '+C.borderHi,borderRadius:6,padding:16,marginBottom:24,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
+            <div>
+              <div style={{fontSize:8,color:C.dim,letterSpacing:1,textTransform:'uppercase'}}>Net Cash Position ({pd}d)</div>
+              <div style={{fontSize:9,color:C.muted,marginTop:2}}>Your 84% payout - AP expenses in window</div>
+            </div>
+            <div style={{textAlign:'right'}}>
+              <div style={{fontSize:9,color:C.dim}}>Payout (84%): <span style={{color:C.good,fontWeight:700}}>{cur(payout84)}</span></div>
+              <div style={{fontSize:9,color:C.dim}}>AP: <span style={{color:C.danger,fontWeight:700}}>-{cur(totalAP)}</span></div>
+              <div style={{fontSize:22,fontWeight:900,color:payout84-totalAP>0?C.good:C.danger,marginTop:4}}>{payout84-totalAP>=0?'+':''}{curK(payout84-totalAP)}</div>
+            </div>
           </div>
 
           <div style={{fontSize:9,color:C.dim,letterSpacing:2,textTransform:'uppercase',marginBottom:14}}>Manual Entries & Invoice Scanner</div>
