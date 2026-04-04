@@ -1295,6 +1295,8 @@
         {date:'2026-03-27',vendor:'QuickBooks',desc:'Monthly subscription',amount:25,cat:'Software'},
         {date:'2026-03-27',vendor:'VapeCartsCC',desc:'#1956 — 10,000 carts',amount:19447.95,cat:'Hardware'},
         {date:'2026-04-02',vendor:'Rapacke Law',desc:'USPTO trademark',amount:2250,cat:'Legal/IP'},
+        {date:'2026-04-02',vendor:'Weedmaps',desc:'SIN810743 monthly listing',amount:99,cat:'Software'},
+        {date:'2026-04-04',vendor:'Claude Max',desc:'Monthly subscription',amount:200,cat:'Software'},
         {date:'2026-04-17',vendor:'Treeform',desc:'INV39774 foam sign',amount:52.71,cat:'Packaging'}
       ];
       var now=new Date(2026,3,4);
@@ -1332,14 +1334,15 @@
         var rev=Math.round(baseMonthRev*g);
         var units=Math.round(baseUnits*g);
         // Costs: biomass $0.46/g ($25/lb÷54g yield), hardware $1.80/cart (70% mix),
-        // cart pkg $0.36, conc pkg $0.62, lab $400/strain×6=$2400/mo, fixed $125/mo
+        // cart pkg $0.36, conc pkg $0.62, lab $400/strain×6=$2400/mo,
+        // fixed: QB $25 + Elfsight $5 + Weedmaps $99 + Max $200 + Squarespace ~$16 = $345/mo
         var cartUnits=Math.round(units*0.70);
         var concUnits=units-cartUnits;
         var apBiomass=Math.round(units*0.46);
         var apHardware=Math.round(cartUnits*1.80);
         var apPackaging=Math.round(cartUnits*0.36+concUnits*0.62);
         var apLab=2400;
-        var apFixed=125;
+        var apFixed=345;
         var apTotal=apBiomass+apHardware+apPackaging+apLab+apFixed;
         var payout=Math.round(rev*0.84);
         var cashGap=payout-apTotal;
