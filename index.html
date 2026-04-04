@@ -876,7 +876,7 @@
                   var DTC={L:"#c9a84c",R:"#4cade0",N:"#888"},DTN={L:"Legacy",R:"On The Rise",N:"New"};
                   var DML={x:76,y:221},DRV={x:99,y:183},DAR={x:14,y:55},DLA={x:172,y:334};
                   var DDPI={30:6,60:7,90:8,180:9,270:10,365:11};
-                  function dhub(z,y){return z==="ZASP"?DLA:y<100?DAR:DRV;}
+                  function dhub(z,y){return z==="ZASP"?DLA:z==="DNU"?DAR:DRV;}
                   function dbz(a,b,dir,amt){var mx=(a.x+b.x)/2,my=(a.y+b.y)/2,vx=b.y-a.y,vy=-(b.x-a.x),m=Math.sqrt(vx*vx+vy*vy)||1,d=dir||-1,am=amt||28;return"M"+a.x+","+a.y+" Q"+(mx+(vx/m)*am*d).toFixed(0)+","+(my+(vy/m)*am*d).toFixed(0)+" "+b.x+","+b.y;}
                   var DD=[
 ["Ganjery","DNU",14,55,"Arcata","L",2296,5436,7156,17207,26926,40409],
@@ -1280,16 +1280,25 @@
       var margin=totalRev>0?(netProfit/totalRev*100):0;
       var types=Object.values(byType).sort(function(a,b){return b.rev-a.rev;});
 
-            // ── AP ledger — complete 365d from ACH + QuickBooks + Gmail ──
+                  // ── AP ledger — complete 365d from ACH + QuickBooks + Gmail ──
+      // Monthly subscriptions computed dynamically based on period
+      var MONTHLY_SUBS={vendor:'Monthly Subscriptions',desc:'Rent $825 + Cell/Internet $261 + Weedmaps $99 + Max $200 + QB $25',perMonth:1410,cat:'Overhead/Software'};
+      var subMonths=Math.ceil(pd/30);
+      var subTotal=MONTHLY_SUBS.perMonth*subMonths;
       var AP_DATA=[
+        // Computed subscription line
+        {date:'recurring',vendor:MONTHLY_SUBS.vendor,desc:MONTHLY_SUBS.desc+' × '+subMonths+'mo',amount:subTotal,cat:MONTHLY_SUBS.cat},
+        // 2025 Q2
         {date:'2025-04-01',vendor:'Leef',desc:'Product/biomass',amount:4990,cat:'COGS/Biomass'},
         {date:'2025-04-10',vendor:'Cleancore (Octave)',desc:'Cart hardware',amount:9000,cat:'Hardware'},
         {date:'2025-04-15',vendor:'Leef',desc:'Product/biomass',amount:4990,cat:'COGS/Biomass'},
         {date:'2025-06-20',vendor:'Cleancore (Octave)',desc:'Cart hardware',amount:16525,cat:'Hardware'},
+        // 2025 Q3
         {date:'2025-07-16',vendor:'Cleancore (Octave)',desc:'Cart hardware',amount:4520,cat:'Hardware'},
-        {date:'2025-07-18',vendor:'Cleancore (Octave)',desc:'Cart hardware',amount:10637.5,cat:'Hardware'},
+        {date:'2025-07-18',vendor:'Cleancore (Octave)',desc:'Cart hardware',amount:10637.50,cat:'Hardware'},
         {date:'2025-08-18',vendor:'Cruz Science',desc:'MFG partner payment',amount:2027.63,cat:'COGS/MFG'},
         {date:'2025-08-18',vendor:'Cleancore (Octave)',desc:'Cart hardware',amount:4000,cat:'Hardware'},
+        // 2025 Q4
         {date:'2025-09-30',vendor:'Euphoric Life',desc:'MFG finished goods',amount:2000,cat:'COGS/MFG'},
         {date:'2025-10-13',vendor:'Encore Labs',desc:'INV 2509ENC1030',amount:2940,cat:'Lab/Testing'},
         {date:'2025-10-13',vendor:'Encore Labs',desc:'INV 2509ENC1275',amount:1680,cat:'Lab/Testing'},
@@ -1299,43 +1308,25 @@
         {date:'2025-12-12',vendor:'Encore Labs',desc:'INV 2511ENC4680 + 4528',amount:2520,cat:'Lab/Testing'},
         {date:'2025-12-12',vendor:'Cleancore (Octave)',desc:'Cart hardware',amount:6477.19,cat:'Hardware'},
         {date:'2025-12-22',vendor:'Cruz Science',desc:'MFG partner payment',amount:1283.51,cat:'COGS/MFG'},
-        {date:'2025-12-30',vendor:'Treeform',desc:'INV36807 packaging',amount:5516.5,cat:'Packaging'},
-        {date:'2026-01-01',vendor:'Home Office',desc:'37.5% of $2,200 rent',amount:825,cat:'Overhead'},
-        {date:'2026-01-01',vendor:'Cell/Internet',desc:'90% business use',amount:261,cat:'Overhead'},
-        {date:'2026-01-01',vendor:'Weedmaps',desc:'Monthly listing',amount:99,cat:'Software'},
-        {date:'2026-01-01',vendor:'Claude Max',desc:'Monthly subscription',amount:200,cat:'Software'},
-        {date:'2026-01-01',vendor:'QuickBooks',desc:'Monthly subscription',amount:25,cat:'Software'},
-        {date:'2026-01-06',vendor:'Two Packaging',desc:'Cart boxes (50% deposit)',amount:1262.2,cat:'Packaging'},
+        {date:'2025-12-30',vendor:'Treeform',desc:'INV36807 packaging',amount:5516.50,cat:'Packaging'},
+        // 2026 Q1
+        {date:'2026-01-06',vendor:'Two Packaging',desc:'Cart boxes (50% deposit)',amount:1262.20,cat:'Packaging'},
         {date:'2026-01-14',vendor:'Encore Labs',desc:'INV 2601ENC0623',amount:2750,cat:'Lab/Testing'},
-        {date:'2026-01-19',vendor:'Two Packaging',desc:'Cart boxes (balance)',amount:1263.2,cat:'Packaging'},
-        {date:'2026-02-01',vendor:'Home Office',desc:'37.5% of $2,200 rent',amount:825,cat:'Overhead'},
-        {date:'2026-02-01',vendor:'Cell/Internet',desc:'90% business use',amount:261,cat:'Overhead'},
-        {date:'2026-02-01',vendor:'Weedmaps',desc:'Monthly listing',amount:99,cat:'Software'},
-        {date:'2026-02-01',vendor:'Claude Max',desc:'Monthly subscription',amount:200,cat:'Software'},
-        {date:'2026-02-01',vendor:'QuickBooks',desc:'Monthly subscription',amount:25,cat:'Software'},
-        {date:'2026-02-02',vendor:'Lava Rubber / Moodmats',desc:'INV #9155 merch',amount:3261.4,cat:'Merch/Equipment'},
+        {date:'2026-01-19',vendor:'Two Packaging',desc:'Cart boxes (balance)',amount:1263.20,cat:'Packaging'},
+        {date:'2026-02-02',vendor:'Lava Rubber / Moodmats',desc:'INV #9155 merch',amount:3261.40,cat:'Merch/Equipment'},
         {date:'2026-02-05',vendor:'Elfsight',desc:'Age verification (annual)',amount:60,cat:'Software'},
         {date:'2026-02-13',vendor:'CLTV8 LLC',desc:'INV-3385 equipment',amount:4250,cat:'Merch/Equipment'},
         {date:'2026-02-17',vendor:'Encore Labs',desc:'Lab testing',amount:2400,cat:'Lab/Testing'},
-        {date:'2026-02-17',vendor:'Brendan G (CAM)',desc:'Biomass/trim invoice',amount:6432.7,cat:'COGS/Biomass'},
+        {date:'2026-02-17',vendor:'Brendan G (CAM)',desc:'Biomass/trim invoice',amount:6432.70,cat:'COGS/Biomass'},
         {date:'2026-02-17',vendor:'Cleancore (Octave)',desc:'Cart hardware',amount:250,cat:'Hardware'},
-        {date:'2026-02-19',vendor:'VapeCartsCC',desc:'#1945 — 5,000 carts',amount:9527.5,cat:'Hardware'},
+        {date:'2026-02-19',vendor:'VapeCartsCC',desc:'#1945 — 5,000 carts',amount:9527.50,cat:'Hardware'},
         {date:'2026-02-23',vendor:'Encore Labs',desc:'Lab testing',amount:3600,cat:'Lab/Testing'},
-        {date:'2026-03-01',vendor:'Home Office',desc:'37.5% of $2,200 rent',amount:825,cat:'Overhead'},
-        {date:'2026-03-01',vendor:'Cell/Internet',desc:'90% business use',amount:261,cat:'Overhead'},
-        {date:'2026-03-01',vendor:'Weedmaps',desc:'Monthly listing',amount:99,cat:'Software'},
-        {date:'2026-03-01',vendor:'Claude Max',desc:'Monthly subscription',amount:200,cat:'Software'},
-        {date:'2026-03-01',vendor:'QuickBooks',desc:'Monthly subscription',amount:25,cat:'Software'},
         {date:'2026-03-10',vendor:'Treeform',desc:'INV38610+38884',amount:1574.88,cat:'Packaging'},
         {date:'2026-03-16',vendor:'Staybridge',desc:'HOF Ventura 4 nights',amount:915.39,cat:'Travel'},
         {date:'2026-03-24',vendor:'VapeCartsCC',desc:'#1953 partial payment',amount:4034.17,cat:'Hardware'},
         {date:'2026-03-27',vendor:'VapeCartsCC',desc:'#1956 — 10,000 carts',amount:19447.95,cat:'Hardware'},
         {date:'2026-03-31',vendor:'Encore Labs',desc:'Lab testing',amount:2000,cat:'Lab/Testing'},
-        {date:'2026-04-01',vendor:'Home Office',desc:'37.5% of $2,200 rent',amount:825,cat:'Overhead'},
-        {date:'2026-04-01',vendor:'Cell/Internet',desc:'90% business use',amount:261,cat:'Overhead'},
-        {date:'2026-04-01',vendor:'Weedmaps',desc:'Monthly listing',amount:99,cat:'Software'},
-        {date:'2026-04-01',vendor:'Claude Max',desc:'Monthly subscription',amount:200,cat:'Software'},
-        {date:'2026-04-01',vendor:'QuickBooks',desc:'Monthly subscription',amount:25,cat:'Software'},
+        // 2026 Q2
         {date:'2026-04-02',vendor:'Rapacke Law',desc:'USPTO trademark',amount:2250,cat:'Legal/IP'},
         {date:'2026-04-17',vendor:'Treeform',desc:'INV39774 foam sign',amount:52.71,cat:'Packaging'}
       ];
@@ -1343,6 +1334,7 @@
       var cutoff=new Date(now.getTime()-pd*86400000);
       var periodAP=AP_DATA.filter(function(a){
         if(!a.amount)return false;
+        if(a.date==='recurring')return true;
         var parts=a.date.split('-');
         var d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2])||1);
         return d>=cutoff;
