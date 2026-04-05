@@ -1819,7 +1819,7 @@ window._STRAIN_DB=[
                         var orderRev=lines.reduce(function(s,l){return s+l.lineRev;},0);
                         var orderUnits=lines.reduce(function(s,l){return s+l.qty;},0);
                         return React.createElement('div',{key:o.name+i,style:{background:C.surface,border:'1px solid '+(lines.length>0?C.border:C.border),borderRadius:4,overflow:'hidden'}},
-                          React.createElement('div',{onClick:function(){setOpenOpps(function(p){var n2=Object.assign({},p);n2[o.name]=!n2[o.name];return n2;});},style:{padding:'12px 16px',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:8,cursor:'pointer',background:isOpen?C.raised:'transparent'}},
+                          React.createElement('div',{onClick:function(){setOpenOpps(function(p){var n2=Object.assign({},p);n2[o.name]=!n2[o.name];return n2;});},style:{padding:'10px 10px',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:6,cursor:'pointer',background:isOpen?C.raised:'transparent'}},
                             React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:4,minWidth:0,flex:1}},
                               React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}},
                                 React.createElement('span',{style:{color:C.dim,fontSize:9,width:10,userSelect:'none'}},isOpen?'\u25BC':'\u25B6'),
@@ -1835,30 +1835,32 @@ window._STRAIN_DB=[
                               React.createElement('div',{style:{fontSize:9,color:o.daysSince>90?C.danger:o.daysSince>45?C.warn:C.muted}},o.daysSince+'d silent',o.median>0?React.createElement('span',{style:{marginLeft:4,fontWeight:700,color:parseFloat(ratio)>4?C.danger:parseFloat(ratio)>2?C.warn:C.muted}},ratio+'x'):null)
                             )
                           ),
-                          isOpen&&lines.length>0?React.createElement('div',{style:{borderTop:'1px solid '+C.border,padding:'12px 16px'}},
-                            React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:8,fontWeight:700}},'SUGGESTED REORDER \u00b7 target '+curK(o.targetBudget)+' (avg '+curK(o.avgOrderVal)+') \u00b7 '+o.zone+' zone \u00b7 account pricing'),
-                            React.createElement('table',{style:{width:'100%',borderCollapse:'collapse'}},
-                              React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Strain','Type','Qty','$/Unit','Line $','Zone OH'].map(function(h,hi){return React.createElement('th',{key:h,style:{padding:'5px 10px',fontSize:7,fontWeight:700,letterSpacing:1,textTransform:'uppercase',color:C.dim,textAlign:hi>=2?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
+                          isOpen&&lines.length>0?React.createElement('div',{style:{borderTop:'1px solid '+C.border,padding:'10px 8px'}},
+                            React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:8,fontWeight:700}},'SUGGESTED REORDER \u00b7 target '+curK(o.targetBudget)+' (avg '+curK(o.avgOrderVal)+') \u00b7 '+o.zone+' zone'),
+                            React.createElement('div',{style:{overflowX:'auto',WebkitOverflowScrolling:'touch'}},
+                            React.createElement('table',{style:{width:'100%',minWidth:360,borderCollapse:'collapse'}},
+                              React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Strain','Type','Qty','$/ea','Line $','OH'].map(function(h,hi){return React.createElement('th',{key:h,style:{padding:'4px 6px',fontSize:7,fontWeight:700,letterSpacing:1,textTransform:'uppercase',color:C.dim,textAlign:hi>=2?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}},h);}))),
                               React.createElement('tbody',null,
                                 lines.map(function(l,li){return React.createElement('tr',{key:l.sku||li,style:{background:li%2===0?'transparent':'#0a0a0a'}},
-                                  React.createElement('td',{style:{padding:'6px 10px',fontSize:11,fontWeight:600}},l.strain),
-                                  React.createElement('td',{style:{padding:'6px 10px',fontSize:9,color:C.dim}},l.cat),
-                                  React.createElement('td',{style:{padding:'6px 10px',fontSize:11,textAlign:'right',fontWeight:700}},l.qty+(l.low?' *':'')),
-                                  React.createElement('td',{style:{padding:'6px 10px',fontSize:10,textAlign:'right',color:C.muted}},cur(l.ws)),
-                                  React.createElement('td',{style:{padding:'6px 10px',fontSize:11,textAlign:'right',fontWeight:600}},cur(l.lineRev)),
-                                  React.createElement('td',{style:{padding:'6px 10px',fontSize:9,textAlign:'right',color:C.good,fontWeight:600}},l.zoneStart+' '+l.zn)
+                                  React.createElement('td',{style:{padding:'5px 6px',fontSize:10,fontWeight:600,whiteSpace:'nowrap'}},l.strain),
+                                  React.createElement('td',{style:{padding:'5px 6px',fontSize:8,color:C.dim,whiteSpace:'nowrap'}},l.cat),
+                                  React.createElement('td',{style:{padding:'5px 6px',fontSize:10,textAlign:'right',fontWeight:700}},l.qty+(l.low?' *':'')),
+                                  React.createElement('td',{style:{padding:'5px 6px',fontSize:9,textAlign:'right',color:C.muted}},cur(l.ws)),
+                                  React.createElement('td',{style:{padding:'5px 6px',fontSize:10,textAlign:'right',fontWeight:600}},cur(l.lineRev)),
+                                  React.createElement('td',{style:{padding:'5px 6px',fontSize:8,textAlign:'right',color:C.good,fontWeight:600,whiteSpace:'nowrap'}},l.zoneStart)
                                 );}),
                                 React.createElement('tr',{style:{borderTop:'1px solid '+C.border,background:C.raised}},
-                                  React.createElement('td',{colSpan:2,style:{padding:'6px 10px',fontSize:10,fontWeight:800}},'Order Total'),
-                                  React.createElement('td',{style:{padding:'6px 10px',textAlign:'right',fontSize:10,fontWeight:700}},orderUnits),
+                                  React.createElement('td',{colSpan:2,style:{padding:'5px 6px',fontSize:10,fontWeight:800}},'Total'),
+                                  React.createElement('td',{style:{padding:'5px 6px',textAlign:'right',fontSize:10,fontWeight:700}},orderUnits),
                                   React.createElement('td',null),
-                                  React.createElement('td',{style:{padding:'6px 10px',textAlign:'right',fontSize:12,fontWeight:800,color:C.good}},curK(orderRev)),
+                                  React.createElement('td',{style:{padding:'5px 6px',textAlign:'right',fontSize:11,fontWeight:800,color:C.good}},curK(orderRev)),
                                   React.createElement('td',null)
                                 )
                               )
+                            )
                             ),
                             lines.some(function(l){return l.low;})?React.createElement('div',{style:{fontSize:8,color:C.warn,marginTop:6}},'* Partial increment (\u003C10 units)'):null,
-                            React.createElement('div',{style:{display:'flex',gap:8,marginTop:10,justifyContent:'flex-end'}},
+                            React.createElement('div',{style:{display:'flex',gap:6,marginTop:8,justifyContent:'flex-end',flexWrap:'wrap'}},
                               React.createElement('button',{onClick:function(){window._goAcct&&window._goAcct(o.name);},style:{padding:'5px 14px',borderRadius:3,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.border,background:'transparent',color:C.muted}},'View Account'),
                               React.createElement('button',{onClick:async function(){
                                 var subj='Globs Reorder \u2014 '+o.name;
