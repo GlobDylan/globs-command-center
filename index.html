@@ -652,7 +652,7 @@ window._STRAIN_DB=[
       );
     }
 
-    function AccountRow({account,open,onToggle,skuAvgs,periodDays}){
+    function AccountRow({account,open,onToggle,skuAvgs,periodDays,returnsLog}){
       const [section,setSection]=useState("pricing");
       const tier=computeTier(account.orderDayTs),tax=getTaxRate(account.name);
       const isCorp=account.allLocations||account.name.toLowerCase().includes("corporate");
@@ -712,7 +712,7 @@ window._STRAIN_DB=[
           {open&&(
             <div style={{borderTop:'1px solid '+C.border}}>
               <div style={{display:'flex',borderBottom:'1px solid '+C.border,background:C.raised}}>
-                {[["pricing","Pricing"+(rows.length>0?' ('+rows.length+')':'')],["promotions","Promotions"+(promoCount>0?' ('+promoCount+')':'')]].map(function(kl){return<button key={kl[0]} onClick={function(e){e.stopPropagation();setSection(kl[0]);}} style={{padding:'8px 18px',border:'none',borderBottom:'2px solid '+(section===kl[0]?C.text:'transparent'),background:'transparent',color:section===kl[0]?C.text:C.dim,cursor:'pointer',fontSize:10,fontWeight:section===kl[0]?700:400,letterSpacing:1,textTransform:'uppercase'}}>{kl[1]}</button>;})}
+                {(function(){var acctReturns=(returnsLog||[]).filter(function(r){return r.account===account.name&&!r.preMarket;});var retCount=acctReturns.length;var cb2={'Vape Cart - Live Resin':COGS.Cart,'Badder':COGS.Badder,'Sauce':COGS.Sauce,'Diamonds':COGS.Diamonds,'Shatter':COGS.Shatter,'Live Resin':'Cart'};return[["pricing","Pricing"+(rows.length>0?' ('+rows.length+')':'')],["returns","Returns"+(retCount>0?' ('+retCount+')':'')],["margin","Margin"],["promotions","Promotions"+(promoCount>0?' ('+promoCount+')':'')]];})().map(function(kl){return<button key={kl[0]} onClick={function(e){e.stopPropagation();setSection(kl[0]);}} style={{padding:'8px 18px',border:'none',borderBottom:'2px solid '+(section===kl[0]?C.text:'transparent'),background:'transparent',color:section===kl[0]?C.text:C.dim,cursor:'pointer',fontSize:10,fontWeight:section===kl[0]?700:400,letterSpacing:1,textTransform:'uppercase'}}>{kl[1]}</button>;})}
               </div>
               {section==="pricing"&&(
                 <div style={{overflowX:'auto'}}>
@@ -728,6 +728,8 @@ window._STRAIN_DB=[
                 </div>
               )}
               {section==="promotions"&&<PromotionsSection promotions={account.promotions||[]}/>}
+              {section==="returns"&&(function(){var acctReturns=(returnsLog||[]).filter(function(r){return r.account===account.name&&!r.preMarket;});var totalCredits=acctReturns.reduce(function(s,r){return s+(r.totalValue||0);},0);return<div style={{padding:'12px 16px'}}>{acctReturns.length>0?<><div style={{display:'flex',justifyContent:'space-between',marginBottom:10}}><span style={{fontSize:9,color:C.dim,letterSpacing:1.5}}>RETURNS & DEFECTS</span><span style={{fontSize:11,fontWeight:700,color:C.danger}}>${totalCredits.toFixed(0)} in credits</span></div><div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:380,borderCollapse:'collapse'}}><thead><tr style={{background:C.raised}}>{['Date','Strain','Cat','Qty','Value','Reason','Status'].map(function(h,i){return<th key={h} style={{padding:'5px 8px',fontSize:8,fontWeight:700,color:C.dim,textAlign:i>=3?'right':'left',borderBottom:'1px solid '+C.border}}>{h}</th>;})}</tr></thead><tbody>{acctReturns.map(function(r,i){return<tr key={i} style={{background:i%2===0?'transparent':'#0a0a0a'}}><td style={{padding:'5px 8px',fontSize:10,color:C.muted}}>{r.date}</td><td style={{padding:'5px 8px',fontSize:10}}>{r.strain}</td><td style={{padding:'5px 8px',fontSize:9,color:C.dim}}>{r.category}</td><td style={{padding:'5px 8px',fontSize:10,textAlign:'right'}}>{r.qty}</td><td style={{padding:'5px 8px',fontSize:10,textAlign:'right',color:C.danger}}>${(r.totalValue||0).toFixed(2)}</td><td style={{padding:'5px 8px',fontSize:9,color:C.muted}}>{r.reason||'—'}</td><td style={{padding:'5px 8px',fontSize:9,textAlign:'right'}}><span style={{padding:'1px 6px',borderRadius:2,fontSize:8,fontWeight:700,background:r.status==='CREDIT APPLIED'?C.goodBg:C.warnBg,color:r.status==='CREDIT APPLIED'?C.good:C.warn,border:'1px solid '+(r.status==='CREDIT APPLIED'?C.goodBdr:C.warnBdr)}}>{r.status}</span></td></tr>;})}</tbody></table></div></>:<div style={{padding:'20px 0',textAlign:'center',fontSize:11,color:C.dim}}>No returns recorded for this account</div>}</div>;})()}
+              {section==="margin"&&(function(){var cb2={'Vape Cart - Live Resin':COGS.Cart,'Badder':COGS.Badder,'Sauce':COGS.Sauce,'Diamonds':COGS.Diamonds,'Shatter':COGS.Shatter};var CM2={'Live Resin':'Vape Cart - Live Resin'};var cr=(account.periodCatRevenue&&account.periodCatRevenue[periodDays])?account.periodCatRevenue[periodDays]:(account.catRevenue90||{});var aRev=0,aCogs=0,aDist=0;Object.keys(cr).forEach(function(rc){var rev=cr[rc];if(!rev||rev<=0)return;var label=CM2[rc]||rc;var cogs=cb2[label]||COGS.Other;var units=cogs.wholesale>0?Math.round(rev/cogs.wholesale):0;aCogs+=units*cogs.cost;aDist+=rev*cogs.distroRate;aRev+=rev;});var acctRet=(returnsLog||[]).filter(function(r){return r.account===account.name&&!r.preMarket;}).reduce(function(s,r){return s+(r.totalValue||0);},0);var net=aRev-aCogs-aDist-acctRet;var margin=aRev>0?net/aRev*100:0;return<div style={{padding:'12px 16px'}}><div style={{fontSize:9,color:C.dim,letterSpacing:1.5,marginBottom:10}}>MARGIN ANALYSIS ({periodDays}d)</div><div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr',gap:10,marginBottom:12}}>{[{l:'Revenue',v:curK(aRev),c:C.text},{l:'COGS',v:'-'+curK(aCogs),c:C.muted},{l:'Distro',v:'-'+curK(aDist),c:C.muted},{l:'Returns',v:acctRet>0?'-'+cur(acctRet):'—',c:acctRet>0?C.danger:C.dim},{l:'Net / Margin',v:curK(net)+' / '+margin.toFixed(1)+'%',c:margin>35?C.good:margin>20?C.warn:C.danger}].map(function(s){return<div key={s.l} style={{background:C.bg,border:'1px solid '+C.border,borderRadius:4,padding:'8px 10px',textAlign:'center'}}><div style={{fontSize:7,color:C.dim,letterSpacing:1,marginBottom:3}}>{s.l}</div><div style={{fontSize:13,fontWeight:700,color:s.c}}>{s.v}</div></div>;})}</div></div>;})()}
             </div>
           )}
         </div>
@@ -738,6 +740,78 @@ window._STRAIN_DB=[
     function GPI() {
       const [tab,setTab]=useState("accounts");
       function switchTab(t){try{document.activeElement.blur();}catch(e){}setTab(t);}
+
+      // ── SECURITY SYSTEM ──────────────────────────────────────────────────
+      const ROLES={
+        exec:{label:'Executive',tabs:['briefing','accounts','opportunities','dispatch','strains','yield','mfg','labels','packaging','executive','pnl','cashflow','returns','marketing','security'],canExport:true,canUpload:true,canEditMargin:true,canApprove:true,seeFinancials:true},
+        mfg:{label:'Manufacturing',tabs:['strains','yield','mfg','labels','packaging','briefing'],canExport:false,canUpload:true,canEditMargin:false,canApprove:false,seeFinancials:false},
+        distro:{label:'Distribution',tabs:['accounts','opportunities','dispatch','briefing','returns'],canExport:false,canUpload:true,canEditMargin:false,canApprove:false,seeFinancials:false}
+      };
+      const PINS_DEPRECATED=null;// Individual user PINs replace shared PINs
+      const DEFAULT_USERS=[
+        {id:'dylan',name:'Dylan Brewington',role:'exec',pin:'2024',active:true},
+        {id:'brian',name:'Brian Bresee',role:'distro',pin:'5678',active:true},
+        {id:'mfg1',name:'MFG Operator 1',role:'mfg',pin:'1234',active:true},
+        {id:'mfg2',name:'MFG Operator 2',role:'mfg',pin:'4321',active:true},
+        {id:'distro2',name:'Distro Rep 2',role:'distro',pin:'8765',active:true},
+      ];
+      const [users,setUsers]=useState(function(){try{var v=localStorage.getItem('gpi:gpi-users');return v?JSON.parse(v):DEFAULT_USERS;}catch(e){return DEFAULT_USERS;}});
+      const [userOverrides,setUserOverrides]=useState(function(){try{var v=localStorage.getItem('gpi:gpi-user-overrides');return v?JSON.parse(v):{};}catch(e){return{};}});
+      function saveUsers(next){setUsers(next);try{localStorage.setItem('gpi:gpi-users',JSON.stringify(next));}catch(e){}}
+      function saveOverrides(next){setUserOverrides(next);try{localStorage.setItem('gpi:gpi-user-overrides',JSON.stringify(next));}catch(e){}}
+      const [authUser,setAuthUser]=useState(null);// full user object on login
+      const SESSION_TIMEOUT=30*60*1000;// 30 min inactivity
+      const [authRole,setAuthRole]=useState(function(){try{var s=JSON.parse(sessionStorage.getItem('gpi-session'));if(s&&s.role&&Date.now()-s.lastActive<SESSION_TIMEOUT)return s.role;}catch(e){}return null;});
+      const [loginInput,setLoginInput]=useState('');
+      const [loginRole,setLoginRole]=useState('exec');
+      const [loginError,setLoginError]=useState('');
+      const [killSwitches,setKillSwitches]=useState(function(){try{return JSON.parse(localStorage.getItem('gpi:gpi-kill-switches'))||{};}catch(e){return{};}});
+
+      // Session keepalive
+      useEffect(function(){
+        if(!authRole)return;
+        var interval=setInterval(function(){
+          try{var s=JSON.parse(sessionStorage.getItem('gpi-session'));
+          if(!s||Date.now()-s.lastActive>SESSION_TIMEOUT){setAuthRole(null);logSecurity('SESSION_TIMEOUT','Auto-logout after inactivity');}
+          }catch(e){setAuthRole(null);}
+        },60000);
+        function touch(){try{var s=JSON.parse(sessionStorage.getItem('gpi-session'));if(s){s.lastActive=Date.now();sessionStorage.setItem('gpi-session',JSON.stringify(s));}}catch(e){}}
+        window.addEventListener('click',touch);window.addEventListener('keydown',touch);
+        return function(){clearInterval(interval);window.removeEventListener('click',touch);window.removeEventListener('keydown',touch);};
+      },[authRole]);
+
+      function logSecurity(type,detail){
+        var entry={ts:new Date().toISOString(),type:type,detail:detail,role:authRole||'none'};
+        try{var log=JSON.parse(localStorage.getItem('gpi:gpi-security-log')||'[]');log.unshift(entry);localStorage.setItem('gpi:gpi-security-log',JSON.stringify(log.slice(0,500)));}catch(e){}
+      }
+      function handleLogin(){
+        var matched=users.find(function(u){return u.pin===loginInput&&u.active;});
+        if(matched){
+          setAuthRole(matched.role);setAuthUser(matched);setLoginError('');setLoginInput('');
+          sessionStorage.setItem('gpi-session',JSON.stringify({role:matched.role,userId:matched.id,userName:matched.name,lastActive:Date.now(),loginAt:new Date().toISOString()}));
+          logSecurity('LOGIN',matched.name+' ('+ROLES[matched.role].label+')');
+          // Check per-user overrides
+          var uo=userOverrides[matched.id]||{};
+          if(uo.disabled){setLoginError('Account disabled by admin');setAuthRole(null);setAuthUser(null);sessionStorage.removeItem('gpi-session');return;}
+        }else{
+          setLoginError('Invalid PIN');logSecurity('LOGIN_FAILED','Failed PIN attempt for role '+loginRole);
+        }
+      }
+      function handleLogout(){logSecurity('LOGOUT',(authUser?authUser.name:'unknown')+' signed out');setAuthRole(null);setAuthUser(null);sessionStorage.removeItem('gpi-session');}
+      function setKill(key,val){var next=Object.assign({},killSwitches);next[key]=val;setKillSwitches(next);try{localStorage.setItem('gpi:gpi-kill-switches',JSON.stringify(next));}catch(e){}logSecurity('KILL_SWITCH',key+'='+(val?'ON':'OFF'));}
+      var rolePerms=authRole?ROLES[authRole]:{tabs:[],canExport:false,canUpload:false,canEditMargin:false,canApprove:false,seeFinancials:false};
+      var canAccessTab=function(t){return rolePerms.tabs.includes(t);};
+      // File upload hardening
+      var MAX_FILE_SIZE=50*1024*1024;// 50MB
+      var ALLOWED_EXTENSIONS=['.csv','.xlsx','.xls','.json','.pdf'];
+      function validateFile(file){
+        if(!file)return'No file selected';
+        if(file.size>MAX_FILE_SIZE)return'File too large (max 50MB)';
+        var ext='.'+file.name.split('.').pop().toLowerCase();
+        if(!ALLOWED_EXTENSIONS.includes(ext))return'Invalid file type: '+ext+'. Allowed: '+ALLOWED_EXTENSIONS.join(', ');
+        if(file.name.includes('..')||file.name.includes('/')||file.name.includes('\\'))return'Invalid filename';
+        return null;
+      }
       const [lightMode,setLightMode]=useState(function(){try{return localStorage.getItem('gpi-theme')==='light';}catch(e){return false;}});
       const C=lightMode?LIGHT_C:DARK_C;
       // Update body class + favicon on theme change
@@ -766,6 +840,14 @@ window._STRAIN_DB=[
       const [mfgWorkOrder,setMfgWorkOrder]=useState(null);
       const [openAccts,setOpenAccts]=useState({});
       const [search,setSearch]=useState("");
+      const [uniSearch,setUniSearch]=useState("");
+      const [showUniSearch,setShowUniSearch]=useState(false);
+      const [activityLog,setActivityLog]=useState(function(){try{var v=localStorage.getItem('gpi:gpi-activity-log');return v?JSON.parse(v):[];}catch(e){return[];}});
+      const [demos,setDemos]=useState(function(){try{var v=localStorage.getItem('gpi:gpi-demos');return v?JSON.parse(v):[];}catch(e){return[];}});
+      const [demoCost,setDemoCost]=useState(180);
+      const [demoBudget]=useState(1000);
+      function saveDemos(next){setDemos(next);try{localStorage.setItem('gpi:gpi-demos',JSON.stringify(next));}catch(e){}}
+      function logActivity(type,detail){var entry={ts:new Date().toISOString(),type:type,detail:detail};setActivityLog(function(prev){var next=[entry].concat(prev).slice(0,200);try{localStorage.setItem('gpi:gpi-activity-log',JSON.stringify(next));}catch(e){}return next;});}
       const [zoneFilter,setZoneFilter]=useState("All");
       const [tierFilter,setTierFilter]=useState("All");
       const [sortBy,setSortBy]=useState("sales");
@@ -815,6 +897,9 @@ window._STRAIN_DB=[
 
       function handleCSVFile(e){
         const file=e.target.files[0];if(!file)return;
+        if(killSwitches.disableUploads||killSwitches.readOnly){toast('✗ Uploads disabled by admin');e.target.value='';return;}
+        var fErr=validateFile(file);if(fErr){toast('✗ '+fErr);e.target.value='';return;}
+        logSecurity('UPLOAD',file.name+' ('+Math.round(file.size/1024)+'KB) by '+rolePerms.label);
         setCsvLoading(true);
         toast('⏳ Parsing '+file.name+'…');
         const isXlsx=file.name.toLowerCase().endsWith('.xlsx')||file.name.toLowerCase().endsWith('.xls');
@@ -927,7 +1012,7 @@ window._STRAIN_DB=[
               }
 
               if(loaded.length>0){
-                toast('✓ Loaded from '+file.name+': '+loaded.join(' · '));
+                toast('✓ Loaded from '+file.name+': '+loaded.join(' · '));logActivity('UPLOAD',file.name+' — '+loaded.join(', '));
               } else {
                 toast('⚠ XLSX parsed but no recognized sheets found');
               }
@@ -1020,6 +1105,21 @@ window._STRAIN_DB=[
 
       return(
         <div style={{fontFamily:"'DM Mono','Courier New',monospace",background:C.bg,minHeight:'100vh',color:C.text,transition:'background 0.2s,color 0.2s'}}>
+          {/* ═══ LOGIN GATE ═══ */}
+          {!authRole?(
+            <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',padding:24}}>
+              <div style={{background:C.surface,border:'1px solid '+C.borderHi,borderRadius:8,padding:'40px 32px',width:'100%',maxWidth:360,textAlign:'center'}}>
+                <div style={{width:48,height:48,border:'2px solid '+C.borderHi,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,fontSize:11,letterSpacing:2,margin:'0 auto 16px'}}>GPI</div>
+                <div style={{fontSize:14,fontWeight:800,letterSpacing:4,marginBottom:4}}>GLOBS COMMAND CENTER</div>
+                <div style={{fontSize:9,color:C.dim,marginBottom:24}}>Enter your PIN to sign in</div>
+                <input type="password" value={loginInput} onChange={function(e){setLoginInput(e.target.value);setLoginError('');}} onKeyDown={function(e){if(e.key==='Enter')handleLogin();}} placeholder="Enter PIN" style={{width:'100%',background:C.bg,border:'1px solid '+C.border,borderRadius:3,padding:'10px 14px',color:C.text,fontSize:14,fontFamily:'inherit',textAlign:'center',letterSpacing:8,outline:'none',boxSizing:'border-box',marginBottom:8}}/>
+                {loginError&&<div style={{fontSize:10,color:C.danger,marginBottom:8}}>{loginError}</div>}
+                <button onClick={handleLogin} style={{width:'100%',padding:'10px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'none',background:C.text,color:C.bg,letterSpacing:2}}>SIGN IN</button>
+                <div style={{fontSize:8,color:C.dim,marginTop:16,lineHeight:1.8}}>Sessions expire after 30 min of inactivity. All access is logged.</div>
+              </div>
+            </div>
+          ):(
+          <><div style={{background:C.bg,position:'relative'}}>
           {/* HEADER */}
           <div className="gpi-header" style={{background:C.bg,borderBottom:'1px solid '+C.border,padding:'0 20px',height:58,display:'flex',alignItems:'center',justifyContent:'space-between',position:'sticky',top:0,zIndex:50,backdropFilter:'blur(12px)',WebkitBackdropFilter:'blur(12px)'}}>
             <div style={{display:'flex',alignItems:'center',gap:12}}>
@@ -1032,25 +1132,29 @@ window._STRAIN_DB=[
               {lastSync&&<span style={{fontSize:9,color:C.dim,letterSpacing:0.5}}>synced {fmtDate(lastSync)}</span>}
               <input ref={csvRef} type="file" accept=".csv,.xlsx,.xls" onChange={handleCSVFile} style={{display:'none'}}/>
               <input ref={jsonRef} type="file" accept=".json" onChange={handleJSONFile} style={{display:'none'}}/>
-              <button style={btnSt('ghost')} disabled={csvLoading} onClick={function(){csvRef.current&&csvRef.current.click();}}>{csvLoading?'Parsing…':'Upload Data'}</button>
+              <button style={Object.assign({},btnSt('ghost'),{fontSize:12})} onClick={function(){setShowUniSearch(true);}} title="Universal Search">⌕</button>
+              <button style={btnSt('ghost')} disabled={csvLoading} onClick={function(){csvRef.current&&csvRef.current.click();}}>{csvLoading?'Parsing…':(function(){var labels={accounts:'Upload Account Data',opportunities:'Upload Sales Data',dispatch:'Upload Dispatch Data',returns:'Upload Returns Data',executive:'Upload Financial Data',pnl:'Upload P&L Data',cashflow:'Upload Cash Flow Data',strains:'Upload Strain Data',mfg:'Upload MFG Data',packaging:'Upload Inventory Data'};return labels[tab]||'Upload Salesforce XLSX';})()}</button>
               <button style={btnSt('outline')} onClick={function(){jsonRef.current&&jsonRef.current.click();}}>Import Scan</button>
               <button style={btnSt('ghost')} onClick={function(){
+                if(!rolePerms.canExport||killSwitches.disableExports){toast('✗ Export not permitted for your role');return;}
                 try{
-                  var backup={exported:new Date().toISOString(),version:'GPI-v2'};
+                  var backup={exported:new Date().toISOString(),version:'GPI-v2',exportedBy:rolePerms.label};
                   var keys=['gpi-accounts','gpi-promo-accounts','gpi-prices','gpi-snaps','gpi-pkg-comps','gpi-inventory','gpi-yield-log','gpi-returns-log','gpi-invoice-number','gpi-contacts','gpi-sync'];
                   keys.forEach(function(k){try{var v=localStorage.getItem('gpi:'+k);if(v)backup[k]=JSON.parse(v);}catch(e){if(v)backup[k]=v;}});
                   var blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
                   var url=URL.createObjectURL(blob);
                   var a=document.createElement('a');a.href=url;a.download='globs-gpi-backup-'+new Date().toISOString().split('T')[0]+'.json';a.click();URL.revokeObjectURL(url);
-                  toast('✓ Backup exported');
+                  logSecurity('EXPORT','Backup exported by '+rolePerms.label);toast('✓ Backup exported');
                 }catch(e){toast('✗ Export failed: '+e.message);}
               }}>Export Backup</button>
               <button className="theme-toggle" onClick={toggleTheme} title="Toggle light/dark mode">{lightMode?'◑ Dark':'◐ Light'}</button>
+              <span style={{fontSize:8,padding:'3px 8px',borderRadius:2,fontWeight:700,background:authRole==='exec'?C.goodBg:C.warnBg,color:authRole==='exec'?C.good:C.warn,border:'1px solid '+(authRole==='exec'?C.goodBdr:C.warnBdr),letterSpacing:1}}>{authUser?authUser.name.split(' ')[0].toUpperCase():''} · {(rolePerms.label||'').toUpperCase()}</span>
+              <button onClick={handleLogout} style={{fontSize:8,color:C.dim,background:'transparent',border:'1px solid '+C.border,borderRadius:2,padding:'3px 8px',cursor:'pointer',fontFamily:'inherit'}}>Sign Out</button>
             </div>
           </div>
           {notice&&<div style={{background:C.raised,borderBottom:'1px solid '+C.border,padding:'8px 24px',fontSize:11}}>{notice}</div>}
 
-          {!hasData&&tab!=="cashflow"&&(
+          {!hasData&&tab!=="cashflow"&&tab!=="briefing"&&tab!=="pnl"&&tab!=="marketing"&&tab!=="security"&&(
             <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'100px 24px',gap:18,textAlign:'center'}}>
               <div style={{width:56,height:56,border:'2px solid '+C.borderHi,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,fontSize:11,letterSpacing:2}}>GPI</div>
               <div style={{fontSize:16,fontWeight:800,letterSpacing:4}}>GLOBS PRICE INTELLIGENCE</div>
@@ -1066,17 +1170,19 @@ window._STRAIN_DB=[
             </div>
           )}
 
-          {(hasData||tab==="cashflow"||tab==="labels"||tab==="strains"||tab==="yield"||tab==="returns")&&(
+          {(hasData||tab==="cashflow"||tab==="labels"||tab==="strains"||tab==="yield"||tab==="returns"||tab==="briefing"||tab==="pnl"||tab==="marketing"||tab==="security")&&(
             <>
               <div className="gpi-tab-bar" style={{background:C.bg,borderBottom:'1px solid '+C.border,padding:'0 24px',display:'flex',gap:0,overflowX:'auto',WebkitOverflowScrolling:'touch',alignItems:'flex-end'}}>
                 <span style={{fontSize:7,color:C.dim,letterSpacing:2,textTransform:'uppercase',padding:'6px 10px 10px 0',flexShrink:0,opacity:0.6}}>DISTRO</span>
-                {[["accounts","Accounts"],["opportunities","Opps"],["dispatch","Dispatch"]].map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
+                {killSwitches.maintenanceMode&&<div style={{position:'fixed',top:58,left:0,right:0,background:'#f5a623',color:'#000',padding:'4px 20px',fontSize:10,fontWeight:700,textAlign:'center',zIndex:49,letterSpacing:2}}>⚠ MAINTENANCE MODE — DATA CHANGES DISABLED</div>}
+                {killSwitches.readOnly&&!killSwitches.maintenanceMode&&<div style={{position:'fixed',top:58,left:0,right:0,background:'#2196f3',color:'#fff',padding:'4px 20px',fontSize:10,fontWeight:700,textAlign:'center',zIndex:49,letterSpacing:2}}>READ-ONLY MODE — EDITS DISABLED BY ADMIN</div>}
+                {[["accounts","Accounts"],["opportunities","Opps"],["dispatch","Dispatch"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
                 <span style={{width:1,alignSelf:'stretch',background:C.border,margin:'6px 10px',flexShrink:0}}></span>
                 <span style={{fontSize:7,color:C.dim,letterSpacing:2,textTransform:'uppercase',padding:'6px 10px 10px 0',flexShrink:0,opacity:0.6}}>MFG</span>
-                {[["strains","Strains"],["yield","Yield"],["mfg","MFG"],["labels","Labels"],["packaging","Packaging"]].map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
+                {[["strains","Strains"],["yield","Yield"],["mfg","MFG"],["labels","Labels"],["packaging","Packaging"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
                 <span style={{width:1,alignSelf:'stretch',background:C.border,margin:'6px 10px',flexShrink:0}}></span>
                 <span style={{fontSize:7,color:C.dim,letterSpacing:2,textTransform:'uppercase',padding:'6px 10px 10px 0',flexShrink:0,opacity:0.6}}>EXEC</span>
-                {[["executive","Executive"],["cashflow","Cash Flow"],["returns","Returns"]].map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
+                {[["briefing","Briefing"],["executive","Executive"],["pnl","P&L"],["cashflow","Cash Flow"],["returns","Returns"],["marketing","Marketing"],["security","Security"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
               </div>
               <div className="gpi-content" style={{padding:'22px 24px',maxWidth:1300,margin:'0 auto'}}>
 
@@ -1099,7 +1205,7 @@ window._STRAIN_DB=[
                     </div>
                     <div style={{border:'1px solid '+C.border,borderRadius:6,overflow:'hidden'}}>
                       {filteredAccounts.length===0&&<div style={{padding:40,textAlign:'center',color:C.dim,fontSize:12}}>No accounts match</div>}
-                      {filteredAccounts.map(function(acc){return<AccountRow key={acc.name} account={acc} open={!!openAccts[acc.name]} onToggle={function(){setOpenAccts(function(p){const n=Object.assign({},p);n[acc.name]=!n[acc.name];return n;});}} skuAvgs={skuAvgs} periodDays={periodDays}/>;}) }
+                      {filteredAccounts.map(function(acc){return<AccountRow key={acc.name} account={acc} open={!!openAccts[acc.name]} onToggle={function(){setOpenAccts(function(p){const n=Object.assign({},p);n[acc.name]=!n[acc.name];return n;});}} skuAvgs={skuAvgs} periodDays={periodDays} returnsLog={returnsLog}/>;}) }
                     </div>
                     {filteredAccounts.length>0&&<div style={{display:'flex',gap:8,marginTop:10}}><button style={Object.assign({},btnSt('ghost'),{fontSize:10,color:C.dim})} onClick={function(){const o={};filteredAccounts.forEach(function(a){o[a.name]=true;});setOpenAccts(o);}}>Expand All</button><button style={Object.assign({},btnSt('ghost'),{fontSize:10,color:C.dim})} onClick={function(){setOpenAccts({});}}>Collapse All</button></div>}
                   </>
@@ -1596,7 +1702,7 @@ window._STRAIN_DB=[
                   displayAccounts.forEach(function(acc){
                     if(!acc.orderDayTs||acc.orderDayTs.length<2)return;
                     var ts=acc.orderDayTs.slice().sort(function(a,b){return a-b;});
-                    var n=ts.length,daysSince=Math.round((now-ts[n-1])/86400000);
+                    var n=ts.length,daysSince=Math.max(0,Math.round((now-ts[n-1])/86400000));if(isNaN(daysSince))return;
                     var gaps=[];for(var gi=1;gi<n;gi++)gaps.push((ts[gi]-ts[gi-1])/86400000);
                     gaps.sort(function(a,b){return a-b;});
                     var median=gaps.length%2===0?Math.round((gaps[Math.floor(gaps.length/2)-1]+gaps[Math.floor(gaps.length/2)])/2):Math.round(gaps[Math.floor(gaps.length/2)]);
@@ -1616,9 +1722,8 @@ window._STRAIN_DB=[
                     var totalOrderVal=0;
                     skus.forEach(function(s){totalOrderVal+=(s.totalQty||0)*(s.wholesale>0?s.wholesale:cogsFor(s.category).wholesale);});
                     var avgOrderVal=Math.round(totalOrderVal/Math.max(1,n));
-                    var targetBudget=Math.max(500,Math.round(avgOrderVal/500)*500);
                     var budget=avgOrderVal>=1150?1500:avgOrderVal>=750?1000:500;
-                    OPP.push({name:acc.name.replace(/ - Corporate$/i,""),zone:zone,orders:n,median:median,daysSince:daysSince,status:status,rev:Math.round(rev),rep:acc.rep||'',skus:skus,score:score,avgOrderVal:avgOrderVal,targetBudget:targetBudget,budget:budget});
+                    OPP.push({name:acc.name.replace(/ - Corporate$/i,""),zone:zone,orders:n,median:median,daysSince:daysSince,status:status,rev:Math.round(rev),rep:acc.rep||'',skus:skus,score:score,avgOrderVal:avgOrderVal,budget:budget});
                   });
                   OPP.sort(function(a,b){return b.score-a.score;});
 
@@ -1828,7 +1933,7 @@ window._STRAIN_DB=[
                                 React.createElement('span',{style:{fontSize:8,padding:'1px 6px',borderRadius:2,border:'1px solid '+(o.status==="FALLEN OFF"?C.danger:C.warn)+'55',background:(o.status==="FALLEN OFF"?C.danger:C.warn)+'18',color:o.status==="FALLEN OFF"?C.danger:C.warn,fontWeight:700}},o.status),
                                 lines.length>0?React.createElement('span',{style:{fontSize:8,color:C.good,fontWeight:600}},lines.length+' SKUs \u00b7 '+curK(orderRev)+' / '+curK(o.budget)+' target'):React.createElement('span',{style:{fontSize:8,color:C.dim}},'no zone match')
                               ),
-                              React.createElement('div',{style:{fontSize:9,color:C.muted,paddingLeft:20}},(o.rep?o.rep+' \u00b7 ':'')+( DZN2[o.zone]||o.zone)+' \u00b7 '+o.orders+' orders'+' \u00b7 median '+o.median+'d \u00b7 target '+curK(o.targetBudget))
+                              React.createElement('div',{style:{fontSize:9,color:C.muted,paddingLeft:20}},(o.rep?o.rep+' \u00b7 ':'')+( DZN2[o.zone]||o.zone)+' \u00b7 '+o.orders+' orders'+' \u00b7 median '+o.median+'d \u00b7 target '+curK(o.budget))
                             ),
                             React.createElement('div',{style:{textAlign:'right',flexShrink:0}},
                               React.createElement('div',{style:{fontSize:13,fontWeight:800}},curK(o.rev)),
@@ -1836,7 +1941,7 @@ window._STRAIN_DB=[
                             )
                           ),
                           isOpen&&lines.length>0?React.createElement('div',{style:{borderTop:'1px solid '+C.border,padding:'10px 8px'}},
-                            React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:8,fontWeight:700}},'SUGGESTED REORDER \u00b7 target '+curK(o.targetBudget)+' (avg '+curK(o.avgOrderVal)+') \u00b7 '+o.zone+' zone'),
+                            React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:8,fontWeight:700}},'SUGGESTED REORDER \u00b7 target '+curK(o.budget)+' (avg '+curK(o.avgOrderVal)+') \u00b7 '+o.zone+' zone'),
                             React.createElement('div',{style:{overflowX:'auto',WebkitOverflowScrolling:'touch'}},
                             React.createElement('table',{style:{width:'100%',minWidth:360,borderCollapse:'collapse'}},
                               React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Strain','Type','Qty','$/ea','Line $','OH'].map(function(h,hi){return React.createElement('th',{key:h,style:{padding:'4px 6px',fontSize:7,fontWeight:700,letterSpacing:1,textTransform:'uppercase',color:C.dim,textAlign:hi>=2?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}},h);}))),
@@ -1957,7 +2062,7 @@ window._STRAIN_DB=[
                     setReturnsLog(merged);
                     persist(RETURNS_KEY,merged);
                   }
-                  async function saveReturns(next){setReturnsLog(next);await persist(RETURNS_KEY,next);}
+                  async function saveReturns(next){setReturnsLog(next);await persist(RETURNS_KEY,next);logActivity('RETURN','Returns log updated — '+next.length+' entries');}
                   function addReturn(){
                     var qty=parseInt(returnsForm.qty)||0;var uv=parseFloat(returnsForm.unitValue)||0;
                     if(!returnsForm.strain||qty<1||uv<=0)return;
@@ -2144,9 +2249,647 @@ window._STRAIN_DB=[
                   );
                 })()}
 
+                {/* ══ MORNING BRIEFING ══ */}
+                {tab==="briefing"&&(function(){
+                  var now=Date.now(),pd=periodDays;
+                  // ── Founder Stress Score ──
+                  var stressFactors=[];
+                  var overdueAccts=displayAccounts.filter(function(a){if(!a.orderDayTs||a.orderDayTs.length<2)return false;var ts=a.orderDayTs.slice().sort(function(x,y){return x-y;});var ds=Math.round((now-ts[ts.length-1])/86400000);var gaps=[];for(var i=1;i<ts.length;i++)gaps.push((ts[i]-ts[i-1])/86400000);gaps.sort(function(x,y){return x-y;});var med=gaps.length>0?gaps[Math.floor(gaps.length/2)]:30;return ds>Math.max(med*1.5,21);});
+                  if(overdueAccts.length>10)stressFactors.push({label:overdueAccts.length+' overdue accounts',weight:3});
+                  else if(overdueAccts.length>5)stressFactors.push({label:overdueAccts.length+' overdue accounts',weight:2});
+                  else if(overdueAccts.length>0)stressFactors.push({label:overdueAccts.length+' overdue accounts',weight:1});
+
+                  var unresolvedReturns=returnsLog.filter(function(r){return r.status!=='CREDIT APPLIED'&&r.status!=='RESOLVED'&&!r.preMarket;});
+                  if(unresolvedReturns.length>5)stressFactors.push({label:unresolvedReturns.length+' unresolved returns',weight:2});
+                  else if(unresolvedReturns.length>0)stressFactors.push({label:unresolvedReturns.length+' unresolved returns',weight:1});
+
+                  var lowStock=Object.entries(inventoryData).filter(function(e){var oh=parseInt(e[1].onHand)||0;return oh>0&&oh<20&&!e[0].toLowerCase().includes('battery');});
+                  if(lowStock.length>3)stressFactors.push({label:lowStock.length+' SKUs below 20 units',weight:2});
+                  else if(lowStock.length>0)stressFactors.push({label:lowStock.length+' SKUs near stockout',weight:1});
+                  var demoFollowUps=demos.filter(function(d){return d.status==='follow-up';});
+                  if(demoFollowUps.length>0)stressFactors.push({label:demoFollowUps.length+' demo follow-ups pending',weight:1});
+
+                  var totalStress=stressFactors.reduce(function(s,f){return s+f.weight;},0);
+                  var stressLevel=totalStress>=7?'RED':totalStress>=4?'YELLOW':'GREEN';
+                  var stressColor=stressLevel==='RED'?C.danger:stressLevel==='YELLOW'?C.warn:C.good;
+                  var stressLabel=stressLevel==='RED'?'CRITICAL':stressLevel==='YELLOW'?'ELEVATED':'STABLE';
+
+                  // ── Top Actions ──
+                  var topActions=[];
+                  if(overdueAccts.length>0){var topOD=overdueAccts.slice(0,3).map(function(a){return a.name;}).join(', ');topActions.push('Contact '+overdueAccts.length+' overdue accounts ('+topOD+')');}
+                  if(unresolvedReturns.length>0)topActions.push('Resolve '+unresolvedReturns.length+' open return'+( unresolvedReturns.length>1?'s':''));
+                  if(lowStock.length>0)topActions.push('Restock '+lowStock.length+' low-inventory SKU'+(lowStock.length>1?'s':''));
+                  var totalRev365=displayAccounts.reduce(function(s,a){return s+(a.totalSales||0);},0);
+                  if(totalRev365>0)topActions.push('Pipeline: $'+Math.round(totalRev365/12).toLocaleString()+'/mo run rate — push top accounts');
+                  var followUpDemos=demos.filter(function(d){return d.status==='follow-up';});
+                  if(followUpDemos.length>0)topActions.splice(1,0,'Follow up on '+followUpDemos.length+' completed demo'+(followUpDemos.length>1?'s':'')+' — '+followUpDemos.map(function(d){return d.account;}).join(', '));
+
+                  // ── Top Risks ──
+                  var topRisks=[];
+                  var fallenAccts=displayAccounts.filter(function(a){if(!a.orderDayTs||a.orderDayTs.length<2)return false;var ts=a.orderDayTs.slice().sort(function(x,y){return x-y;});var ds=Math.round((now-ts[ts.length-1])/86400000);return ds>90;});
+                  if(fallenAccts.length>0){var topRev=fallenAccts.sort(function(a,b){return(b.totalSales||0)-(a.totalSales||0);}).slice(0,3).map(function(a){return a.name;}).join(', ');topRisks.push(fallenAccts.length+' fallen-off accounts ($'+Math.round(fallenAccts.reduce(function(s,a){return s+(a.totalSales||0);},0)).toLocaleString()+' at risk): '+topRev);}
+                  if(unresolvedReturns.length>0){var retVal=unresolvedReturns.reduce(function(s,r){return s+(r.totalValue||0);},0);topRisks.push('$'+retVal.toFixed(0)+' in unresolved return credits');}
+                  var totalOH=Object.values(inventoryData).reduce(function(s,v){return s+(parseInt(v.onHand)||0);},0);
+                  if(totalOH<500)topRisks.push('Total inventory below 500 units — production needed');
+
+                  // ── Bottleneck ──
+                  var bottleneck='';
+                  if(totalOH<200)bottleneck='MANUFACTURING — inventory critically low';
+                  else if(overdueAccts.length>15)bottleneck='SALES — too many accounts overdue';
+                  else if(unresolvedReturns.length>10)bottleneck='QUALITY — returns backlog growing';
+                  else bottleneck='None identified — operations flowing';
+
+                  // ── 80/20 Power Law ──
+                  var sortedByRev=displayAccounts.filter(function(a){return(a.totalSales||0)>0;}).sort(function(a,b){return(b.totalSales||0)-(a.totalSales||0);});
+                  var cumRev=0,p80idx=0;
+                  for(var pi=0;pi<sortedByRev.length;pi++){cumRev+=(sortedByRev[pi].totalSales||0);if(cumRev>=totalRev365*0.8&&p80idx===0)p80idx=pi+1;}
+
+                  return React.createElement('div',null,
+                    React.createElement('div',{style:{display:'flex',alignItems:'center',gap:16,marginBottom:24}},
+                      React.createElement('div',{style:{fontSize:14,fontWeight:900,letterSpacing:3}},'\u2609 MORNING BRIEFING'),
+                      React.createElement('div',{style:{fontSize:9,color:C.dim}},new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}))
+                    ),
+                    React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:16,marginBottom:24}},
+                      React.createElement('div',{style:{background:stressColor+'11',border:'2px solid '+stressColor,borderRadius:8,padding:'20px 24px',gridColumn:'1/2'}},
+                        React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:6}},'FOUNDER LOAD'),
+                        React.createElement('div',{style:{fontSize:28,fontWeight:900,color:stressColor}},stressLabel),
+                        React.createElement('div',{style:{fontSize:10,color:C.muted,marginTop:4}},totalStress+' stress points'),
+                        stressFactors.length>0&&React.createElement('div',{style:{marginTop:12,borderTop:'1px solid '+stressColor+'33',paddingTop:10}},
+                          stressFactors.map(function(f,i){return React.createElement('div',{key:i,style:{fontSize:10,color:stressColor,marginBottom:4}},'• '+f.label+' (+'+f.weight+')');})
+                        ),
+                        stressLevel!=='GREEN'&&React.createElement('div',{style:{marginTop:12,borderTop:'1px solid '+C.border,paddingTop:10}},
+                          React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:1.5,marginBottom:6}},'REDUCE LOAD'),
+                          topActions.slice(0,3).map(function(a,i){return React.createElement('div',{key:i,style:{fontSize:10,color:C.text,marginBottom:4}},'\u2192 '+a);})
+                        )
+                      ),
+                      React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:'20px 24px'}},
+                        React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'TOP 3 REVENUE ACTIONS'),
+                        topActions.slice(0,3).map(function(a,i){return React.createElement('div',{key:i,style:{display:'flex',gap:8,marginBottom:10,alignItems:'flex-start'}},React.createElement('span',{style:{fontSize:14,fontWeight:900,color:C.good,flexShrink:0}},i+1),React.createElement('span',{style:{fontSize:11,color:C.text,lineHeight:1.6}},a));})
+                      ),
+                      React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:'20px 24px'}},
+                        React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'TOP 3 RISKS'),
+                        topRisks.slice(0,3).map(function(r,i){return React.createElement('div',{key:i,style:{display:'flex',gap:8,marginBottom:10,alignItems:'flex-start'}},React.createElement('span',{style:{fontSize:14,fontWeight:900,color:C.danger,flexShrink:0}},'\u26a0'),React.createElement('span',{style:{fontSize:11,color:C.muted,lineHeight:1.6}},r));}),
+                        topRisks.length===0&&React.createElement('div',{style:{fontSize:11,color:C.good}},'No critical risks identified')
+                      )
+                    ),
+                    React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:24}},
+                      React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:'20px 24px'}},
+                        React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'BOTTLENECK'),
+                        React.createElement('div',{style:{fontSize:13,fontWeight:700,color:bottleneck.includes('None')?C.good:C.warn}},bottleneck)
+                      ),
+                      React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:'20px 24px'}},
+                        React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'80/20 POWER LAW'),
+                        React.createElement('div',{style:{fontSize:13,fontWeight:700,color:C.text}},p80idx+' of '+sortedByRev.length+' accounts drive 80% of revenue'),
+                        React.createElement('div',{style:{fontSize:10,color:C.muted,marginTop:4}},'Top 20%: '+Math.round(p80idx/Math.max(1,sortedByRev.length)*100)+'% of accounts = 80% of $'+Math.round(totalRev365).toLocaleString())
+                      )
+                    ),
+                    React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:12,marginBottom:24}},
+                      [{l:'Accounts',v:displayAccounts.length,c:C.text},{l:'Overdue',v:overdueAccts.length,c:overdueAccts.length>10?C.danger:C.warn},{l:'Fallen Off',v:fallenAccts.length,c:C.danger},{l:'Unresolved Returns',v:unresolvedReturns.length,c:unresolvedReturns.length>0?C.warn:C.good},{l:'Inventory OH',v:totalOH.toLocaleString(),c:totalOH<500?C.danger:C.text},{l:'Low Stock SKUs',v:lowStock.length,c:lowStock.length>3?C.danger:lowStock.length>0?C.warn:C.good}].map(function(s){return React.createElement('div',{key:s.l,style:{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'12px 14px'}},React.createElement('div',{style:{fontSize:7,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:4}},s.l),React.createElement('div',{style:{fontSize:18,fontWeight:800,color:s.c}},s.v));})
+                    ),
+                    overdueAccts.length>0&&React.createElement('div',{style:{marginBottom:24}},
+                      React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'OVERDUE ACCOUNTS — ACTION NEEDED'),
+                      React.createElement('div',{style:{overflowX:'auto'}},React.createElement('table',{style:{width:'100%',minWidth:420,borderCollapse:'collapse'}},
+                        React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Account','Rep','Days Silent','Median','365d Rev'].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'6px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=2?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
+                        React.createElement('tbody',null,overdueAccts.sort(function(a,b){return(b.totalSales||0)-(a.totalSales||0);}).slice(0,20).map(function(a,i){
+                          var ts=(a.orderDayTs||[]).slice().sort(function(x,y){return x-y;});var ds=ts.length>0?Math.round((now-ts[ts.length-1])/86400000):0;
+                          return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#0a0a0a',cursor:'pointer'},onClick:function(){window._goAcct&&window._goAcct(a.name);}},
+                            React.createElement('td',{style:{padding:'6px 10px',fontSize:11,fontWeight:500}},a.name),
+                            React.createElement('td',{style:{padding:'6px 10px',fontSize:10,color:C.muted}},a.rep||'—'),
+                            React.createElement('td',{style:{padding:'6px 10px',fontSize:11,textAlign:'right',fontWeight:700,color:ds>90?C.danger:C.warn}},ds+'d'),
+                            React.createElement('td',{style:{padding:'6px 10px',fontSize:10,textAlign:'right',color:C.dim}},ts.length>1?Math.round(((function(){var gaps=[];for(var gi=1;gi<ts.length;gi++)gaps.push((ts[gi]-ts[gi-1])/86400000);gaps.sort(function(x,y){return x-y;});return gaps[Math.floor(gaps.length/2)];})()||30))+'d':'—'),
+                            React.createElement('td',{style:{padding:'6px 10px',fontSize:11,textAlign:'right',fontWeight:600}},curK(a.totalSales||0))
+                          );
+                        }))
+                      ))
+                    ),
+                    lowStock.length>0&&React.createElement('div',{style:{marginBottom:24}},
+                      React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'STOCKOUT RISK'),
+                      lowStock.sort(function(a,b){return(parseInt(a[1].onHand)||0)-(parseInt(b[1].onHand)||0);}).map(function(e){return React.createElement('div',{key:e[0],style:{display:'flex',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid '+C.border}},React.createElement('span',{style:{fontSize:11}},e[0].replace(/^Globs - /,'')),React.createElement('span',{style:{fontSize:11,fontWeight:700,color:parseInt(e[1].onHand)<10?C.danger:C.warn}},e[1].onHand+' units'));})
+                    ),
+                    // ── Upcoming Demos ──
+                    (function(){
+                      var upcoming=demos.filter(function(d){return d.status==='planned';});
+                      var followUps=demos.filter(function(d){return d.status==='follow-up';});
+                      if(!upcoming.length&&!followUps.length)return null;
+                      return React.createElement('div',{style:{marginBottom:24}},
+                        React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:8}},'DEMOS'+(followUps.length>0?' — '+followUps.length+' FOLLOW-UPS NEEDED':'')),
+                        upcoming.concat(followUps).map(function(d,i){return React.createElement('div',{key:i,style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px solid '+C.border}},
+                          React.createElement('div',null,
+                            React.createElement('span',{style:{fontSize:11,fontWeight:600,cursor:'pointer'},onClick:function(){window._goAcct&&window._goAcct(d.account);}},d.account),
+                            React.createElement('span',{style:{fontSize:9,color:C.muted,marginLeft:8}},d.date)
+                          ),
+                          React.createElement('span',{style:{fontSize:8,fontWeight:700,padding:'2px 6px',borderRadius:2,background:d.status==='follow-up'?C.warnBg:C.surface,color:d.status==='follow-up'?C.warn:C.muted,border:'1px solid '+(d.status==='follow-up'?C.warnBdr:C.border)}},d.status)
+                        );})
+                      );
+                    })(),
+                    // ── Win-Back Tracking ──
+                    (function(){var winBacks=[];displayAccounts.forEach(function(a){if(!a.orderDayTs||a.orderDayTs.length<3)return;var ts=a.orderDayTs.slice().sort(function(x,y){return x-y;});for(var gi=1;gi<ts.length;gi++){var gap=(ts[gi]-ts[gi-1])/86400000;if(gap>90&&gi<ts.length-1){winBacks.push({name:a.name,gapDays:Math.round(gap),reactivated:new Date(ts[gi]).toLocaleDateString('en-US',{month:'short',year:'numeric'}),ordersAfter:ts.length-gi,rev:a.totalSales||0});break;}}});if(!winBacks.length)return null;return React.createElement('div',{style:{marginBottom:24}},React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'WIN-BACK SUCCESS — '+winBacks.length+' REACTIVATED ACCOUNTS'),React.createElement('div',{style:{overflowX:'auto'}},React.createElement('table',{style:{width:'100%',minWidth:380,borderCollapse:'collapse'}},React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Account','Gap','Reactivated','Orders Since','365d Rev'].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'5px 8px',fontSize:8,fontWeight:700,color:C.dim,textAlign:i>=1?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),React.createElement('tbody',null,winBacks.sort(function(a,b){return b.rev-a.rev;}).slice(0,15).map(function(w,i){return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#0a0a0a',cursor:'pointer'},onClick:function(){window._goAcct&&window._goAcct(w.name);}},React.createElement('td',{style:{padding:'5px 8px',fontSize:11,fontWeight:500}},w.name),React.createElement('td',{style:{padding:'5px 8px',fontSize:10,textAlign:'right',color:C.warn}},w.gapDays+'d'),React.createElement('td',{style:{padding:'5px 8px',fontSize:10,textAlign:'right',color:C.muted}},w.reactivated),React.createElement('td',{style:{padding:'5px 8px',fontSize:10,textAlign:'right',color:C.good}},w.ordersAfter),React.createElement('td',{style:{padding:'5px 8px',fontSize:11,textAlign:'right',fontWeight:600}},curK(w.rev)));})))));})(),
+                    // ── Time-to-Cash Cycle (Real Timing) ──
+                    React.createElement('div',{style:{marginBottom:24}},React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'PRODUCTION → CASH CYCLE (UPNORTH CONSIGNMENT)'),React.createElement('div',{className:'gpi-form-grid',style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(100px,1fr))',gap:12}},
+                      [{l:'Extraction',v:'~10d',s:'Fill + QA'},{l:'Pickup',v:'+5d',s:'UpNorth collects'},{l:'Sell-Through',v:'14-45d',s:'By SKU velocity'},{l:'Month Close',v:'~15d avg',s:'End of sale month'},{l:'Consignment',v:'+42d',s:'6 wk hold'},{l:'Payout',v:'2nd Fri',s:'Of payout month'},{l:'Cart Cycle',v:'~86d',s:'Fastest SKU'},{l:'Diamond Cycle',v:'~117d',s:'Slowest SKU'}].map(function(s){return React.createElement('div',{key:s.l,style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'10px 12px',textAlign:'center'}},React.createElement('div',{style:{fontSize:7,color:C.dim,letterSpacing:1.5,marginBottom:3}},s.l),React.createElement('div',{style:{fontSize:14,fontWeight:800,color:C.text}},s.v),React.createElement('div',{style:{fontSize:8,color:C.muted,marginTop:2}},s.s));})
+                    )),
+                    // ── Upcoming Payout Dates ──
+                    React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:24}},
+                      React.createElement('div',{style:{background:C.warnBg,border:'1px solid '+C.warnBdr,borderRadius:6,padding:'12px 16px'}},
+                        React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:1.5}},'NEXT PAYOUT — FEB SALES'),
+                        React.createElement('div',{style:{fontSize:18,fontWeight:900,color:C.warn}},'$38,396.91'),
+                        React.createElement('div',{style:{fontSize:9,color:C.muted,marginTop:2}},'Due Apr 13 · GON $33K + Euphoric $5K + Batt $423')
+                      ),
+                      React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'12px 16px'}},
+                        React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:1.5}},'TOTAL RECEIVABLES OUTSTANDING'),
+                        React.createElement('div',{style:{fontSize:18,fontWeight:900,color:C.text}},'~$92,694'),
+                        React.createElement('div',{style:{fontSize:9,color:C.muted,marginTop:2}},'Feb $38.4K + Cruz $6.5K past due + Mar ~$47.8K est')
+                      )
+                    ),
+                    // ── Activity Log ──
+                    activityLog.length>0&&React.createElement('div',{style:{marginBottom:24}},
+                      React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}},
+                        React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2}},'ACTIVITY LOG ('+activityLog.length+')'),
+                        React.createElement('button',{onClick:function(){setActivityLog([]);try{localStorage.removeItem('gpi:gpi-activity-log');}catch(e){}},style:{fontSize:8,color:C.dim,background:'transparent',border:'1px solid '+C.border,borderRadius:2,padding:'2px 8px',cursor:'pointer',fontFamily:'inherit'}},'Clear')
+                      ),
+                      React.createElement('div',{style:{maxHeight:200,overflowY:'auto',border:'1px solid '+C.border,borderRadius:4}},
+                        activityLog.slice(0,30).map(function(e,i){var d=new Date(e.ts);return React.createElement('div',{key:i,style:{display:'flex',gap:10,padding:'5px 10px',borderBottom:'1px solid '+C.border,fontSize:10}},
+                          React.createElement('span',{style:{color:C.dim,flexShrink:0,width:60}},d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})),
+                          React.createElement('span',{style:{fontWeight:700,color:e.type==='UPLOAD'?'#2196f3':e.type==='RETURN'?C.warn:e.type==='IMPORT'?C.good:C.muted,flexShrink:0,width:55}},e.type),
+                          React.createElement('span',{style:{color:C.text}},e.detail)
+                        );})
+                      )
+                    )
+                  );
+                })()}
+
+                {/* ══ PROFIT & LOSS ══ */}
+                {tab==="pnl"&&(function(){
+                  var pd=periodDays;
+                  var cb={'Vape Cart - Live Resin':COGS.Cart,'Badder':COGS.Badder,'Sauce':COGS.Sauce,'Diamonds':COGS.Diamonds,'Shatter':COGS.Shatter};
+                  var CM={'Vape Cart - Live Resin':'Vape Cart - Live Resin','Live Resin':'Vape Cart - Live Resin'};
+                  var byAcct={},byCat={};
+                  var tR=0,tC=0,tD=0,tU=0;
+                  displayAccounts.forEach(function(acc){
+                    var cr=(acc.periodCatRevenue&&acc.periodCatRevenue[pd])?acc.periodCatRevenue[pd]:(acc.catRevenue90||{});
+                    var aRev=0,aCogs=0,aDist=0,aUnits=0;
+                    Object.keys(cr).forEach(function(rc){
+                      var rev=cr[rc];if(!rev||rev<=0)return;
+                      var label=CM[rc]||rc;
+                      var cogs=cb[label]||COGS.Other;
+                      var units=cogs.wholesale>0?Math.round(rev/cogs.wholesale):0;
+                      var pc=units*cogs.cost;var d=rev*cogs.distroRate;
+                      if(!byCat[label])byCat[label]={label:label,revenue:0,cogs:0,distro:0,units:0};
+                      byCat[label].revenue+=rev;byCat[label].cogs+=pc;byCat[label].distro+=d;byCat[label].units+=units;
+                      aRev+=rev;aCogs+=pc;aDist+=d;aUnits+=units;
+                      tR+=rev;tC+=pc;tD+=d;tU+=units;
+                    });
+                    if(aRev>0){
+                      var acctReturns=returnsLog.filter(function(r){return r.account===acc.name&&!r.preMarket;});
+                      var retCredits=acctReturns.reduce(function(s,r){return s+(r.totalValue||0);},0);
+                      var promos=(acc.orderedSkus||[]).filter(function(s){return(s.sku||'').toLowerCase().includes('promo')||(s.sku||'').toLowerCase().includes('sample');});
+                      var promoVal=promos.reduce(function(s,p){return s+(p.qty||0)*(p.wholesale>0?p.wholesale:5);},0);
+                      var net=aRev-aCogs-aDist-retCredits;
+                      var margin=aRev>0?net/aRev*100:0;
+                      byAcct[acc.name]={name:acc.name,rep:acc.rep||'',revenue:aRev,cogs:aCogs,distro:aDist,returns:retCredits,promoSpend:promoVal,net:net,margin:margin,units:aUnits};
+                    }
+                  });
+                  var gp=tR-tC;var np=gp-tD;var mg=tR>0?np/tR*100:0;
+                  var catRows=Object.values(byCat).sort(function(a,b){return b.revenue-a.revenue;});
+                  var acctRows=Object.values(byAcct).sort(function(a,b){return b.revenue-a.revenue;});
+                  var lowMargin=acctRows.filter(function(a){return a.revenue>500&&a.margin<25;});
+
+                  return React.createElement('div',null,
+                    React.createElement('div',{style:{display:'flex',alignItems:'center',gap:16,marginBottom:20}},
+                      React.createElement('div',{style:{fontSize:14,fontWeight:900,letterSpacing:3}},'PROFIT & LOSS'),
+                      React.createElement('div',{style:{display:'flex',gap:4}},
+                        [7,30,60,90,180,270,365].map(function(d){return React.createElement('button',{key:d,onClick:function(){setPeriodDays(d);},style:{padding:'4px 10px',borderRadius:2,fontSize:9,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(pd===d?C.text:C.border),background:pd===d?C.text:'transparent',color:pd===d?C.bg:C.dim,fontWeight:pd===d?700:400}},d+'d');})
+                      )
+                    ),
+                    React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:12,marginBottom:24}},
+                      [{l:'Revenue ('+pd+'d)',v:curK(tR),c:C.text},{l:'Gross Profit',v:curK(gp),c:gp>0?C.good:C.danger},{l:'Net Profit',v:curK(np),c:np>0?C.good:C.danger},{l:'Net Margin',v:mg.toFixed(1)+'%',c:mg>35?C.good:mg>20?C.warn:C.danger},{l:'Units Sold',v:tU.toLocaleString(),c:C.text}].map(function(s){return React.createElement('div',{key:s.l,style:{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'14px 16px',flex:1,minWidth:80}},React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:4}},s.l),React.createElement('div',{style:{fontSize:20,fontWeight:800,color:s.c}},s.v));})
+                    ),
+                    // ── Formal P&L Statement ──
+                    React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.borderHi,borderRadius:8,padding:'20px 24px',marginBottom:24}},
+                      React.createElement('div',{style:{fontSize:9,color:C.dim,letterSpacing:2,marginBottom:12}},'PROFIT & LOSS STATEMENT — '+pd+' DAY WINDOW'),
+                      React.createElement('div',{style:{fontFamily:'inherit'}},
+                        (function(){
+                          var totalReturns=returnsLog.filter(function(r){return!r.preMarket;}).reduce(function(s,r){return s+(r.totalValue||0);},0);
+                          var demoSpend=demos.length*demoCost;
+                          var pkgEst=Math.round(tU*1.5);// ~$1.50 avg pkg per unit
+                          var opex=tD+demoSpend;
+                          var adjNet=tR-tC-pkgEst-opex-totalReturns;
+                          var adjMg=tR>0?adjNet/tR*100:0;
+                          var rows=[
+                            {label:'Revenue',value:tR,bold:true,indent:0},
+                            {label:'Cost of Goods Sold',value:null,bold:true,indent:0,header:true},
+                            {label:'Materials (oil + labor + testing)',value:-tC,indent:1},
+                            {label:'Packaging materials',value:-pkgEst,indent:1},
+                            {label:'Total COGS',value:-(tC+pkgEst),bold:true,indent:0,line:true},
+                            {label:'Gross Profit',value:tR-tC-pkgEst,bold:true,indent:0,highlight:true},
+                            {label:'Gross Margin',value:null,pct:tR>0?(tR-tC-pkgEst)/tR*100:0,indent:0},
+                            {label:'Operating Expenses',value:null,bold:true,indent:0,header:true},
+                            {label:'Distribution fees (16%)',value:-tD,indent:1},
+                            {label:'Marketing / demos',value:-demoSpend,indent:1},
+                            {label:'Return credits',value:-totalReturns,indent:1},
+                            {label:'Total OpEx',value:-opex-totalReturns,bold:true,indent:0,line:true},
+                            {label:'Net Profit',value:adjNet,bold:true,indent:0,highlight:true,final:true},
+                            {label:'Net Margin',value:null,pct:adjMg,indent:0,final:true},
+                          ];
+                          return rows.map(function(r,i){
+                            if(r.header)return React.createElement('div',{key:i,style:{fontSize:10,fontWeight:700,color:C.dim,letterSpacing:1,marginTop:12,marginBottom:4,paddingLeft:r.indent*16}},r.label);
+                            return React.createElement('div',{key:i,style:{display:'flex',justifyContent:'space-between',padding:'4px 0',paddingLeft:r.indent*16,borderTop:r.line?'1px solid '+C.border:'none',borderBottom:r.final?'2px solid '+C.text:'none',marginTop:r.line||r.final?8:0}},
+                              React.createElement('span',{style:{fontSize:r.bold?12:11,fontWeight:r.bold?700:400,color:r.highlight?C.text:C.muted}},r.label),
+                              r.pct!=null?React.createElement('span',{style:{fontSize:11,fontWeight:700,color:r.pct>35?C.good:r.pct>20?C.warn:C.danger}},r.pct.toFixed(1)+'%'):
+                              r.value!=null?React.createElement('span',{style:{fontSize:r.bold?13:11,fontWeight:r.bold?800:500,color:r.value>=0?(r.highlight||r.final?C.good:C.text):C.danger}},r.value>=0?curK(r.value):'-'+curK(Math.abs(r.value))):null
+                            );
+                          });
+                        })()
+                      ),
+                      React.createElement('div',{style:{marginTop:16,padding:'10px 0',borderTop:'1px solid '+C.border,fontSize:9,color:C.dim}},
+                        'Answers: Did we make money? → '+(np>0?'Yes, '+curK(np)+' net':'No, -'+curK(Math.abs(np))+' loss')+' · Where from? → '+catRows[0].label+' ('+curK(catRows[0].revenue)+') · What drags? → Distribution ('+curK(tD)+')'
+                      )
+                    ),
+                    React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'BY CATEGORY'),
+                    React.createElement('div',{style:{overflowX:'auto',marginBottom:24}},React.createElement('table',{style:{width:'100%',minWidth:420,borderCollapse:'collapse'}},
+                      React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Category','Revenue','COGS','Distro','Net','Margin','Units'].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'6px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=1?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
+                      React.createElement('tbody',null,catRows.map(function(r,i){var net=r.revenue-r.cogs-r.distro;var m=r.revenue>0?net/r.revenue*100:0;return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#0a0a0a'}},
+                        React.createElement('td',{style:{padding:'7px 10px',fontSize:11,fontWeight:600}},r.label),
+                        React.createElement('td',{style:{padding:'7px 10px',fontSize:11,textAlign:'right',fontWeight:700}},curK(r.revenue)),
+                        React.createElement('td',{style:{padding:'7px 10px',fontSize:10,textAlign:'right',color:C.muted}},curK(r.cogs)),
+                        React.createElement('td',{style:{padding:'7px 10px',fontSize:10,textAlign:'right',color:C.muted}},curK(r.distro)),
+                        React.createElement('td',{style:{padding:'7px 10px',fontSize:11,textAlign:'right',fontWeight:700,color:net>0?C.good:C.danger}},curK(net)),
+                        React.createElement('td',{style:{padding:'7px 10px',fontSize:11,textAlign:'right',fontWeight:700,color:m>35?C.good:m>20?C.warn:C.danger}},m.toFixed(1)+'%'),
+                        React.createElement('td',{style:{padding:'7px 10px',fontSize:10,textAlign:'right',color:C.dim}},r.units.toLocaleString())
+                      );}))
+                    )),
+                    React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'MARGIN BY ACCOUNT — '+pd+'d ('+acctRows.length+' accounts)'),
+                    React.createElement('div',{style:{overflowX:'auto',marginBottom:24}},React.createElement('table',{style:{width:'100%',minWidth:520,borderCollapse:'collapse'}},
+                      React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Account','Rep','Revenue','COGS','Distro','Returns','Net','Margin'].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'6px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=2?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
+                      React.createElement('tbody',null,acctRows.slice(0,50).map(function(r,i){var isLow=r.revenue>500&&r.margin<25;return React.createElement('tr',{key:i,style:{background:isLow?C.dangerBg:i%2===0?'transparent':'#0a0a0a',cursor:'pointer'},onClick:function(){window._goAcct&&window._goAcct(r.name);}},
+                        React.createElement('td',{style:{padding:'6px 10px',fontSize:11,fontWeight:isLow?700:500,color:isLow?C.danger:C.text}},r.name.length>30?r.name.slice(0,28)+'…':r.name),
+                        React.createElement('td',{style:{padding:'6px 10px',fontSize:10,color:C.muted}},r.rep?r.rep.split(' ')[0]:'—'),
+                        React.createElement('td',{style:{padding:'6px 10px',fontSize:11,textAlign:'right',fontWeight:600}},curK(r.revenue)),
+                        React.createElement('td',{style:{padding:'6px 10px',fontSize:10,textAlign:'right',color:C.muted}},curK(r.cogs)),
+                        React.createElement('td',{style:{padding:'6px 10px',fontSize:10,textAlign:'right',color:C.muted}},curK(r.distro)),
+                        React.createElement('td',{style:{padding:'6px 10px',fontSize:10,textAlign:'right',color:r.returns>0?C.danger:C.dim}},r.returns>0?'-'+cur(r.returns):'—'),
+                        React.createElement('td',{style:{padding:'6px 10px',fontSize:11,textAlign:'right',fontWeight:700,color:r.net>0?C.good:C.danger}},curK(r.net)),
+                        React.createElement('td',{style:{padding:'6px 10px',fontSize:11,textAlign:'right',fontWeight:700,color:r.margin>35?C.good:r.margin>20?C.warn:C.danger}},r.margin.toFixed(1)+'%')
+                      );}))
+                    )),
+                    lowMargin.length>0&&React.createElement('div',{style:{background:C.dangerBg,border:'1px solid '+C.dangerBdr,borderRadius:6,padding:'14px 18px',marginBottom:24}},
+                      React.createElement('div',{style:{fontSize:9,fontWeight:700,color:C.danger,letterSpacing:1.5,marginBottom:8}},'\u26a0 HIGH-REVENUE LOW-MARGIN ACCOUNTS'),
+                      lowMargin.slice(0,5).map(function(a){return React.createElement('div',{key:a.name,style:{display:'flex',justifyContent:'space-between',fontSize:11,marginBottom:4}},React.createElement('span',{style:{color:C.text}},a.name),React.createElement('span',null,React.createElement('span',{style:{color:C.muted}},curK(a.revenue)+' rev'),React.createElement('span',{style:{color:C.danger,fontWeight:700,marginLeft:8}},a.margin.toFixed(1)+'% margin')));})
+                    ),
+                    // ── Seasonality ──
+                    (function(){
+                      var months={};
+                      displayAccounts.forEach(function(acc){(acc._rows||[]).forEach&&(acc.orderedSkus||[]).forEach(function(s){});});
+                      // Build monthly revenue from period data approximation
+                      var mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                      var monthData={};
+                      displayAccounts.forEach(function(acc){
+                        if(!acc.orderDayTs||acc.orderDayTs.length<1)return;
+                        var pRev=(acc.periodRevenue||{});
+                        // Approximate monthly distribution from order timestamps
+                        acc.orderDayTs.forEach(function(ts){
+                          var d=new Date(ts);var mk=d.getFullYear()+'-'+(d.getMonth()+1);
+                          if(!monthData[mk])monthData[mk]={month:d.getMonth(),year:d.getFullYear(),label:mo[d.getMonth()]+' '+d.getFullYear().toString().slice(2),orders:0,rev:0};
+                          monthData[mk].orders+=1;
+                        });
+                      });
+                      // Estimate rev per order
+                      var totalOrders=Object.values(monthData).reduce(function(s,m){return s+m.orders;},0);
+                      var revPerOrder=totalOrders>0?tR/totalOrders:0;
+                      Object.values(monthData).forEach(function(m){m.rev=Math.round(m.orders*revPerOrder);});
+                      var sorted=Object.values(monthData).sort(function(a,b){return(a.year*12+a.month)-(b.year*12+b.month);});
+                      var maxRev=Math.max.apply(null,sorted.map(function(m){return m.rev;}).concat([1]));
+                      if(sorted.length<2)return null;
+                      // Monthly avg by month-of-year for seasonality
+                      var byMonth={};
+                      sorted.forEach(function(m){if(!byMonth[m.month])byMonth[m.month]={total:0,count:0};byMonth[m.month].total+=m.rev;byMonth[m.month].count++;});
+                      var strongMonths=[],weakMonths=[];
+                      var avgAll=Object.values(byMonth).reduce(function(s,m){return s+m.total/m.count;},0)/12;
+                      mo.forEach(function(name,idx){if(!byMonth[idx])return;var avg=byMonth[idx].total/byMonth[idx].count;if(avg>avgAll*1.2)strongMonths.push(name);if(avg<avgAll*0.8)weakMonths.push(name);});
+
+                      return React.createElement('div',{style:{marginBottom:24}},
+                        React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'SEASONALITY — MONTHLY REVENUE'),
+                        React.createElement('div',{style:{display:'flex',alignItems:'flex-end',gap:2,height:120,padding:'0 4px',marginBottom:8}},
+                          sorted.slice(-12).map(function(m){var pct=maxRev>0?m.rev/maxRev*100:0;return React.createElement('div',{key:m.label,style:{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:2}},React.createElement('div',{style:{fontSize:7,color:C.dim}},curK(m.rev)),React.createElement('div',{style:{width:'100%',height:Math.max(2,pct)+'%',background:m.rev>=avgAll*1.2?C.good:m.rev<=avgAll*0.8?C.danger:'#2196f3',borderRadius:'2px 2px 0 0',minHeight:2}}),React.createElement('div',{style:{fontSize:7,color:C.muted,marginTop:2}},m.label));})
+                        ),
+                        React.createElement('div',{style:{display:'flex',gap:16,fontSize:10}},
+                          strongMonths.length>0&&React.createElement('span',{style:{color:C.good}},'\u2191 Strong: '+strongMonths.join(', ')),
+                          weakMonths.length>0&&React.createElement('span',{style:{color:C.danger}},'\u2193 Weak: '+weakMonths.join(', '))
+                        )
+                      );
+                    })(),
+                    // ── Scenario Simulator ──
+                    React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.borderHi,borderRadius:8,padding:'20px 24px',marginBottom:24}},
+                      React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:12}},'SCENARIO SIMULATOR'),
+                      React.createElement('div',{style:{fontSize:10,color:C.muted,marginBottom:16}},'Adjust production volume to see revenue, margin, and cash flow impact.'),
+                      (function(){
+                        var baseUnits=tU||1;var baseRev=tR;var baseCogs=tC;var baseDist=tD;
+                        var scenarios=[
+                          {label:'Current',mult:1.0},{label:'+25% Production',mult:1.25},{label:'+50% Production',mult:1.5},{label:'-25% Production',mult:0.75},{label:'Premium Pricing (+15%)',mult:1.0,priceUp:0.15},{label:'Economy (-10% Price)',mult:1.0,priceDown:0.10}
+                        ];
+                        return React.createElement('div',{style:{overflowX:'auto'}},React.createElement('table',{style:{width:'100%',minWidth:420,borderCollapse:'collapse'}},
+                          React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Scenario','Units','Revenue','COGS','Net Profit','Margin'].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'6px 10px',fontSize:8,fontWeight:700,color:C.dim,textAlign:i>=1?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
+                          React.createElement('tbody',null,scenarios.map(function(sc,i){
+                            var u=Math.round(baseUnits*sc.mult);
+                            var priceAdj=sc.priceUp?1+sc.priceUp:sc.priceDown?1-sc.priceDown:1;
+                            var r=Math.round(baseRev*sc.mult*priceAdj);
+                            var co=Math.round(baseCogs*sc.mult);
+                            var d=Math.round(r*0.16);
+                            var n=r-co-d;var m=r>0?n/r*100:0;
+                            return React.createElement('tr',{key:i,style:{background:i===0?C.raised:i%2===0?'transparent':'#0a0a0a',fontWeight:i===0?700:400}},
+                              React.createElement('td',{style:{padding:'6px 10px',fontSize:11,fontWeight:i===0?700:500}},sc.label),
+                              React.createElement('td',{style:{padding:'6px 10px',fontSize:10,textAlign:'right'}},u.toLocaleString()),
+                              React.createElement('td',{style:{padding:'6px 10px',fontSize:11,textAlign:'right',fontWeight:600}},curK(r)),
+                              React.createElement('td',{style:{padding:'6px 10px',fontSize:10,textAlign:'right',color:C.muted}},curK(co)),
+                              React.createElement('td',{style:{padding:'6px 10px',fontSize:11,textAlign:'right',fontWeight:700,color:n>0?C.good:C.danger}},curK(n)),
+                              React.createElement('td',{style:{padding:'6px 10px',fontSize:11,textAlign:'right',fontWeight:700,color:m>35?C.good:m>20?C.warn:C.danger}},m.toFixed(1)+'%')
+                            );
+                          }))
+                        ));
+                      })()
+                    )
+                  );
+                })()}
+
+                {/* ══ MARKETING ══ */}
+                {tab==="marketing"&&(function(){
+                  var TRADE_SHOWS=[
+                    {name:'Hall of Flowers Ventura',dates:'Mar 18-19 (PAST)',location:'Ventura, CA',type:'B2B',notes:'CA premier wholesale — attended'},
+                    {name:'NCIA Lobby Days + Stakeholder Summit',dates:'May 12-14, 2026',location:'Washington, D.C.',type:'Policy',notes:'Federal advocacy — shape cannabis policy'},
+                    {name:'NCIA Cannabis Business Summit',dates:'Jun 26, 2026',location:'Denver, CO',type:'B2B',notes:'Policy-focused B2B — 8,000+ attendees'},
+                    {name:'New West Summit',dates:'Jul 14, 2026',location:'San Francisco, CA',type:'B2B',notes:'Bay Area innovation + networking'},
+                    {name:'Emerald Cup',dates:'Aug 15, 2026',location:'Santa Rosa, CA',type:'Consumer',notes:'NorCal heritage — 30K attendees, craft focus'},
+                    {name:'Hall of Flowers NYC',dates:'Oct 21-22, 2026',location:'New York City, NY',type:'B2B',notes:'East coast expansion — 250+ brands, 79% NY retailers'},
+                    {name:'MJBizCon',dates:'Dec 1-4, 2026',location:'Las Vegas, NV',type:'B2B',notes:'Largest cannabis B2B — 20K+ attendees, 1000+ exhibitors'},
+                  ];
+                  var HOLIDAYS=[
+                    {name:'4/20',date:'Apr 20',impact:'Critical',notes:'Highest sales day — stock up 3 wks prior'},
+                    {name:'710 (Oil Day)',date:'Jul 10',impact:'High',notes:'Concentrate-specific — push badder/sauce/diamonds'},
+                    {name:'Green Wednesday',date:'Nov 25',impact:'High',notes:'Day before Thanksgiving — high traffic'},
+                    {name:'Black Friday',date:'Nov 27',impact:'Medium',notes:'Dispensary deals drive volume'},
+                    {name:'Memorial Day',date:'May 25',impact:'Medium',notes:'Summer kickoff — social consumption'},
+                    {name:'Labor Day',date:'Sep 7',impact:'Medium',notes:'End of summer push'},
+                    {name:'Halloween',date:'Oct 31',impact:'Medium',notes:'Themed packaging opportunity'},
+                    {name:'New Years Eve',date:'Dec 31',impact:'High',notes:'Celebration consumption spike'},
+                    {name:'Super Bowl',date:'Feb 8',impact:'Medium',notes:'Social gathering consumption'},
+                    {name:'Valentines Day',date:'Feb 14',impact:'Low',notes:'Gift sets / premium positioning'},
+                  ];
+                  var MERCH=[
+                    {item:'Dab Mats',cost:3.50,moq:500,lead:'3 wk',notes:'Best brand visibility item'},
+                    {item:'Stickers (die-cut)',cost:0.15,moq:5000,lead:'2 wk',notes:'Include in every order'},
+                    {item:'Hats (snapback)',cost:8.00,moq:144,lead:'4 wk',notes:'Rep gifts + events'},
+                    {item:'T-Shirts',cost:7.50,moq:72,lead:'3 wk',notes:'Event giveaways'},
+                    {item:'Lighters',cost:1.25,moq:1000,lead:'2 wk',notes:'High retention rate'},
+                    {item:'Rolling Trays',cost:5.00,moq:250,lead:'4 wk',notes:'Premium account gifts'},
+                  ];
+                  return React.createElement('div',null,
+                    React.createElement('div',{style:{fontSize:14,fontWeight:900,letterSpacing:3,marginBottom:24}},'MARKETING & PLANNING'),
+                    React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'CANNABIS TRADE SHOWS 2026'),
+                    React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:12,marginBottom:24}},
+                      TRADE_SHOWS.map(function(ts){return React.createElement('div',{key:ts.name,style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'14px 16px'}},
+                        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:6}},
+                          React.createElement('span',{style:{fontSize:12,fontWeight:700}},ts.name),
+                          React.createElement('span',{style:{fontSize:8,padding:'2px 8px',borderRadius:2,fontWeight:700,background:ts.type==='B2B'?'#2196f322':'#f5a62322',color:ts.type==='B2B'?'#2196f3':'#f5a623',border:'1px solid '+(ts.type==='B2B'?'#2196f344':'#f5a62344')}},ts.type)
+                        ),
+                        React.createElement('div',{style:{fontSize:10,color:C.muted,marginBottom:4}},ts.dates+' · '+ts.location),
+                        React.createElement('div',{style:{fontSize:9,color:C.dim}},ts.notes)
+                      );})
+                    ),
+                    React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'CANNABIS HOLIDAYS & SEASONAL MOMENTS'),
+                    React.createElement('div',{style:{overflowX:'auto',marginBottom:24}},React.createElement('table',{style:{width:'100%',minWidth:420,borderCollapse:'collapse'}},
+                      React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Holiday','Date','Impact','Planning Notes'].map(function(h){return React.createElement('th',{key:h,style:{padding:'6px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:'left',borderBottom:'1px solid '+C.border}},h);}))),
+                      React.createElement('tbody',null,HOLIDAYS.map(function(h,i){return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#0a0a0a'}},
+                        React.createElement('td',{style:{padding:'6px 10px',fontSize:11,fontWeight:600}},h.name),
+                        React.createElement('td',{style:{padding:'6px 10px',fontSize:10,color:C.muted}},h.date),
+                        React.createElement('td',{style:{padding:'6px 10px'}},React.createElement('span',{style:{fontSize:8,fontWeight:700,padding:'2px 6px',borderRadius:2,background:h.impact==='Critical'?C.dangerBg:h.impact==='High'?C.warnBg:C.surface,color:h.impact==='Critical'?C.danger:h.impact==='High'?C.warn:C.muted,border:'1px solid '+(h.impact==='Critical'?C.dangerBdr:h.impact==='High'?C.warnBdr:C.border)}},h.impact)),
+                        React.createElement('td',{style:{padding:'6px 10px',fontSize:10,color:C.dim}},h.notes)
+                      );}))
+                    )),
+                    React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'MERCH ORDERING GUIDE'),
+                    React.createElement('div',{style:{overflowX:'auto'}},React.createElement('table',{style:{width:'100%',minWidth:380,borderCollapse:'collapse'}},
+                      React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Item','Unit Cost','MOQ','Lead Time','Notes'].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'6px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=1&&i<=3?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
+                      React.createElement('tbody',null,MERCH.map(function(m,i){return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#0a0a0a'}},
+                        React.createElement('td',{style:{padding:'6px 10px',fontSize:11,fontWeight:600}},m.item),
+                        React.createElement('td',{style:{padding:'6px 10px',fontSize:10,textAlign:'right'}},cur(m.cost)),
+                        React.createElement('td',{style:{padding:'6px 10px',fontSize:10,textAlign:'right',color:C.muted}},m.moq.toLocaleString()),
+                        React.createElement('td',{style:{padding:'6px 10px',fontSize:10,textAlign:'right',color:C.muted}},m.lead),
+                        React.createElement('td',{style:{padding:'6px 10px',fontSize:9,color:C.dim}},m.notes)
+                      );}))
+                    )),
+                    // ── Scraping Tools (Stubs) ──
+                    React.createElement('div',{style:{marginTop:24,marginBottom:24}},
+                      React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'MENU INTELLIGENCE TOOLS'),
+                      React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12}},
+                        [{name:'Weedmaps',desc:'Scan dispensary menus for Globs pricing + competitors',color:'#00c853',status:'Requires API key'},{name:'Dutchie',desc:'Track online menu placement + pricing across Dutchie-powered stores',color:'#7c4dff',status:'Requires API key'},{name:'iHeartJane',desc:'Monitor product positioning + promotional pricing on Jane menus',color:'#ff6d00',status:'Requires API key'}].map(function(t){return React.createElement('div',{key:t.name,style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'16px',opacity:0.7}},
+                          React.createElement('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:8}},
+                            React.createElement('span',{style:{fontSize:13,fontWeight:800,color:t.color}},t.name),
+                            React.createElement('span',{style:{fontSize:7,padding:'2px 6px',borderRadius:2,background:C.raised,color:C.dim,border:'1px solid '+C.border}},'COMING SOON')
+                          ),
+                          React.createElement('div',{style:{fontSize:10,color:C.muted,lineHeight:1.6,marginBottom:10}},t.desc),
+                          React.createElement('div',{style:{fontSize:8,color:C.dim}},t.status)
+                        );})
+                      )
+                    ),
+                    // ── Google Sheets Integration ──
+                    React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:'20px 24px'}},
+                      React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'GOOGLE SHEETS INTEGRATION'),
+                      React.createElement('div',{style:{fontSize:11,color:C.text,marginBottom:12}},'Marketing request approval workflow — evaluate integration options:'),
+                      React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}},
+                        [{title:'Option A: Google Apps Script',desc:'Build approval logic directly in Sheets. Reps submit marketing requests via Google Form → auto-populates Sheet → script evaluates account spend, cadence, and health → auto-approves/flags/rejects. Best for: simple rule-based approvals.',fit:'HIGH'},{title:'Option B: GPI Native',desc:'Build approval workflow inside this app. Marketing requests tab with account lookup, spend history, and one-click approve/conditional/reject. Syncs decisions back to Sheet via API.',fit:'MEDIUM'},{title:'Option C: Zapier/Make Bridge',desc:'Connect Google Sheets → Zapier → GPI webhook. Form submissions trigger account health lookup, auto-populate decision fields. Low-code, fast setup.',fit:'MEDIUM'},{title:'Option D: Claude AI Review',desc:'Route marketing requests through Claude for intelligent approval. Considers account lifetime value, order frequency, margin, and market position. Most nuanced but requires API cost.',fit:'EXPERIMENTAL'}].map(function(opt){return React.createElement('div',{key:opt.title,style:{background:C.bg,border:'1px solid '+C.border,borderRadius:4,padding:'12px'}},
+                          React.createElement('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:6}},
+                            React.createElement('span',{style:{fontSize:10,fontWeight:700}},opt.title),
+                            React.createElement('span',{style:{fontSize:7,padding:'2px 6px',borderRadius:2,fontWeight:700,background:opt.fit==='HIGH'?C.goodBg:opt.fit==='EXPERIMENTAL'?'#f5a62322':C.warnBg,color:opt.fit==='HIGH'?C.good:opt.fit==='EXPERIMENTAL'?'#f5a623':C.warn,border:'1px solid '+(opt.fit==='HIGH'?C.goodBdr:opt.fit==='EXPERIMENTAL'?'#f5a62344':C.warnBdr)}},opt.fit)
+                          ),
+                          React.createElement('div',{style:{fontSize:9,color:C.muted,lineHeight:1.6}},opt.desc)
+                        );})
+                      ),
+                      React.createElement('div',{style:{marginTop:12,fontSize:9,color:C.dim,fontStyle:'italic'}},'Recommendation: Start with Option A (Google Apps Script) for immediate value. Migrate to Option B (GPI Native) as the system matures.')
+                    ),
+                    // ── Demo Scheduling System ──
+                    (function(){
+                      var now=Date.now();
+                      var thisMonth=new Date().getMonth();var thisYear=new Date().getFullYear();
+                      var monthDemos=demos.filter(function(d){var dt=new Date(d.date);return dt.getMonth()===thisMonth&&dt.getFullYear()===thisYear;});
+                      var monthSpend=monthDemos.length*demoCost;
+                      var maxDemos=Math.floor(demoBudget/demoCost);
+                      var remaining=demoBudget-monthSpend;
+
+                      // ── Auto-suggest accounts for demos ──
+                      var suggestions=[];
+                      displayAccounts.forEach(function(a){
+                        if(!a.orderDayTs||a.orderDayTs.length<1)return;
+                        var ts=a.orderDayTs.slice().sort(function(x,y){return x-y;});
+                        var ds=Math.max(0,Math.round((now-ts[ts.length-1])/86400000));
+                        var rev=a.totalSales||0;if(rev<100)return;
+                        var gaps=[];for(var gi=1;gi<ts.length;gi++)gaps.push((ts[gi]-ts[gi-1])/86400000);
+                        gaps.sort(function(x,y){return x-y;});
+                        var med=gaps.length>0?gaps[Math.floor(gaps.length/2)]:30;
+                        var avgOrd=rev/Math.max(1,ts.length);
+                        var alreadyScheduled=demos.some(function(d){return d.account===a.name&&d.status!=='completed';});
+                        if(alreadyScheduled)return;
+
+                        var reason='',status='',score=0,opportunity=0;
+                        if(ds>90){
+                          reason='Inactive '+ds+'d — win-back candidate';status='Win-back';score=rev*0.3;opportunity=avgOrd;
+                        }else if(ds>Math.max(med*1.5,21)&&rev>500){
+                          reason='Overdue '+ds+'d (median '+Math.round(med)+'d) — high-value reorder';status='Declining';score=rev*0.5;opportunity=avgOrd*1.5;
+                        }else if(rev>2000&&ts.length>=5&&ds<=med*1.2){
+                          reason='$'+Math.round(rev).toLocaleString()+' lifetime — reinforce relationship';status='Active-High';score=rev*0.2;opportunity=avgOrd;
+                        }else if(ts.length<=3&&rev<1500){
+                          reason='Only '+ts.length+' orders — underpenetrated, room to grow';status='New/Low';score=rev*0.4;opportunity=avgOrd*2;
+                        }
+                        if(reason)suggestions.push({name:a.name,rep:a.rep||'',reason:reason,status:status,score:score,opportunity:Math.round(opportunity),rev:rev,daysSince:ds});
+                      });
+                      suggestions.sort(function(a,b){return b.score-a.score;});
+
+                      return React.createElement('div',{style:{marginTop:32}},
+                        React.createElement('div',{style:{fontSize:14,fontWeight:900,letterSpacing:3,marginBottom:20}},'DEMO SCHEDULING'),
+                        // Budget overview
+                        React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(120px,1fr))',gap:12,marginBottom:20}},
+                          [{l:'Cost/Demo',v:'$'+demoCost,c:C.text},{l:'Monthly Budget',v:'$'+demoBudget.toLocaleString(),c:C.text},{l:'Max Demos/Mo',v:maxDemos,c:C.text},{l:'Scheduled',v:monthDemos.length,c:monthDemos.length>=maxDemos?C.danger:C.good},{l:'Spent',v:'$'+monthSpend,c:monthSpend>demoBudget?C.danger:C.text},{l:'Remaining',v:'$'+remaining,c:remaining<0?C.danger:C.good}].map(function(s){return React.createElement('div',{key:s.l,style:{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}},React.createElement('div',{style:{fontSize:7,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:3}},s.l),React.createElement('div',{style:{fontSize:16,fontWeight:800,color:s.c}},s.v));})
+                        ),
+                        // Scheduled demos
+                        demos.length>0&&React.createElement('div',{style:{marginBottom:20}},
+                          React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:8}},'SCHEDULED DEMOS ('+demos.length+')'),
+                          React.createElement('div',{style:{overflowX:'auto'}},React.createElement('table',{style:{width:'100%',minWidth:420,borderCollapse:'collapse'}},
+                            React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Account','Date','Rep','Status','Cost',''].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'5px 8px',fontSize:8,fontWeight:700,color:C.dim,textAlign:i>=4?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
+                            React.createElement('tbody',null,demos.map(function(d,i){return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#0a0a0a'}},
+                              React.createElement('td',{style:{padding:'5px 8px',fontSize:11,fontWeight:600,cursor:'pointer'},onClick:function(){window._goAcct&&window._goAcct(d.account);}},d.account),
+                              React.createElement('td',{style:{padding:'5px 8px',fontSize:10,color:C.muted}},d.date),
+                              React.createElement('td',{style:{padding:'5px 8px',fontSize:10,color:C.muted}},d.rep||'—'),
+                              React.createElement('td',{style:{padding:'5px 8px'}},React.createElement('select',{value:d.status,onChange:function(e){var next=demos.slice();next[i]=Object.assign({},d,{status:e.target.value});saveDemos(next);},style:{background:C.bg,border:'1px solid '+C.border,borderRadius:2,color:d.status==='completed'?C.good:d.status==='follow-up'?C.warn:C.text,fontSize:9,fontFamily:'inherit',padding:'2px 4px'}},['planned','completed','follow-up','cancelled'].map(function(s){return React.createElement('option',{key:s,value:s},s);}))),
+                              React.createElement('td',{style:{padding:'5px 8px',fontSize:10,textAlign:'right'}},'$'+demoCost),
+                              React.createElement('td',{style:{padding:'5px 8px',textAlign:'right'}},React.createElement('button',{onClick:function(){saveDemos(demos.filter(function(_,j){return j!==i;}));},style:{fontSize:8,color:C.dim,background:'transparent',border:'1px solid '+C.border,borderRadius:2,padding:'1px 6px',cursor:'pointer',fontFamily:'inherit'}},'\u2715'))
+                            );}))
+                          ))
+                        ),
+                        // Suggested accounts
+                        React.createElement('div',{style:{marginBottom:20}},
+                          React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:8}},'SUGGESTED ACCOUNTS FOR DEMOS'),
+                          suggestions.length>0?React.createElement('div',{style:{overflowX:'auto'}},React.createElement('table',{style:{width:'100%',minWidth:480,borderCollapse:'collapse'}},
+                            React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Account','Status','Reason','Opportunity','',''].map(function(h,i){return React.createElement('th',{key:h+i,style:{padding:'5px 8px',fontSize:8,fontWeight:700,color:C.dim,textAlign:i===3?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
+                            React.createElement('tbody',null,suggestions.slice(0,15).map(function(s,i){var statusColor=s.status==='Win-back'?C.danger:s.status==='Declining'?C.warn:s.status==='Active-High'?C.good:'#2196f3';return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#0a0a0a'}},
+                              React.createElement('td',{style:{padding:'5px 8px',fontSize:11,fontWeight:600,cursor:'pointer'},onClick:function(){window._goAcct&&window._goAcct(s.name);}},s.name.length>25?s.name.slice(0,23)+'\u2026':s.name),
+                              React.createElement('td',{style:{padding:'5px 8px'}},React.createElement('span',{style:{fontSize:8,fontWeight:700,padding:'2px 6px',borderRadius:2,background:statusColor+'22',color:statusColor,border:'1px solid '+statusColor+'44'}},s.status)),
+                              React.createElement('td',{style:{padding:'5px 8px',fontSize:9,color:C.muted,maxWidth:200}},s.reason),
+                              React.createElement('td',{style:{padding:'5px 8px',fontSize:10,textAlign:'right',fontWeight:600}},curK(s.opportunity)),
+                              React.createElement('td',{style:{padding:'5px 8px'}},React.createElement('button',{onClick:function(){
+                                var dt=new Date();dt.setDate(dt.getDate()+7);
+                                var newDemo={account:s.name,date:dt.toISOString().split('T')[0],rep:s.rep?s.rep.split(' ')[0]:'',status:'planned',cost:demoCost,reason:s.reason,scheduledAt:new Date().toISOString()};
+                                saveDemos([newDemo].concat(demos));logActivity('DEMO','Scheduled demo: '+s.name);
+                              },style:{fontSize:8,fontWeight:700,color:'#2196f3',background:'#2196f311',border:'1px solid #2196f344',borderRadius:2,padding:'3px 8px',cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}},'\u002B Schedule'))
+                            );}))
+                          )):React.createElement('div',{style:{padding:'16px 0',fontSize:11,color:C.dim}},'Upload account data to generate demo suggestions')
+                        )
+                      );
+                    })()
+                  );
+                })()}
+
+                {/* ══ SECURITY CENTER ══ */}
+                {tab==="security"&&authRole==='exec'&&(function(){
+                  var secLog=[];try{secLog=JSON.parse(localStorage.getItem('gpi:gpi-security-log')||'[]');}catch(e){}
+                  var failedLogins=secLog.filter(function(e){return e.type==='LOGIN_FAILED';});
+                  var recentLogins=secLog.filter(function(e){return e.type==='LOGIN';});
+                  return React.createElement('div',null,
+                    React.createElement('div',{style:{fontSize:14,fontWeight:900,letterSpacing:3,marginBottom:24}},'\u26e8 SECURITY CENTER'),
+                    // Kill Switches
+                    React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.dangerBdr,borderRadius:8,padding:'20px 24px',marginBottom:24}},
+                      React.createElement('div',{style:{fontSize:9,color:C.danger,letterSpacing:2,marginBottom:12,fontWeight:700}},'KILL SWITCHES — EXECUTIVE ONLY'),
+                      React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12}},
+                        [{key:'readOnly',label:'Read-Only Mode',desc:'Disable all edits and uploads'},{key:'disableUploads',label:'Disable Uploads',desc:'Block all file uploads'},{key:'disableScraping',label:'Disable Scraping',desc:'Block scraping tools'},{key:'freezeAccounts',label:'Freeze Accounts',desc:'Prevent account data changes'},{key:'disableExports',label:'Disable Exports',desc:'Block all data exports'},{key:'maintenanceMode',label:'Maintenance Mode',desc:'Show maintenance banner'}].map(function(ks){return React.createElement('div',{key:ks.key,style:{background:C.bg,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
+                          React.createElement('div',null,
+                            React.createElement('div',{style:{fontSize:10,fontWeight:700}},ks.label),
+                            React.createElement('div',{style:{fontSize:8,color:C.dim}},ks.desc)
+                          ),
+                          React.createElement('button',{onClick:function(){setKill(ks.key,!killSwitches[ks.key]);},style:{fontSize:8,fontWeight:700,padding:'4px 10px',borderRadius:2,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(killSwitches[ks.key]?C.dangerBdr:C.goodBdr),background:killSwitches[ks.key]?C.dangerBg:C.goodBg,color:killSwitches[ks.key]?C.danger:C.good}},killSwitches[ks.key]?'ON':'OFF')
+                        );})
+                      )
+                    ),
+                    // User Management
+                    React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:'20px 24px',marginBottom:24}},
+                      React.createElement('div',{style:{fontSize:9,color:C.dim,letterSpacing:2,marginBottom:12}},'USER MANAGEMENT ('+users.length+' USERS)'),
+                      React.createElement('div',{style:{overflowX:'auto'}},React.createElement('table',{style:{width:'100%',minWidth:480,borderCollapse:'collapse'}},
+                        React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['User','Role','PIN','Active','Uploads','Exports','Scraping',''].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'5px 8px',fontSize:8,fontWeight:700,color:C.dim,textAlign:i>=3?'center':'left',borderBottom:'1px solid '+C.border}},h);}))),
+                        React.createElement('tbody',null,users.map(function(u,i){var uo=userOverrides[u.id]||{};return React.createElement('tr',{key:u.id,style:{background:i%2===0?'transparent':'#0a0a0a',opacity:u.active?1:0.5}},
+                          React.createElement('td',{style:{padding:'5px 8px',fontSize:11,fontWeight:600}},u.name),
+                          React.createElement('td',{style:{padding:'5px 8px'}},React.createElement('span',{style:{fontSize:8,fontWeight:700,padding:'2px 6px',borderRadius:2,background:u.role==='exec'?C.goodBg:u.role==='mfg'?'#2196f322':C.warnBg,color:u.role==='exec'?C.good:u.role==='mfg'?'#2196f3':C.warn,border:'1px solid '+(u.role==='exec'?C.goodBdr:u.role==='mfg'?'#2196f344':C.warnBdr)}},ROLES[u.role].label)),
+                          React.createElement('td',{style:{padding:'5px 8px',fontSize:10,fontFamily:'monospace',color:C.dim}},u.pin),
+                          React.createElement('td',{style:{padding:'5px 8px',textAlign:'center'}},React.createElement('button',{onClick:function(){var next=users.slice();next[i]=Object.assign({},u,{active:!u.active});saveUsers(next);logSecurity('USER_TOGGLE',u.name+' '+(u.active?'disabled':'enabled'));},style:{fontSize:8,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(u.active?C.goodBdr:C.dangerBdr),background:u.active?C.goodBg:C.dangerBg,color:u.active?C.good:C.danger,borderRadius:2,padding:'2px 8px'}},u.active?'ON':'OFF')),
+                          ['noUpload','noExport','noScraping'].map(function(perm){return React.createElement('td',{key:perm,style:{padding:'5px 8px',textAlign:'center'}},React.createElement('button',{onClick:function(){var next=Object.assign({},userOverrides);if(!next[u.id])next[u.id]={};next[u.id][perm]=!uo[perm];saveOverrides(next);logSecurity('USER_PERM',u.name+' '+perm+'='+(uo[perm]?'allowed':'blocked'));},style:{fontSize:8,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(uo[perm]?C.dangerBdr:C.goodBdr),background:uo[perm]?C.dangerBg:C.goodBg,color:uo[perm]?C.danger:C.good,borderRadius:2,padding:'2px 6px'}},uo[perm]?'✗':'✓'));})
+                        );}))
+                      )),
+                      React.createElement('div',{style:{marginTop:12,fontSize:8,color:C.dim}},'Toggle per-user permissions. Changes logged to security audit. Add users by updating the user registry.')
+                    ),
+                    // Role Access Matrix
+                    React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:'20px 24px',marginBottom:24}},
+                      React.createElement('div',{style:{fontSize:9,color:C.dim,letterSpacing:2,marginBottom:10}},'ROLE ACCESS MATRIX'),
+                      React.createElement('div',{style:{overflowX:'auto'}},React.createElement('table',{style:{width:'100%',minWidth:380,borderCollapse:'collapse'}},
+                        React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Permission','Executive','Manufacturing','Distribution'].map(function(h){return React.createElement('th',{key:h,style:{padding:'5px 8px',fontSize:8,fontWeight:700,color:C.dim,textAlign:'left',borderBottom:'1px solid '+C.border}},h);}))),
+                        React.createElement('tbody',null,
+                          ['View Financials','Export Data','Edit Margins','Approve Requests','Upload Files','View Accounts','View MFG','View Security'].map(function(perm,i){
+                            var checks={exec:true,mfg:i>=4&&i<=6,distro:i>=4&&i<=5};
+                            return React.createElement('tr',{key:perm,style:{background:i%2===0?'transparent':'#0a0a0a'}},
+                              React.createElement('td',{style:{padding:'5px 8px',fontSize:10}},perm),
+                              ['exec','mfg','distro'].map(function(r){return React.createElement('td',{key:r,style:{padding:'5px 8px',fontSize:10,color:checks[r]?C.good:C.danger}},checks[r]?'✓':'✗');})
+                            );
+                          })
+                        )
+                      ))
+                    ),
+                    // Security Log
+                    React.createElement('div',{style:{marginBottom:24}},
+                      React.createElement('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:10}},
+                        React.createElement('div',{style:{fontSize:9,color:C.dim,letterSpacing:2}},'SECURITY LOG ('+secLog.length+' events)'),
+                        failedLogins.length>0&&React.createElement('span',{style:{fontSize:9,fontWeight:700,color:C.danger}},'\u26a0 '+failedLogins.length+' failed login attempts')
+                      ),
+                      React.createElement('div',{style:{maxHeight:300,overflowY:'auto',border:'1px solid '+C.border,borderRadius:4}},
+                        secLog.slice(0,50).map(function(e,i){var d=new Date(e.ts);var typeColor=e.type==='LOGIN_FAILED'?C.danger:e.type==='LOGIN'?C.good:e.type==='LOGOUT'?C.muted:e.type==='KILL_SWITCH'?C.warn:'#2196f3';return React.createElement('div',{key:i,style:{display:'flex',gap:10,padding:'4px 10px',borderBottom:'1px solid '+C.border,fontSize:10}},
+                          React.createElement('span',{style:{color:C.dim,flexShrink:0,width:100}},d.toLocaleDateString()+' '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})),
+                          React.createElement('span',{style:{fontWeight:700,color:typeColor,flexShrink:0,width:80}},e.type),
+                          React.createElement('span',{style:{color:C.muted,flexShrink:0,width:50}},e.role),
+                          React.createElement('span',{style:{color:C.text}},e.detail)
+                        );})
+                      )
+                    ),
+                    // Architecture Note
+                    React.createElement('div',{style:{background:C.raised,border:'1px solid '+C.border,borderRadius:6,padding:'14px 18px',fontSize:9,color:C.dim,lineHeight:1.8}},
+                      React.createElement('strong',{style:{color:C.warn}},'Architecture Note: '),'This is a client-side single-file application. PINs, session tokens, and security logs are stored in browser storage. For production-grade security (hashed passwords, 2FA, server-side session management, encrypted storage), deploy with a backend server. Current implementation provides operational access control, audit logging, and role separation suitable for internal team use.'
+                    )
+                  );
+                })()}
+
               </div>
             </>
           )}
+
+          {/* UNIVERSAL SEARCH */}
+          {showUniSearch&&(function(){
+            var q=uniSearch.toLowerCase().trim();
+            var results=[];
+            if(q.length>=2){
+              displayAccounts.forEach(function(a){if(a.name.toLowerCase().includes(q)||(a.rep||'').toLowerCase().includes(q))results.push({type:'Account',name:a.name,detail:(a.rep||'No rep')+' · '+curK(a.totalSales||0),action:function(){setShowUniSearch(false);window._goAcct&&window._goAcct(a.name);}});});
+              (STRAIN_DB||[]).forEach(function(s){if(s.n.toLowerCase().includes(q)||(s.d||'').toLowerCase().includes(q))results.push({type:'Strain',name:s.n,detail:s.t+' · '+(s.g||'').split(',')[0]});});
+              Object.keys(inventoryData).forEach(function(sku){if(sku.toLowerCase().includes(q)){var inv=inventoryData[sku];results.push({type:'SKU',name:sku.replace(/^Globs - /,''),detail:'On Hand: '+(inv.onHand||0)});}});
+              returnsLog.forEach(function(r){if((r.strain||'').toLowerCase().includes(q)||(r.account||'').toLowerCase().includes(q)||(r.notes||'').toLowerCase().includes(q))results.push({type:'Return',name:r.strain+' ('+r.account+')',detail:r.date+' · '+r.status+' · $'+(r.totalValue||0).toFixed(0)});});
+            }
+            return React.createElement('div',{style:{position:'fixed',inset:0,background:'rgba(0,0,0,0.9)',zIndex:200,display:'flex',alignItems:'flex-start',justifyContent:'center',paddingTop:80},onClick:function(){setShowUniSearch(false);}},
+              React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.borderHi,borderRadius:8,width:'90%',maxWidth:600,maxHeight:'70vh',overflow:'hidden',display:'flex',flexDirection:'column'},onClick:function(e){e.stopPropagation();}},
+                React.createElement('div',{style:{padding:'16px 20px',borderBottom:'1px solid '+C.border}},
+                  React.createElement('input',{autoFocus:true,value:uniSearch,onChange:function(e){setUniSearch(e.target.value);},placeholder:'Search accounts, strains, SKUs, returns...',style:{width:'100%',background:'transparent',border:'none',outline:'none',color:C.text,fontSize:16,fontFamily:'inherit',letterSpacing:0.5}})
+                ),
+                React.createElement('div',{style:{overflowY:'auto',maxHeight:'calc(70vh - 60px)',padding:'8px 0'}},
+                  results.length>0?results.slice(0,20).map(function(r,i){return React.createElement('div',{key:i,style:{padding:'10px 20px',cursor:r.action?'pointer':'default',borderBottom:'1px solid '+C.border},onClick:r.action||null,onMouseEnter:function(e){e.currentTarget.style.background=C.raised;},onMouseLeave:function(e){e.currentTarget.style.background='transparent';}},
+                    React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+                      React.createElement('span',{style:{fontSize:12,fontWeight:600}},r.name),
+                      React.createElement('span',{style:{fontSize:8,color:r.type==='Account'?'#2196f3':r.type==='Strain'?'#f5a623':r.type==='Return'?C.danger:C.muted,fontWeight:700,letterSpacing:1,border:'1px solid currentColor',padding:'1px 6px',borderRadius:2}},r.type.toUpperCase())
+                    ),
+                    React.createElement('div',{style:{fontSize:10,color:C.muted,marginTop:2}},r.detail)
+                  );}):(q.length>=2?React.createElement('div',{style:{padding:'20px',textAlign:'center',fontSize:11,color:C.dim}},'No results for "'+q+'"'):React.createElement('div',{style:{padding:'20px',textAlign:'center',fontSize:11,color:C.dim}},'Type 2+ characters to search'))
+                )
+              )
+            );
+          })()}
 
           {/* WORK ORDER MODAL */}
           {mfgWorkOrder&&(function(){
@@ -2208,6 +2951,7 @@ window._STRAIN_DB=[
             </div>
           )}
           <style>{`* { box-sizing: border-box; } ::-webkit-scrollbar { width: 4px; height: 4px; background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border-hi,#2d3f5a); border-radius: 2px; } input::placeholder { color: var(--dim,#3d4559); } textarea::placeholder { color: var(--dim,#3d4559); } button { transition: all 0.15s; }`}</style>
+          </div></>)}
         </div>
       );
     }
@@ -2979,17 +3723,53 @@ const YIELD_KEY = 'gpi-yield-log';
       var latestMonthRev=computed30dRev>0?Math.round(computed30dRev):70954;
       var latestMonthUnits=computed30dUnits>0?computed30dUnits:8675;
 
+      // ── VERIFIED RECEIVABLES from UpNorth Payout Emails ──
+      // Dec 2025: Euphoric $40,989.11 (due 2/13) + Cruz $5,102.46 (past due)
+      // Jan 2026: GON $16,875.68 + Euphoric $17,427.20 + Batteries $1,764.02 + Cruz $1,386.04 = $37,452.94 (due 3/13)
+      // Feb 2026: GON $33,008.08 + Euphoric $4,965.43 + Batteries $423.40 + Cruz $13.44 = $38,410.35 (due 4/13)
+      // Mar 2026: Estimated from Salesforce 30d data
+      var computed30dRevSafe=computed30dRev>0?computed30dRev:47795;
       var AR_DATA=[
-        {m:'Dec 2025',rev:57556,pay:39997.74,due:'Feb 13',st:'received'},
-        {m:'Jan 2026',rev:44329,pay:37236,due:'Mar 13',st:'received'},
-        {m:'Feb 2026',rev:46297,pay:38396.91,due:'Apr 13',st:'due'},
-        {m:'Mar 2026',rev:latestMonthRev,pay:Math.round(latestMonthRev*0.84),due:'May 8',st:computed30dRev>0?'due':'projected'}
+        {m:'Dec 2025',salesRev:57556,pay:40989.11,cruzPay:5102.46,due:'Feb 13',st:'received',note:'Euphoric paid; Cruz past due'},
+        {m:'Jan 2026',salesRev:44329,pay:36066.90,cruzPay:1386.04,due:'Mar 13',st:'received',note:'GON+Euphoric+Batt paid; Cruz past due'},
+        {m:'Feb 2026',salesRev:46297,pay:38396.91,cruzPay:13.44,due:'Apr 13',st:'due',note:'GON $33K + Euphoric $5K + Batt $423'},
+        {m:'Mar 2026',salesRev:Math.round(computed30dRevSafe),pay:Math.round(computed30dRevSafe*0.84),cruzPay:0,due:'May 8 (2nd Fri)',st:'projected',note:'Estimated from Salesforce data'}
       ];
+      // Cruz Science outstanding = $5,102.46 + $1,386.04 + $13.44 = $6,501.94 (payment scheduled week of Apr 2)
+      var cruzOutstanding=6501.94;
+      var totalConfirmedReceivables=AR_DATA.filter(function(r){return r.st!=='received';}).reduce(function(s,r){return s+r.pay+r.cruzPay;},0)+cruzOutstanding;
+      // Reconciliation: total must match known ~$92,693.91
+      var reconciliationTarget=92693.91;
 
       var payout84=totalRev*0.84;
 
-      // ── Growth Projections ──
+      // ── Production-to-Cash Timing Model ──
+      var [extractDays,setExtractDays]=useState(10);// extraction+fill baseline
       var [growthPct,setGrowthPct]=useState(15);
+      var [cfView,setCfView]=useState('combined');// combined, incoming, expenses, net
+      var [cfRange,setCfRange]=useState(90);// 30, 60, 90, 180
+      var [cfHover,setCfHover]=useState(null);
+      // Real-world UpNorth consignment timing:
+      // 1. Production Spend (Day 0) — cash out
+      // 2. Extraction + fill + QA (~extractDays)
+      // 3. UpNorth pickup (~5d after extraction)
+      // 4. Sale to dispensary — varies by SKU velocity
+      // 5. Month-end close (0-30d depending on sale date in month)
+      // 6. +6 weeks (42d) consignment delay
+      // 7. Payout: 2nd Friday of resulting month (~+7-14d)
+      var SKU_VELOCITY={cart:{label:'Carts',avgSellDays:14,pct:0.70},badder:{label:'Badder',avgSellDays:28,pct:0.12},sauce:{label:'Sauce',avgSellDays:35,pct:0.10},diamonds:{label:'Diamonds',avgSellDays:45,pct:0.08}};
+      var skuTimelines=Object.values(SKU_VELOCITY).map(function(sku){
+        var prodToPickup=extractDays+5;
+        var pickupToSale=sku.avgSellDays;
+        var saleToMonthEnd=15;// avg ~15d to end of month
+        var consignment=42;// 6 weeks
+        var payoutDelay=10;// ~2nd Friday
+        var totalDays=prodToPickup+pickupToSale+saleToMonthEnd+consignment+payoutDelay;
+        return Object.assign({},sku,{prodToPickup:prodToPickup,pickupToSale:pickupToSale,saleToMonthEnd:saleToMonthEnd,consignment:consignment,payoutDelay:payoutDelay,totalDays:totalDays});
+      });
+      var avgCycleDays=Math.round(skuTimelines.reduce(function(s,t){return s+t.totalDays*t.pct;},0));
+
+      // Forward-looking cash projections using timing model
       var monthNames=['Apr','May','Jun','Jul','Aug','Sep'];
       var baseMonthRev=latestMonthRev;
       var baseUnits=latestMonthUnits;
@@ -2997,20 +3777,17 @@ const YIELD_KEY = 'gpi-yield-log';
         var g=Math.pow(1+growthPct/100,i+1);
         var rev=Math.round(baseMonthRev*g);
         var units=Math.round(baseUnits*g);
-        // Costs per unit from COGS spreadsheet:
-        // Cart: oil $1.25 + pkg $2.17 + labor $1.00 + testing $0.40 = $4.82
-        // Conc: oil $1.25 + pkg $0.66 + labor $1.00 + testing $0.45 = $3.36
-        // fixed: QB $25 + WM $99 + Max $200 + Elfsight $5 + Rent $825 + Cell $135 + Internet $126 = $1,415/mo
-        var cartUnits=Math.round(units*0.70);
-        var concUnits=units-cartUnits;
-        var apCarts=Math.round(cartUnits*4.82);
-        var apConc=Math.round(concUnits*3.36);
-        var apLab=2400;
-        var apFixed=1415;
+        var cartUnits=Math.round(units*0.70);var concUnits=units-cartUnits;
+        var apCarts=Math.round(cartUnits*4.82);var apConc=Math.round(concUnits*3.36);
+        var apLab=2400;var apFixed=1415;
         var apTotal=apCarts+apConc+apLab+apFixed;
-        var payout=Math.round(rev*0.84);
+        // Payout arrives ~avgCycleDays after production spend
+        // For month i, payout from production (i - Math.ceil(avgCycleDays/30)) months ago
+        var payoutIdx=i-Math.ceil(avgCycleDays/30);
+        var payoutRev=payoutIdx>=0?Math.round(baseMonthRev*Math.pow(1+growthPct/100,payoutIdx+1)):Math.round(baseMonthRev*0.9);
+        var payout=Math.round(payoutRev*0.84);
         var cashGap=payout-apTotal;
-        return {month:m,rev:rev,units:units,payout:payout,apCarts:apCarts,apConc:apConc,apLab:apLab,apFixed:apFixed,apTotal:apTotal,cashGap:cashGap};
+        return {month:m,rev:rev,units:units,payout:payout,apTotal:apTotal,cashGap:cashGap,prodSpend:apTotal,payoutSource:payoutIdx>=0?monthNames[payoutIdx]:'Prior'};
       });
 
       const STORE_KEY = 'gpi-cashflow-entries';
@@ -3228,22 +4005,116 @@ const YIELD_KEY = 'gpi-yield-log';
             <button onClick={openInvoiceForm} style={{marginLeft:'auto',padding:'6px 14px',borderRadius:3,fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid #2196f3',background:'#2196f322',color:'#2196f3',letterSpacing:0.5}}>Generate Invoice</button>
           </div>
 
-          {/* ═══ P&L SUMMARY ═══ */}
-          <div style={{display:'flex',gap:10,marginBottom:16,flexWrap:'wrap'}}>
-            {[{l:'Revenue ('+pd+'d)',v:curK(totalRev),c:C.text},{l:'Prod COGS',v:'-'+curK(totalCOGS),c:C.muted},{l:'Distro (16%)',v:'-'+curK(totalDistro),c:C.muted},{l:'Net Profit',v:curK(netProfit),c:netProfit>0?C.good:C.danger},{l:'Net Margin',v:margin.toFixed(1)+'%',c:margin>35?C.good:margin>20?C.warn:C.danger},{l:'Units',v:totalUnits.toLocaleString(),c:C.text}].map(function(s){return <div key={s.l} style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'14px 16px',flex:1,minWidth:80}}><div style={{fontSize:8,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:4}}>{s.l}</div><div style={{fontSize:20,fontWeight:800,color:s.c}}>{s.v}</div></div>;})}
-          </div>
+          {/* ═══ CASH FLOW ═══ */}
+          {(function(){
+              // ── DEMAND-DRIVEN ENGINE (computed above in projMonths/skuTimelines) ──
+              var rev365b=0,units365b=0,cart365=0,conc365=0;
+              (accounts||[]).forEach(function(a){if(!a.hasSalesData)return;rev365b+=(a.totalSales||0);(a.orderedSkus||[]).forEach(function(s){var u=(s.periodUnits&&s.periodUnits[365])||0;units365b+=u;if((s.category||'').includes('Cart'))cart365+=u;else conc365+=u;});});
+              var mRev=rev365b/12;var mUnits=units365b/12;
+              var cpu=units365b>0?(cart365*4.82+conc365*3.36)/units365b:4.20;
+              var mCOGS=mUnits*cpu;var mPkg=mUnits*1.50;var mDist=mRev*0.16;var mFixed=1415;var mMktg=180;
+              var mBase=mCOGS+mPkg+mDist+mFixed+mMktg;var c2r=mRev>0?mBase/mRev:0.65;
+              // Weekly data
+              var wks=Math.ceil(cfRange/7);var sd3=new Date(2026,3,1);var today=new Date(2026,3,5);
+              var payEvt2=[{d:new Date(2026,3,10),a:38396.91+6501.94,l:'Feb + Cruz $44.9K'},{d:new Date(2026,4,8),a:AR_DATA[3].pay,l:'Mar $'+Math.round(AR_DATA[3].pay/1000)+'K'},{d:new Date(2026,5,12),a:Math.round(mRev*Math.pow(1+growthPct/100,1)*0.84),l:'Apr est'},{d:new Date(2026,6,10),a:Math.round(mRev*Math.pow(1+growthPct/100,2)*0.84),l:'May est'},{d:new Date(2026,7,14),a:Math.round(mRev*Math.pow(1+growthPct/100,3)*0.84),l:'Jun est'},{d:new Date(2026,8,11),a:Math.round(mRev*Math.pow(1+growthPct/100,4)*0.84),l:'Jul est'}];
+              var dp=[];var bal2=5000;var nextPay=null;
+              for(var w=0;w<wks;w++){var ws2=new Date(sd3.getTime()+w*7*86400000);var we2=new Date(ws2.getTime()+7*86400000);var moOut=(ws2.getTime()-sd3.getTime())/86400000/30;var fExp=mBase*Math.pow(1+growthPct/100,(moOut+1)/12);var wExp=Math.round(fExp/4.33);var inf3=0,il2='',ip2=false;payEvt2.forEach(function(pe){if(pe.d>=ws2&&pe.d<we2){inf3+=pe.a;il2=pe.l;ip2=true;if(!nextPay&&pe.d>=today)nextPay={date:pe.d,amount:pe.a,label:pe.l};}});bal2+=inf3-wExp;var mo2=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct'][ws2.getMonth()];dp.push({w:w,dt:mo2+' '+ws2.getDate(),inf:inf3,out:wExp,net:bal2,ip:ip2,il:il2,isToday:ws2<=today&&we2>today,dateObj:ws2});}
+              if(!nextPay)nextPay={date:payEvt2[0].d,amount:payEvt2[0].a,label:payEvt2[0].l};
+              var minBal=Math.min.apply(null,dp.map(function(d){return d.net;}));
+              var wBurnRate=Math.round(mBase/4.33);
+              var runway=bal2>0?Math.round(bal2/wBurnRate*7):0;
+              var spDec=minBal>15000?{l:'SAFE TO SPEND',c:'#4caf50',d:'Funded for current growth.'}:minBal>0?{l:'HOLD SPEND',c:'#f5a623',d:'Tight. Delay non-essential.'}:{l:'RAISE CAPITAL',c:'#ff5252',d:'Projected negative. Act now.'};
+              var cashComp=growthPct>0&&minBal<5000;
+              // Chart
+              var W=700,H=260,pL=52,pR=12,pT=20,pB=32,cW3=W-pL-pR,cH3=H-pT-pB;
+              var allV2=[];dp.forEach(function(d){allV2.push(d.inf,d.out,d.net);});
+              var mx2=Math.max.apply(null,allV2.concat([1]));var mn3=Math.min.apply(null,allV2.concat([0]));if(mn3>0)mn3=0;var rn2=mx2-mn3||1;
+              function xc(i){return pL+i/(dp.length-1||1)*cW3;}
+              function yc(v){return pT+cH3-(v-mn3)/rn2*cH3;}
+              // Smooth curve helper
+              function smooth(pts){if(pts.length<2)return'';var d='M'+pts[0][0]+','+pts[0][1];for(var i=1;i<pts.length;i++){var x0=pts[i-1][0],y0=pts[i-1][1],x1=pts[i][0],y1=pts[i][1];var cx=(x0+x1)/2;d+=' C'+cx+','+y0+' '+cx+','+y1+' '+x1+','+y1;}return d;}
+              var iP2=dp.map(function(d,i){return[xc(i),yc(d.inf)];});
+              var oP2=dp.map(function(d,i){return[xc(i),yc(d.out)];});
+              var nP2=dp.map(function(d,i){return[xc(i),yc(d.net)];});
+              var nArea='M'+nP2[0][0]+','+yc(0)+' L'+nP2[0][0]+','+nP2[0][1]+smooth(nP2).slice(1+String(nP2[0][0]).length+1+String(nP2[0][1]).length)+'L'+nP2[nP2.length-1][0]+','+yc(0)+'Z';
+              // Danger zones
+              var dz=[];var inD=false,ds2=0;dp.forEach(function(d,i){if(d.net<0&&!inD){inD=true;ds2=i;}if((d.net>=0||i===dp.length-1)&&inD){inD=false;dz.push([ds2,i]);}});
+              var todayIdx=dp.findIndex(function(d){return d.isToday;});
 
-          {/* ═══ COGS BY PRODUCT TYPE ═══ */}
-          <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16,marginBottom:16}}>
-            <div style={{fontSize:9,color:C.dim,letterSpacing:2,textTransform:'uppercase',marginBottom:10}}>P&L by Product Type — {pd}d Window</div>
-            <div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:500,borderCollapse:'collapse'}}>
-              <thead><tr>{['Type','Units','Revenue','Prod Cost','Distro','Net Profit','Margin'].map(function(h,i){return <th key={h} style={{padding:'5px 8px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i===0?'left':'right',borderBottom:'1px solid '+C.border,textTransform:'uppercase'}}>{h}</th>;})}</tr></thead>
-              <tbody>
-                {types.map(function(t,i){var d2=t.rev*0.16,n2=t.rev-t.cost-d2,mg=t.rev>0?n2/t.rev*100:0;return <tr key={t.label} style={{background:i%2===0?'transparent':C.raised}}><td style={{padding:'7px 8px',fontSize:11,fontWeight:600}}>{t.label}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:10,color:C.muted}}>{t.units.toLocaleString()}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:11,fontWeight:700}}>{curK(t.rev)}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:10,color:C.muted}}>{curK(t.cost)}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:10,color:C.dim}}>{curK(d2)}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:11,fontWeight:700,color:n2>0?C.good:C.danger}}>{curK(n2)}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:10,color:mg>35?C.good:mg>20?C.warn:C.danger}}>{mg.toFixed(1)}%</td></tr>;})}
-                <tr style={{borderTop:'1px solid '+C.borderHi,background:C.raised}}><td style={{padding:'7px 8px',fontSize:11,fontWeight:800}}>TOTAL</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:10,fontWeight:700}}>{totalUnits.toLocaleString()}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:11,fontWeight:800}}>{curK(totalRev)}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:10,fontWeight:700}}>{curK(totalCOGS)}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:10,fontWeight:700}}>{curK(totalDistro)}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:12,fontWeight:800,color:C.good}}>{curK(netProfit)}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:10,fontWeight:800,color:C.good}}>{margin.toFixed(1)}%</td></tr>
-              </tbody>
-            </table></div>
+              return React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.borderHi,borderRadius:10,overflow:'hidden',marginBottom:20}},
+                // ── Summary Panel ──
+                React.createElement('div',{style:{padding:'16px 24px',borderBottom:'1px solid '+C.border,display:'flex',gap:24,flexWrap:'wrap',alignItems:'center'}},
+                  React.createElement('div',null,React.createElement('div',{style:{fontSize:7,color:C.dim,letterSpacing:1.5}},'CASH POSITION'),React.createElement('div',{style:{fontSize:22,fontWeight:900,color:bal2>0?C.text:C.danger}},curK(dp[dp.length-1].net))),
+                  React.createElement('div',{style:{borderLeft:'1px solid '+C.border,paddingLeft:20}},React.createElement('div',{style:{fontSize:7,color:C.dim,letterSpacing:1.5}},'NEXT PAYOUT'),React.createElement('div',{style:{fontSize:14,fontWeight:800,color:'#4caf50'}},curK(nextPay.amount)),React.createElement('div',{style:{fontSize:8,color:C.dim}},nextPay.label)),
+                  React.createElement('div',{style:{borderLeft:'1px solid '+C.border,paddingLeft:20}},React.createElement('div',{style:{fontSize:7,color:C.dim,letterSpacing:1.5}},'WEEKLY BURN'),React.createElement('div',{style:{fontSize:14,fontWeight:800,color:'#ff5252'}},curK(wBurnRate))),
+                  React.createElement('div',{style:{borderLeft:'1px solid '+C.border,paddingLeft:20}},React.createElement('div',{style:{fontSize:7,color:C.dim,letterSpacing:1.5}},'RUNWAY'),React.createElement('div',{style:{fontSize:14,fontWeight:800,color:runway>60?C.text:runway>30?'#f5a623':'#ff5252'}},runway+'d')),
+                  React.createElement('div',{style:{marginLeft:'auto',textAlign:'right'}},React.createElement('div',{style:{fontSize:14,fontWeight:900,color:spDec.c}},spDec.l),React.createElement('div',{style:{fontSize:8,color:C.dim}},spDec.d),cashComp&&React.createElement('div',{style:{fontSize:8,color:'#f5a623',fontWeight:700,marginTop:2}},'\u26a0 Cash compression detected'))
+                ),
+                // ── Controls ──
+                React.createElement('div',{style:{padding:'10px 24px',borderBottom:'1px solid '+C.border,display:'flex',gap:12,alignItems:'center',flexWrap:'wrap'}},
+                  React.createElement('div',{style:{display:'flex',gap:3}},{combined:'Combined',incoming:'Inflows',expenses:'Outflows',net:'Net'}.hasOwnProperty&&[['combined','Combined'],['incoming','Inflows'],['expenses','Outflows'],['net','Net']].map(function(v){return React.createElement('button',{key:v[0],onClick:function(){setCfView(v[0]);},style:{padding:'3px 10px',borderRadius:2,fontSize:8,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(cfView===v[0]?C.text:C.border),background:cfView===v[0]?C.text:'transparent',color:cfView===v[0]?C.bg:C.dim,fontWeight:cfView===v[0]?700:400,transition:'all 0.15s'}},v[1]);})),
+                  React.createElement('div',{style:{width:1,height:14,background:C.border}}),
+                  React.createElement('div',{style:{display:'flex',gap:3}},[30,60,90,180].map(function(d){return React.createElement('button',{key:d,onClick:function(){setCfRange(d);},style:{padding:'3px 8px',borderRadius:2,fontSize:8,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(cfRange===d?C.text:C.border),background:cfRange===d?C.text:'transparent',color:cfRange===d?C.bg:C.dim,fontWeight:cfRange===d?700:400,transition:'all 0.15s'}},d+'d');})),
+                  React.createElement('div',{style:{width:1,height:14,background:C.border}}),
+                  React.createElement('span',{style:{fontSize:8,color:C.dim}},'Growth:'),
+                  React.createElement('div',{style:{display:'flex',gap:3}},[0,5,10,15,20].map(function(g){return React.createElement('button',{key:g,onClick:function(){setGrowthPct(g);},style:{padding:'3px 8px',borderRadius:2,fontSize:8,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(growthPct===g?C.text:C.border),background:growthPct===g?C.text:'transparent',color:growthPct===g?C.bg:C.dim,fontWeight:growthPct===g?700:400,transition:'all 0.15s'}},g+'%');}))
+                ),
+                // ── Chart ──
+                React.createElement('div',{style:{padding:'16px 24px 20px',position:'relative'}},
+                  React.createElement('svg',{viewBox:'0 0 '+W+' '+H,style:{width:'100%',height:'auto',display:'block'},onMouseLeave:function(){setCfHover(null);}},
+                    // Subtle grid
+                    [0,0.25,0.5,0.75,1].map(function(f){var v=mn3+f*rn2;return React.createElement('g',{key:'g'+f},React.createElement('line',{x1:pL,y1:yc(v),x2:W-pR,y2:yc(v),stroke:C.border,strokeWidth:0.3,opacity:0.5}),React.createElement('text',{x:pL-6,y:yc(v)+3,textAnchor:'end',fontSize:7,fill:C.dim,fontFamily:'inherit',opacity:0.7},curK(v)));}),
+                    // Zero line
+                    React.createElement('line',{x1:pL,y1:yc(0),x2:W-pR,y2:yc(0),stroke:C.dim,strokeWidth:0.5,opacity:0.3}),
+                    // Danger zones
+                    dz.map(function(g,i){return React.createElement('rect',{key:'dz'+i,x:xc(g[0]),y:pT,width:Math.max(2,xc(g[1])-xc(g[0])),height:cH3,fill:'#ff5252',opacity:0.04,rx:2});}),
+                    // Net area fill
+                    (cfView==='combined'||cfView==='net')&&React.createElement('path',{d:nArea,fill:C.text,opacity:0.03}),
+                    // Smooth lines
+                    (cfView==='combined'||cfView==='incoming')&&React.createElement('path',{d:smooth(iP2),fill:'none',stroke:'#4caf50',strokeWidth:2,opacity:0.8,strokeLinejoin:'round'}),
+                    (cfView==='combined'||cfView==='expenses')&&React.createElement('path',{d:smooth(oP2),fill:'none',stroke:'#ff5252',strokeWidth:1.5,strokeDasharray:'6,3',opacity:0.7,strokeLinejoin:'round'}),
+                    (cfView==='combined'||cfView==='net')&&React.createElement('path',{d:smooth(nP2),fill:'none',stroke:C.text,strokeWidth:2.5,opacity:0.9,strokeLinejoin:'round'}),
+                    // Today marker
+                    todayIdx>=0&&React.createElement('g',{key:'today'},React.createElement('line',{x1:xc(todayIdx),y1:pT,x2:xc(todayIdx),y2:H-pB,stroke:C.text,strokeWidth:1,strokeDasharray:'2,4',opacity:0.4}),React.createElement('text',{x:xc(todayIdx),y:H-pB+22,textAnchor:'middle',fontSize:7,fill:C.text,fontWeight:700,opacity:0.6},'TODAY')),
+                    // Payout markers
+                    dp.map(function(d,i){if(!d.ip)return null;return React.createElement('g',{key:'pm'+i},React.createElement('line',{x1:xc(i),y1:yc(d.inf)-6,x2:xc(i),y2:H-pB,stroke:'#4caf50',strokeWidth:0.5,opacity:0.3}),React.createElement('circle',{cx:xc(i),cy:yc(d.inf),r:3.5,fill:'#4caf50',stroke:C.surface,strokeWidth:1.5}),React.createElement('text',{x:xc(i),y:yc(d.inf)-8,textAnchor:'middle',fontSize:6.5,fill:'#4caf50',fontWeight:700,opacity:0.9},curK(d.inf)));}),
+                    // X-axis labels
+                    dp.filter(function(d,i){var step=Math.max(1,Math.floor(wks/7));return i%step===0;}).map(function(d){return React.createElement('text',{key:'xl'+d.w,x:xc(d.w),y:H-pB+12,textAnchor:'middle',fontSize:7,fill:C.dim,fontFamily:'inherit',opacity:0.6},d.dt);}),
+                    // Hover zones
+                    dp.map(function(d,i){return React.createElement('rect',{key:'hv'+i,x:xc(i)-cW3/dp.length/2,y:pT,width:cW3/dp.length,height:cH3,fill:'transparent',cursor:'crosshair',onMouseEnter:function(){setCfHover(i);}});})
+                  ),
+                  // Hover tooltip
+                  cfHover!=null&&dp[cfHover]&&React.createElement('div',{style:{position:'absolute',top:20,left:Math.min(xc(cfHover)/W*100,72)+'%',background:C.bg,border:'1px solid '+C.borderHi,borderRadius:6,padding:'10px 14px',fontSize:9,pointerEvents:'none',zIndex:10,minWidth:160,boxShadow:'0 8px 24px rgba(0,0,0,0.4)'}},
+                    React.createElement('div',{style:{fontWeight:800,marginBottom:6,fontSize:11,color:C.text}},dp[cfHover].dt),
+                    React.createElement('div',{style:{display:'flex',justifyContent:'space-between',gap:16,marginBottom:3}},React.createElement('span',{style:{color:C.dim}},'Inflow'),React.createElement('span',{style:{color:'#4caf50',fontWeight:600}},cur(dp[cfHover].inf))),
+                    React.createElement('div',{style:{display:'flex',justifyContent:'space-between',gap:16,marginBottom:3}},React.createElement('span',{style:{color:C.dim}},'Expenses'),React.createElement('span',{style:{color:'#ff5252',fontWeight:600}},'-'+cur(dp[cfHover].out))),
+                    React.createElement('div',{style:{display:'flex',justifyContent:'space-between',gap:16,borderTop:'1px solid '+C.border,paddingTop:4,marginTop:2}},React.createElement('span',{style:{fontWeight:700}},'Net'),React.createElement('span',{style:{fontWeight:800,color:dp[cfHover].net>=0?C.text:'#ff5252'}},cur(dp[cfHover].net))),
+                    dp[cfHover].il&&React.createElement('div',{style:{fontSize:8,color:'#4caf50',marginTop:4,fontStyle:'italic'}},dp[cfHover].il)
+                  ),
+                  // Inline legend
+                  React.createElement('div',{style:{display:'flex',gap:20,marginTop:6,paddingLeft:pL}},
+                    (cfView==='combined'||cfView==='incoming')&&React.createElement('span',{style:{fontSize:8,color:'#4caf50',opacity:0.8}},'\u2014 Incoming'),
+                    (cfView==='combined'||cfView==='expenses')&&React.createElement('span',{style:{fontSize:8,color:'#ff5252',opacity:0.8}},'- - Expenses'),
+                    (cfView==='combined'||cfView==='net')&&React.createElement('span',{style:{fontSize:8,color:C.text}},'\u2014 Net Position'),
+                    dz.length>0&&React.createElement('span',{style:{fontSize:8,color:'#ff5252',fontWeight:600}},'\u25a0 Danger zone')
+                  )
+                )
+              );
+          })()}
+
+
+          {/* ═══ RECEIVABLES OVERVIEW ═══ */}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:10,marginBottom:20}}>
+            {[{l:'Confirmed Receivables',v:cur(totalConfirmedReceivables),c:C.good,s:'All unpaid confirmed payouts'},{l:'Feb Payout Due',v:cur(38396.91),c:C.warn,s:'Due Apr 13 — GON+Euphoric+Batt'},{l:'Cruz Outstanding',v:cur(cruzOutstanding),c:C.danger,s:'$6,501.94 — payment scheduled'},{l:'Mar Payout (Est)',v:cur(AR_DATA[3].pay),c:C.muted,s:'Due May 8 (2nd Friday)'},{l:'Total AP Obligations',v:'-'+curK(totalAP),c:C.danger,s:periodAP.length+' expenses in window'},{l:'Net Position',v:curK(totalConfirmedReceivables-totalAP),c:totalConfirmedReceivables-totalAP>=0?C.good:C.danger,s:'Receivables minus obligations'}].map(function(s){return <div key={s.l} style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'12px 14px'}}><div style={{fontSize:7,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:3}}>{s.l}</div><div style={{fontSize:16,fontWeight:800,color:s.c}}>{s.v}</div><div style={{fontSize:8,color:C.dim,marginTop:2}}>{s.s}</div></div>;})}
           </div>
+          {/* ═══ RECONCILIATION ═══ */}
+          {Math.abs(totalConfirmedReceivables-reconciliationTarget)>1000&&<div style={{background:C.dangerBg,border:'1px solid '+C.dangerBdr,borderRadius:6,padding:'12px 16px',marginBottom:16,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <div><div style={{fontSize:9,fontWeight:700,color:C.danger,letterSpacing:1}}>⚠ RECEIVABLES RECONCILIATION MISMATCH</div><div style={{fontSize:9,color:C.muted,marginTop:2}}>Computed: {cur(totalConfirmedReceivables)} · Target: {cur(reconciliationTarget)} · Diff: {cur(Math.abs(totalConfirmedReceivables-reconciliationTarget))}</div></div>
+            <span style={{fontSize:8,fontWeight:700,color:C.danger}}>INVESTIGATE</span>
+          </div>}
+          {Math.abs(totalConfirmedReceivables-reconciliationTarget)<=1000&&<div style={{background:C.goodBg,border:'1px solid '+C.goodBdr,borderRadius:6,padding:'10px 16px',marginBottom:16,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <div style={{fontSize:9,color:C.good}}>✓ Receivables reconciled — {cur(totalConfirmedReceivables)} matches target {cur(reconciliationTarget)}</div>
+          </div>}
 
           {/* ═══ CASH FLOW POSITION ═══ */}
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:16}}>
@@ -3255,22 +4126,39 @@ const YIELD_KEY = 'gpi-yield-log';
             </div>
 
             <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16}}>
-              <div style={{fontSize:9,color:C.dim,letterSpacing:2,textTransform:'uppercase',marginBottom:10}}>AR — UpNorth Payout Schedule</div>
-              {AR_DATA.map(function(r,i){var sc=r.st==='received'?C.good:r.st==='due'?C.warn:C.muted;return <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 0',borderBottom:'1px solid '+C.border}}><div><div style={{fontSize:10,fontWeight:600}}>{r.m}</div><div style={{fontSize:8,color:C.dim}}>Due {r.due}</div></div><div style={{textAlign:'right'}}><div style={{fontSize:11,fontWeight:800}}>{cur(r.pay)}</div><span style={{fontSize:7,fontWeight:700,padding:'1px 6px',borderRadius:2,background:sc+'18',border:'1px solid '+sc+'44',color:sc,textTransform:'uppercase'}}>{r.st}</span></div></div>;})}
-              <div style={{display:'flex',justifyContent:'space-between',paddingTop:8,marginTop:4}}><span style={{fontSize:10,fontWeight:800}}>Outstanding</span><span style={{fontSize:13,fontWeight:900,color:C.warn}}>{cur(AR_DATA.filter(function(r){return r.st!=='received';}).reduce(function(s,r){return s+r.pay;},0))}</span></div>
+              <div style={{fontSize:9,color:C.dim,letterSpacing:2,textTransform:'uppercase',marginBottom:10}}>AR — PAYOUT SCHEDULE (VERIFIED FROM UPNORTH EMAILS)</div>
+              {AR_DATA.map(function(r,i){var sc=r.st==='received'?C.good:r.st==='due'?C.warn:C.muted;var totalPay=r.pay+(r.cruzPay||0);return <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px solid '+C.border}}>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:11,fontWeight:700}}>{r.m}</div>
+                  <div style={{fontSize:8,color:C.dim}}>{r.note||''}</div>
+                </div>
+                <div style={{textAlign:'right',marginRight:12}}>
+                  <div style={{fontSize:8,color:C.dim}}>Sales Rev: {curK(r.salesRev)}</div>
+                  <div style={{fontSize:8,color:C.dim}}>Due: {r.due}</div>
+                </div>
+                <div style={{textAlign:'right',minWidth:90}}>
+                  <div style={{fontSize:13,fontWeight:800}}>{cur(totalPay)}</div>
+                  <span style={{fontSize:7,fontWeight:700,padding:'1px 6px',borderRadius:2,background:sc+'18',border:'1px solid '+sc+'44',color:sc,textTransform:'uppercase'}}>{r.st}</span>
+                </div>
+              </div>;})}
+              {cruzOutstanding>0&&<div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px solid '+C.border,background:C.dangerBg}}>
+                <div><div style={{fontSize:11,fontWeight:700,color:C.danger}}>Cruz Science — Past Due</div><div style={{fontSize:8,color:C.dim}}>Dec $5,102.46 + Jan $1,386.04 + Feb $13.44</div></div>
+                <div style={{textAlign:'right'}}><div style={{fontSize:13,fontWeight:800,color:C.danger}}>{cur(cruzOutstanding)}</div><span style={{fontSize:7,fontWeight:700,padding:'1px 6px',borderRadius:2,background:C.dangerBg,border:'1px solid '+C.dangerBdr,color:C.danger}}>PAST DUE</span></div>
+              </div>}
+              <div style={{display:'flex',justifyContent:'space-between',paddingTop:8,marginTop:4}}><span style={{fontSize:11,fontWeight:800}}>Total Outstanding</span><span style={{fontSize:14,fontWeight:900,color:C.warn}}>{cur(totalConfirmedReceivables)}</span></div>
             </div>
           </div>
 
           {/* ═══ NET CASH POSITION ═══ */}
           <div style={{background:C.raised,border:'1px solid '+C.borderHi,borderRadius:6,padding:16,marginBottom:24,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
             <div>
-              <div style={{fontSize:8,color:C.dim,letterSpacing:1,textTransform:'uppercase'}}>Net Cash Position ({pd}d)</div>
-              <div style={{fontSize:9,color:C.muted,marginTop:2}}>Your 84% payout - AP expenses in window</div>
+              <div style={{fontSize:8,color:C.dim,letterSpacing:1,textTransform:'uppercase'}}>Net Cash Position — Receivables vs Obligations</div>
+              <div style={{fontSize:9,color:C.muted,marginTop:2}}>Confirmed receivables minus AP expenses</div>
             </div>
             <div style={{textAlign:'right'}}>
-              <div style={{fontSize:9,color:C.dim}}>Payout (84%): <span style={{color:C.good,fontWeight:700}}>{cur(payout84)}</span></div>
+              <div style={{fontSize:9,color:C.dim}}>Receivables: <span style={{color:C.good,fontWeight:700}}>{cur(totalConfirmedReceivables)}</span></div>
               <div style={{fontSize:9,color:C.dim}}>AP: <span style={{color:C.danger,fontWeight:700}}>-{cur(totalAP)}</span></div>
-              <div style={{fontSize:22,fontWeight:900,color:payout84-totalAP>0?C.good:C.danger,marginTop:4}}>{payout84-totalAP>=0?'+':''}{curK(payout84-totalAP)}</div>
+              <div style={{fontSize:22,fontWeight:900,color:totalConfirmedReceivables-totalAP>0?C.good:C.danger,marginTop:4}}>{totalConfirmedReceivables-totalAP>=0?'+':''}{curK(totalConfirmedReceivables-totalAP)}</div>
             </div>
           </div>
 
@@ -3299,6 +4187,45 @@ const YIELD_KEY = 'gpi-yield-log';
               </tbody>
             </table>
             <div style={{fontSize:9,color:C.dim,marginTop:6}}>Per contract §5(d): payment on 2nd Friday of month following sales period close. 100% to Family Tree Consulting.</div>
+          </div>
+
+          {/* ═══ PRODUCTION → CASH LIFECYCLE ═══ */}
+          <div style={{background:C.surface,border:'1px solid '+C.borderHi,borderRadius:8,padding:'20px 24px',marginBottom:20}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+              <div>
+                <div style={{fontSize:11,fontWeight:800,letterSpacing:2}}>PRODUCTION → CASH LIFECYCLE</div>
+                <div style={{fontSize:9,color:C.dim,marginTop:2}}>Real UpNorth consignment timing · Avg cycle: <strong style={{color:C.text}}>{avgCycleDays} days</strong></div>
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                <span style={{fontSize:8,color:C.dim}}>Extraction days:</span>
+                {[7,10,14].map(function(d){return <button key={d} onClick={function(){setExtractDays(d);}} style={{padding:'3px 8px',borderRadius:2,fontSize:9,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(extractDays===d?C.text:C.border),background:extractDays===d?C.text:'transparent',color:extractDays===d?C.bg:C.dim,fontWeight:extractDays===d?700:400}}>{d}d</button>;})}
+              </div>
+            </div>
+            <div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:500,borderCollapse:'collapse'}}>
+              <thead><tr style={{background:C.raised}}>{['SKU Type','% Mix','Prod→Pickup','Sell-Through','Month-End','Consignment','Payout','Total Days'].map(function(h,i){return <th key={h} style={{padding:'5px 8px',fontSize:8,fontWeight:700,color:C.dim,textAlign:i>=1?'right':'left',borderBottom:'1px solid '+C.border,letterSpacing:0.5}}>{h}</th>;})}</tr></thead>
+              <tbody>
+                {skuTimelines.map(function(t,i){return <tr key={t.label} style={{background:i%2===0?'transparent':C.raised}}>
+                  <td style={{padding:'6px 8px',fontSize:11,fontWeight:600}}>{t.label}</td>
+                  <td style={{padding:'6px 8px',fontSize:10,textAlign:'right',color:C.muted}}>{(t.pct*100).toFixed(0)}%</td>
+                  <td style={{padding:'6px 8px',fontSize:10,textAlign:'right'}}>{t.prodToPickup}d</td>
+                  <td style={{padding:'6px 8px',fontSize:10,textAlign:'right',color:t.pickupToSale>30?C.warn:C.good}}>{t.pickupToSale}d</td>
+                  <td style={{padding:'6px 8px',fontSize:10,textAlign:'right',color:C.muted}}>~{t.saleToMonthEnd}d</td>
+                  <td style={{padding:'6px 8px',fontSize:10,textAlign:'right',color:C.warn}}>42d</td>
+                  <td style={{padding:'6px 8px',fontSize:10,textAlign:'right',color:C.muted}}>~{t.payoutDelay}d</td>
+                  <td style={{padding:'6px 8px',fontSize:12,textAlign:'right',fontWeight:800,color:t.totalDays>100?C.danger:t.totalDays>80?C.warn:C.good}}>{t.totalDays}d</td>
+                </tr>;})}
+                <tr style={{borderTop:'1px solid '+C.borderHi,background:C.raised}}>
+                  <td style={{padding:'6px 8px',fontSize:11,fontWeight:800}}>WEIGHTED AVG</td>
+                  <td colSpan={6}></td>
+                  <td style={{padding:'6px 8px',fontSize:13,fontWeight:900,textAlign:'right',color:avgCycleDays>100?C.danger:C.warn}}>{avgCycleDays}d</td>
+                </tr>
+              </tbody>
+            </table></div>
+            <div style={{marginTop:12,display:'flex',gap:16,fontSize:9,color:C.dim,flexWrap:'wrap'}}>
+              <span>Fastest cash: <strong style={{color:C.good}}>{skuTimelines[0].label} ({skuTimelines[0].totalDays}d)</strong></span>
+              <span>Slowest cash: <strong style={{color:C.danger}}>{skuTimelines[skuTimelines.length-1].label} ({skuTimelines[skuTimelines.length-1].totalDays}d)</strong></span>
+              <span>Pre-formulated inventory reduces Prod→Pickup by {extractDays-3}+ days</span>
+            </div>
           </div>
 
           {/* ═══ GROWTH PROJECTION ═══ */}
