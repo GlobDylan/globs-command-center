@@ -948,16 +948,30 @@ window._STRAIN_DB=[
 
       useEffect(function(){boot();},[]); // eslint-disable-line
       async function boot(){
-        async function load(k,s){try{const r=await window.storage.get(k);if(r)s(JSON.parse(r.value));}catch(e){}}
+        var bootLog=[];
+        async function load(k,s){
+          try{
+            const r=await window.storage.get(k);
+            if(r){s(JSON.parse(r.value));bootLog.push(k+':OK');}
+            else{bootLog.push(k+':empty');}
+          }catch(e){bootLog.push(k+':ERR('+e.message+')');}
+        }
+        if(!window.storage){bootLog.push('NO STORAGE API');toast('⚠ Storage not available — data won\u2019t persist. Upload XLSX to load fresh.');return;}
         await load("gpi-accounts",setAccounts);
         await load("gpi-promo-accounts",setPromoAccounts);
         await load("gpi-prices",setPriceData);
         await load("gpi-snaps",setSnapshots);
         await load("gpi-pkg-comps",function(stored){setPkgComps(function(prev){const m=Object.assign({},prev);Object.keys(stored).forEach(function(g){if(m[g])Object.keys(stored[g]).forEach(function(id){if(m[g][id])m[g][id]=Object.assign({},m[g][id],stored[g][id]);});});return m;});});
-        try{const r=await window.storage.get("gpi-inventory");if(r){const inv=JSON.parse(r.value);setInventoryData(inv);const oh={};Object.keys(inv).forEach(function(k2){oh[k2]=inv[k2].onHand;});setMfgInventory(oh);}}catch(e){}
-        try{const r=await window.storage.get("gpi-sync");if(r)setLastSync(r.value);}catch(e){}
+        try{const r=await window.storage.get("gpi-inventory");if(r){const inv=JSON.parse(r.value);setInventoryData(inv);const oh={};Object.keys(inv).forEach(function(k2){oh[k2]=inv[k2].onHand;});setMfgInventory(oh);bootLog.push('inventory:'+Object.keys(inv).length+'SKUs');}else{bootLog.push('inventory:empty');}}catch(e){bootLog.push('inventory:ERR('+e.message+')');}
+        try{const r=await window.storage.get("gpi-sync");if(r){setLastSync(r.value);bootLog.push('sync:'+r.value.split('T')[0]);}}catch(e){}
         await load(RETURNS_KEY,setReturnsLog);
         await load("gpi-contacts",setContactsData);
+        // Show boot results
+        var acctCount=bootLog.find(function(b){return b.startsWith('gpi-accounts:');});
+        var invCount=bootLog.find(function(b){return b.startsWith('inventory:');});
+        if(acctCount&&acctCount.includes('OK')){
+          toast('\u2713 Data loaded from storage: '+bootLog.filter(function(b){return b.includes('OK')||b.includes('SKUs');}).join(' \u00b7 '));
+        }
       }
       async function persist(k,v){try{await window.storage.set(k,JSON.stringify(v));await window.storage.set("gpi-sync",new Date().toISOString());setLastSync(new Date().toISOString());}catch(e){console.error(e);}}
       function toast(msg){setNotice(msg);setTimeout(function(){setNotice("");},15000);}
