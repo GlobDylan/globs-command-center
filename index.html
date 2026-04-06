@@ -60,58 +60,64 @@
       .acct-stat-value{font-size:13px;}
     }
 
-    /* Global mobile responsive */
+    /* ═══ MOBILE: Clean, comprehensive, no bleeding ═══ */
+
+    /* Safety net: nothing wider than viewport */
+    html,body{overflow-x:hidden;}
+    .gpi-content{box-sizing:border-box;}
+    .gpi-content *{max-width:100vw;}
+
     @media(max-width:768px){
+      /* Header */
       .gpi-header{padding:0 12px !important;height:48px !important;}
       .gpi-header img{height:28px !important;}
       .gpi-header .hdr-actions{gap:4px !important;}
-      .gpi-header .hdr-actions button,.gpi-header .hdr-actions label{font-size:7px !important;padding:3px 6px !important;letter-spacing:0.5px !important;}
+      .gpi-header .hdr-actions button,
+      .gpi-header .hdr-actions label{font-size:7px !important;padding:3px 6px !important;letter-spacing:0.5px !important;}
+      /* Tab bar: horizontal scroll */
       .gpi-tab-bar{padding:0 8px !important;gap:0 !important;-webkit-overflow-scrolling:touch;scroll-behavior:smooth;}
-      .gpi-tab-bar::after{content:'';position:sticky;right:0;min-width:24px;background:linear-gradient(to right,transparent,var(--bg));pointer-events:none;flex-shrink:0;}
+      .gpi-tab-bar::after{content:'';position:sticky;right:0;min-width:24px;background:linear-gradient(to right,transparent,var(--bg,#000));pointer-events:none;flex-shrink:0;}
       .gpi-tab-bar button{font-size:8px !important;padding:10px 6px !important;white-space:nowrap;letter-spacing:0.5px !important;}
-      .gpi-content{padding:10px 8px !important;}
-      /* Stat card grids — stack to 2 cols */
-      .gpi-content > div > div[style*="gridTemplateColumns"]{grid-template-columns:1fr 1fr !important;}
-      /* All tables — reduce minWidth for scroll */
-      table{font-size:10px !important;}
-      table th,table td{padding:5px 6px !important;font-size:9px !important;}
-      table input,table select{font-size:10px !important;}
-      /* Period filter buttons — smaller */
-      button[style*="borderRadius:2"]{font-size:8px !important;padding:3px 6px !important;}
-      /* Flex filter bars — allow wrapping */
-      div[style*="flexWrap:'wrap'"]{gap:4px !important;}
+      /* Content area */
+      .gpi-content{padding:10px 8px !important;overflow-x:hidden !important;}
+      /* Tables: compact */
+      .gpi-content table{font-size:10px !important;min-width:0 !important;}
+      .gpi-content th,.gpi-content td{padding:5px 6px !important;font-size:9px !important;}
+      .gpi-content table input,.gpi-content table select{font-size:10px !important;}
+      /* Buttons: smaller */
+      .gpi-content button{font-size:9px !important;}
+      /* SVG/canvas: contain */
+      .gpi-content svg{max-width:100% !important;height:auto !important;}
     }
-    @media(max-width:480px){
-      .gpi-tab-bar{gap:0 !important;}
-      .gpi-tab-bar button{font-size:7px !important;padding:8px 4px !important;}
-      .gpi-content{padding:8px 6px !important;}
-      table th,table td{padding:4px 4px !important;font-size:8px !important;}
-      table input{width:55px !important;}
-      table select{width:65px !important;}
-    }
-    /* Grid stacking on mobile */
+
     @media(max-width:640px){
+      /* Grid stacking */
       .gpi-zone-grid{grid-template-columns:1fr !important;}
       .gpi-form-grid{grid-template-columns:1fr 1fr !important;}
       .gpi-form-row{grid-template-columns:1fr 1fr !important;}
       .gpi-twocol{grid-template-columns:1fr !important;}
-      /* Opps cards: stack header vertically */
-      .gpi-content div[style*="flexDirection:'column'"] > div[style*="flexWrap:'wrap'"]{flex-direction:column !important;align-items:flex-start !important;}
-      /* All tables: reduce minWidth for small screens */
-      table{min-width:0 !important;}
-      /* All stat card grids: 2 columns max */
-      div[style*="repeat(auto-fit"]{grid-template-columns:1fr 1fr !important;}
-      /* Ensure expanded content is visible */
-      div[style*="overflow:'hidden'"]{overflow:visible !important;}
-      div[style*="overflow: hidden"]{overflow:visible !important;}
+      /* Force ALL inline grids to 2 columns max on mobile */
+      /* Tables: remove all minWidth */
+      .gpi-content table{min-width:0 !important;width:100% !important;}
+      /* Wrap long text */
+      .gpi-content td,.gpi-content th{white-space:normal !important;word-break:break-word;}
+      /* Cards: no overflow clipping */
+      .gpi-content > div > div{overflow:visible !important;}
     }
+
+    @media(max-width:480px){
+      .gpi-tab-bar button{font-size:7px !important;padding:8px 4px !important;}
+      .gpi-content{padding:8px 6px !important;}
+      .gpi-content th,.gpi-content td{padding:4px 4px !important;font-size:8px !important;}
+      .gpi-content table input{width:55px !important;}
+      .gpi-content table select{width:65px !important;}
+      /* Stat card text */
+      .gpi-content div[style]{font-size:inherit;}
+    }
+
     @media(max-width:400px){
-      /* Very small: stat cards single column */
-      div[style*="repeat(auto-fit"]{grid-template-columns:1fr !important;}
-      .gpi-twocol{grid-template-columns:1fr !important;}
-      table th,table td{padding:3px 3px !important;font-size:7px !important;}
-      /* Filter buttons: allow horizontal scroll */
-      .gpi-content > div > div[style*="display:'flex'"][style*="gap:4"]{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap !important;padding-bottom:4px;}
+      .gpi-content th,.gpi-content td{padding:3px 3px !important;font-size:7px !important;}
+      .gpi-tab-bar button{font-size:6px !important;padding:6px 3px !important;}
     }
 
     /* Missile arc animation */
