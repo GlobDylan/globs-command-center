@@ -927,7 +927,8 @@ window._STRAIN_DB=[
         toast('⏳ Parsing '+file.name+'…');
         const isXlsx=file.name.toLowerCase().endsWith('.xlsx')||file.name.toLowerCase().endsWith('.xls');
 
-        if(isXlsx&&typeof XLSX!=='undefined'){
+        // Ensure SheetJS is loaded (mobile CDN can fail)
+        function doXlsxParse(){
           // ── XLSX multi-sheet parsing ──
           const reader=new FileReader();
           reader.onerror=function(){setCsvLoading(false);toast('✗ Failed to read file');};
@@ -1043,6 +1044,33 @@ window._STRAIN_DB=[
             finally{setCsvLoading(false);}
           };
           reader.readAsArrayBuffer(file);e.target.value='';
+        }
+
+        if(isXlsx){
+          if(typeof XLSX!=='undefined'){
+            doXlsxParse();
+          } else {
+            // SheetJS not loaded (common on mobile) — load dynamically
+            toast('⏳ Loading XLSX parser…');
+            var sc=document.createElement('script');
+            sc.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+            sc.onload=function(){
+              if(typeof XLSX!=='undefined'){doXlsxParse();}
+              else{setCsvLoading(false);toast('✗ XLSX library failed to load — try refreshing the page');}
+            };
+            sc.onerror=function(){
+              // Try alternate CDN
+              var sc2=document.createElement('script');
+              sc2.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+              sc2.onload=function(){
+                if(typeof XLSX!=='undefined'){doXlsxParse();}
+                else{setCsvLoading(false);toast('✗ XLSX library failed to load — check internet connection and refresh');}
+              };
+              sc2.onerror=function(){setCsvLoading(false);toast('✗ Cannot load XLSX parser — check internet connection');};
+              document.head.appendChild(sc2);
+            };
+            document.head.appendChild(sc);
+          }
         } else {
           // ── Legacy CSV parsing ──
           const reader=new FileReader();
