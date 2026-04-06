@@ -232,6 +232,7 @@
     <div style="padding:40px;font-family:-apple-system,system-ui,sans-serif;text-align:center;background:#000;color:#fff;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;">
       <div style="font-size:24px;font-weight:800;letter-spacing:3px;margin-bottom:16px;">GLOBS GPI</div>
       <div style="font-size:13px;color:#666;margin-bottom:24px;">Loading Command Center…</div>
+      <div id="gpi-ver" style="font-size:10px;color:#555;margin-top:20px;font-family:monospace;">BUILD v4.2-APR6</div>
       <div style="width:200px;height:3px;background:#222;border-radius:2px;overflow:hidden;">
         <div style="width:60%;height:100%;background:#fff;border-radius:2px;animation:gpi-load 2s ease-in-out infinite;"></div>
       </div>
@@ -1945,9 +1946,10 @@ window._STRAIN_DB=[
                   if(!displayAccounts.length)return React.createElement('div',{style:{padding:'60px 24px',textAlign:'center'}},React.createElement('div',{style:{fontSize:14,fontWeight:700,marginBottom:8,color:C.text}},'No account data loaded'),React.createElement('div',{style:{fontSize:12,color:C.muted,lineHeight:2}},'Upload Salesforce XLSX to populate opportunities.'));
 
                   // ── Inventory + Allocation (category-based, no zone dependency) ──
+                  var _invSrc=Object.keys(inventoryData).length>0?inventoryData:EMBEDDED_INVENTORY;
                   var invPool={};
-                  Object.keys(inventoryData).forEach(function(sku){
-                    var inv=inventoryData[sku];var oh=parseInt(inv.onHand)||0;
+                  Object.keys(_invSrc).forEach(function(sku){
+                    var inv=_invSrc[sku];var oh=parseInt(inv.onHand)||0;
                     if(oh>0)invPool[nk(sku)]={sku:sku,onHand:oh,rem:oh};
                   });
                   var inStockCount=Object.keys(invPool).length;
