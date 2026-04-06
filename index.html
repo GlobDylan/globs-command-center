@@ -960,7 +960,7 @@ window._STRAIN_DB=[
         await load("gpi-contacts",setContactsData);
       }
       async function persist(k,v){try{await window.storage.set(k,JSON.stringify(v));await window.storage.set("gpi-sync",new Date().toISOString());setLastSync(new Date().toISOString());}catch(e){console.error(e);}}
-      function toast(msg){setNotice(msg);setTimeout(function(){setNotice("");},8000);}
+      function toast(msg){setNotice(msg);setTimeout(function(){setNotice("");},15000);}
 
       const [csvLoading,setCsvLoading]=useState(false);
 
@@ -998,19 +998,21 @@ window._STRAIN_DB=[
                   }
                 }
                 // Current Inventory
-                var invSheet=wb.SheetNames.find(function(n){return n.toLowerCase().includes('current inventory')||n.toLowerCase().includes('inventory');});
+                var _sheetList=wb.SheetNames.join(', ');
+                var invSheet=wb.SheetNames.find(function(n){return n.toLowerCase().includes('inventory');});
+                try{
                 if(invSheet){
                   var ws2=wb.Sheets[invSheet];
                   var invRows=XLSX.utils.sheet_to_json(ws2,{header:1,defval:''});
                   var invData={};
-                  var debugFirst='';
+                  var debugFirst='';var debugCount=0;
                   for(var ri=3;ri<invRows.length;ri++){
                     var row=invRows[ri];
                     var sku=String(row[0]||'').trim();
-                    if(!debugFirst&&sku)debugFirst=sku.substring(0,30)+'(len='+sku.length+')';
+                    if(!debugFirst&&sku)debugFirst=sku.substring(0,30);
                     if(!sku)continue;
-                    // Accept any row that has "Globs" anywhere in the name (case insensitive)
                     if(sku.toLowerCase().indexOf('globs')<0)continue;
+                    debugCount++;
                     var pkgRaw=row[2];var pkgStr='';
                     if(pkgRaw instanceof Date){pkgStr=(pkgRaw.getMonth()+1)+'/'+pkgRaw.getDate()+'/'+pkgRaw.getFullYear();}
                     else if(pkgRaw){pkgStr=String(pkgRaw).split('T')[0];}
@@ -1025,18 +1027,17 @@ window._STRAIN_DB=[
                       farNorth:parseInt(row[11])||parseInt(row[12])||0
                     };
                   }
+                  loaded.push(debugCount+' inv SKUs ('+invRows.length+'r, 1st:'+debugFirst+')');
                   if(Object.keys(invData).length>0){
                     setInventoryData(invData);
                     var oh={};Object.keys(invData).forEach(function(k){oh[k]=invData[k].onHand;});
                     setMfgInventory(oh);
                     persist('gpi-inventory',invData);
-                    loaded.push(Object.keys(invData).length+' inventory SKUs');
-                  } else {
-                    loaded.push('inv: 0 SKUs ('+invRows.length+' rows, first="'+debugFirst+'")');
                   }
                 } else {
-                  loaded.push('inv sheet not found in: '+wb.SheetNames.join(', '));
+                  loaded.push('NO INV SHEET in:'+_sheetList);
                 }
+                }catch(invErr){loaded.push('INV ERR:'+invErr.message);}
                 // Contacts
                 var ctSheet=wb.SheetNames.find(function(n){return n.toLowerCase().includes('contacts');});
                 if(ctSheet){
