@@ -1833,7 +1833,6 @@ window._STRAIN_DB=[
                   var now=Date.now();
                   var nk=function(k){return(k||'').toLowerCase().replace(/[^a-z0-9]/g,'');};
                   var DZC2={RB:"#2196f3",DNU:"#ffeb3b",ZASP:"#f44336"},DZN2={RB:"RB UpNorth",DNU:"DNU-YZ-HUB",ZASP:"ZASP"};
-                  var zoneInvKey={RB:'bayArea',ZASP:'socal',DNU:'farNorth'};
                   var zoneLabel={RB:'Bay Area',ZASP:'SoCal',DNU:'NorCal'};
 
                   // ── Build OPP list with scores + targets ──
@@ -1868,147 +1867,41 @@ window._STRAIN_DB=[
 
                   if(!displayAccounts.length)return React.createElement('div',{style:{padding:'60px 24px',textAlign:'center'}},React.createElement('div',{style:{fontSize:14,fontWeight:700,marginBottom:8,color:C.text}},'No account data loaded'),React.createElement('div',{style:{fontSize:12,color:C.muted,lineHeight:2}},'Upload Salesforce XLSX to populate opportunities.'));
 
-                  // ── Inventory + Allocation ──
+                  // ── Inventory + Allocation (category-based, no zone dependency) ──
                   var invPool={};
                   Object.keys(inventoryData).forEach(function(sku){
                     var inv=inventoryData[sku];var oh=parseInt(inv.onHand)||0;
-                    if(oh>0){
-                      var ba=parseInt(inv.bayArea)||0,sc=parseInt(inv.socal)||0,fn=parseInt(inv.farNorth)||0;
-                      // If no zone breakdown, distribute evenly based on onHand
-                      if(ba+sc+fn===0){ba=Math.round(oh*0.5);sc=Math.round(oh*0.25);fn=oh-ba-sc;}
-                      invPool[nk(sku)]={sku:sku,onHand:oh,bayArea:ba,socal:sc,farNorth:fn};
-                    }
+                    if(oh>0)invPool[nk(sku)]={sku:sku,onHand:oh,rem:oh};
                   });
                   var inStockCount=Object.keys(invPool).length;
                   var totalInvStart=0;
-                  Object.keys(invPool).forEach(function(k){var p=invPool[k];totalInvStart+=p.bayArea+p.socal+p.farNorth;});
-                  var pool={};
-                  Object.keys(invPool).forEach(function(k){var p=invPool[k];pool[k]={bayArea:p.bayArea,socal:p.socal,farNorth:p.farNorth};});
-                  function zRem(k,zk){return(pool[k]&&pool[k][zk])||0;}
-                  function take(k,zk,qty){if(pool[k])pool[k][zk]=Math.max(0,(pool[k][zk]||0)-qty);}
+                  Object.keys(invPool).forEach(function(k){totalInvStart+=invPool[k].onHand;});
                   function skuCat(sku){var s=sku.toLowerCase();return s.includes('cart')||s.includes('vape')?'cart':s.includes('badder')?'badder':s.includes('sauce')?'sauce':s.includes('diamond')?'diamonds':s.includes('batter')?'battery':'other';}
                   function catWs(cat){return cat==='cart'?12:cat==='diamonds'?10:cat==='battery'?13:8;}
-                  function buysCat(o,cat){
-                    // Check if account has bought this category OR a related one
-                    return o.skus.some(function(s){
-                      var cl=(s.category||'').toLowerCase();
-                      if(cat==='cart'&&(cl.includes('cart')||cl.includes('vape')))return true;
-                      if(cat==='badder'&&cl.includes('badder'))return true;
-                      if(cat==='sauce'&&cl.includes('sauce'))return true;
-                      if(cat==='diamonds'&&cl.includes('diamond'))return true;
-                      if(cat==='battery'&&cl.includes('batter'))return true;
-                      // Cross-sell: if they buy any concentrate, suggest all concentrates
-                      if((cat==='badder'||cat==='sauce'||cat==='diamonds')&&(cl.includes('badder')||cl.includes('sauce')||cl.includes('diamond')||cl.includes('shatter')))return true;
-                      return false;
-                    });
-                  }
-
+                  function buysCat(o,cat){return o.skus.some(function(s){var cl=(s.category||'').toLowerCase();if(cat==='cart'&&(cl.includes('cart')||cl.includes('vape')))return true;if(cat==='badder'&&cl.includes('badder'))return true;if(cat==='sauce'&&cl.includes('sauce'))return true;if(cat==='diamonds'&&cl.includes('diamond'))return true;if(cat==='battery'&&cl.includes('batter'))return true;if((cat==='badder'||cat==='sauce'||cat==='diamonds')&&(cl.includes('badder')||cl.includes('sauce')||cl.includes('diamond')||cl.includes('shatter')))return true;return false;});}
                   var alloc={};var allocCount=0;
-
-                  // For each account: fill SKUs until budget is hit
                   OPP.forEach(function(o){
-                    var zk=zoneInvKey[o.zone]||'bayArea';
-                    var budget=o.budget;
-                    var spent=0;
-                    var lines=[];
-
-                    // Build candidate list: exact matches first, then category matches
-                    var exactKeys={};
-                    var candidates=[];
-                    o.skus.forEach(function(s){
-                      var k=nk(s.sku);if(!invPool[k])return;
-                      if(zRem(k,zk)<=0)return;
-                      var ws=s.wholesale>0?s.wholesale:cogsFor(s.category).wholesale;
-                      if(ws<=0)return;
-                      exactKeys[k]=true;
-                      candidates.push({k:k,sku:invPool[k].sku,strain:s.strain,cat:s.category,ws:ws,exact:true,histVal:(s.totalQty||0)*ws});
-                    });
-                    // Sort by historical value desc — most-ordered first
-                    candidates.sort(function(a,b){return b.histVal-a.histVal;});
-                    // Add category matches for SKUs not already in exact list
+                    var budget=o.budget;var spent=0;var lineArr=[];
                     Object.keys(invPool).forEach(function(k){
-                      if(exactKeys[k])return;
-                      if(zRem(k,zk)<=0)return;
-                      var cat=skuCat(invPool[k].sku);
+                      if(spent>=budget)return;
+                      var p=invPool[k];if(p.rem<=0)return;
+                      var cat=skuCat(p.sku);if(cat==='other')return;
                       if(!buysCat(o,cat))return;
                       var ws=catWs(cat);
-                      var strain=invPool[k].sku.replace(/^Globs\s*-\s*/i,'').split(' - ')[0].trim();
-                      var catLabel=cat==='cart'?'Vape Cart - Live Resin':cat.charAt(0).toUpperCase()+cat.slice(1);
-                      candidates.push({k:k,sku:invPool[k].sku,strain:strain,cat:catLabel,ws:ws,exact:false,histVal:0});
-                    });
-
-                    // Fill until budget reached
-                    candidates.forEach(function(c){
-                      if(spent>=budget)return;
-                      var avail=zRem(c.k,zk);if(avail<=0)return;
-                      var remaining=budget-spent;
-                      // How many units fit in remaining budget?
-                      var maxUnits=Math.floor(remaining/c.ws);
-                      // Cap at 20 and available
-                      var qty=Math.min(20,avail,maxUnits);
-                      // Round down to nearest 5
+                      var maxU=Math.floor((budget-spent)/ws);
+                      var qty=Math.min(20,p.rem,maxU);
                       qty=Math.floor(qty/5)*5;
-                      if(qty<5){
-                        // Try exact remainder if close to budget
-                        if(avail>=1&&remaining<=c.ws*5){qty=Math.min(avail,Math.ceil(remaining/c.ws));if(qty<1)return;}
-                        else return;
-                      }
-                      take(c.k,zk,qty);spent+=qty*c.ws;
-                      lines.push({strain:c.strain,sku:c.sku,cat:c.cat,qty:qty,ws:c.ws,lineRev:qty*c.ws,onHand:invPool[c.k].onHand,zoneStart:invPool[c.k][zk],zn:zoneLabel[o.zone]||o.zone,low:qty<10});
+                      if(qty<5&&p.rem>=2&&(budget-spent)>=ws*2)qty=Math.min(p.rem,Math.ceil((budget-spent)/ws));
+                      if(qty<1)return;
+                      p.rem-=qty;spent+=qty*ws;
+                      var strain=p.sku.replace(/^Globs\s*-\s*/i,'').split(' - ')[0].trim();
+                      var catLabel=cat==='cart'?'Vape Cart - Live Resin':cat.charAt(0).toUpperCase()+cat.slice(1);
+                      lineArr.push({strain:strain,sku:p.sku,cat:catLabel,qty:qty,ws:ws,lineRev:qty*ws,onHand:p.onHand,zoneStart:p.onHand,zn:zoneLabel[o.zone]||o.zone||'',low:qty<10});
                     });
-
-                    if(lines.length>0){alloc[o.name]=lines;allocCount++;}
+                    if(lineArr.length>0){alloc[o.name]=lineArr;allocCount++;}
                   });
-
-                  // ── Drain remaining: second pass with raised budgets ──
-                  for(var drain=0;drain<3;drain++){
-                    OPP.forEach(function(o){
-                      if(!alloc[o.name])return;
-                      var zk=zoneInvKey[o.zone]||'bayArea';
-                      var curSpent=alloc[o.name].reduce(function(s,l){return s+l.lineRev;},0);
-                      // Allow up to 1.5x original budget in drain passes
-                      var cap=o.budget*1.5;
-                      if(curSpent>=cap)return;
-                      o.skus.forEach(function(s){
-                        if(curSpent>=cap)return;
-                        var k=nk(s.sku);if(!pool[k])return;
-                        var avail=zRem(k,zk);if(avail<5)return;
-                        if(alloc[o.name].some(function(l){return nk(l.sku)===k;}))return;
-                        var ws=s.wholesale>0?s.wholesale:cogsFor(s.category).wholesale;
-                        var maxFromBudget=Math.floor((cap-curSpent)/ws);
-                        var qty=Math.min(10,avail,maxFromBudget);
-                        qty=Math.floor(qty/5)*5;if(qty<5)return;
-                        take(k,zk,qty);curSpent+=qty*ws;
-                        alloc[o.name].push({strain:s.strain,sku:invPool[k]?invPool[k].sku:s.sku,cat:s.category,qty:qty,ws:ws,lineRev:qty*ws,onHand:invPool[k]?invPool[k].onHand:0,zoneStart:invPool[k]?invPool[k][zk]:0,zn:zoneLabel[o.zone]||o.zone,low:qty<10});
-                      });
-                    });
-                  }
-
-                  // ── Final: push any remaining to accounts not yet served ──
-                  ['bayArea','socal','farNorth'].forEach(function(zk){
-                    var zoneCode=zk==='bayArea'?'RB':zk==='socal'?'ZASP':'DNU';
-                    var zoneAccts=OPP.filter(function(o){return o.zone===zoneCode&&!alloc[o.name];});
-                    Object.keys(invPool).forEach(function(k){
-                      if(zRem(k,zk)<=0)return;
-                      var cat=skuCat(invPool[k].sku);
-                      zoneAccts.forEach(function(o){
-                        var avail=zRem(k,zk);if(avail<5)return;
-                        var ws=catWs(cat);
-                        var qty=Math.min(20,avail);qty=Math.floor(qty/5)*5;if(qty<5&&avail>=1)qty=avail;
-                        if(qty<1)return;
-                        take(k,zk,qty);
-                        if(!alloc[o.name]){alloc[o.name]=[];allocCount++;}
-                        var strain=invPool[k].sku.replace(/^Globs\s*-\s*/i,'').split(' - ')[0].trim();
-                        alloc[o.name].push({strain:strain,sku:invPool[k].sku,cat:cat.charAt(0).toUpperCase()+cat.slice(1),qty:qty,ws:ws,lineRev:qty*ws,onHand:invPool[k].onHand,zoneStart:invPool[k][zk],zn:zoneLabel[zoneCode]||zoneCode,low:qty<10});
-                      });
-                    });
-                  });
-
-                  // Stats
-                  var totalAllocUnits=Object.values(alloc).reduce(function(s,arr){return s+arr.reduce(function(s2,l){return s2+l.qty;},0);},0);
-                  var totalAllocRev=Object.values(alloc).reduce(function(s,arr){return s+arr.reduce(function(s2,l){return s2+l.lineRev;},0);},0);
-                  var totalRemaining=0;
-                  Object.keys(pool).forEach(function(k){var r=pool[k];totalRemaining+=(r.bayArea||0)+(r.socal||0)+(r.farNorth||0);});
+                  var totalAllocRev=0;Object.values(alloc).forEach(function(ls){ls.forEach(function(l){totalAllocRev+=l.lineRev;});});
+                  var totalRemaining=0;Object.keys(invPool).forEach(function(k){totalRemaining+=invPool[k].rem;});
                   var pctAlloc=totalInvStart>0?Math.round((totalInvStart-totalRemaining)/totalInvStart*100):0;
 
                   // Filters
@@ -2088,7 +1981,7 @@ window._STRAIN_DB=[
                                 React.createElement('span',{style:{width:6,height:6,borderRadius:'50%',background:DZC2[o.zone],flexShrink:0}}),
                                 React.createElement('span',{style:{fontWeight:700,fontSize:12,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'40vw'}},o.name),
                                 React.createElement('span',{style:{fontSize:8,padding:'1px 6px',borderRadius:2,border:'1px solid '+(o.status==="FALLEN OFF"?C.danger:C.warn)+'55',background:(o.status==="FALLEN OFF"?C.danger:C.warn)+'18',color:o.status==="FALLEN OFF"?C.danger:C.warn,fontWeight:700}},o.status),
-                                lines.length>0?React.createElement('span',{style:{fontSize:8,color:C.good,fontWeight:600}},lines.length+' SKUs \u00b7 '+curK(orderRev)+' / '+curK(o.budget)+' target'):React.createElement('span',{style:{fontSize:8,color:C.dim}},'no zone match')
+                                lines.length>0?React.createElement('span',{style:{fontSize:8,color:C.good,fontWeight:600}},lines.length+' SKUs \u00b7 '+curK(orderRev)+' / '+curK(o.budget)+' target'):React.createElement('span',{style:{fontSize:8,color:C.dim}},'no matching inventory')
                               ),
                               React.createElement('div',{style:{fontSize:9,color:C.muted,paddingLeft:20}},(o.rep?o.rep+' \u00b7 ':'')+( DZN2[o.zone]||o.zone)+' \u00b7 '+o.orders+' orders'+' \u00b7 median '+o.median+'d \u00b7 target '+curK(o.budget))
                             ),
@@ -2138,7 +2031,7 @@ window._STRAIN_DB=[
                                 }catch(e){try{await navigator.clipboard.writeText('Subject: '+subj+'\n\n'+body);toast('\u2713 Copied to clipboard');}catch(e2){}}
                               },style:{padding:'5px 14px',borderRadius:3,fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid #2196f3',background:'#2196f322',color:'#2196f3'}},'\u2709 Draft Reorder')
                             )
-                          ):isOpen?React.createElement('div',{style:{borderTop:'1px solid '+C.border,padding:'16px',textAlign:'center',fontSize:11,color:C.dim}},inStockCount===0?'Upload Salesforce XLSX to enable suggestions':'No in-stock SKUs match this account in '+( zoneLabel[o.zone]||o.zone)):null
+                          ):isOpen?React.createElement('div',{style:{borderTop:'1px solid '+C.border,padding:'16px',textAlign:'center',fontSize:11,color:C.dim}},inStockCount===0?'Upload Salesforce XLSX with inventory to enable suggestions':'No in-stock SKUs match this account\'s purchase categories'):null
                         );
                       })
                     )
