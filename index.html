@@ -102,9 +102,9 @@
     /* ═══ MOBILE: Clean, comprehensive, no bleeding ═══ */
 
     /* Safety net: nothing wider than viewport */
-    html,body{overflow-x:hidden;}
-    .gpi-content{box-sizing:border-box;}
-    .gpi-content *{max-width:100vw;}
+    html,body{overflow-x:hidden;max-width:100vw;}
+    .gpi-content{box-sizing:border-box;overflow-x:hidden;max-width:100vw;}
+    .gpi-content *{max-width:100vw;box-sizing:border-box;}
 
     @media(max-width:768px){
       /* Header */
@@ -130,18 +130,25 @@
     }
 
     @media(max-width:640px){
-      /* Grid stacking */
+      /* Grid stacking — catch ALL two-column grids, not just .gpi-twocol */
       .gpi-zone-grid{grid-template-columns:1fr !important;}
       .gpi-form-grid{grid-template-columns:1fr 1fr !important;}
       .gpi-form-row{grid-template-columns:1fr 1fr !important;}
       .gpi-twocol{grid-template-columns:1fr !important;}
-      /* Force ALL inline grids to 2 columns max on mobile */
-      /* Tables: remove all minWidth */
-      .gpi-content table{min-width:0 !important;width:100% !important;}
+      /* Force ALL inline 2-col and 3-col grids to stack */
+      .gpi-content div[style*="1fr 1fr"]{grid-template-columns:1fr !important;}
+      .gpi-content div[style*="1fr 1fr 1fr"]{grid-template-columns:1fr 1fr !important;}
+      .gpi-content div[style*="1fr 1fr 1fr 1fr"]{grid-template-columns:1fr 1fr !important;}
+      /* Force ALL tables to fit viewport */
+      .gpi-content table{min-width:0 !important;width:100% !important;table-layout:auto !important;}
       /* Wrap long text */
       .gpi-content td,.gpi-content th{white-space:normal !important;word-break:break-word;}
-      /* Cards: no overflow clipping */
-      .gpi-content > div > div{overflow:visible !important;}
+      /* Table containers: horizontal scroll when needed */
+      .gpi-content div[style*="overflowX"]{overflow-x:auto !important;-webkit-overflow-scrolling:touch;}
+      /* Stat cards: no fixed width */
+      .gpi-content div[style*="minWidth"]{min-width:0 !important;}
+      /* Input fields: don't overflow */
+      .gpi-content input,.gpi-content select,.gpi-content textarea{max-width:100% !important;box-sizing:border-box !important;}
     }
 
     @media(max-width:480px){
@@ -150,8 +157,14 @@
       .gpi-content th,.gpi-content td{padding:4px 4px !important;font-size:8px !important;}
       .gpi-content table input{width:55px !important;}
       .gpi-content table select{width:65px !important;}
-      /* Stat card text */
-      .gpi-content div[style]{font-size:inherit;}
+      /* ALL grids go single column on small phones */
+      .gpi-content div[style*="1fr 1fr"]{grid-template-columns:1fr !important;}
+      /* Stat cards: full width, stack */
+      .gpi-content div[style*="repeat(auto-fit"]{grid-template-columns:1fr 1fr !important;}
+      .gpi-content div[style*="repeat(auto-fill"]{grid-template-columns:1fr !important;}
+      /* Period selector buttons: wrap */
+      .gpi-content div[style*="gap:8px"]{flex-wrap:wrap !important;}
+      .gpi-content div[style*="gap:6px"]{flex-wrap:wrap !important;}
     }
 
     @media(max-width:400px){
@@ -189,6 +202,11 @@
     .logistics-line { stroke-dasharray:4,3; animation:flowDash 1.2s linear infinite; }
     .hub-star { animation:hubPulse 2s ease-in-out infinite; }
     .city-dot { animation:dotPulse 2.5s ease-in-out infinite; }
+    .zone-flip-container { perspective:1000px; margin-bottom:12px; }
+    .zone-flip-inner { position:relative; transition:transform 0.4s ease-in-out; transform-style:preserve-3d; }
+    .zone-flip-inner.flipped { transform:rotateY(180deg); }
+    .zone-flip-front, .zone-flip-back { backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+    .zone-flip-back { position:absolute; top:0; left:0; width:100%; transform:rotateY(180deg); }
 
     /* Theme toggle */
     .theme-toggle { background:none; border:1px solid var(--border-hi); border-radius:20px; padding:4px 12px; cursor:pointer; font-size:10px; color:var(--muted); font-family:inherit; letter-spacing:1px; transition:all 0.2s; }
@@ -644,25 +662,25 @@ window._STRAIN_DB=[
     }
     const PKG = {
       Concentrates:[
-        {id:"c1",name:"Black Box",desc:"Two Packaging",lead:42,cost:0.16,perUnit:1,initOnHand:10000,initOnOrder:0},
-        {id:"c2",name:"Clear Jar",desc:"Tree Form",lead:7,cost:0.35,perUnit:1,initOnHand:9800,initOnOrder:0},
-        {id:"c3",name:"Matte Black Lids",desc:"Tree Form",lead:7,cost:0,perUnit:1,initOnHand:9800,initOnOrder:0},
-        {id:"c4",name:"Brand Sticker",desc:"Tamper Evident",lead:7,cost:0.04,perUnit:1,initOnHand:10625,initOnOrder:10000},
+        {id:"c1",name:"Concentrate Box",desc:"TWO (old stock → Treeform)",lead:42,cost:0.16,perUnit:1,initOnHand:15150,initOnOrder:25000},
+        {id:"c2",name:"5ml Glass Jar",desc:"PO#30996 · 490/ctn",lead:21,cost:0.35,perUnit:1,initOnHand:11760,initOnOrder:0},
+        {id:"c3",name:"5ml Black Cap",desc:"PO#248476 · 3276/ctn",lead:21,cost:0,perUnit:1,initOnHand:9828,initOnOrder:0},
+        {id:"c4",name:"TE Lid Label Black",desc:"Treeform PO#3975 · 2125/roll",lead:7,cost:0.04,perUnit:1,initOnHand:17000,initOnOrder:0},
         {id:"c5",name:"Box Side Stickers",desc:"OL285WX 2/unit",lead:7,cost:0.02,perUnit:2,initOnHand:0,initOnOrder:0},
         {id:"c6",name:"Jar Bottom Sticker",desc:"OL5275CL",lead:7,cost:0.01,perUnit:1,initOnHand:0,initOnOrder:0},
-        {id:"c7",name:"Case Box (20u)",desc:"Uline S-4850",lead:7,cost:0.05,perUnit:0.05,initOnHand:150,initOnOrder:700},
-        {id:"c8",name:"Master Case (200u)",desc:"Uline S-4545",lead:7,cost:0.01,perUnit:0.005,initOnHand:15,initOnOrder:75},
-        {id:"c9",name:"Master/Case Sticker",desc:"OL5030WX",lead:7,cost:0.03,perUnit:0.05,initOnHand:0,initOnOrder:0}
+        {id:"c7",name:"Case Box (20ct)",desc:"Treeform branded",lead:14,cost:0.05,perUnit:0.05,initOnHand:20,initOnOrder:0},
+        {id:"c8",name:"Master Case (200u)",desc:"Uline S-4545",lead:7,cost:0.01,perUnit:0.005,initOnHand:15,initOnOrder:0},
+        {id:"c9",name:"Case/Master Sticker",desc:"OL5030WX",lead:7,cost:0.03,perUnit:0.05,initOnHand:0,initOnOrder:0}
       ],
       Carts:[
-        {id:"k1",name:"Ceramic Hardware",desc:"Octave",lead:21,cost:1.8,perUnit:1,initOnHand:5949,initOnOrder:0},
-        {id:"k2",name:"CP Tubes",desc:"Black tube",lead:14,cost:0.08,perUnit:1,initOnHand:10000,initOnOrder:0},
-        {id:"k3",name:"Boxes",desc:"Two Packaging",lead:35,cost:0.21,perUnit:1,initOnHand:10050,initOnOrder:0},
-        {id:"k4",name:"Tamper Heat-Seal",desc:"Tree Form",lead:14,cost:0.01,perUnit:1,initOnHand:0,initOnOrder:0},
-        {id:"k5",name:"Case Box (20u)",desc:"Uline S-4515",lead:7,cost:0.04,perUnit:0.05,initOnHand:0,initOnOrder:0},
-        {id:"k6",name:"Master Case (200u)",desc:"Uline S-20471",lead:7,cost:0.01,perUnit:0.005,initOnHand:72,initOnOrder:0},
-        {id:"k7",name:"Strain Label",desc:"OL527WX",lead:7,cost:0.01,perUnit:1,initOnHand:0,initOnOrder:0},
-        {id:"k8",name:"Box Side Stickers",desc:"OL285WX 2/unit",lead:7,cost:0.02,perUnit:2,initOnHand:0,initOnOrder:0}
+        {id:"k1",name:"1ML Quad Hardware",desc:"Fade Co · White (No CC Logo)",lead:21,cost:1.8,perUnit:1,initOnHand:2000,initOnOrder:10000},
+        {id:"k2",name:"Poptop Tube 95mm",desc:"Black · PO#106195",lead:14,cost:0.08,perUnit:1,initOnHand:1000,initOnOrder:0},
+        {id:"k3",name:"Cart Box",desc:"TWO (old stock → Treeform)",lead:35,cost:0.21,perUnit:1,initOnHand:3200,initOnOrder:0},
+        {id:"k4",name:"Tamper Heat-Seal",desc:"Treeform",lead:14,cost:0.01,perUnit:1,initOnHand:0,initOnOrder:0},
+        {id:"k5",name:"Case Box (20ct)",desc:"Treeform branded",lead:7,cost:0.04,perUnit:0.05,initOnHand:0,initOnOrder:0},
+        {id:"k6",name:"Shipping Box 8x6x5",desc:"Uline S-4515",lead:7,cost:0.01,perUnit:0.005,initOnHand:250,initOnOrder:0},
+        {id:"k7",name:"Front Circle Label",desc:"OL5275 matte",lead:7,cost:0.01,perUnit:1,initOnHand:0,initOnOrder:0},
+        {id:"k8",name:"Back Label",desc:"OL285WX 2/unit",lead:7,cost:0.02,perUnit:2,initOnHand:0,initOnOrder:0}
       ],
       General:[
         {id:"g1",name:"Packing Paper",desc:"Franklin 24x24",lead:4,cost:0.03,perUnit:0.1,initOnHand:850,initOnOrder:0},
@@ -675,7 +693,7 @@ window._STRAIN_DB=[
       Sauce:[{strain:"Strawberry Milk",type:"Hybrid",vel:93.2},{strain:"Hella Oranges",type:"Hybrid",vel:83.5},{strain:"Purple Thai",type:"Sativa",vel:81.6},{strain:"GDP",type:"Indica",vel:81.6},{strain:"Kush Mint Cookies",type:"Indica",vel:80.5},{strain:"Baja Blazt",type:"Hybrid",vel:74.6},{strain:"OZ Kush",type:"Indica",vel:70.1},{strain:"Frozen Grapes",type:"Indica",vel:67.2},{strain:"Headband",type:"Hybrid",vel:52.4},{strain:"Fluffy Pancakes",type:"Hybrid",vel:49},{strain:"Platinum Papaya",type:"Sativa",vel:46.6},{strain:"Modified Honey",type:"Hybrid",vel:46.1},{strain:"Hella Grapes",type:"Indica",vel:43.8},{strain:"Sweet-N-Sour Diesel",type:"Sativa",vel:39.7},{strain:"Sour Durban",type:"Hybrid",vel:36}],
       Diamonds:[{strain:"Ice Cream Paint Job",type:"Indica",vel:69.9},{strain:"Lemon Thai",type:"Sativa",vel:63.9},{strain:"Hella Grapes",type:"Indica",vel:56.6},{strain:"Hella Lemons",type:"Sativa",vel:50.5},{strain:"Gelonade",type:"Hybrid",vel:42.5},{strain:"Blue Diesel",type:"Sativa",vel:17.5},{strain:"Headband",type:"Hybrid",vel:17.5}]
     };
-    const STRAIN_DB=[{n:"Authentic Og",t:"Hybrid",d:"True to its name, Authentic OG brings that classic gas-and-earth terp profile with a heavy-hitting calm. A lineage of Heirloom OG x Godfather OG delivers the real deal OG body melt.",g:"Relaxed, Melow, Creative"},{n:"Baja Blazt",t:"Hybrid",d:"A vibrant hybrid born from Sour Kush x Pink Z, Baja Blazt explodes with citrus and tropical funk. Expect smooth creative energy balanced by a mellow, euphoric finish.",g:"Relaxed, Melow, Creative"},{n:"Banana Belts",t:"Hybrid",d:"Banana Papaya x Rainbow Belts brings sweet tropical fruit and creamy undertones. The high rolls in smooth and happy, ideal for easing tension without losing focus.",g:"Relaxed, Melow, Creative"},{n:"Banana Runtz",t:"Hybrid",d:"This Banana OG x Runtz cross hits like a candy-coated dessert. Its creamy banana gas flavor pairs with an uplifting, talkative buzz that fades into calm.",g:"Relaxed, Melow, Creative"},{n:"Banana Zkittlez",t:"Hybrid",d:"Bursting with tropical sweetness and smooth smoke, Banana Zkittlez (Z3 Banana Pheno x Zkittlez) offers a mellow, euphoric hybrid experience perfect for creative sessions.",g:"Relaxed, Melow, Creative"},{n:"Blue Cookies",t:"Indica",d:"GSC x Blueberry brings berry-forward sweetness with hints of baked dough. Blue Cookies delivers a relaxing, euphoric ride that melts away stress.",g:"Relaxed, Sleepy, Hungry"},{n:"Blue Diesel",t:"Sativa",d:"NYC Diesel x Blueberry gives this sativa its sweet berry gas nose and quick mental lift. Expect bright energy, clear focus, and a smooth fruity exhale.",g:"Focused, Energized, Uplifting"},{n:"Blue Yerbiez",t:"Sativa",d:"Yerbiez x Blueberry Muffin unites creamy sweetness with earthy pine. A sativa-leaning hybrid built for daytime clarity and chill creativity.",g:"Focused, Energized, Uplifting"},{n:"Blue Z",t:"Indica",d:"Blue Diamond x Z delivers heavy blueberry funk layered with candy gas. The result is an indica that hits hard yet stays flavorful to the last pull.",g:"Relaxed, Sleepy, Hungry"},{n:"Blue Zkittlez",t:"Indica",d:"A fruit-forward blend of Blue Diamond x Zkittlez, this indica radiates tropical candy sweetness with a calming, full-body unwind.",g:"Relaxed, Sleepy, Hungry"},{n:"Blueberry Muffin",t:"Indica",d:"Classic and comforting, this Humboldt-born indica smells like warm blueberry pastries. Smooth relaxation without sedation, perfect for winding down.",g:"Relaxed, Sleepy, Hungry"},{n:"Blueberry Pancakes",t:"Indica",d:"A breakfast of champions — DJ Short Blueberry x Unknown genetics create a syrupy, berry-rich profile that finishes creamy and cozy.",g:"Relaxed, Sleepy, Hungry"},{n:"Bluey V",t:"Sativa",d:"Blue Z x LV OG brings together gassy citrus zest with deep blueberry undertones. A balanced sativa that wakes up the senses without jitter.",g:"Focused, Energized, Uplifting"},{n:"Bubble Gum",t:"Indica",d:"True to its name, this old-school indica pops with sugary sweetness and nostalgic flavor. Smooth, mellow, and easygoing from start to finish.",g:"Relaxed, Sleepy, Hungry"},{n:"Caked Up",t:"Indica",d:"Ice Cream Cake x Wedding Cake layers dessert terps on dessert terps. Expect sweet dough, heavy relaxation, and a dreamy full-body melt.",g:"Relaxed, Sleepy, Hungry"},{n:"Caramel Apple Gelato",t:"Hybrid",d:"Sweet apple candy meets creamy fuel in this Apple Cider x Jet Fuel Gelato cross. A balanced hybrid that hits smooth and leaves a candy-coated calm.",g:"Relaxed, Melow, Creative"},{n:"Cereal Milk",t:"Hybrid",d:"Y Life x Snowman delivers that milky-sweet, gassy aroma with a balanced head and body high. Perfect for creative flow or post-work chill.",g:"Relaxed, Melow, Creative"},{n:"Chem Cookies",t:"Hybrid",d:"Chemdawg x GSC blends diesel funk and doughy sweetness. Heavy, euphoric effects come with focus and a deep body glow.",g:"Relaxed, Melow, Creative"},{n:"Chem K",t:"Sativa",d:"From Chemdawg x SFV OG, this sativa leans gassy and sharp. Expect mental clarity, a creative jolt, and smooth earthy undertones.",g:"Focused, Energized, Uplifting"},{n:"Cherry Pie",t:"Indica",d:"GDP x Durban Poison gives this indica its signature sweet-tart aroma and cozy, nostalgic feel. Perfect for winding down after a long day.",g:"Relaxed, Sleepy, Hungry"},{n:"Cherry Slush",t:"Hybrid",d:"Cherry Pie x Purple Punch x AK-47 mixes fruit punch sweetness with mild spice. A hybrid that lifts the mood while keeping your body at ease.",g:"Relaxed, Melow, Creative"},{n:"Cherry Zkittlez",t:"Indica",d:"Zkittlez x Cherry Pie creates a decadent candy-cherry flavor. The relaxing indica effects land soft but deep, perfect for easing stress.",g:"Relaxed, Sleepy, Hungry"},{n:"Chocolate Cherries",t:"Hybrid",d:"Chocolate Thai x Cherry Pie blends cocoa notes and ripe fruit for a rich, dessert-style high. The hybrid buzz is calm, creative, and flavorful.",g:"Relaxed, Melow, Creative"},{n:"Close Encounter",t:"Sativa",d:"Cinderella 99 x Alien OG strikes the sweet spot between uplift and chill. Expect fruity citrus notes with an out-of-this-world cerebral pop.",g:"Focused, Energized, Uplifting"},{n:"Cookie Dough",t:"Hybrid",d:"GSC x Dos-i-Dos brings sugary dough aroma and a calming hybrid vibe. Great for evening focus or relaxing creativity.",g:"Relaxed, Melow, Creative"},{n:"Crypto Berries",t:"Hybrid",d:"Crypto Berries – A sweet and gassy hybrid of Crypto Cake × Blueberry Muffin, blending dessert-fruit terps with balanced relaxation and a smooth, happy headspace.",g:"Relaxed, Melow, Creative"},{n:"Crypto Cake",t:"Indica",d:"Crypto Cake – Chemdawg × Ice Cream Cake delivers a deep gas-and-cream aroma with heavy indica effects that calm the body and quiet the mind.",g:"Relaxed, Sleepy, Hungry"},{n:"Crypto Cookies",t:"Indica",d:"Crypto Cookies – A decadent cross of Crypto Cake × GSC, combining sugary cookie sweetness with a strong, stoney finish perfect for evenings in.",g:"Relaxed, Sleepy, Hungry"},{n:"Dolce N Banana",t:"Indica",d:"Dolce N Banana – Golden State Banana lineage brings creamy fruit and calm, creating a smooth indica ideal for easy nights and sweet dreams.",g:"Relaxed, Sleepy, Hungry"},{n:"Evidence Og",t:"Indica",d:"Evidence OG – Classified × Reserve OG hits heavy with pure diesel power. Expect classic couch-lock OG depth with a clean, earthy exhale.",g:"Relaxed, Sleepy, Hungry"},{n:"Florida Oranges",t:"Hybrid",d:"Florida Oranges – Orange Daiquiri × TK BX1 explodes with sweet citrus and tropical tang, offering an uplifting high and pure sunshine energy.",g:"Relaxed, Melow, Creative"},{n:"Fluffy Pancakes",t:"Hybrid",d:"Fluffy Pancakes – Marshmallow OG × Pancakes delivers dessert terps and soft euphoria in every pull. Sweet, doughy, and deeply relaxing.",g:"Relaxed, Melow, Creative"},{n:"Forbidden Fruit",t:"Hybrid",d:"Forbidden Fruit – Cherry Pie × Tangie creates a lush, fruity aroma and a serene, head-to-toe calm that melts away stress like candy.",g:"Relaxed, Melow, Creative"},{n:"Fortune Cookies",t:"Hybrid",d:"Fortune Cookies – GSC × OG Kush is classic Cali gas meets cookie dough sweetness, striking a perfect hybrid balance of focus and relaxation.",g:"Relaxed, Melow, Creative"},{n:"Frozen Grapes",t:"Indica",d:"Frozen Grapes – Grapes of Wrath × Banana Split brings frosty purple flavor and heavy indica calm with a creamy, fruity finish.",g:"Relaxed, Sleepy, Hungry"},{n:"Fruit Stripe",t:"Hybrid",d:"Fruit Stripe – Lemonchello × London Pound Cake produces sweet citrus and vanilla-cream notes with a balanced hybrid buzz and mellow clarity.",g:"Relaxed, Melow, Creative"},{n:"G.D.P.",t:"Indica",d:"G.D.P. – Mendo Purps × Skunk × Afghan Kush defines the classic grape indica: heavy, sedating, and deeply flavorful.",g:"Relaxed, Sleepy, Hungry"},{n:"Gary Payton",t:"Hybrid",d:"Gary Payton – Y × Snowman delivers gas, cookies, and clarity in a powerful hybrid that’s equal parts heady and grounded.",g:"Relaxed, Melow, Creative"},{n:"Gastro Pop",t:"Indica",d:"Gastro Pop – Apples & Bananas × Grape Gas gives a sweet-and-tart inhale and a smooth exhale of grape funk. Relaxing yet alert, ideal for social nights.",g:"Relaxed, Sleepy, Hungry"},{n:"Gdp",t:"Indica",d:"GDP – Big Bud × Purple Urkle, the original purple powerhouse. Deep grape flavor, body melt effects, and timeless California heritage.",g:"Relaxed, Sleepy, Hungry"},{n:"Gelato #41",t:"Indica",d:"Gelato #41 – Sunset Sherbet × Thin Mint GSC serves creamy dessert terps with a smooth, euphoric high that never overwhelms.",g:"Relaxed, Sleepy, Hungry"},{n:"Gelatti Prime",t:"Indica",d:"Gelatti Prime – Gelatti × Napali Pink fuses gas and candy sweetness with an indica-leaning calm and full-body satisfaction.",g:"Relaxed, Sleepy, Hungry"},{n:"Gelonade",t:"Hybrid",d:"Gelonade – Gelato #41 × Lemon Tree balances zesty lemon brightness with creamy dessert notes, creating a euphoric, flavor-packed hybrid built for daytime flow.",g:"Relaxed, Melow, Creative"},{n:"Glob Force One",t:"Hybrid",d:"Glob Force One – Jet Fuel OG × Presidential Kush takes flight with gassy citrus aroma and a bold hybrid punch that fuels creativity.",g:"Relaxed, Melow, Creative"},{n:"Golden Papaya",t:"Hybrid",d:"Golden Papaya – Kosher Kush × Papaya blends tropical sweetness and gas with deep indica relaxation and a soft fruity finish.",g:"Relaxed, Melow, Creative"},{n:"Grandma’s Cookies",t:"Hybrid",d:"Grandma’s Cookies – GSC × Sugar Berries brings baked-good sweetness and mellow hybrid balance perfect for laid-back evenings.",g:"Relaxed, Melow, Creative"},{n:"Grape Cocktail",t:"Indica",d:"Grape Cocktail – Grape Pie × Mimosa mixes sweet berry and citrus fizz into a chill indica high with smooth, flavorful smoke.",g:"Relaxed, Sleepy, Hungry"},{n:"Grape Jelly Doughnut",t:"Indica",d:"Grape Jelly Doughnut – Birthday Cake OG × Grape Sherbet tastes like purple frosting and candy gas. A knockout indica with a sugar-sweet finish.",g:"Relaxed, Sleepy, Hungry"},{n:"Gush Mintz",t:"Indica",d:"Gush Mintz – Gushers × Kush Mintz offers creamy fruit aroma with a cool mint exhale and a heavy, calming effect that sticks.",g:"Relaxed, Sleepy, Hungry"},{n:"Headband",t:"Hybrid",d:"Headband – OG Kush × Sour Diesel’s signature cerebral pressure and lemon-diesel flavor create a creative, balanced hybrid high.",g:"Relaxed, Melow, Creative"},{n:"Hella Grapes",t:"Indica",d:"Hella Grapes – A rich purple indica with deep grape candy aroma and smooth smoke. The cross of Grape Soda × Purple Urkle brings a calm, body-heavy high.",g:"Relaxed, Sleepy, Hungry"},{n:"Hella Lemons",t:"Sativa",d:"Hella Lemons – Bright and zesty, Lemonade BX1 packs a sharp citrus punch with an energetic sativa lift that’s crisp and focused.",g:"Focused, Energized, Uplifting"},{n:"Honey Butter",t:"Hybrid",d:"Honey Butter – From Honey Banana BX1, this hybrid drips creamy sweetness and smooth balance, easing tension without couchlock.",g:"Relaxed, Melow, Creative"},{n:"Hot Zauce",t:"Indica",d:"Hot Zauce – Chili Verde × Pancakes × Zkittlez delivers fiery flavor and heavy calm, pairing peppery spice with a rich dessert undertone.",g:"Relaxed, Sleepy, Hungry"},{n:"Ice Cream Paint Job",t:"Indica",d:"Ice Cream Paint Job – A decadent indica of Ice Cream Cake × Rainbow Sherbet, dripping creamy sweetness and leaving a relaxing body melt.",g:"Relaxed, Sleepy, Hungry"},{n:"Jet Fuel Og",t:"Hybrid",d:"Jet Fuel OG – Aspen OG × High Country Diesel ignites with sharp gas and citrus, fueling creative focus before an easy fade.",g:"Relaxed, Melow, Creative"},{n:"Kush Mint Cookies",t:"Indica",d:"Kush Mint Cookies – A decadent indica blend with creamy gas and mint from Kush Mints × Animal Cookies, offering deep calm and flavor.",g:"Relaxed, Sleepy, Hungry"},{n:"Kush Mints",t:"Indica",d:"Kush Mints – Animal Mints × Bubba Kush hits smooth and gassy with a cooling mint exhale and long-lasting, body-heavy relief.",g:"Relaxed, Sleepy, Hungry"},{n:"La Kush Cake",t:"Indica",d:"La Kush Cake – Wedding Cake × Kush Mints combines sweet vanilla dough and OG gas for a knockout indica experience.",g:"Relaxed, Sleepy, Hungry"},{n:"Lambs Bread",t:"Sativa",d:"Lambs Bread – A Jamaican landrace sativa known for its bright, energetic clarity and earthy-sweet flavor profile.",g:"Focused, Energized, Uplifting"},{n:"Lazy Sunday",t:"Indica",d:"Lazy Sunday – Sunday Driver × GMO brings doughy fruit aroma and mellow I/S relaxation — a hybrid built for slow afternoons.",g:"Relaxed, Sleepy, Hungry"},{n:"Lemon Cherry Gelato",t:"Hybrid",d:"Lemon Cherry Gelato – Sunset Sherbet × GSC serves candy-sweet lemon flavor and balanced hybrid calm, equally uplifting and relaxing.",g:"Relaxed, Melow, Creative"},{n:"Lemon Haze",t:"Sativa",d:"Lemon Haze – Lemon Skunk × Silver Haze brings electric citrus aroma and energizing sativa focus that hits clean and fast.",g:"Focused, Energized, Uplifting"},{n:"Lemon Og",t:"Indica",d:"Lemon OG – A classic indica-leaning hybrid with lemon peel aroma and earthy gas undertones that unwind body and mind.",g:"Relaxed, Sleepy, Hungry"},{n:"Lemon Sour Diesel",t:"Sativa",d:"Lemon Sour Diesel – Lemon Skunk × OG #18 delivers crisp citrus with sour funk. Expect alert focus and creative energy.",g:"Focused, Energized, Uplifting"},{n:"Lemon Sours",t:"Sativa",d:"Lemon Sours – Lemon Kush × Sour Diesel combines tangy lemon zest and pungent gas with a smooth, clear sativa lift.",g:"Focused, Energized, Uplifting"},{n:"Lemon Thai",t:"Sativa",d:"Lemon Thai – A tropical sativa built from Thai and Hawaiian landraces, offering bright citrus flavor and uplifting cerebral buzz.",g:"Focused, Energized, Uplifting"},{n:"Lemon Trainwreck",t:"Sativa",d:"Lemon Trainwreck – Lemon Diesel × Trainwreck creates a zesty citrus aroma with a euphoric, fast-moving sativa kick.",g:"Focused, Energized, Uplifting"},{n:"Lemon Tree",t:"Sativa",d:"Lemon Tree – Lemon Skunk × Sour Diesel defines lemon-forward hybrids — tart, clean, and energizing with a smooth exhale.",g:"Focused, Energized, Uplifting"},{n:"Lemon Zkittlez",t:"Hybrid",d:"Lemon Zkittlez – A lively hybrid of Lemon Skunk × Zkittlez, bursting with citrus zest and candy sweetness. Smooth energy meets mellow creativity for all-day balance.",g:"Relaxed, Melow, Creative"},{n:"Lemonade",t:"Sativa",d:"Lemonade – Lemon OG × Gorilla Haze creates a sweet-tart sativa that tastes like fresh-squeezed lemon with a clean, uplifting finish.",g:"Focused, Energized, Uplifting"},{n:"Lil Treat",t:"Sativa",d:"Lil Treat – Ice Cream Cake × Crypto Cake brings dessert terps and creamy gas together in a sweet, chill hybrid that rewards every puff.",g:"Focused, Energized, Uplifting"},{n:"Lofi Og",t:"Hybrid",d:"Lofi OG – Fire OG × True OG keeps it classic: gassy, earthy, and loud. A balanced hybrid that grounds the body and clears the head.",g:"Relaxed, Melow, Creative"},{n:"Lost Art Og",t:"Indica",d:"Lost Art OG – Davinci’s OG × Lemon OG delivers citrus fuel aroma and a calm, steady indica high perfect for unwinding without fog.",g:"Relaxed, Sleepy, Hungry"},{n:"Lychee",t:"Sativa",d:"Lychee – Pink Rozay × White Runtz pairs candy-sweet fruit notes with a smooth floral finish. A gentle, mood-lifting hybrid with luxury flavor.",g:"Focused, Energized, Uplifting"},{n:"Machiavelli",t:"Sativa",d:"Machiavelli – Mac 1 × Lemon Thai blends creamy lemon zest and floral spice into a bright sativa that inspires creativity and clear focus.",g:"Focused, Energized, Uplifting"},{n:"Melonade",t:"Indica",d:"Melonade – Watermelon Zkittlez × Lemon Tree pours out juicy melon aroma and smooth citrus finish, offering a euphoric but grounded indica ride.",g:"Relaxed, Sleepy, Hungry"},{n:"Modified Berries",t:"Indica",d:"Modified Berries – GMO × Blueberry fuses diesel funk with sweet fruit, crafting a rich indica that relaxes body and mind.",g:"Relaxed, Sleepy, Hungry"},{n:"Modified Honey",t:"Hybrid",d:"Modified Honey – GMO × Honey Banana gives sticky sweetness and gas, a hybrid built for calm focus and flavorful clouds.",g:"Relaxed, Melow, Creative"},{n:"Modified Oranges",t:"Hybrid",d:"Modified Oranges – GMO × Orange Cookies delivers tangy citrus and savory depth with an easy hybrid glide that soothes without sedation.",g:"Relaxed, Melow, Creative"},{n:"Modified Runtz",t:"Indica",d:"Modified Runtz – GMO × Runtz combines candy and gas for a decadent indica that hits heavy yet smooth.",g:"Relaxed, Sleepy, Hungry"},{n:"Ms. Muffin",t:"Indica",d:"Ms. Muffin – Stargirl × Blueberry Muffin smells like warm pastries and blueberries. A cozy indica with a gentle euphoric edge.",g:"Relaxed, Sleepy, Hungry"},{n:"Nerdz",t:"Hybrid",d:"Nerdz – Strawberry Cough × Grape Ape tastes like fruit candy with a balanced hybrid high that keeps spirits light and talkative.",g:"Relaxed, Melow, Creative"},{n:"Nigerian Lemon Fuel",t:"Sativa",d:"Nigerian Lemon Fuel – Nigerian Haze × Jet Fuel bursts with citrus diesel and mental energy, keeping you lifted and productive.",g:"Focused, Energized, Uplifting"},{n:"Obama Runtz",t:"Indica",d:"Obama Runtz – Afghani × OG Kush × Runtz brings earthy gas and creamy candy flavor with a presidentially smooth indica calm.",g:"Relaxed, Sleepy, Hungry"},{n:"Orange Creamsicle",t:"Sativa",d:"Orange Creamsicle – Orange Crush × Juicy Fruit tastes like dessert in vapor form. Sweet citrus cream with an uplifting, joyful buzz.",g:"Focused, Energized, Uplifting"},{n:"Orange Sunshine",t:"Hybrid",d:"Orange Sunshine – LSD × Cali-O radiates bright orange aroma and euphoric clarity — pure vintage sunshine vibes.",g:"Relaxed, Melow, Creative"},{n:"Oreoz",t:"Hybrid",d:"Oreoz – Secret Weapon × Cookies N’ Cream is a rich hybrid with chocolate-cookie sweetness and a dense, relaxing body high.",g:"Relaxed, Melow, Creative"},{n:"Original Gsc",t:"Indica",d:"Original GSC – OG Kush × F1 Durban: the classic cookie lineage that shaped modern flavor. Balanced, euphoric, and unmistakably gassy-sweet.",g:"Relaxed, Sleepy, Hungry"},{n:"Oz Kush",t:"Indica",d:"OZ Kush – OG Kush × Z brings creamy Kush gas and tropical candy notes into perfect hybrid harmony.",g:"Relaxed, Sleepy, Hungry"},{n:"Pancakes",t:"Indica",d:"Pancakes – London Pound Cake × Kush Mints delivers buttery vanilla aroma and indulgent relaxation that hits like breakfast for dinner.",g:"Relaxed, Sleepy, Hungry"},{n:"Papaya",t:"Hybrid",d:"Papaya – Citral #13 × Ice #2 brings sweet tropical fruit and subtle spice with a mellow hybrid calm ideal for creative flow.",g:"Relaxed, Melow, Creative"},{n:"Papaya Dosi",t:"Indica",d:"Papaya Dosi – Papaya × Dosidos combines creamy fruit terps and heavy indica relaxation with a smooth tropical finish.",g:"Relaxed, Sleepy, Hungry"},{n:"Paris Og",t:"Indica",d:"Paris OG – Headband × Lemon OG delivers sharp citrus gas and a soothing indica body high perfect for evening unwind.",g:"Relaxed, Sleepy, Hungry"},{n:"Peanut Butter Cup",t:"Hybrid",d:"Peanut Butter Cup – Do-Si-Dos × Mendo Breath gives nutty, earthy sweetness and a dense indica melt that soothes deep.",g:"Relaxed, Melow, Creative"},{n:"Platinum Papaya",t:"Sativa",d:"Platinum Papaya – Platinum Kush × Golden Papaya pairs creamy gas with tropical candy for a bright, balanced hybrid.",g:"Focused, Energized, Uplifting"},{n:"Pure Imagination",t:"Sativa",d:"Pure Imagination – Mona Lisa × Runtz blends berry candy and vanilla cream into a dreamy, heady hybrid that sparks creativity.",g:"Focused, Energized, Uplifting"},{n:"Purple Thai",t:"Sativa",d:"Purple Thai – Oaxacan Landrace × Chocolate Thai delivers earthy cocoa aroma and clear sativa focus — old-school energy reborn.",g:"Focused, Energized, Uplifting"},{n:"Purple Zaza",t:"Indica",d:"Purple Zaza – Runtz × Zaza brings purple fruit flavor and heavy indica calm with a candy-smooth smoke.",g:"Relaxed, Sleepy, Hungry"},{n:"Rainbow Belts",t:"Indica",d:"Rainbow Belts – Moonbow × Z overflows with candy sweetness and vibrant terps, wrapping you in colorful, euphoric calm.",g:"Relaxed, Sleepy, Hungry"},{n:"Rainbow Chip",t:"Indica",d:"Rainbow Chip – Sunset Sherbet × Mint Chocolate Chip unites dessert terps with a mellow indica body buzz and creamy exhale.",g:"Relaxed, Sleepy, Hungry"},{n:"Rainbow Road",t:"Hybrid",d:"Rainbow Road – Rainbow Belts BX1 takes that sweet, fruity base and turns it into a smooth-gliding hybrid built for balance.",g:"Relaxed, Melow, Creative"},{n:"Rainbow Sherbet",t:"Indica",d:"Rainbow Sherbet – Zkittlez × Sherbet tastes like tropical candy and citrus. A soothing indica that melts tension without sedation.",g:"Relaxed, Sleepy, Hungry"},{n:"Rosé Runtz",t:"Indica",d:"Rosé Runtz – Apples and Bananas × White Runtz gives floral sweetness and creamy gas with an indulgent indica finish.",g:"Relaxed, Sleepy, Hungry"},{n:"Rs-11",t:"Hybrid",d:"Rs-11 – Pink Guava × OZK produces a sweet tropical scent and balanced hybrid calm with smooth potency.",g:"Relaxed, Melow, Creative"},{n:"Runtz De Jour",t:"Indica",d:"Runtz de Jour – Runtz B × 1 is pure candy gas — a creamy, euphoric indica classic refined for flavor and comfort.",g:"Relaxed, Sleepy, Hungry"},{n:"Sfv Og",t:"Indica",d:"SFV OG – OG Kush × Afghani brings sharp gas and pine with a grounded indica calm that hits the body before easing the mind.",g:"Relaxed, Sleepy, Hungry"},{n:"Silk Road Sour",t:"Hybrid",d:"Silk Road Sour – Nigerian Lemon Fuel × Turbo Diesel delivers citrus-diesel aroma and smooth hybrid balance for relaxed alertness.",g:"Relaxed, Melow, Creative"},{n:"Sour Apple Zkittlez",t:"Hybrid",d:"Sour Apple Zkittlez – Sour Diesel × Apple Zkittlez mixes tart fruit and fuel, offering a happy, social hybrid high.",g:"Relaxed, Melow, Creative"},{n:"Sour Durban",t:"Hybrid",d:"Sour Durban – Sour Diesel × Durban Poison carries sweet earth and citrus spice with focused sativa clarity and long-lasting uplift.",g:"Relaxed, Melow, Creative"},{n:"Sour Grapes",t:"Indica",d:"Sour Grapes – Sour Diesel × GDP creates sweet grape gas and cozy indica relaxation with a rich, syrupy finish.",g:"Relaxed, Sleepy, Hungry"},{n:"Sour Sangria",t:"Sativa",d:"Sour Sangria – Yuzu Mac × Pandora delivers sparkling citrus and berry aroma with a bright, creative sativa lift.",g:"Focused, Energized, Uplifting"},{n:"Space Queen",t:"Sativa",d:"Space Queen – Space Queen × Alien OG combines sweet tropical fruit and pine with a balanced, euphoric headspace.",g:"Focused, Energized, Uplifting"},{n:"Space Xxx",t:"Hybrid",d:"Space XXX – Jet Fuel OG × Satellite OG produces gassy citrus flavor and an even-tempered hybrid high great for evening chill.",g:"Relaxed, Melow, Creative"},{n:"Strawberry Cough",t:"Sativa",d:"Strawberry Cough – Haze × Strawberry Fields bursts with ripe strawberry aroma and uplifting, social sativa energy.",g:"Focused, Energized, Uplifting"},{n:"Strawberry Lemonade",t:"Sativa",d:"Strawberry Lemonade – Strawberry Cough × Lemonade is bright, tart, and cheerful — a sweet daytime sativa for creative flow.",g:"Focused, Energized, Uplifting"},{n:"Strawberry Milk",t:"Hybrid",d:"Strawberry Milk – Strawberry Cough × Cereal Milk blends berries and cream with balanced hybrid calm.",g:"Relaxed, Melow, Creative"},{n:"Strawberry Runtz",t:"Indica",d:"Strawberry Runtz – Strawberry Banana × Runtz hits with fruity candy terps and smooth indica relaxation.",g:"Relaxed, Sleepy, Hungry"},{n:"Summer Daze",t:"Indica",d:"Summer Daze – Strawberry Cough × Wedding Cake offers sweet dessert flavor and a mellow, dreamy hybrid vibe.",g:"Relaxed, Sleepy, Hungry"},{n:"Super Glue",t:"Hybrid",d:"Super Glue – Afghani × Northern Lights glues stress to the couch with pungent diesel aroma and heavy indica calm.",g:"Relaxed, Melow, Creative"},{n:"Super Silver Haze",t:"Sativa",d:"Super Silver Haze – Skunk × Northern Lights × Haze defines classic citrus-spice sativa energy with long-lasting clarity and focus.",g:"Focused, Energized, Uplifting"},{n:"Sweet-N-Sour Diesel",t:"Sativa",d:"Sweet-N-Sour Diesel – Mexican Haze × Hawaiian Sativa fires off tropical citrus and classic diesel aroma, delivering a bright, fast-moving sativa rush.",g:"Focused, Energized, Uplifting"},{n:"The Great Stank",t:"Hybrid",d:"The Great Stank – GMO × London Pound Cake combines savory garlic gas with sweet cake frosting for a powerful hybrid punch that lingers smooth.",g:"Relaxed, Melow, Creative"},{n:"The Juice",t:"Sativa",d:"The Juice – White Widow × Tangie pours out vibrant citrus and pine, offering an energetic lift with crisp flavor and clear focus.",g:"Focused, Energized, Uplifting"},{n:"Tomahawk",t:"Indica",d:"Tomahawk – An earthy, pine-driven indica that hits strong and steady, wrapping you in full-body calm and heavy relaxation.",g:"Relaxed, Sleepy, Hungry"},{n:"Triangle Mints",t:"Hybrid",d:"Triangle Mints – Animal Mints × GSC blends cookie dough sweetness and minty gas for a perfectly balanced hybrid high.",g:"Relaxed, Melow, Creative"},{n:"Tropaya",t:"Indica",d:"Tropaya – Tropicanna Cookies × Papaya serves tropical citrus and sweet fruit terps with an indica-leaning calm that’s smooth and soothing.",g:"Relaxed, Sleepy, Hungry"},{n:"Tropicana Cookies",t:"Hybrid",d:"Tropicana Cookies – GSC × Tangie tastes like orange candy and doughy gas, producing a happy, creative hybrid buzz.",g:"Relaxed, Melow, Creative"},{n:"Tsunami Warning",t:"Sativa",d:"Tsunami Warning – Turbo Diesel × Lemon Thai erupts with lemon-fuel aroma and pure sativa energy—lively, clear, and unstoppable.",g:"Focused, Energized, Uplifting"},{n:"Turbo Diesel",t:"Sativa",d:"Turbo Diesel – Sour Diesel × Sour Kush offers classic diesel flavor and electric uplift, perfect for productive days.",g:"Focused, Energized, Uplifting"},{n:"Viva La Runtz",t:"Indica",d:"Viva La Runtz – Runtz × Narco OG mixes candy gas and creamy fruit, coating the palate with an indica wave of smooth relief.",g:"Relaxed, Sleepy, Hungry"},{n:"Waffle Cone",t:"Sativa",d:"Waffle Cone – Gelato × Pancakes tastes like vanilla dessert and sweet gas, a cozy hybrid that keeps you smiling.",g:"Focused, Energized, Uplifting"},{n:"Wagyu",t:"Hybrid",d:"Wagyu – Meatbreath × Gelato 41 blends rich umami funk and dessert terps for a luxurious hybrid calm that hits deep.",g:"Relaxed, Melow, Creative"},{n:"Wagyu Truffle Butter",t:"Hybrid",d:"Wagyu Truffle Butter – Wagyu × Truffle Butter drips creamy, earthy flavor and delivers heavy hybrid relaxation with decadent smoothness.",g:"Relaxed, Melow, Creative"},{n:"White Durban",t:"Sativa",d:"White Durban – White Fire OG × Durban Poison is a citrus-spiced sativa that boosts energy and focus with a clean finish.",g:"Focused, Energized, Uplifting"},{n:"White Strawberry",t:"Sativa",d:"White Strawberry – The White × Strawberry Cough offers frosty sweetness and gentle, creative lift in a refreshing sativa.",g:"Focused, Energized, Uplifting"},{n:"White Widow",t:"Sativa",d:"",g:"Focused, Energized, Uplifting"},{n:"Yerbiez",t:"Sativa",d:"Yerbiez – Blueberry Muffin × White Durban mixes berry pastry aroma with crisp sativa clarity and relaxed balance.",g:"Focused, Energized, Uplifting"},{n:"Yuzu Lemonade",t:"Hybrid",d:"Yuzu Lemonade – Lemonade × Lemon Tree bursts with sweet citrus freshness and a balanced, happy hybrid buzz.",g:"Relaxed, Melow, Creative"},{n:"Zkittlez",t:"Indica",d:"Zkittlez – Grape Ape × Grapefruit is pure candy fruit aroma and smooth indica calm, a California classic for flavor chasers.",g:"Relaxed, Sleepy, Hungry"},{n:"Zoap",t:"Hybrid",d:"Zoap – Rainbow Sherbet × Pink Guava delivers tropical candy aroma with creamy smoothness and balanced hybrid effects.",g:"Relaxed, Melow, Creative"},{n:"Zundown",t:"Indica",d:"Zundown – Z3 Banana Pheno × Sunset Sherbet pairs fruity banana sherbet flavor with a mellow indica fade built for evenings.",g:"Relaxed, Sleepy, Hungry"},{n:"Zushi",t:"Hybrid",d:"Zushi – Z × Kush Mints fuses candy terps and cool mint for a flavorful hybrid that’s smooth, euphoric, and deeply relaxing.",g:"Relaxed, Melow, Creative"}];
+    const STRAIN_DB=[{n:"Authentic Og",t:"Hybrid",d:"True to its name, Authentic OG brings that classic gas-and-earth terp profile with a heavy-hitting calm. A lineage of Heirloom OG x Godfather OG delivers the real deal OG body melt.",g:"Relaxed, Melow, Creative"},{n:"Baja Blazt",t:"Hybrid",d:"A vibrant hybrid born from Sour Kush x Pink Z, Baja Blazt explodes with citrus and tropical funk. Expect smooth creative energy balanced by a mellow, euphoric finish.",g:"Relaxed, Melow, Creative"},{n:"Banana Belts",t:"Hybrid",d:"Banana Papaya x Rainbow Belts brings sweet tropical fruit and creamy undertones. The high rolls in smooth and happy, ideal for easing tension without losing focus.",g:"Relaxed, Melow, Creative"},{n:"Banana Runtz",t:"Hybrid",d:"This Banana OG x Runtz cross hits like a candy-coated dessert. Its creamy banana gas flavor pairs with an uplifting, talkative buzz that fades into calm.",g:"Relaxed, Melow, Creative"},{n:"Banana Zkittlez",t:"Hybrid",d:"Bursting with tropical sweetness and smooth smoke, Banana Zkittlez (Z3 Banana Pheno x Zkittlez) offers a mellow, euphoric hybrid experience perfect for creative sessions.",g:"Relaxed, Melow, Creative"},{n:"Blue Cookies",t:"Indica",d:"GSC x Blueberry brings berry-forward sweetness with hints of baked dough. Blue Cookies delivers a relaxing, euphoric ride that melts away stress.",g:"Relaxed, Sleepy, Hungry"},{n:"Blue Diesel",t:"Sativa",d:"NYC Diesel x Blueberry gives this sativa its sweet berry gas nose and quick mental lift. Expect bright energy, clear focus, and a smooth fruity exhale.",g:"Focused, Energized, Uplifting"},{n:"Blue Yerbiez",t:"Sativa",d:"Yerbiez x Blueberry Muffin unites creamy sweetness with earthy pine. A sativa-leaning hybrid built for daytime clarity and chill creativity.",g:"Focused, Energized, Uplifting"},{n:"Blue Z",t:"Indica",d:"Blue Diamond x Z delivers heavy blueberry funk layered with candy gas. The result is an indica that hits hard yet stays flavorful to the last pull.",g:"Relaxed, Sleepy, Hungry"},{n:"Blue Zkittlez",t:"Indica",d:"A fruit-forward blend of Blue Diamond x Zkittlez, this indica radiates tropical candy sweetness with a calming, full-body unwind.",g:"Relaxed, Sleepy, Hungry"},{n:"Blueberry Muffin",t:"Indica",d:"Classic and comforting, this Humboldt-born indica smells like warm blueberry pastries. Smooth relaxation without sedation, perfect for winding down.",g:"Relaxed, Sleepy, Hungry"},{n:"Blueberry Pancakes",t:"Indica",d:"A breakfast of champions — DJ Short Blueberry x Unknown genetics create a syrupy, berry-rich profile that finishes creamy and cozy.",g:"Relaxed, Sleepy, Hungry"},{n:"Bluey V",t:"Sativa",d:"Blue Z x LV OG brings together gassy citrus zest with deep blueberry undertones. A balanced sativa that wakes up the senses without jitter.",g:"Focused, Energized, Uplifting"},{n:"Bubble Gum",t:"Indica",d:"True to its name, this old-school indica pops with sugary sweetness and nostalgic flavor. Smooth, mellow, and easygoing from start to finish.",g:"Relaxed, Sleepy, Hungry"},{n:"Caked Up",t:"Indica",d:"Ice Cream Cake x Wedding Cake layers dessert terps on dessert terps. Expect sweet dough, heavy relaxation, and a dreamy full-body melt.",g:"Relaxed, Sleepy, Hungry"},{n:"Caramel Apple Gelato",t:"Hybrid",d:"Sweet apple candy meets creamy fuel in this Apple Cider x Jet Fuel Gelato cross. A balanced hybrid that hits smooth and leaves a candy-coated calm.",g:"Relaxed, Melow, Creative"},{n:"Cereal Milk",t:"Hybrid",d:"Y Life x Snowman delivers that milky-sweet, gassy aroma with a balanced head and body high. Perfect for creative flow or post-work chill.",g:"Relaxed, Melow, Creative"},{n:"Chem Cookies",t:"Hybrid",d:"Chemdawg x GSC blends diesel funk and doughy sweetness. Heavy, euphoric effects come with focus and a deep body glow.",g:"Relaxed, Melow, Creative"},{n:"Chem K",t:"Sativa",d:"From Chemdawg x SFV OG, this sativa leans gassy and sharp. Expect mental clarity, a creative jolt, and smooth earthy undertones.",g:"Focused, Energized, Uplifting"},{n:"Cherry Pie",t:"Indica",d:"GDP x Durban Poison gives this indica its signature sweet-tart aroma and cozy, nostalgic feel. Perfect for winding down after a long day.",g:"Relaxed, Sleepy, Hungry"},{n:"Cherry Slush",t:"Hybrid",d:"Cherry Pie x Purple Punch x AK-47 mixes fruit punch sweetness with mild spice. A hybrid that lifts the mood while keeping your body at ease.",g:"Relaxed, Melow, Creative"},{n:"Cherry Zkittlez",t:"Indica",d:"Zkittlez x Cherry Pie creates a decadent candy-cherry flavor. The relaxing indica effects land soft but deep, perfect for easing stress.",g:"Relaxed, Sleepy, Hungry"},{n:"Chocolate Cherries",t:"Hybrid",d:"Chocolate Thai x Cherry Pie blends cocoa notes and ripe fruit for a rich, dessert-style high. The hybrid buzz is calm, creative, and flavorful.",g:"Relaxed, Melow, Creative"},{n:"Close Encounter",t:"Sativa",d:"Cinderella 99 x Alien OG strikes the sweet spot between uplift and chill. Expect fruity citrus notes with an out-of-this-world cerebral pop.",g:"Focused, Energized, Uplifting"},{n:"Cookie Dough",t:"Hybrid",d:"GSC x Dos-i-Dos brings sugary dough aroma and a calming hybrid vibe. Great for evening focus or relaxing creativity.",g:"Relaxed, Melow, Creative"},{n:"Crypto Berries",t:"Hybrid",d:"Crypto Berries – A sweet and gassy hybrid of Crypto Cake × Blueberry Muffin, blending dessert-fruit terps with balanced relaxation and a smooth, happy headspace.",g:"Relaxed, Melow, Creative"},{n:"Crypto Cake",t:"Indica",d:"Crypto Cake – Chemdawg × Ice Cream Cake delivers a deep gas-and-cream aroma with heavy indica effects that calm the body and quiet the mind.",g:"Relaxed, Sleepy, Hungry"},{n:"Crypto Cookies",t:"Indica",d:"Crypto Cookies – A decadent cross of Crypto Cake × GSC, combining sugary cookie sweetness with a strong, stoney finish perfect for evenings in.",g:"Relaxed, Sleepy, Hungry"},{n:"Dolce N Banana",t:"Indica",d:"Dolce N Banana – Golden State Banana lineage brings creamy fruit and calm, creating a smooth indica ideal for easy nights and sweet dreams.",g:"Relaxed, Sleepy, Hungry"},{n:"Evidence Og",t:"Indica",d:"Evidence OG – Classified × Reserve OG hits heavy with pure diesel power. Expect classic couch-lock OG depth with a clean, earthy exhale.",g:"Relaxed, Sleepy, Hungry"},{n:"Florida Oranges",t:"Hybrid",d:"Florida Oranges – Orange Daiquiri × TK BX1 explodes with sweet citrus and tropical tang, offering an uplifting high and pure sunshine energy.",g:"Relaxed, Melow, Creative"},{n:"Fluffy Pancakes",t:"Hybrid",d:"Fluffy Pancakes – Marshmallow OG × Pancakes delivers dessert terps and soft euphoria in every pull. Sweet, doughy, and deeply relaxing.",g:"Relaxed, Melow, Creative"},{n:"Forbidden Fruit",t:"Hybrid",d:"Forbidden Fruit – Cherry Pie × Tangie creates a lush, fruity aroma and a serene, head-to-toe calm that melts away stress like candy.",g:"Relaxed, Melow, Creative"},{n:"Fortune Cookies",t:"Hybrid",d:"Fortune Cookies – GSC × OG Kush is classic Cali gas meets cookie dough sweetness, striking a perfect hybrid balance of focus and relaxation.",g:"Relaxed, Melow, Creative"},{n:"Frozen Grapes",t:"Indica",d:"Frozen Grapes – Grapes of Wrath × Banana Split brings frosty purple flavor and heavy indica calm with a creamy, fruity finish.",g:"Relaxed, Sleepy, Hungry"},{n:"Fruit Stripe",t:"Hybrid",d:"Fruit Stripe – Lemonchello × London Pound Cake produces sweet citrus and vanilla-cream notes with a balanced hybrid buzz and mellow clarity.",g:"Relaxed, Melow, Creative"},{n:"G.D.P.",t:"Indica",d:"G.D.P. – Mendo Purps × Skunk × Afghan Kush defines the classic grape indica: heavy, sedating, and deeply flavorful.",g:"Relaxed, Sleepy, Hungry"},{n:"Gary Payton",t:"Hybrid",d:"Gary Payton – Y × Snowman delivers gas, cookies, and clarity in a powerful hybrid that’s equal parts heady and grounded.",g:"Relaxed, Melow, Creative"},{n:"Gastro Pop",t:"Indica",d:"Gastro Pop – Apples & Bananas × Grape Gas gives a sweet-and-tart inhale and a smooth exhale of grape funk. Relaxing yet alert, ideal for social nights.",g:"Relaxed, Sleepy, Hungry"},{n:"Gdp",t:"Indica",d:"GDP – Big Bud × Purple Urkle, the original purple powerhouse. Deep grape flavor, body melt effects, and timeless California heritage.",g:"Relaxed, Sleepy, Hungry"},{n:"Gelato #41",t:"Indica",d:"Gelato #41 – Sunset Sherbet × Thin Mint GSC serves creamy dessert terps with a smooth, euphoric high that never overwhelms.",g:"Relaxed, Sleepy, Hungry"},{n:"Gelatti Prime",t:"Indica",d:"Gelatti Prime – Gelatti × Napali Pink fuses gas and candy sweetness with an indica-leaning calm and full-body satisfaction.",g:"Relaxed, Sleepy, Hungry"},{n:"Gelonade",t:"Hybrid",d:"Gelonade – Gelato #41 × Lemon Tree balances zesty lemon brightness with creamy dessert notes, creating a euphoric, flavor-packed hybrid built for daytime flow.",g:"Relaxed, Melow, Creative"},{n:"Glob Force One",t:"Hybrid",d:"Glob Force One – Jet Fuel OG × Presidential Kush takes flight with gassy citrus aroma and a bold hybrid punch that fuels creativity.",g:"Relaxed, Melow, Creative"},{n:"Golden Papaya",t:"Hybrid",d:"Golden Papaya – Kosher Kush × Papaya blends tropical sweetness and gas with deep indica relaxation and a soft fruity finish.",g:"Relaxed, Melow, Creative"},{n:"Grandma’s Cookies",t:"Hybrid",d:"Grandma’s Cookies – GSC × Sugar Berries brings baked-good sweetness and mellow hybrid balance perfect for laid-back evenings.",g:"Relaxed, Melow, Creative"},{n:"Grape Cocktail",t:"Indica",d:"Grape Cocktail – Grape Pie × Mimosa mixes sweet berry and citrus fizz into a chill indica high with smooth, flavorful smoke.",g:"Relaxed, Sleepy, Hungry"},{n:"Grape Jelly Doughnut",t:"Indica",d:"Grape Jelly Doughnut – Birthday Cake OG × Grape Sherbet tastes like purple frosting and candy gas. A knockout indica with a sugar-sweet finish.",g:"Relaxed, Sleepy, Hungry"},{n:"Gush Mintz",t:"Indica",d:"Gush Mintz – Gushers × Kush Mintz offers creamy fruit aroma with a cool mint exhale and a heavy, calming effect that sticks.",g:"Relaxed, Sleepy, Hungry"},{n:"Headband",t:"Hybrid",d:"Headband – OG Kush × Sour Diesel’s signature cerebral pressure and lemon-diesel flavor create a creative, balanced hybrid high.",g:"Relaxed, Melow, Creative"},{n:"Hella Grapes",t:"Indica",d:"Hella Grapes – A rich purple indica with deep grape candy aroma and smooth smoke. The cross of Grape Soda × Purple Urkle brings a calm, body-heavy high.",g:"Relaxed, Sleepy, Hungry"},{n:"Hella Lemons",t:"Sativa",d:"Hella Lemons – Bright and zesty, Lemonade BX1 packs a sharp citrus punch with an energetic sativa lift that’s crisp and focused.",g:"Focused, Energized, Uplifting"},{n:"Honey Butter",t:"Hybrid",d:"Honey Butter – From Honey Banana BX1, this hybrid drips creamy sweetness and smooth balance, easing tension without couchlock.",g:"Relaxed, Melow, Creative"},{n:"Hot Zauce",t:"Indica",d:"Hot Zauce – Chili Verde × Pancakes × Zkittlez delivers fiery flavor and heavy calm, pairing peppery spice with a rich dessert undertone.",g:"Relaxed, Sleepy, Hungry"},{n:"Ice Cream Paint Job",t:"Indica",d:"Ice Cream Paint Job – A decadent indica of Ice Cream Cake × Rainbow Sherbet, dripping creamy sweetness and leaving a relaxing body melt.",g:"Relaxed, Sleepy, Hungry"},{n:"Jet Fuel Og",t:"Hybrid",d:"Jet Fuel OG – Aspen OG × High Country Diesel ignites with sharp gas and citrus, fueling creative focus before an easy fade.",g:"Relaxed, Melow, Creative"},{n:"Kush Mint Cookies",t:"Indica",d:"Kush Mint Cookies – A decadent indica blend with creamy gas and mint from Kush Mints × Animal Cookies, offering deep calm and flavor.",g:"Relaxed, Sleepy, Hungry"},{n:"Kush Mints",t:"Indica",d:"Kush Mints – Animal Mints × Bubba Kush hits smooth and gassy with a cooling mint exhale and long-lasting, body-heavy relief.",g:"Relaxed, Sleepy, Hungry"},{n:"La Kush Cake",t:"Indica",d:"La Kush Cake – Wedding Cake × Kush Mints combines sweet vanilla dough and OG gas for a knockout indica experience.",g:"Relaxed, Sleepy, Hungry"},{n:"Lambs Bread",t:"Sativa",d:"Lambs Bread – A Jamaican landrace sativa known for its bright, energetic clarity and earthy-sweet flavor profile.",g:"Focused, Energized, Uplifting"},{n:"Lazy Sunday",t:"Indica",d:"Lazy Sunday – Sunday Driver × GMO brings doughy fruit aroma and mellow I/S relaxation — a hybrid built for slow afternoons.",g:"Relaxed, Sleepy, Hungry"},{n:"Lemon Cherry Gelato",t:"Hybrid",d:"Lemon Cherry Gelato – Sunset Sherbet × GSC serves candy-sweet lemon flavor and balanced hybrid calm, equally uplifting and relaxing.",g:"Relaxed, Melow, Creative"},{n:"Lemon Haze",t:"Sativa",d:"Lemon Haze – Lemon Skunk × Silver Haze brings electric citrus aroma and energizing sativa focus that hits clean and fast.",g:"Focused, Energized, Uplifting"},{n:"Lemon Og",t:"Indica",d:"Lemon OG – A classic indica-leaning hybrid with lemon peel aroma and earthy gas undertones that unwind body and mind.",g:"Relaxed, Sleepy, Hungry"},{n:"Lemon Sour Diesel",t:"Sativa",d:"Lemon Sour Diesel – Lemon Skunk × OG #18 delivers crisp citrus with sour funk. Expect alert focus and creative energy.",g:"Focused, Energized, Uplifting"},{n:"Lemon Sours",t:"Sativa",d:"Lemon Sours – Lemon Kush × Sour Diesel combines tangy lemon zest and pungent gas with a smooth, clear sativa lift.",g:"Focused, Energized, Uplifting"},{n:"Lemon Thai",t:"Sativa",d:"Lemon Thai – A tropical sativa built from Thai and Hawaiian landraces, offering bright citrus flavor and uplifting cerebral buzz.",g:"Focused, Energized, Uplifting"},{n:"Lemon Trainwreck",t:"Sativa",d:"Lemon Trainwreck – Lemon Diesel × Trainwreck creates a zesty citrus aroma with a euphoric, fast-moving sativa kick.",g:"Focused, Energized, Uplifting"},{n:"Lemon Tree",t:"Sativa",d:"Lemon Tree – Lemon Skunk × Sour Diesel defines lemon-forward hybrids — tart, clean, and energizing with a smooth exhale.",g:"Focused, Energized, Uplifting"},{n:"Lemon Zkittlez",t:"Hybrid",d:"Lemon Zkittlez – A lively hybrid of Lemon Skunk × Zkittlez, bursting with citrus zest and candy sweetness. Smooth energy meets mellow creativity for all-day balance.",g:"Relaxed, Melow, Creative"},{n:"Lemonade",t:"Sativa",d:"Lemonade – Lemon OG × Gorilla Haze creates a sweet-tart sativa that tastes like fresh-squeezed lemon with a clean, uplifting finish.",g:"Focused, Energized, Uplifting"},{n:"Lil Treat",t:"Sativa",d:"Lil Treat – Ice Cream Cake × Crypto Cake brings dessert terps and creamy gas together in a sweet, chill hybrid that rewards every puff.",g:"Focused, Energized, Uplifting"},{n:"Lofi Og",t:"Hybrid",d:"Lofi OG – Fire OG × True OG keeps it classic: gassy, earthy, and loud. A balanced hybrid that grounds the body and clears the head.",g:"Relaxed, Melow, Creative"},{n:"Lost Art Og",t:"Indica",d:"Lost Art OG – Davinci’s OG × Lemon OG delivers citrus fuel aroma and a calm, steady indica high perfect for unwinding without fog.",g:"Relaxed, Sleepy, Hungry"},{n:"Lychee",t:"Sativa",d:"Lychee – Pink Rozay × White Runtz pairs candy-sweet fruit notes with a smooth floral finish. A gentle, mood-lifting hybrid with luxury flavor.",g:"Focused, Energized, Uplifting"},{n:"Machiavelli",t:"Sativa",d:"Machiavelli – Mac 1 × Lemon Thai blends creamy lemon zest and floral spice into a bright sativa that inspires creativity and clear focus.",g:"Focused, Energized, Uplifting"},{n:"Melonade",t:"Indica",d:"Melonade – Watermelon Zkittlez × Lemon Tree pours out juicy melon aroma and smooth citrus finish, offering a euphoric but grounded indica ride.",g:"Relaxed, Sleepy, Hungry"},{n:"Modified Berries",t:"Indica",d:"Modified Berries – GMO × Blueberry fuses diesel funk with sweet fruit, crafting a rich indica that relaxes body and mind.",g:"Relaxed, Sleepy, Hungry"},{n:"Modified Honey",t:"Hybrid",d:"Modified Honey – GMO × Honey Banana gives sticky sweetness and gas, a hybrid built for calm focus and flavorful clouds.",g:"Relaxed, Melow, Creative"},{n:"Modified Oranges",t:"Hybrid",d:"Modified Oranges – GMO × Orange Cookies delivers tangy citrus and savory depth with an easy hybrid glide that soothes without sedation.",g:"Relaxed, Melow, Creative"},{n:"Modified Runtz",t:"Indica",d:"Modified Runtz – GMO × Runtz combines candy and gas for a decadent indica that hits heavy yet smooth.",g:"Relaxed, Sleepy, Hungry"},{n:"Ms. Muffin",t:"Indica",d:"Ms. Muffin – Stargirl × Blueberry Muffin smells like warm pastries and blueberries. A cozy indica with a gentle euphoric edge.",g:"Relaxed, Sleepy, Hungry"},{n:"Nerdz",t:"Hybrid",d:"Nerdz – Strawberry Cough × Grape Ape tastes like fruit candy with a balanced hybrid high that keeps spirits light and talkative.",g:"Relaxed, Melow, Creative"},{n:"Nigerian Lemon Fuel",t:"Sativa",d:"Nigerian Lemon Fuel – Nigerian Haze × Jet Fuel bursts with citrus diesel and mental energy, keeping you lifted and productive.",g:"Focused, Energized, Uplifting"},{n:"Obama Runtz",t:"Indica",d:"Obama Runtz – Afghani × OG Kush × Runtz brings earthy gas and creamy candy flavor with a presidentially smooth indica calm.",g:"Relaxed, Sleepy, Hungry"},{n:"Orange Creamsicle",t:"Sativa",d:"Orange Creamsicle – Orange Crush × Juicy Fruit tastes like dessert in vapor form. Sweet citrus cream with an uplifting, joyful buzz.",g:"Focused, Energized, Uplifting"},{n:"Orange Sunshine",t:"Hybrid",d:"Orange Sunshine – LSD × Cali-O radiates bright orange aroma and euphoric clarity — pure vintage sunshine vibes.",g:"Relaxed, Melow, Creative"},{n:"Oreoz",t:"Hybrid",d:"Oreoz – Secret Weapon × Cookies N’ Cream is a rich hybrid with chocolate-cookie sweetness and a dense, relaxing body high.",g:"Relaxed, Melow, Creative"},{n:"Original Gsc",t:"Indica",d:"Original GSC – OG Kush × F1 Durban: the classic cookie lineage that shaped modern flavor. Balanced, euphoric, and unmistakably gassy-sweet.",g:"Relaxed, Sleepy, Hungry"},{n:"Oz Kush",t:"Indica",d:"OZ Kush – OG Kush × Z brings creamy Kush gas and tropical candy notes into perfect hybrid harmony.",g:"Relaxed, Sleepy, Hungry"},{n:"Pancakes",t:"Indica",d:"Pancakes – London Pound Cake × Kush Mints delivers buttery vanilla aroma and indulgent relaxation that hits like breakfast for dinner.",g:"Relaxed, Sleepy, Hungry"},{n:"Papaya",t:"Hybrid",d:"Papaya – Citral #13 × Ice #2 brings sweet tropical fruit and subtle spice with a mellow hybrid calm ideal for creative flow.",g:"Relaxed, Melow, Creative"},{n:"Papaya Dosi",t:"Indica",d:"Papaya Dosi – Papaya × Dosidos combines creamy fruit terps and heavy indica relaxation with a smooth tropical finish.",g:"Relaxed, Sleepy, Hungry"},{n:"Paris Og",t:"Indica",d:"Paris OG – Headband × Lemon OG delivers sharp citrus gas and a soothing indica body high perfect for evening unwind.",g:"Relaxed, Sleepy, Hungry"},{n:"Peanut Butter Cup",t:"Hybrid",d:"Peanut Butter Cup – Do-Si-Dos × Mendo Breath gives nutty, earthy sweetness and a dense indica melt that soothes deep.",g:"Relaxed, Melow, Creative"},{n:"Platinum Papaya",t:"Sativa",d:"Platinum Papaya – Platinum Kush × Golden Papaya pairs creamy gas with tropical candy for a bright, balanced hybrid.",g:"Focused, Energized, Uplifting"},{n:"Pure Imagination",t:"Sativa",d:"Pure Imagination – Mona Lisa × Runtz blends berry candy and vanilla cream into a dreamy, heady hybrid that sparks creativity.",g:"Focused, Energized, Uplifting"},{n:"Purple Thai",t:"Sativa",d:"Purple Thai – Oaxacan Landrace × Chocolate Thai delivers earthy cocoa aroma and clear sativa focus — old-school energy reborn.",g:"Focused, Energized, Uplifting"},{n:"Purple Zaza",t:"Indica",d:"Purple Zaza – Runtz × Zaza brings purple fruit flavor and heavy indica calm with a candy-smooth smoke.",g:"Relaxed, Sleepy, Hungry"},{n:"Rainbow Belts",t:"Indica",d:"Rainbow Belts – Moonbow × Z overflows with candy sweetness and vibrant terps, wrapping you in colorful, euphoric calm.",g:"Relaxed, Sleepy, Hungry"},{n:"Rainbow Chip",t:"Indica",d:"Rainbow Chip – Sunset Sherbet × Mint Chocolate Chip unites dessert terps with a mellow indica body buzz and creamy exhale.",g:"Relaxed, Sleepy, Hungry"},{n:"Rainbow Road",t:"Hybrid",d:"Rainbow Road – Rainbow Belts BX1 takes that sweet, fruity base and turns it into a smooth-gliding hybrid built for balance.",g:"Relaxed, Melow, Creative"},{n:"Rainbow Sherbet",t:"Indica",d:"Rainbow Sherbet – Zkittlez × Sherbet tastes like tropical candy and citrus. A soothing indica that melts tension without sedation.",g:"Relaxed, Sleepy, Hungry"},{n:"Rosé Runtz",t:"Indica",d:"Rosé Runtz – Apples and Bananas × White Runtz gives floral sweetness and creamy gas with an indulgent indica finish.",g:"Relaxed, Sleepy, Hungry"},{n:"Rs-11",t:"Hybrid",d:"Rs-11 – Pink Guava × OZK produces a sweet tropical scent and balanced hybrid calm with smooth potency.",g:"Relaxed, Melow, Creative"},{n:"Runtz De Jour",t:"Indica",d:"Runtz de Jour – Runtz B × 1 is pure candy gas — a creamy, euphoric indica classic refined for flavor and comfort.",g:"Relaxed, Sleepy, Hungry"},{n:"Sfv Og",t:"Indica",d:"SFV OG – OG Kush × Afghani brings sharp gas and pine with a grounded indica calm that hits the body before easing the mind.",g:"Relaxed, Sleepy, Hungry"},{n:"Silk Road Sour",t:"Hybrid",d:"Silk Road Sour – Nigerian Lemon Fuel × Turbo Diesel delivers citrus-diesel aroma and smooth hybrid balance for relaxed alertness.",g:"Relaxed, Melow, Creative"},{n:"Sour Apple Zkittlez",t:"Hybrid",d:"Sour Apple Zkittlez – Sour Diesel × Apple Zkittlez mixes tart fruit and fuel, offering a happy, social hybrid high.",g:"Relaxed, Melow, Creative"},{n:"Sour Durban",t:"Hybrid",d:"Sour Durban – Sour Diesel × Durban Poison carries sweet earth and citrus spice with focused sativa clarity and long-lasting uplift.",g:"Relaxed, Melow, Creative"},{n:"Sour Grapes",t:"Indica",d:"Sour Grapes – Sour Diesel × GDP creates sweet grape gas and cozy indica relaxation with a rich, syrupy finish.",g:"Relaxed, Sleepy, Hungry"},{n:"Sour Sangria",t:"Sativa",d:"Sour Sangria – Yuzu Mac × Pandora delivers sparkling citrus and berry aroma with a bright, creative sativa lift.",g:"Focused, Energized, Uplifting"},{n:"Space Queen",t:"Sativa",d:"Space Queen – Space Queen × Alien OG combines sweet tropical fruit and pine with a balanced, euphoric headspace.",g:"Focused, Energized, Uplifting"},{n:"Space Xxx",t:"Hybrid",d:"Space XXX – Jet Fuel OG × Satellite OG produces gassy citrus flavor and an even-tempered hybrid high great for evening chill.",g:"Relaxed, Melow, Creative"},{n:"Strawberry Cough",t:"Sativa",d:"Strawberry Cough – Haze × Strawberry Fields bursts with ripe strawberry aroma and uplifting, social sativa energy.",g:"Focused, Energized, Uplifting"},{n:"Strawberry Lemonade",t:"Sativa",d:"Strawberry Lemonade – Strawberry Cough × Lemonade is bright, tart, and cheerful — a sweet daytime sativa for creative flow.",g:"Focused, Energized, Uplifting"},{n:"Strawberry Milk",t:"Hybrid",d:"Strawberry Milk – Strawberry Cough × Cereal Milk blends berries and cream with balanced hybrid calm.",g:"Relaxed, Melow, Creative"},{n:"Strawberry Runtz",t:"Indica",d:"Strawberry Runtz – Strawberry Banana × Runtz hits with fruity candy terps and smooth indica relaxation.",g:"Relaxed, Sleepy, Hungry"},{n:"Summer Daze",t:"Indica",d:"Summer Daze – Strawberry Cough × Wedding Cake offers sweet dessert flavor and a mellow, dreamy hybrid vibe.",g:"Relaxed, Sleepy, Hungry"},{n:"Super Glue",t:"Hybrid",d:"Super Glue – Afghani × Northern Lights glues stress to the couch with pungent diesel aroma and heavy indica calm.",g:"Relaxed, Melow, Creative"},{n:"Super Silver Haze",t:"Sativa",d:"Super Silver Haze – Skunk × Northern Lights × Haze defines classic citrus-spice sativa energy with long-lasting clarity and focus.",g:"Focused, Energized, Uplifting"},{n:"Sweet-N-Sour Diesel",t:"Sativa",d:"Sweet-N-Sour Diesel – Mexican Haze × Hawaiian Sativa fires off tropical citrus and classic diesel aroma, delivering a bright, fast-moving sativa rush.",g:"Focused, Energized, Uplifting"},{n:"The Great Stank",t:"Hybrid",d:"The Great Stank – GMO × London Pound Cake combines savory garlic gas with sweet cake frosting for a powerful hybrid punch that lingers smooth.",g:"Relaxed, Melow, Creative"},{n:"The Juice",t:"Sativa",d:"The Juice – White Widow × Tangie pours out vibrant citrus and pine, offering an energetic lift with crisp flavor and clear focus.",g:"Focused, Energized, Uplifting"},{n:"Tomahawk",t:"Indica",d:"Tomahawk – An earthy, pine-driven indica that hits strong and steady, wrapping you in full-body calm and heavy relaxation.",g:"Relaxed, Sleepy, Hungry"},{n:"Triangle Mints",t:"Hybrid",d:"Triangle Mints – Animal Mints × GSC blends cookie dough sweetness and minty gas for a perfectly balanced hybrid high.",g:"Relaxed, Melow, Creative"},{n:"Tropaya",t:"Indica",d:"Tropaya – Tropicanna Cookies × Papaya serves tropical citrus and sweet fruit terps with an indica-leaning calm that’s smooth and soothing.",g:"Relaxed, Sleepy, Hungry"},{n:"Tropicana Cookies",t:"Hybrid",d:"Tropicana Cookies – GSC × Tangie tastes like orange candy and doughy gas, producing a happy, creative hybrid buzz.",g:"Relaxed, Melow, Creative"},{n:"Tsunami Warning",t:"Sativa",d:"Tsunami Warning – Turbo Diesel × Lemon Thai erupts with lemon-fuel aroma and pure sativa energy—lively, clear, and unstoppable.",g:"Focused, Energized, Uplifting"},{n:"Turbo Diesel",t:"Sativa",d:"Turbo Diesel – Sour Diesel × Sour Kush offers classic diesel flavor and electric uplift, perfect for productive days.",g:"Focused, Energized, Uplifting"},{n:"Viva La Runtz",t:"Indica",d:"Viva La Runtz – Runtz × Narco OG mixes candy gas and creamy fruit, coating the palate with an indica wave of smooth relief.",g:"Relaxed, Sleepy, Hungry"},{n:"Waffle Cone",t:"Sativa",d:"Waffle Cone – Gelato × Pancakes tastes like vanilla dessert and sweet gas, a cozy hybrid that keeps you smiling.",g:"Focused, Energized, Uplifting"},{n:"Wagyu",t:"Hybrid",d:"Wagyu – Meatbreath × Gelato 41 blends rich umami funk and dessert terps for a luxurious hybrid calm that hits deep.",g:"Relaxed, Melow, Creative"},{n:"Wagyu Truffle Butter",t:"Hybrid",d:"Wagyu Truffle Butter – Wagyu × Truffle Butter drips creamy, earthy flavor and delivers heavy hybrid relaxation with decadent smoothness.",g:"Relaxed, Melow, Creative"},{n:"White Durban",t:"Sativa",d:"White Durban – White Fire OG × Durban Poison is a citrus-spiced sativa that boosts energy and focus with a clean finish.",g:"Focused, Energized, Uplifting"},{n:"White Strawberry",t:"Sativa",d:"White Strawberry – The White × Strawberry Cough offers frosty sweetness and gentle, creative lift in a refreshing sativa.",g:"Focused, Energized, Uplifting"},{n:"White Widow",t:"Sativa",d:"",g:"Focused, Energized, Uplifting"},{n:"Yerbiez",t:"Sativa",d:"Yerbiez – Blueberry Muffin × White Durban mixes berry pastry aroma with crisp sativa clarity and relaxed balance.",g:"Focused, Energized, Uplifting"},{n:"Yuzu Lemonade",t:"Hybrid",d:"Yuzu Lemonade – Lemonade × Lemon Tree bursts with sweet citrus freshness and a balanced, happy hybrid buzz.",g:"Relaxed, Melow, Creative"},{n:"Zkittlez",t:"Indica",d:"Zkittlez – Grape Ape × Grapefruit is pure candy fruit aroma and smooth indica calm, a California classic for flavor chasers.",g:"Relaxed, Sleepy, Hungry"},{n:"Zoap",t:"Hybrid",d:"Zoap – Rainbow Sherbet × Pink Guava delivers tropical candy aroma with creamy smoothness and balanced hybrid effects.",g:"Relaxed, Melow, Creative"},{n:"Zundown",t:"Indica",d:"Zundown – Z3 Banana Pheno × Sunset Sherbet pairs fruity banana sherbet flavor with a mellow indica fade built for evenings.",g:"Relaxed, Sleepy, Hungry"},{n:"Zushi",t:"Hybrid",d:"Zushi – Z × Kush Mints fuses candy terps and cool mint for a flavorful hybrid that’s smooth, euphoric, and deeply relaxing.",g:"Relaxed, Melow, Creative"},{n:"Modified Cherries",t:"Hybrid",d:"Modified Cherries – GMO × Cherry Pie blends savory garlic funk with sweet cherry fruit, creating a potent hybrid with rich terpene depth and smooth, calming effects.",g:"Relaxed, Melow, Creative"}];
     function strainLookup(name){var n=(name||"").toLowerCase().replace(/[^a-z0-9]/g,"");return STRAIN_DB.find(function(s){return s.n.toLowerCase().replace(/[^a-z0-9]/g,"")===n;})||null;}
     const CA_TAX={'berkeley':0.38,'oakland':0.33,'san francisco':0.28,'san jose':0.36,'santa clara':0.30,'redwood city':0.28,'palo alto':0.28,'walnut creek':0.27,'concord':0.27,'antioch':0.29,'santa rosa':0.27,'napa':0.27,'arcata':0.26,'eureka':0.26,'redding':0.25,'los angeles':0.38,'long beach':0.36,'san diego':0.35,'la mesa':0.35,'fresno':0.27,'stockton':0.30,'sacramento':0.28,'bakersfield':0.25};
     function getTaxRate(name) { const n=(name||"").toLowerCase(); const cities=Object.keys(CA_TAX); for(let i=0;i<cities.length;i++){if(n.includes(cities[i]))return CA_TAX[cities[i]];} return 0.30; }
@@ -827,11 +845,11 @@ window._STRAIN_DB=[
       };
       const PINS_DEPRECATED=null;// Individual user PINs replace shared PINs
       const DEFAULT_USERS=[
-        {id:'dylan',name:'Dylan Brewington',role:'exec',pin:'2024',active:true},
-        {id:'brian',name:'Brian Bresee',role:'distro',pin:'5678',active:true},
-        {id:'mfg1',name:'MFG Operator 1',role:'mfg',pin:'1234',active:true},
-        {id:'mfg2',name:'MFG Operator 2',role:'mfg',pin:'4321',active:true},
-        {id:'distro2',name:'Distro Rep 2',role:'distro',pin:'8765',active:true},
+        {id:'dylan',name:'Dylan',role:'exec',pin:'2024',active:true},
+        {id:'cherie',name:'Cherie',role:'mfg',pin:'',active:true,needsSetup:true},
+        {id:'victor',name:'Victor',role:'mfg',pin:'',active:true,needsSetup:true},
+        {id:'jonah',name:'Jonah',role:'distro',pin:'',active:true,needsSetup:true},
+        {id:'ian',name:'Ian',role:'distro',pin:'',active:true,needsSetup:true},
       ];
       const [users,setUsers]=useState(function(){try{var v=localStorage.getItem('gpi:gpi-users');return v?JSON.parse(v):DEFAULT_USERS;}catch(e){return DEFAULT_USERS;}});
       const [userOverrides,setUserOverrides]=useState(function(){try{var v=localStorage.getItem('gpi:gpi-user-overrides');return v?JSON.parse(v):{};}catch(e){return{};}});
@@ -843,6 +861,10 @@ window._STRAIN_DB=[
       const [loginInput,setLoginInput]=useState('');
       const [loginRole,setLoginRole]=useState('exec');
       const [loginError,setLoginError]=useState('');
+      const [loginStep,setLoginStep]=useState(1);// 1=dept, 2=user, 3=pin
+      const [loginDept,setLoginDept]=useState('');
+      const [loginUserId,setLoginUserId]=useState('');
+      const [loginConfirm,setLoginConfirm]=useState('');// PIN confirm for setup
       const [killSwitches,setKillSwitches]=useState(function(){try{return JSON.parse(localStorage.getItem('gpi:gpi-kill-switches'))||{};}catch(e){return{};}});
 
       // Session keepalive
@@ -863,17 +885,30 @@ window._STRAIN_DB=[
         try{var log=JSON.parse(localStorage.getItem('gpi:gpi-security-log')||'[]');log.unshift(entry);localStorage.setItem('gpi:gpi-security-log',JSON.stringify(log.slice(0,500)));}catch(e){}
       }
       function handleLogin(){
-        var matched=users.find(function(u){return u.pin===loginInput&&u.active;});
-        if(matched){
-          setAuthRole(matched.role);setAuthUser(matched);setLoginError('');setLoginInput('');
-          sessionStorage.setItem('gpi-session',JSON.stringify({role:matched.role,userId:matched.id,userName:matched.name,lastActive:Date.now(),loginAt:new Date().toISOString()}));
-          logSecurity('LOGIN',matched.name+' ('+ROLES[matched.role].label+')');
-          // Check per-user overrides
-          var uo=userOverrides[matched.id]||{};
-          if(uo.disabled){setLoginError('Account disabled by admin');setAuthRole(null);setAuthUser(null);sessionStorage.removeItem('gpi-session');return;}
+        var selected=users.find(function(u){return u.id===loginUserId;});
+        if(!selected){setLoginError('No user selected');return;}
+        if(selected.pin===loginInput&&selected.active){
+          var uo=userOverrides[selected.id]||{};
+          if(uo.disabled){setLoginError('Account disabled by admin');return;}
+          setAuthRole(selected.role);setAuthUser(selected);setLoginError('');setLoginInput('');setLoginConfirm('');setLoginStep(1);setLoginDept('');setLoginUserId('');
+          sessionStorage.setItem('gpi-session',JSON.stringify({role:selected.role,userId:selected.id,userName:selected.name,lastActive:Date.now(),loginAt:new Date().toISOString()}));
+          logSecurity('LOGIN',selected.name+' ('+ROLES[selected.role].label+')');
         }else{
-          setLoginError('Invalid PIN');logSecurity('LOGIN_FAILED','Failed PIN attempt for role '+loginRole);
+          setLoginError('Invalid PIN');logSecurity('LOGIN_FAILED','Failed PIN attempt for '+selected.name);
         }
+      }
+      function handleSetupPin(){
+        if(loginInput.length<4){setLoginError('PIN must be at least 4 digits');return;}
+        if(loginInput!==loginConfirm){setLoginError('PINs do not match');return;}
+        var selected=users.find(function(u){return u.id===loginUserId;});
+        if(!selected){setLoginError('No user selected');return;}
+        var updated=users.map(function(u){return u.id===selected.id?Object.assign({},u,{pin:loginInput,needsSetup:false}):u;});
+        saveUsers(updated);
+        // Auto-login after setup
+        setAuthRole(selected.role);setAuthUser(Object.assign({},selected,{pin:loginInput,needsSetup:false}));setLoginError('');setLoginInput('');setLoginConfirm('');setLoginStep(1);setLoginDept('');setLoginUserId('');
+        sessionStorage.setItem('gpi-session',JSON.stringify({role:selected.role,userId:selected.id,userName:selected.name,lastActive:Date.now(),loginAt:new Date().toISOString()}));
+        logSecurity('PIN_SETUP',selected.name+' created their PIN');
+        logSecurity('LOGIN',selected.name+' ('+ROLES[selected.role].label+')');
       }
       function handleLogout(){logSecurity('LOGOUT',(authUser?authUser.name:'unknown')+' signed out');setAuthRole(null);setAuthUser(null);sessionStorage.removeItem('gpi-session');}
       function setKill(key,val){var next=Object.assign({},killSwitches);next[key]=val;setKillSwitches(next);try{localStorage.setItem('gpi:gpi-kill-switches',JSON.stringify(next));}catch(e){}logSecurity('KILL_SWITCH',key+'='+(val?'ON':'OFF'));}
@@ -901,6 +936,7 @@ window._STRAIN_DB=[
       function toggleTheme(){setLightMode(function(p){return !p;});}
       const [periodDays,setPeriodDays]=useState(365);
       const [rideAlongs, setRideAlongs] = useState(null);
+      const [zoneFlipped, setZoneFlipped] = useState({});
       const [accounts,setAccounts]=useState([]);
       const [promoAccounts,setPromoAccounts]=useState([]);
       const [priceData,setPriceData]=useState({});
@@ -1170,6 +1206,24 @@ window._STRAIN_DB=[
       const inp={background:C.surface,border:'1px solid '+C.border,borderRadius:3,color:C.text,fontSize:12,fontFamily:'inherit',padding:'3px 6px',width:70,textAlign:'right',outline:'none'};
       const inp2={background:C.surface,border:'1px solid '+C.border,borderRadius:3,color:C.text,fontSize:11,fontFamily:'inherit',padding:'4px 7px',outline:'none'};
 
+      // ── Reusable Share / Copy / Print actions ──
+      function shareActions(title,text,btnStyle){
+        var bs=btnStyle||{padding:'7px 18px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit'};
+        var actions=[];
+        // Share (native share sheet — works on iOS/Android)
+        if(typeof navigator!=='undefined'&&navigator.share){
+          actions.push(React.createElement('button',{key:'share',onClick:function(){navigator.share({title:title,text:text}).catch(function(){});},style:Object.assign({},bs,{border:'1px solid #2196f3',background:'#2196f3',color:'#fff'})},'📤 Share'));
+        } else {
+          // Fallback: mailto
+          actions.push(React.createElement('button',{key:'email',onClick:function(){window.location.href='mailto:?subject='+encodeURIComponent(title)+'&body='+encodeURIComponent(text);},style:Object.assign({},bs,{border:'1px solid #2196f3',background:'#2196f3',color:'#fff'})},'✉ Email'));
+        }
+        // Copy to clipboard
+        actions.push(React.createElement('button',{key:'copy',onClick:function(){if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){toast('✓ Copied to clipboard');}).catch(function(){toast('✗ Copy failed');});}else{var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('✓ Copied');}},style:Object.assign({},bs,{border:'1px solid '+C.text,background:C.text,color:C.bg})},'📋 Copy'));
+        // Print
+        actions.push(React.createElement('button',{key:'print',onClick:function(){window.print();},style:Object.assign({},bs,{border:'1px solid #fff',background:'#fff',color:'#000'})},'🖨 Print'));
+        return actions;
+      }
+
       return(
         <div style={{fontFamily:"'DM Mono','Courier New',monospace",background:C.bg,minHeight:'100vh',color:C.text,transition:'background 0.2s,color 0.2s'}}>
           {/* ═══ LOGIN GATE ═══ */}
@@ -1178,11 +1232,34 @@ window._STRAIN_DB=[
               <div style={{background:C.surface,border:'1px solid '+C.borderHi,borderRadius:8,padding:'40px 32px',width:'100%',maxWidth:360,textAlign:'center'}}>
                 <div style={{width:48,height:48,border:'2px solid '+C.borderHi,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,fontSize:11,letterSpacing:2,margin:'0 auto 16px'}}>GPI</div>
                 <div style={{fontSize:14,fontWeight:800,letterSpacing:4,marginBottom:4}}>GLOBS COMMAND CENTER</div>
-                <div style={{fontSize:9,color:C.dim,marginBottom:24}}>Enter your PIN to sign in</div>
-                <input type="password" value={loginInput} onChange={function(e){setLoginInput(e.target.value);setLoginError('');}} onKeyDown={function(e){if(e.key==='Enter')handleLogin();}} placeholder="Enter PIN" style={{width:'100%',background:C.bg,border:'1px solid '+C.border,borderRadius:3,padding:'10px 14px',color:C.text,fontSize:14,fontFamily:'inherit',textAlign:'center',letterSpacing:8,outline:'none',boxSizing:'border-box',marginBottom:8}}/>
-                {loginError&&<div style={{fontSize:10,color:C.danger,marginBottom:8}}>{loginError}</div>}
-                <button onClick={handleLogin} style={{width:'100%',padding:'10px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'none',background:C.text,color:C.bg,letterSpacing:2}}>SIGN IN</button>
-                <div style={{fontSize:8,color:C.dim,marginTop:16,lineHeight:1.8}}>Sessions expire after 30 min of inactivity. All access is logged.</div>
+
+                {loginStep===1&&(<div>
+                  <div style={{fontSize:9,color:C.dim,marginBottom:24,letterSpacing:1}}>I'M LOGGING IN AS</div>
+                  {[{dept:'exec',label:'EXECUTIVE',icon:'⬟',color:'#4caf50'},{dept:'distro',label:'DISTRIBUTION',icon:'⬡',color:'#4a9eff'},{dept:'mfg',label:'MANUFACTURING',icon:'⬢',color:'#f5a623'}].map(function(d){return(
+                    <button key={d.dept} onClick={function(){setLoginDept(d.dept);setLoginStep(d.dept==='exec'?3:2);setLoginError('');if(d.dept==='exec'){var eu=users.find(function(u){return u.role==='exec'&&u.active;});if(eu)setLoginUserId(eu.id);}}} style={{display:'block',width:'100%',padding:'16px 20px',marginBottom:10,borderRadius:4,fontSize:13,fontWeight:800,letterSpacing:3,cursor:'pointer',fontFamily:'inherit',border:'2px solid '+d.color+'44',background:d.color+'11',color:d.color,transition:'all 0.15s'}}>{d.icon} {d.label}</button>
+                  );})}
+                  <div style={{fontSize:8,color:C.dim,marginTop:16,lineHeight:1.8}}>Sessions expire after 30 min of inactivity. All access is logged.</div>
+                </div>)}
+
+                {loginStep===2&&(<div>
+                  <button onClick={function(){setLoginStep(1);setLoginDept('');setLoginError('');}} style={{background:'transparent',border:'none',color:C.dim,fontSize:9,cursor:'pointer',fontFamily:'inherit',marginBottom:16,letterSpacing:1}}>← BACK</button>
+                  <div style={{fontSize:9,color:C.dim,marginBottom:20,letterSpacing:1}}>SELECT USER</div>
+                  {users.filter(function(u){return u.role===loginDept&&u.active;}).map(function(u){return(
+                    <button key={u.id} onClick={function(){setLoginUserId(u.id);setLoginStep(3);setLoginError('');}} style={{display:'block',width:'100%',padding:'18px 20px',marginBottom:10,borderRadius:4,fontSize:16,fontWeight:800,letterSpacing:2,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.borderHi,background:C.raised,color:C.text,transition:'all 0.15s'}}>{u.name.toUpperCase()}</button>
+                  );})}
+                </div>)}
+
+                {loginStep===3&&(function(){var selectedUser=users.find(function(u){return u.id===loginUserId;});var isSetup=selectedUser&&selectedUser.needsSetup;return(<div>
+                  <button onClick={function(){setLoginStep(loginDept==='exec'?1:2);setLoginInput('');setLoginConfirm('');setLoginError('');}} style={{background:'transparent',border:'none',color:C.dim,fontSize:9,cursor:'pointer',fontFamily:'inherit',marginBottom:16,letterSpacing:1}}>← BACK</button>
+                  <div style={{fontSize:16,fontWeight:800,letterSpacing:2,marginBottom:4}}>{selectedUser?selectedUser.name.toUpperCase():'USER'}</div>
+                  <div style={{fontSize:9,color:isSetup?'#f5a623':C.dim,marginBottom:isSetup?12:24}}>{isSetup?'Create your PIN to get started':'Enter your PIN'}</div>
+                  {isSetup&&<div style={{fontSize:9,color:C.dim,marginBottom:16}}>Choose a 4–6 digit PIN you'll remember</div>}
+                  <input type="password" inputMode="numeric" pattern="[0-9]*" value={loginInput} onChange={function(e){setLoginInput(e.target.value.replace(/[^0-9]/g,''));setLoginError('');}} onKeyDown={function(e){if(e.key==='Enter'&&!isSetup)handleLogin();}} placeholder={isSetup?"New PIN":"● ● ● ●"} maxLength={6} style={{width:'100%',background:C.bg,border:'1px solid '+C.border,borderRadius:3,padding:'14px',color:C.text,fontSize:24,fontFamily:'inherit',textAlign:'center',letterSpacing:12,outline:'none',boxSizing:'border-box',marginBottom:8}} autoFocus/>
+                  {isSetup&&<input type="password" inputMode="numeric" pattern="[0-9]*" value={loginConfirm} onChange={function(e){setLoginConfirm(e.target.value.replace(/[^0-9]/g,''));setLoginError('');}} onKeyDown={function(e){if(e.key==='Enter')handleSetupPin();}} placeholder="Confirm PIN" maxLength={6} style={{width:'100%',background:C.bg,border:'1px solid '+C.border,borderRadius:3,padding:'14px',color:C.text,fontSize:24,fontFamily:'inherit',textAlign:'center',letterSpacing:12,outline:'none',boxSizing:'border-box',marginBottom:8}}/>}
+                  {loginError&&<div style={{fontSize:10,color:C.danger,marginBottom:8}}>{loginError}</div>}
+                  <button onClick={isSetup?handleSetupPin:handleLogin} style={{width:'100%',padding:'12px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'none',background:isSetup?'#f5a623':C.text,color:isSetup?'#000':C.bg,letterSpacing:2}}>{isSetup?'CREATE PIN & SIGN IN':'SIGN IN'}</button>
+                </div>);})()}
+
               </div>
             </div>
           ):(
@@ -1634,12 +1711,34 @@ window._STRAIN_DB=[
                     zCities.forEach(function(c2,i){
                       cityList.push(React.createElement('div',{key:'cl'+i,style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'4px 0',borderBottom:'1px solid #111',cursor:'pointer',fontSize:10},onClick:function(){window._dClick(c2.ct);}},React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6}},React.createElement('span',{style:{width:Math.max(6,3+c2.accts.length*1.5),height:Math.max(6,3+c2.accts.length*1.5),borderRadius:'50%',background:zone.color,opacity:0.6,display:'inline-block',flexShrink:0}}),React.createElement('span',{style:{fontWeight:600}},c2.ct),React.createElement('span',{style:{fontSize:8,color:'#555'}},c2.accts.length+' accts')),React.createElement('span',{style:{fontWeight:700,color:'#888'}},curK(c2.tot))));
                     });
+                    // Build account list for the back of the card
+                    var zAcctsSorted=zAccts.slice().sort(function(a,b){return b.rv-a.rv;});
+                    var isFlipped=!!zoneFlipped[zone.key];
                     return React.createElement('div',{key:zone.key,style:{flex:'1 1 30%',minWidth:260}},
                       React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6,padding:'6px 10px',background:zone.color+'11',borderRadius:4,border:'1px solid '+zone.color+'33'}},
                         React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6}},React.createElement('span',{style:{width:10,height:10,borderRadius:'50%',background:zone.color,display:'inline-block'}}),React.createElement('span',{style:{fontSize:13,fontWeight:700}},zone.name)),
                         React.createElement('div',{style:{textAlign:'right'}},React.createElement('div',{style:{fontSize:14,fontWeight:800}},curK(zRev)),React.createElement('div',{style:{fontSize:9,color:C.dim}},zCities.length+' cities · '+zAccts.length+' accts'))),
-                      React.createElement('svg',{key:'z'+zone.key+periodDays,viewBox:zone.vb,style:{width:'100%',height:300,background:'#050505',borderRadius:6,border:'1px solid '+zone.color+'22',display:'block',marginBottom:8,overflow:'hidden'}},svgKids),
-                      React.createElement('div',{style:{maxHeight:180,overflowY:'auto',padding:'0 4px'}},cityList)
+                      React.createElement('div',{className:'zone-flip-container'},
+                        React.createElement('div',{className:'zone-flip-inner'+(isFlipped?' flipped':''),style:{minHeight:310}},
+                          React.createElement('div',{className:'zone-flip-front',style:{position:'relative'}},
+                            React.createElement('svg',{key:'z'+zone.key+periodDays,viewBox:zone.vb,style:{width:'100%',height:300,background:'#050505',borderRadius:6,border:'1px solid '+zone.color+'22',display:'block',overflow:'hidden'}},svgKids),
+                            React.createElement('button',{onClick:function(){setZoneFlipped(function(p){var n=Object.assign({},p);n[zone.key]=true;return n;});},style:{position:'absolute',bottom:8,right:8,padding:'4px 8px',borderRadius:3,fontSize:9,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+zone.color+'44',background:'#000c',color:zone.color,zIndex:2}},'\ud83d\udccb Accounts')
+                          ),
+                          React.createElement('div',{className:'zone-flip-back',style:{background:'#050505',borderRadius:6,border:'1px solid '+zone.color+'22',minHeight:300,padding:'10px 12px',overflowY:'auto',maxHeight:340}},
+                            React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}},
+                              React.createElement('div',{style:{fontSize:11,fontWeight:700,color:zone.color,letterSpacing:1}},zone.name+' ACCOUNTS ('+zAcctsSorted.length+') · '+periodDays+'D'),
+                              React.createElement('button',{onClick:function(){setZoneFlipped(function(p){var n=Object.assign({},p);n[zone.key]=false;return n;});},style:{padding:'4px 8px',borderRadius:3,fontSize:9,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+zone.color+'44',background:'transparent',color:zone.color}},'\ud83d\uddfa Map')
+                            ),
+                            zAcctsSorted.map(function(a,ai){return React.createElement('div',{key:ai,style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 0',borderBottom:'1px solid #151515',cursor:'pointer',fontSize:10},onClick:function(){window._goAcct&&window._goAcct(a.nm);}},
+                              React.createElement('div',{style:{flex:1,minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontWeight:500}},a.nm),
+                              React.createElement('div',{style:{display:'flex',gap:8,flexShrink:0,alignItems:'center'}},
+                                React.createElement('span',{style:{fontSize:8,color:'#555'}},a.ct),
+                                React.createElement('span',{style:{fontWeight:700,color:zone.color,minWidth:40,textAlign:'right'}},curK(a.rv))
+                              )
+                            );})
+                          )
+                        )
+                      )
                     );
                   }
                   // ── RIDE ALONG GENERATOR ──
@@ -1767,7 +1866,26 @@ window._STRAIN_DB=[
                               <div style={{fontSize:13,fontWeight:800,color:'#f5a623',letterSpacing:1}}>RIDE ALONG ITINERARY</div>
                               <div style={{fontSize:9,color:C.dim,marginTop:2}}>2 days per zone · {rideAlongs.routes.length} total trips · prioritized by upside + legacy</div>
                             </div>
+                            <div style={{display:'flex',gap:6}}>
+                            {(function(){
+                              var raDate=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+                              var raBody='GLOBS RIDE ALONG ITINERARY\n'+raDate+'\n'+rideAlongs.routes.length+' trips · 2 days per zone\n\n';
+                              ['DNU','RB','ZASP'].forEach(function(zk){
+                                var zr=rideAlongs.routes.filter(function(r){return r.zone===zk;});
+                                if(!zr.length)return;
+                                raBody+=(ZN[zk]||zk)+' — '+zr.length+' days\n';
+                                zr.forEach(function(r){
+                                  raBody+='  Day '+r.dayNum+': '+r.region+' ('+r.stops.length+' stops · '+curK(r.rev365)+' rev)\n';
+                                  r.stops.forEach(function(s,si){raBody+='    '+(si+1)+'. '+s.nm+' — '+s.city+'\n';});
+                                  raBody+='\n';
+                                });
+                              });
+                              raBody+='— GPI Command Center';
+                              var bs={padding:'4px 10px',borderRadius:3,fontSize:9,fontWeight:700,cursor:'pointer',fontFamily:'inherit'};
+                              return shareActions('Globs Ride Along - '+raDate,raBody,bs);
+                            })()}
                             <button onClick={function(){setRideAlongs(null);}} style={{padding:'4px 10px',borderRadius:3,fontSize:9,cursor:'pointer',border:'1px solid '+C.border,background:'transparent',color:C.dim}}>Dismiss</button>
+                            </div>
                           </div>
                           {['DNU','RB','ZASP'].map(function(zk) {
                             var zoneRoutes = rideAlongs.routes.filter(function(r) { return r.zone === zk; });
@@ -1880,13 +1998,14 @@ window._STRAIN_DB=[
                         <span style={{marginLeft:'auto',fontSize:10,color:C.dim}}>{filtered.length} results</span>
                       </div>
                       <div style={{border:'1px solid '+C.border,borderRadius:6,overflow:'hidden'}}><div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:460,borderCollapse:'collapse'}}>
-                        <thead><tr style={{background:C.raised}}>{["Strain","Genetics","Tags","Description"].map(function(h,i){return<th key={h} style={{padding:'8px 14px',fontSize:8,fontWeight:700,letterSpacing:1.2,textTransform:'uppercase',color:C.dim,textAlign:'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead>
-                        <tbody>{filtered.map(function(s,i){return(
+                        <thead><tr style={{background:C.raised}}>{["Strain","","Cross","Tags","Description"].map(function(h,i){return<th key={h+i} style={{padding:'8px '+(i===1?'6px':'14px'),fontSize:8,fontWeight:700,letterSpacing:1.2,textTransform:'uppercase',color:C.dim,textAlign:'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead>
+                        <tbody>{filtered.map(function(s,i){var cross='';var dm=s.d.match(/[\u2013\u2014\u2015–—-]\s*(.+?)\s*[\u2019',]s?\s+(brings|offers|delivers|creates|create|drip|hits|rolls|born|with|a |an |the |this |for )/i);if(dm)cross=dm[1].replace(/\s+(brings|offers|delivers|creates|create|drip|hits|rolls|born).*$/i,'').trim();if(!cross){var xm=s.d.match(/(\w[\w\s']+?)\s*[×xX]\s*(\w[\w\s']+?)[\s,.']/);if(xm)cross=xm[1].trim()+' × '+xm[2].trim();}return(
                           <tr key={s.n} style={{background:i%2===0?'transparent':'#0a0a0a'}}>
                             <td style={{padding:'9px 14px',fontSize:12,fontWeight:600,whiteSpace:'nowrap'}}>{s.n}</td>
-                            <td style={{padding:'9px 14px'}}><span style={{fontSize:9,fontWeight:700,color:tc2(s.t),background:tc2(s.t)+'22',border:'1px solid '+tc2(s.t)+'44',borderRadius:2,padding:'2px 7px'}}>{s.t.toUpperCase()}</span></td>
+                            <td style={{padding:'9px 6px',textAlign:'center'}}><span style={{fontSize:11,fontWeight:900,color:tc2(s.t),background:tc2(s.t)+'22',border:'1px solid '+tc2(s.t)+'44',borderRadius:2,padding:'2px 6px',display:'inline-block',minWidth:18,textAlign:'center'}}>{s.t.charAt(0)}</span></td>
+                            <td style={{padding:'9px 14px',fontSize:10,color:C.muted,whiteSpace:'nowrap'}}>{cross||'—'}</td>
                             <td style={{padding:'9px 14px',fontSize:10,color:C.muted}}>{(s.g||"").split(",").map(function(tag,ti){return tag.trim();}).filter(Boolean).join(" · ")}</td>
-                            <td style={{padding:'9px 14px',fontSize:10,color:C.dim,maxWidth:400,lineHeight:1.6}}>{s.d.length>120?s.d.slice(0,120)+'…':s.d}</td>
+                            <td style={{padding:'9px 14px',fontSize:10,color:C.dim,maxWidth:300,lineHeight:1.6}}>{s.d.length>100?s.d.slice(0,100)+'…':s.d}</td>
                           </tr>
                         );})}</tbody>
                       </table></div></div>
@@ -1984,6 +2103,10 @@ window._STRAIN_DB=[
 
                   return React.createElement('div',null,
                     inStockCount>0?React.createElement('div',{style:{padding:'8px 14px',marginBottom:12,background:'#1b5e2022',border:'1px solid #1b5e2044',borderRadius:4,fontSize:10,color:'#4caf50',fontWeight:600}},'\u2713 '+inStockCount+' inventory SKUs loaded \u00b7 '+totalInvStart+' total units \u00b7 '+allocCount+' accounts with suggestions'):React.createElement('div',{style:{padding:'16px',marginBottom:12,background:C.dangerBg,border:'1px solid '+C.dangerBdr,borderRadius:6,textAlign:'center'}},React.createElement('div',{style:{fontSize:12,fontWeight:700,color:C.danger,marginBottom:8}},'\u26a0 No inventory loaded'),React.createElement('div',{style:{fontSize:10,color:C.muted,marginBottom:12}},'Upload the Salesforce XLSX to generate order suggestions.'),React.createElement('label',{style:{display:'inline-block',padding:'12px 32px',borderRadius:4,fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.text,background:C.text,color:C.bg}},csvLoading?'\u23f3 Parsing\u2026':'\u21e7 Upload Salesforce XLSX',React.createElement('input',{type:'file',accept:'.csv,.xlsx,.xls',onChange:handleCSVFile,style:{display:'none'}}))),
+                    React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:14}},
+                      React.createElement('span',{style:{fontSize:9,color:C.dim,letterSpacing:1.5}},'REVENUE WINDOW'),
+                      [7,30,60,90,180,270,365].map(function(d){return React.createElement('button',{key:d,onClick:function(){setPeriodDays(d);},style:{padding:'4px 11px',borderRadius:2,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(periodDays===d?C.text:C.border),background:periodDays===d?C.text:'transparent',color:periodDays===d?C.bg:C.dim,fontWeight:periodDays===d?700:400}},d+'d');})
+                    ),
                     React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:12,marginBottom:20}},
                       [{l:"At-Risk",v:OPP.length,c:C.warn},{l:"Fallen Off",v:oFallen.length,c:C.danger},{l:"Overdue",v:oOverdue.length,c:C.warn},{l:"At-Risk Rev",v:curK(oTotRev),c:C.text},{l:"Orders",v:allocCount+' / '+curK(totalAllocRev),c:C.good},{l:"Allocated",v:pctAlloc+'% ('+totalRemaining+' left)',c:pctAlloc>=95?C.good:C.muted}].map(function(s,i){return React.createElement('div',{key:i,style:{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'12px 14px'}},React.createElement('div',{style:{fontSize:7,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:4}},s.l),React.createElement('div',{style:{fontSize:18,fontWeight:800,color:s.c}},s.v));})
                     ),
@@ -2003,46 +2126,30 @@ window._STRAIN_DB=[
                     ),
                     React.createElement('div',{style:{display:'flex',gap:8,marginBottom:16,alignItems:'center'}},
                       React.createElement('button',{onClick:function(){generateRideAlongs();},style:{padding:'8px 18px',borderRadius:4,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid #f5a623',background:'#f5a62322',color:'#f5a623',letterSpacing:0.5}},'\u{1F697} Generate Ride Alongs'),
-                      (oRep!=="ALL"||oZone!=="ALL")&&React.createElement('button',{onClick:async function(){
+                      (oRep!=="ALL"||oZone!=="ALL")&&(function(){
                         var filterLabel=oRep!=="ALL"?oRep:(DZN2[oZone]||oZone);
                         var filtAccts=oFilt.filter(function(o){return alloc[o.name]&&alloc[o.name].length>0;});
                         var totalSugRev=filtAccts.reduce(function(s,o){return(alloc[o.name]||[]).reduce(function(s2,l){return s2+l.lineRev;},s);},0);
                         var subj='Weekly Reorder Directive — '+filterLabel+' — '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
                         var body='Team,\n\nBelow are the priority reorder opportunities for '+filterLabel+'. '+filtAccts.length+' accounts with suggested orders totaling $'+totalSugRev.toFixed(2)+'.\n\n';
-                        body+='Accounts ranked by revenue × order frequency. All SKUs in-stock and zone-verified. Pricing reflects each account\'s most recent wholesale rate.\n\n';
+                        body+='Accounts ranked by revenue × order frequency. All SKUs in-stock and zone-verified.\n\n';
                         body+='━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
                         filtAccts.forEach(function(o,idx){
                           var lines=alloc[o.name]||[];var acctRev=lines.reduce(function(s,l){return s+l.lineRev;},0);
                           var acctUnits=lines.reduce(function(s,l){return s+l.qty;},0);
                           body+=(idx+1)+'. '+o.name+'\n';
-                          body+='   '+o.status+' · '+o.daysSince+'d since last order · median cadence '+o.median+'d · target $'+o.budget+'\n';
+                          body+='   '+o.status+' · '+o.daysSince+'d since last · cadence '+o.median+'d · target $'+o.budget+'\n';
                           if(o.rep)body+='   Rep: '+o.rep+' · Zone: '+(DZN2[o.zone]||o.zone)+'\n';
                           body+='\n';
                           lines.forEach(function(l){
-                            body+='   '+l.qty+'x  '+l.strain+' ('+l.cat+')\n';
-                            body+='        @ $'+l.ws.toFixed(2)+'/unit = $'+l.lineRev.toFixed(2)+'  ['+l.zoneStart+' in '+l.zn+']\n';
+                            body+='   '+l.qty+'x  '+l.strain+' ('+l.cat+') @ $'+l.ws.toFixed(2)+' = $'+l.lineRev.toFixed(2)+'\n';
                           });
                           body+='\n   ORDER TOTAL: '+acctUnits+' units · $'+acctRev.toFixed(2)+'\n\n';
                         });
-                        body+='━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
-                        body+='SUMMARY: '+filtAccts.length+' accounts · $'+totalSugRev.toFixed(2)+' total suggested\n\n';
-                        body+='— GPI Command Center · Globs Price Intelligence\n';
-                        // Create Gmail draft via Anthropic API
-                        try{
-                          toast('⏳ Creating Gmail draft...');
-                          var resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,messages:[{role:'user',content:'Create a Gmail draft with the following details. Subject: "'+subj+'" Body (plain text): '+JSON.stringify(body)+' Do NOT add any commentary, just create the draft.'}],mcp_servers:[{type:'url',url:'https://gmail.mcp.claude.com/mcp',name:'gmail'}]})});
-                          var data=await resp.json();
-                          var draftCreated=data.content&&data.content.some(function(b){return b.type==='mcp_tool_result';});
-                          if(draftCreated){toast('✓ Gmail draft created: '+subj);}
-                          else{
-                            await navigator.clipboard.writeText('Subject: '+subj+'\n\n'+body);
-                            toast('✓ Directive copied to clipboard — paste into Gmail');
-                          }
-                        }catch(e){
-                          try{await navigator.clipboard.writeText('Subject: '+subj+'\n\n'+body);toast('✓ Directive copied to clipboard — paste into Gmail');}
-                          catch(e2){toast('✗ Could not create draft or copy');}
-                        }
-                      },style:{padding:'5px 14px',borderRadius:3,fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid #2196f3',background:'#2196f322',color:'#2196f3',marginLeft:'auto'}},'\u2709 Draft Directive — '+(oRep!=="ALL"?oRep.split(' ')[0]:(DZN2[oZone]||oZone)))
+                        body+='━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nSUMMARY: '+filtAccts.length+' accounts · $'+totalSugRev.toFixed(2)+' total\n\n— GPI Command Center';
+                        var bs={padding:'5px 14px',borderRadius:3,fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'inherit'};
+                        return React.createElement('div',{style:{display:'flex',gap:6,marginLeft:'auto'}},shareActions(subj,body,bs));
+                      })()
                     ),
                     React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:8}},oFilt.length+' opportunities'),
                     React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:6}},
@@ -2088,19 +2195,14 @@ window._STRAIN_DB=[
                             ),
                             React.createElement('div',{style:{display:'flex',gap:6,marginTop:10,justifyContent:'flex-end',flexWrap:'wrap'}},
                               React.createElement('button',{onClick:function(){window._goAcct&&window._goAcct(o.name);},style:{padding:'8px 16px',borderRadius:3,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.border,background:'transparent',color:C.muted}},'View Account'),
-                              React.createElement('button',{onClick:async function(){
+                              (function(){
                                 var subj='Globs Reorder \u2014 '+o.name;
                                 var body='Hi,\n\nSuggested reorder for '+o.name+' ('+o.daysSince+'d since last order):\n\n';
                                 lines.forEach(function(l){body+='  '+l.qty+'x '+l.strain+' ('+l.cat+') @ $'+l.ws.toFixed(2)+' = $'+l.lineRev.toFixed(2)+'\n';});
                                 body+='\nOrder total: $'+orderRev.toFixed(2)+'\n\nDylan\nGlobs';
-                                try{
-                                  toast('\u23f3 Creating Gmail draft...');
-                                  var resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,messages:[{role:'user',content:'Create a Gmail draft. Subject: "'+subj+'" Body: '+JSON.stringify(body)+' Just create the draft, no commentary.'}],mcp_servers:[{type:'url',url:'https://gmail.mcp.claude.com/mcp',name:'gmail'}]})});
-                                  var data=await resp.json();
-                                  if(data.content&&data.content.some(function(b){return b.type==='mcp_tool_result';})){toast('\u2713 Gmail draft created: '+o.name);}
-                                  else{await navigator.clipboard.writeText('Subject: '+subj+'\n\n'+body);toast('\u2713 Copied to clipboard \u2014 paste into Gmail');}
-                                }catch(e){try{await navigator.clipboard.writeText('Subject: '+subj+'\n\n'+body);toast('\u2713 Copied to clipboard');}catch(e2){}}
-                              },style:{padding:'8px 16px',borderRadius:3,fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid #2196f3',background:'#2196f322',color:'#2196f3'}},'\u2709 Draft Reorder')
+                                var bs={padding:'8px 16px',borderRadius:3,fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'inherit'};
+                                return shareActions(subj,body,bs);
+                              })()
                             )
                           ):isOpen?React.createElement('div',{style:{borderTop:'1px solid '+C.border,padding:'16px',textAlign:'center',fontSize:11,color:C.dim}},inStockCount===0?'Upload Salesforce XLSX with inventory to enable suggestions':'No in-stock SKUs match this account\'s purchase categories'):null
                         );
@@ -2435,6 +2537,10 @@ window._STRAIN_DB=[
                   for(var pi=0;pi<sortedByRev.length;pi++){cumRev+=(sortedByRev[pi].totalSales||0);if(cumRev>=totalRev365*0.8&&p80idx===0)p80idx=pi+1;}
 
                   return React.createElement('div',null,
+                    React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:14}},
+                      React.createElement('span',{style:{fontSize:9,color:C.dim,letterSpacing:1.5}},'REVENUE WINDOW'),
+                      [7,30,60,90,180,270,365].map(function(d){return React.createElement('button',{key:d,onClick:function(){setPeriodDays(d);},style:{padding:'4px 11px',borderRadius:2,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(periodDays===d?C.text:C.border),background:periodDays===d?C.text:'transparent',color:periodDays===d?C.bg:C.dim,fontWeight:periodDays===d?700:400}},d+'d');})
+                    ),
                     React.createElement('div',{style:{display:'flex',alignItems:'center',gap:16,marginBottom:24}},
                       React.createElement('div',{style:{fontSize:14,fontWeight:900,letterSpacing:3}},'\u2609 MORNING BRIEFING'),
                       React.createElement('div',{style:{fontSize:9,color:C.dim}},new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}))
@@ -3034,9 +3140,9 @@ window._STRAIN_DB=[
                   );})}
                   <div style={{padding:'20px 28px',background:'#f5f5f5',borderTop:'2px solid #000'}}><div style={{display:'flex',gap:40}}>{["Production Manager","QA Sign-off","Date Completed"].map(function(l){return<div key={l} style={{flex:1}}><div style={{fontSize:8,color:'#888',letterSpacing:1,marginBottom:24}}>{l.toUpperCase()}</div><div style={{borderBottom:'1px solid #000'}}></div></div>;})}</div><div style={{marginTop:16,fontSize:8,color:'#999'}}>Combined MFG Work Order · {wo.categories.length} categories · {today} · Globs Price Intelligence</div></div>
                   <div style={{padding:'12px 28px',background:'#000',display:'flex',gap:10,justifyContent:'flex-end',flexWrap:'wrap'}}>
-                    <button onClick={function(){
-                      const today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-                      let body="GLOBS - MANUFACTURING WORK ORDER\n"+today+"\n";
+                    {(function(){
+                      var woDate=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+                      var body="GLOBS - MANUFACTURING WORK ORDER\n"+woDate+"\n";
                       body+="Total Units: "+wo.totalUnits.toLocaleString()+"\n";
                       body+="Production Cost: $"+wo.totalCost.toFixed(0)+"\n";
                       body+="Estimated Revenue: $"+wo.totalRev.toFixed(0)+"\n\n";
@@ -3047,10 +3153,8 @@ window._STRAIN_DB=[
                         body+="\n";
                       });
                       body+="Please process and confirm ETA.\n\nThank you,\nDylan\nGlobs";
-                      const ml="mailto:?subject="+encodeURIComponent("Globs Work Order - "+today)+"&body="+encodeURIComponent(body);
-                      window.open(ml,'_blank');
-                    }} style={{padding:'7px 18px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid #2196f3',background:'#2196f3',color:'#fff'}}>✉ Draft to Gmail</button>
-                    <button onClick={function(){window.print();}} style={{padding:'7px 18px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid #fff',background:'#fff',color:'#000'}}>Print / Save PDF</button>
+                      return shareActions("Globs Work Order - "+woDate,body);
+                    })()}
                     <button onClick={function(){setMfgWorkOrder(null);}} style={{padding:'7px 18px',borderRadius:3,fontSize:11,cursor:'pointer',fontFamily:'inherit',border:'1px solid #444',background:'transparent',color:'#fff'}}>Close</button>
                   </div>
                 </div>
@@ -3088,15 +3192,17 @@ window._STRAIN_DB=[
       const [batchQueue, setBatchQueue] = useState([]);
       const [parseStatus, setParseStatus] = useState('');
       const [productType, setProductType] = useState('VAPE CART');
+      const [pendingFiles, setPendingFiles] = useState([]);
+      const [reviewIndex, setReviewIndex] = useState(0);
       var todayISO = new Date().toISOString().split('T')[0];
       const [fields, setFields] = useState({strain:'',cross:'',type:'Hybrid',thc:'',cbd:'',sumCanna:'',batch:'',pkgDate:todayISO,mfgDate:'',testDate:'',metrc:'',terpenes:'',netWt:'1.0'});
       const coaRef = useRef();
 
       const STOCKS = [
-        {id:'OL285WX',name:'Cart Back Label',desc:'1.25" x 0.75" rectangle',w:360,h:216},
-        {id:'OL5030WX',name:'Case/Master Sticker',desc:'4" x 2" rectangle',w:576,h:288},
-        {id:'OL5275',name:'Vape Cart Front',desc:'0.75" circle, matte white',w:216,h:216,circle:true},
-        {id:'OL5275CL',name:'Jar Bottom',desc:'0.75" circle, clear',w:216,h:216,circle:true}
+        {id:'OL285WX',name:'Cart Back Label',desc:'1.25" x 0.75" rectangle',w:360,h:216,perSheet:72,cols:6,rows:12},
+        {id:'OL5030WX',name:'Case/Master Sticker',desc:'3.375" x 2.3125" rectangle',w:486,h:333,perSheet:8,cols:2,rows:4},
+        {id:'OL5275',name:'Vape Cart Front',desc:'0.75" circle, matte white',w:216,h:216,circle:true,perSheet:108,cols:9,rows:12},
+        {id:'OL5275CL',name:'Jar Bottom',desc:'0.75" circle, clear',w:216,h:216,circle:true,perSheet:108,cols:9,rows:12}
       ];
       const PRODUCTS = ['VAPE CART','BADDER','SAUCE','DIAMONDS','SHATTER'];
       const TYPE_FULL = {I:'Indica',S:'Sativa',H:'Hybrid'};
@@ -3280,8 +3386,20 @@ window._STRAIN_DB=[
       }
 
       function handleCOAUpload(e) {
-        var file = e.target.files[0]; if (!file) return;
-        parseCOA(file);
+        var files = Array.from(e.target.files || []);
+        if (!files.length) return;
+        if (files.length === 1) {
+          setPendingFiles([]);
+          setReviewIndex(0);
+          parseCOA(files[0]);
+          setParseStatus('Parsing COA...');
+        } else {
+          // Multi-file: parse first, queue the rest
+          setPendingFiles(files.slice(1));
+          setReviewIndex(0);
+          parseCOA(files[0]);
+          setParseStatus('Reviewing 1 of ' + files.length + ' COAs');
+        }
         e.target.value = '';
       }
 
@@ -3296,15 +3414,27 @@ window._STRAIN_DB=[
         if (!fields.strain || !fields.batch) return;
         var entry = Object.assign({}, fields, {id: Date.now(), productType: productType, thcMg: thcMg, cbdMg: cbdMg, sumMg: sumMg, approved: new Date().toISOString()});
         setBatchQueue(function(q) { return [entry].concat(q); });
-        setParseStatus('✓ Approved: ' + fields.strain + ' (' + fields.batch + ') added to queue — upload next COA');
         // Clear form for next COA
         setFields({strain:'',cross:'',type:'Hybrid',thc:'',cbd:'',sumCanna:'',batch:'',pkgDate:todayISO,mfgDate:'',testDate:'',metrc:'',terpenes:'',netWt:'1.0'});
         setCoaData(null);
         setBarcodeUrl('');
+        // Auto-load next pending file if batch upload
+        if (pendingFiles.length > 0) {
+          var nextFile = pendingFiles[0];
+          var remaining = pendingFiles.slice(1);
+          setPendingFiles(remaining);
+          setReviewIndex(function(r) { return r + 1; });
+          var totalBatch = reviewIndex + 1 + remaining.length + 1;
+          setParseStatus('✓ Approved: ' + entry.strain + ' — Reviewing ' + (reviewIndex + 2) + ' of ' + totalBatch + ' COAs');
+          setTimeout(function() { parseCOA(nextFile); }, 300);
+        } else {
+          var totalApproved = batchQueue.length + 1;
+          setParseStatus('✓ Approved: ' + entry.strain + ' (' + entry.batch + ')' + (totalApproved > 1 ? ' — ' + totalApproved + ' total in queue' : ' — upload next COA'));
+        }
       }
 
-      function draftEmail() {
-        if (!batchQueue.length) return;
+      function buildComplianceText() {
+        if (!batchQueue.length) return null;
         var month = new Date().toLocaleDateString('en-US', {month: 'long', year: 'numeric'});
         var batchCodes = batchQueue.map(function(b) { return b.batch; }).filter(Boolean).join(', ');
         var subject = 'Globs Compliance Review and Intake | #' + (batchCodes || 'PENDING') + ' | ' + month;
@@ -3315,9 +3445,8 @@ window._STRAIN_DB=[
         batchQueue.forEach(function(b) {
           body += b.strain + ' | ' + b.batch + ' | ' + b.productType + ' | $' + (b.productType === 'VAPE CART' ? '12' : '8') + ' | 1000 | 20 | 50 | 200 | 5\n';
         });
-        body += '\nCOA PDFs and label artwork attached separately.\n\nBest,\nDylan\nGlobs';
-        var mailto = 'mailto:intake@upnorthhumboldt.com?cc=steve@upnorthhumboldt.com,dylan@getglobs.com&subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
-        window.open(mailto, '_blank');
+        body += '\nTo: intake@upnorthhumboldt.com\nCC: steve@upnorthhumboldt.com, dylan@getglobs.com\n\nCOA PDFs and label artwork attached separately.\n\nBest,\nDylan\nGlobs';
+        return {subject: subject, body: body};
       }
 
       var stock = STOCKS[0]; // default for reference
@@ -3449,8 +3578,9 @@ window._STRAIN_DB=[
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20,flexWrap:'wrap',gap:12}}>
             <div><div style={{fontSize:14,fontWeight:800,letterSpacing:3}}>LABEL GENERATOR</div><div style={{fontSize:9,color:C.dim,marginTop:3}}>Upload COA → auto-fill strain · THC · CBD · terpenes · batch · METRC → DB fills genetics + type → PKG date = today</div></div>
             <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-              <input ref={coaRef} type="file" accept=".pdf" onChange={handleCOAUpload} style={{display:'none'}}/>
-              <button onClick={function(){coaRef.current&&coaRef.current.click();}} style={{padding:'7px 16px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.text,background:C.text,color:C.bg}}>Upload COA PDF</button>
+              <input ref={coaRef} type="file" accept=".pdf" multiple onChange={handleCOAUpload} style={{display:'none'}}/>
+              <button onClick={function(){coaRef.current&&coaRef.current.click();}} style={{padding:'7px 16px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.text,background:C.text,color:C.bg}}>Upload COA PDFs</button>
+              {pendingFiles.length>0&&<span style={{fontSize:10,color:'#f5a623',fontWeight:700,marginLeft:8}}>Reviewing {reviewIndex+1} of {reviewIndex+1+pendingFiles.length} COAs</span>}
               <button onClick={fillTestData} style={{padding:'7px 16px',borderRadius:3,fontSize:11,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.border,background:'transparent',color:C.dim}}>Test: Grandmas Cookies</button>
             </div>
           </div>
@@ -3523,7 +3653,9 @@ window._STRAIN_DB=[
             <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:20,marginBottom:20}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
                 <div style={{fontSize:9,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>Approved Batches ({batchQueue.length})</div>
-                <button onClick={draftEmail} style={{padding:'6px 14px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid #2196f3',background:'#2196f3',color:'#fff'}}>Draft Compliance Email</button>
+                <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                {(function(){var ct=buildComplianceText();if(!ct)return null;return shareActions(ct.subject,ct.body,{padding:'6px 14px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit'});})()}
+                </div>
               </div>
               <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse'}}>
                 <thead><tr style={{background:C.raised}}>{['Strain','Type','Product','THC','Batch','METRC','Approved',''].map(function(h,i){return<th key={h+i} style={{padding:'6px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:'left',borderBottom:'1px solid '+C.border}}>{h}</th>;})}</tr></thead>
