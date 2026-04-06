@@ -1917,6 +1917,7 @@ window._STRAIN_DB=[
                   var oTotRev=OPP.reduce(function(s,o){return s+o.rev;},0);
 
                   return React.createElement('div',null,
+                    React.createElement('div',{style:{padding:'8px 14px',marginBottom:12,background:inStockCount>0?'#1b5e2022':C.dangerBg,border:'1px solid '+(inStockCount>0?'#1b5e2044':C.dangerBdr),borderRadius:4,fontSize:10,color:inStockCount>0?'#4caf50':C.danger,fontWeight:600}},inStockCount>0?'\u2713 '+inStockCount+' inventory SKUs loaded \u00b7 '+totalInvStart+' total units \u00b7 '+allocCount+' accounts with suggestions':'\u26a0 No inventory loaded \u2014 upload Salesforce XLSX to generate order suggestions'),
                     React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:12,marginBottom:20}},
                       [{l:"At-Risk",v:OPP.length,c:C.warn},{l:"Fallen Off",v:oFallen.length,c:C.danger},{l:"Overdue",v:oOverdue.length,c:C.warn},{l:"At-Risk Rev",v:curK(oTotRev),c:C.text},{l:"Orders",v:allocCount+' / '+curK(totalAllocRev),c:C.good},{l:"Allocated",v:pctAlloc+'% ('+totalRemaining+' left)',c:pctAlloc>=95?C.good:C.muted}].map(function(s,i){return React.createElement('div',{key:i,style:{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'12px 14px'}},React.createElement('div',{style:{fontSize:7,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:4}},s.l),React.createElement('div',{style:{fontSize:18,fontWeight:800,color:s.c}},s.v));})
                     ),
@@ -1969,7 +1970,7 @@ window._STRAIN_DB=[
                     React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:6}},
                       oFilt.map(function(o,i){
                         var ratio=o.median>0?(o.daysSince/o.median).toFixed(1):'?';
-                        var isOpen=!!openOpps[o.name];
+                        var isOpen=openOpps[o.name]!=null?!!openOpps[o.name]:i<3;// auto-expand first 3
                         var lines=(alloc[o.name]||[]).slice().sort(function(a,b){return b.lineRev-a.lineRev;});
                         var orderRev=lines.reduce(function(s,l){return s+l.lineRev;},0);
                         var orderUnits=lines.reduce(function(s,l){return s+l.qty;},0);
