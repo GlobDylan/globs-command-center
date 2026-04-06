@@ -974,7 +974,7 @@ window._STRAIN_DB=[
         }
       }
       async function persist(k,v){try{await window.storage.set(k,JSON.stringify(v));await window.storage.set("gpi-sync",new Date().toISOString());setLastSync(new Date().toISOString());}catch(e){console.error(e);}}
-      function toast(msg){setNotice(msg);setTimeout(function(){setNotice("");},15000);}
+      function toast(msg){setNotice(msg);if(window._toastTimer)clearTimeout(window._toastTimer);window._toastTimer=setTimeout(function(){setNotice("");},msg.includes('Loaded')||msg.includes('\u2713')?30000:8000);}
 
       const [csvLoading,setCsvLoading]=useState(false);
 
@@ -1041,7 +1041,8 @@ window._STRAIN_DB=[
                       farNorth:parseInt(row[11])||parseInt(row[12])||0
                     };
                   }
-                  loaded.push(debugCount+' inv SKUs ('+invRows.length+'r, 1st:'+debugFirst+')');
+                  var invMsg='INV: '+debugCount+' SKUs from '+invRows.length+' rows (1st: '+debugFirst+')';
+                  loaded.push(invMsg);
                   if(Object.keys(invData).length>0){
                     setInventoryData(invData);
                     var oh={};Object.keys(invData).forEach(function(k){oh[k]=invData[k].onHand;});
@@ -1068,7 +1069,7 @@ window._STRAIN_DB=[
                   var mktR=parseCSV(mktCsv);
                   if(mktR.type==='account'&&mktR.data){setPromoAccounts(mktR.data);persist('gpi-promo-accounts',mktR.data);loaded.push(mktR.data.length+' promo accounts');}
                 }
-                if(loaded.length>0){toast('\u2713 Loaded: '+loaded.join(' \u00b7 '));}
+                if(loaded.length>0){toast(loaded.join(' | '));}
                 else{toast('\u26a0 XLSX parsed but no recognized data found. Sheets: '+wb.SheetNames.join(', '));}
               }catch(err){toast('\u2717 Parse error: '+err.message);}
               finally{setCsvLoading(false);}
