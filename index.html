@@ -612,6 +612,28 @@ window._STRAIN_DB=[
       Battery:{label:"Battery",wholesale:13,oil:0,pkg:0.50,labor:0,testing:0,cost:6.50,distroRate:0.16},
       Promo:{label:"Sample/Promo",wholesale:0.01,oil:1.25,pkg:0.66,labor:1.00,testing:0.45,cost:3.36,distroRate:0},
       Other:{label:"Other",wholesale:8.50,oil:1.30,pkg:1.04,labor:1.00,testing:0.44,cost:3.85,distroRate:0.16}
+
+    // ── EMBEDDED INVENTORY (from Salesforce XLSX Apr 5 2026) ──
+    // This ensures inventory is ALWAYS available regardless of upload
+    var EMBEDDED_INVENTORY = {
+      'Globs - Clickbox Precise Battery - Black':{onHand:141,bayArea:87,socal:22,farNorth:32,thc:'00.00',batch:'',pkgDate:'',daysOld:''},
+      'Globs - Clickbox Precise Battery - White':{onHand:142,bayArea:89,socal:21,farNorth:32,thc:'00.00',batch:'',pkgDate:'',daysOld:''},
+      'Globs - Frozen Grapes - Badder (1g)':{onHand:211,bayArea:100,socal:55,farNorth:56,thc:'76.11',batch:'GLO-PE-004',pkgDate:'2026-01-26',daysOld:'69'},
+      'Globs - Grandma\'s Cookies - Badder (1g)':{onHand:12,bayArea:6,socal:0,farNorth:6,thc:'76.39',batch:'GLO-PE-001',pkgDate:'2026-01-26',daysOld:'69'},
+      'Globs - Grandma\'s Cookies - Live Resin Vape Cart (1g)':{onHand:20,bayArea:20,socal:0,farNorth:0,thc:'76.14',batch:'GLO-VC-005',pkgDate:'2026-02-20',daysOld:'44'},
+      'Globs - Hella Oranges - Live Resin Vape Cart (1g)':{onHand:21,bayArea:21,socal:0,farNorth:0,thc:'81.21',batch:'GLO-VC-014',pkgDate:'2026-02-20',daysOld:'44'},
+      'Globs - Hella Oranges - Sauce (1g)':{onHand:455,bayArea:160,socal:135,farNorth:160,thc:'57.90',batch:'GLO-PE-007',pkgDate:'2026-02-20',daysOld:'44'},
+      'Globs - Ice Cream Paint Job - Live Resin Vape Cart (1g)':{onHand:25,bayArea:25,socal:0,farNorth:0,thc:'83.74',batch:'GLO-VC-013',pkgDate:'2026-02-20',daysOld:'44'},
+      'Globs - Ice Cream Paint Job - Sauce (1g)':{onHand:532,bayArea:225,socal:127,farNorth:180,thc:'63.03',batch:'GLO-PE-008',pkgDate:'2026-02-20',daysOld:'44'},
+      'Globs - Lemon Thai - Live Resin Vape Cart (1g)':{onHand:20,bayArea:20,socal:0,farNorth:0,thc:'84.55',batch:'GLO-VC-011',pkgDate:'2026-02-20',daysOld:'44'},
+      'Globs - Strawberry Milk - Sauce (1g)':{onHand:576,bayArea:239,socal:157,farNorth:180,thc:'57.40',batch:'GLO-PE-009',pkgDate:'2026-02-20',daysOld:'44'},
+      'Globs - Sweet-N-Sour Diesel - Badder (1g)':{onHand:303,bayArea:194,socal:73,farNorth:36,thc:'73.99',batch:'GLO-PE-002',pkgDate:'2026-01-26',daysOld:'69'},
+      'Globs - Sweet-N-Sour Diesel - Live Resin Vape Cart (1g)':{onHand:55,bayArea:29,socal:0,farNorth:26,thc:'74.51',batch:'GLO-VC-015',pkgDate:'2026-02-20',daysOld:'44'},
+      'Globs - Sweet-N-Sour Diesel - Sauce (1g)':{onHand:718,bayArea:360,socal:158,farNorth:200,thc:'59.90',batch:'GLO-PE-010',pkgDate:'2026-02-20',daysOld:'44'},
+      'Globs - Wagyu Truffle Butter - Badder (1g)':{onHand:117,bayArea:88,socal:29,farNorth:0,thc:'76.51',batch:'GLO-PE-005',pkgDate:'2026-01-26',daysOld:'69'},
+      'Globs - Wagyu Trufle Butter - Live Resin Vape Cart (1g)':{onHand:6,bayArea:6,socal:0,farNorth:0,thc:'76.03',batch:'GLO-VC-006',pkgDate:'2026-01-14',daysOld:'81'}
+    };
+
     };
     // CP cost: replace oil with biomass+toll (both per lb of input, converted to per gram of output via yield)
     // biomass $/lb + toll $/lb = total input $/lb → ÷ 453.6 ÷ (yield/100) = material $/g output
@@ -896,9 +918,9 @@ window._STRAIN_DB=[
       const [promoAccounts,setPromoAccounts]=useState([]);
       const [priceData,setPriceData]=useState({});
       const [snapshots,setSnapshots]=useState({});
-      const [inventoryData,setInventoryData]=useState({});
+      const [inventoryData,setInventoryData]=useState(EMBEDDED_INVENTORY);
       const [pkgComps,setPkgComps]=useState(function(){const o={};Object.keys(PKG).forEach(function(g){o[g]={};PKG[g].forEach(function(c){o[g][c.id]={onHand:c.initOnHand,onOrder:c.initOnOrder};});});return o;});
-      const [mfgInventory,setMfgInventory]=useState({});
+      const [mfgInventory,setMfgInventory]=useState(function(){var oh={};Object.keys(EMBEDDED_INVENTORY).forEach(function(k){oh[k]=EMBEDDED_INVENTORY[k].onHand;});return oh;}());
       const [mfgOrderQty,setMfgOrderQty]=useState({});
       const [mfgTargetWeeks,setMfgTargetWeeks]=useState(6);
       const [mfgBatchData,setMfgBatchData]=useState({});
