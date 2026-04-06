@@ -499,7 +499,7 @@ window._STRAIN_DB=[
       const all=parseCSVRFC4180(text); const result={};
       all.slice(3).forEach(function(row) {
         const sku=row[0]&&row[0].trim();
-        if (!sku||!sku.toLowerCase().startsWith("globs")||sku.toLowerCase().includes("battery")) return;
+        if (!sku||!sku.toLowerCase().startsWith("globs")) return;
         result[sku]={onHand:parseInt((row[6]||"").trim())||0,pkgDate:(row[2]&&row[2].trim())||"",daysOld:(row[3]&&row[3].trim())||"",batch:(row[4]&&row[4].trim())||"",thc:(row[5]&&row[5].trim())||""};
       });
       return result;
@@ -729,7 +729,7 @@ window._STRAIN_DB=[
               )}
               {section==="promotions"&&<PromotionsSection promotions={account.promotions||[]}/>}
               {section==="returns"&&(function(){var acctReturns=(returnsLog||[]).filter(function(r){return r.account===account.name&&!r.preMarket;});var totalCredits=acctReturns.reduce(function(s,r){return s+(r.totalValue||0);},0);return<div style={{padding:'12px 16px'}}>{acctReturns.length>0?<><div style={{display:'flex',justifyContent:'space-between',marginBottom:10}}><span style={{fontSize:9,color:C.dim,letterSpacing:1.5}}>RETURNS & DEFECTS</span><span style={{fontSize:11,fontWeight:700,color:C.danger}}>${totalCredits.toFixed(0)} in credits</span></div><div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:380,borderCollapse:'collapse'}}><thead><tr style={{background:C.raised}}>{['Date','Strain','Cat','Qty','Value','Reason','Status'].map(function(h,i){return<th key={h} style={{padding:'5px 8px',fontSize:8,fontWeight:700,color:C.dim,textAlign:i>=3?'right':'left',borderBottom:'1px solid '+C.border}}>{h}</th>;})}</tr></thead><tbody>{acctReturns.map(function(r,i){return<tr key={i} style={{background:i%2===0?'transparent':'#0a0a0a'}}><td style={{padding:'5px 8px',fontSize:10,color:C.muted}}>{r.date}</td><td style={{padding:'5px 8px',fontSize:10}}>{r.strain}</td><td style={{padding:'5px 8px',fontSize:9,color:C.dim}}>{r.category}</td><td style={{padding:'5px 8px',fontSize:10,textAlign:'right'}}>{r.qty}</td><td style={{padding:'5px 8px',fontSize:10,textAlign:'right',color:C.danger}}>${(r.totalValue||0).toFixed(2)}</td><td style={{padding:'5px 8px',fontSize:9,color:C.muted}}>{r.reason||'—'}</td><td style={{padding:'5px 8px',fontSize:9,textAlign:'right'}}><span style={{padding:'1px 6px',borderRadius:2,fontSize:8,fontWeight:700,background:r.status==='CREDIT APPLIED'?C.goodBg:C.warnBg,color:r.status==='CREDIT APPLIED'?C.good:C.warn,border:'1px solid '+(r.status==='CREDIT APPLIED'?C.goodBdr:C.warnBdr)}}>{r.status}</span></td></tr>;})}</tbody></table></div></>:<div style={{padding:'20px 0',textAlign:'center',fontSize:11,color:C.dim}}>No returns recorded for this account</div>}</div>;})()}
-              {section==="margin"&&(function(){var cb2={'Vape Cart - Live Resin':COGS.Cart,'Badder':COGS.Badder,'Sauce':COGS.Sauce,'Diamonds':COGS.Diamonds,'Shatter':COGS.Shatter};var CM2={'Live Resin':'Vape Cart - Live Resin'};var cr=(account.periodCatRevenue&&account.periodCatRevenue[periodDays])?account.periodCatRevenue[periodDays]:(account.catRevenue90||{});var aRev=0,aCogs=0,aDist=0;Object.keys(cr).forEach(function(rc){var rev=cr[rc];if(!rev||rev<=0)return;var label=CM2[rc]||rc;var cogs=cb2[label]||COGS.Other;var units=cogs.wholesale>0?Math.round(rev/cogs.wholesale):0;aCogs+=units*cogs.cost;aDist+=rev*cogs.distroRate;aRev+=rev;});var acctRet=(returnsLog||[]).filter(function(r){return r.account===account.name&&!r.preMarket;}).reduce(function(s,r){return s+(r.totalValue||0);},0);var net=aRev-aCogs-aDist-acctRet;var margin=aRev>0?net/aRev*100:0;return<div style={{padding:'12px 16px'}}><div style={{fontSize:9,color:C.dim,letterSpacing:1.5,marginBottom:10}}>MARGIN ANALYSIS ({periodDays}d)</div><div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr 1fr',gap:10,marginBottom:12}}>{[{l:'Revenue',v:curK(aRev),c:C.text},{l:'COGS',v:'-'+curK(aCogs),c:C.muted},{l:'Distro',v:'-'+curK(aDist),c:C.muted},{l:'Returns',v:acctRet>0?'-'+cur(acctRet):'—',c:acctRet>0?C.danger:C.dim},{l:'Net / Margin',v:curK(net)+' / '+margin.toFixed(1)+'%',c:margin>35?C.good:margin>20?C.warn:C.danger}].map(function(s){return<div key={s.l} style={{background:C.bg,border:'1px solid '+C.border,borderRadius:4,padding:'8px 10px',textAlign:'center'}}><div style={{fontSize:7,color:C.dim,letterSpacing:1,marginBottom:3}}>{s.l}</div><div style={{fontSize:13,fontWeight:700,color:s.c}}>{s.v}</div></div>;})}</div></div>;})()}
+              {section==="margin"&&(function(){var cb2={'Vape Cart - Live Resin':COGS.Cart,'Badder':COGS.Badder,'Sauce':COGS.Sauce,'Diamonds':COGS.Diamonds,'Shatter':COGS.Shatter};var CM2={'Live Resin':'Vape Cart - Live Resin'};var cr=(account.periodCatRevenue&&account.periodCatRevenue[periodDays])?account.periodCatRevenue[periodDays]:(account.catRevenue90||{});var aRev=0,aCogs=0;Object.keys(cr).forEach(function(rc){var rev=cr[rc];if(!rev||rev<=0)return;var label=CM2[rc]||rc;var cogs=cb2[label]||COGS.Other;var units=cogs.wholesale>0?Math.round(rev/cogs.wholesale):0;aCogs+=units*cogs.cost;aRev+=rev*0.84;});var acctRet=(returnsLog||[]).filter(function(r){return r.account===account.name&&!r.preMarket;}).reduce(function(s,r){return s+(r.totalValue||0);},0);var net=aRev-aCogs-acctRet;var margin=aRev>0?net/aRev*100:0;return<div style={{padding:'12px 16px'}}><div style={{fontSize:9,color:C.dim,letterSpacing:1.5,marginBottom:10}}>MARGIN ANALYSIS ({periodDays}d)</div><div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:10,marginBottom:12}}>{[{l:'Revenue (84%)',v:curK(aRev),c:C.text},{l:'COGS',v:'-'+curK(aCogs),c:C.muted},{l:'Returns',v:acctRet>0?'-'+cur(acctRet):'—',c:acctRet>0?C.danger:C.dim},{l:'Net / Margin',v:curK(net)+' / '+margin.toFixed(1)+'%',c:margin>35?C.good:margin>20?C.warn:C.danger}].map(function(s){return<div key={s.l} style={{background:C.bg,border:'1px solid '+C.border,borderRadius:4,padding:'8px 10px',textAlign:'center'}}><div style={{fontSize:7,color:C.dim,letterSpacing:1,marginBottom:3}}>{s.l}</div><div style={{fontSize:13,fontWeight:700,color:s.c}}>{s.v}</div></div>;})}</div></div>;})()}
             </div>
           )}
         </div>
@@ -1214,20 +1214,20 @@ window._STRAIN_DB=[
                 {/* ══ EXECUTIVE ══ */}
                 {tab==="executive"&&(function(){
                   const CM={"Vape Cart - Live Resin":"Vape Cart","Badder":"Badder","Sauce":"Sauce","Diamonds":"Diamonds","Shatter":"Shatter"},cb={"Vape Cart":COGS.Cart,"Badder":COGS.Badder,"Sauce":COGS.Sauce,"Diamonds":COGS.Diamonds,"Shatter":COGS.Shatter};
-                  const byType={};let tR=0,tC=0,tD=0,tU=0;
-                  displayAccounts.forEach(function(acc){const cr=(acc.periodCatRevenue&&acc.periodCatRevenue[periodDays])?acc.periodCatRevenue[periodDays]:(acc.catRevenue90||{});Object.keys(cr).forEach(function(rc){const rev=cr[rc];if(!rev||rev<=0)return;const label=CM[rc]||rc,cogs=cb[label]||COGS.Other,units=cogs.wholesale>0?Math.round(rev/cogs.wholesale):0,pc=units*cogs.cost,d=rev*cogs.distroRate;if(!byType[label])byType[label]={label,units:0,revenue:0,cogs:0,distro:0};byType[label].units+=units;byType[label].revenue+=rev;byType[label].cogs+=pc;byType[label].distro+=d;tR+=rev;tC+=pc;tD+=d;tU+=units;});});
-                  const gp=tR-tC,np=gp-tD,mg=tR>0?np/tR*100:0,types=Object.values(byType).sort(function(a,b){return b.revenue-a.revenue;});
+                  const byType={};let tR=0,tC=0,tU=0;
+                  displayAccounts.forEach(function(acc){const cr=(acc.periodCatRevenue&&acc.periodCatRevenue[periodDays])?acc.periodCatRevenue[periodDays]:(acc.catRevenue90||{});Object.keys(cr).forEach(function(rc){const rev=cr[rc];if(!rev||rev<=0)return;const label=CM[rc]||rc,cogs=cb[label]||COGS.Other,units=cogs.wholesale>0?Math.round(rev/cogs.wholesale):0,pc=units*cogs.cost,yourRev=rev*0.84;if(!byType[label])byType[label]={label,units:0,revenue:0,cogs:0};byType[label].units+=units;byType[label].revenue+=yourRev;byType[label].cogs+=pc;tR+=yourRev;tC+=pc;tU+=units;});});
+                  const gp=tR-tC,np=gp,mg=tR>0?np/tR*100:0,types=Object.values(byType).sort(function(a,b){return b.revenue-a.revenue;});
                   return(
                     <div>
                       <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14}}><span style={{fontSize:9,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>Period</span>{[7,30,60,90,180,270,365].map(function(d){return<button key={d} onClick={function(){setPeriodDays(d);}} style={{padding:'4px 10px',borderRadius:2,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(periodDays===d?C.text:C.border),background:periodDays===d?C.text:'transparent',color:periodDays===d?C.bg:C.dim,fontWeight:periodDays===d?700:400}}>{d}d</button>;})}</div>
-                      <div style={{display:'flex',gap:12,marginBottom:24,flexWrap:'wrap'}}>{[{l:"Revenue",v:tR},{l:"Prod. Cost",v:tC},{l:"Distro",v:tD},{l:"Gross Profit",v:gp,color:C.good},{l:"Net Profit",v:np,color:np>0?C.good:C.danger,alert:np<0},{l:"Net Margin",v:null,special:mg.toFixed(1)+'%',color:mg>40?C.good:mg>20?C.warn:C.danger}].map(function(it){return<div key={it.l} style={{background:it.alert?C.dangerBg:C.surface,border:'1px solid '+(it.alert?C.dangerBdr:C.border),borderRadius:6,padding:'18px 24px',flex:1,minWidth:80}}><div style={{fontSize:9,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:6}}>{it.l}</div><div style={{fontSize:24,fontWeight:800,color:it.color||C.text,lineHeight:1}}>{it.special||(it.v!=null?curK(it.v):'—')}</div></div>;})}</div>
+                      <div style={{display:'flex',gap:12,marginBottom:24,flexWrap:'wrap'}}>{[{l:"Revenue (84%)",v:tR},{l:"Prod. Cost",v:tC},{l:"Gross Profit",v:gp,color:C.good},{l:"Net Margin",v:null,special:mg.toFixed(1)+'%',color:mg>40?C.good:mg>20?C.warn:C.danger}].map(function(it){return<div key={it.l} style={{background:it.alert?C.dangerBg:C.surface,border:'1px solid '+(it.alert?C.dangerBdr:C.border),borderRadius:6,padding:'18px 24px',flex:1,minWidth:80}}><div style={{fontSize:9,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:6}}>{it.l}</div><div style={{fontSize:24,fontWeight:800,color:it.color||C.text,lineHeight:1}}>{it.special||(it.v!=null?curK(it.v):'—')}</div></div>;})}</div>
                       <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'20px 22px'}}>
                         <div style={{fontSize:9,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:14}}>By Product Type</div>
                         <div style={{overflowX:'auto'}}>
                           <table style={{width:'100%',minWidth:560,borderCollapse:'collapse'}}>
-                            <thead><tr>{["Type","Units","Revenue","Cost","Distro","Net","Margin"].map(function(h,i){return<th key={h} style={{padding:'5px 8px',fontSize:8,fontWeight:700,letterSpacing:1,textTransform:'uppercase',color:C.dim,textAlign:i===0?'left':'right',borderBottom:'1px solid '+C.border}}>{h}</th>;})}</tr></thead>
-                            <tbody>{types.map(function(t,i){const net=t.revenue-t.cogs-t.distro,m2=t.revenue>0?net/t.revenue*100:0;return<tr key={t.label} style={{background:i%2===0?'transparent':'#0a0a0a'}}><td style={{padding:'8px 8px',fontSize:11,fontWeight:600}}>{t.label}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,color:C.muted}}>{t.units.toLocaleString()}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:11,fontWeight:700}}>{curK(t.revenue)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,color:C.muted}}>{curK(t.cogs)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,color:C.dim}}>{curK(t.distro)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:11,fontWeight:700,color:net>0?C.good:C.danger}}>{curK(net)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,color:m2>40?C.good:m2>20?C.warn:C.danger}}>{m2.toFixed(1)}%</td></tr>;})}
-                            <tr style={{borderTop:'1px solid '+C.border,background:C.raised}}><td style={{padding:'8px 8px',fontSize:11,fontWeight:800}}>TOTAL</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,fontWeight:700}}>{tU.toLocaleString()}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:11,fontWeight:800}}>{curK(tR)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,fontWeight:700}}>{curK(tC)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,fontWeight:700}}>{curK(tD)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:11,fontWeight:800,color:np>0?C.good:C.danger}}>{curK(np)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,fontWeight:800,color:mg>40?C.good:C.warn}}>{mg.toFixed(1)}%</td></tr>
+                            <thead><tr>{["Type","Units","Revenue (84%)","Cost","Net","Margin"].map(function(h,i){return<th key={h} style={{padding:'5px 8px',fontSize:8,fontWeight:700,letterSpacing:1,textTransform:'uppercase',color:C.dim,textAlign:i===0?'left':'right',borderBottom:'1px solid '+C.border}}>{h}</th>;})}</tr></thead>
+                            <tbody>{types.map(function(t,i){const net=t.revenue-t.cogs,m2=t.revenue>0?net/t.revenue*100:0;return<tr key={t.label} style={{background:i%2===0?'transparent':'#0a0a0a'}}><td style={{padding:'8px 8px',fontSize:11,fontWeight:600}}>{t.label}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,color:C.muted}}>{t.units.toLocaleString()}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:11,fontWeight:700}}>{curK(t.revenue)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,color:C.muted}}>{curK(t.cogs)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:11,fontWeight:700,color:net>0?C.good:C.danger}}>{curK(net)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,color:m2>40?C.good:m2>20?C.warn:C.danger}}>{m2.toFixed(1)}%</td></tr>;})}
+                            <tr style={{borderTop:'1px solid '+C.border,background:C.raised}}><td style={{padding:'8px 8px',fontSize:11,fontWeight:800}}>TOTAL</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,fontWeight:700}}>{tU.toLocaleString()}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:11,fontWeight:800}}>{curK(tR)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,fontWeight:700}}>{curK(tC)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:11,fontWeight:800,color:np>0?C.good:C.danger}}>{curK(np)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,fontWeight:800,color:mg>40?C.good:C.warn}}>{mg.toFixed(1)}%</td></tr>
                             </tbody>
                           </table>
                         </div>
@@ -1324,6 +1324,128 @@ window._STRAIN_DB=[
                           </tr>
                         );})}</tbody>
                       </table></div></div>
+
+                      {/* ═══ MANUFACTURING SCHEDULE + PRODUCTION CADENCE ═══ */}
+                      {(function(){
+                        function lastTuesday(year,month){var d=new Date(year,month+1,0);while(d.getDay()!==2)d.setDate(d.getDate()-1);return d;}
+                        var today=new Date(2026,3,5);
+                        var moNow=today.getMonth(),yrNow=today.getFullYear();
+                        var cycles=[];
+                        for(var ci=0;ci<4;ci++){
+                          var cm=moNow+ci,cy=yrNow;if(cm>11){cm-=12;cy++;}
+                          var pickup=lastTuesday(cy,cm);
+                          var pkgDone=new Date(pickup);pkgDone.setDate(pkgDone.getDate()-2);
+                          var extDone=new Date(pickup);extDone.setDate(extDone.getDate()-5);
+                          var extStart=new Date(pickup);extStart.setDate(extStart.getDate()-10);
+                          var prodStart=new Date(extStart);prodStart.setDate(prodStart.getDate()-2);
+                          var shelfAvail=new Date(pickup);shelfAvail.setDate(shelfAvail.getDate()+2);
+                          var sellEnd=new Date(cy,cm+1,0);
+                          var sellDays=Math.max(0,Math.round((sellEnd-shelfAvail)/86400000));
+                          var isPast=pickup<today;
+                          cycles.push({month:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][cm],year:cy,pickup:pickup,pkgDone:pkgDone,extDone:extDone,extStart:extStart,prodStart:prodStart,shelfAvail:shelfAvail,sellEnd:sellEnd,sellDays:sellDays,isPast:isPast});
+                        }
+                        var upCycles=cycles.filter(function(c){return!c.isPast;});
+                        var nextCycle=upCycles[0];
+                        var totalWeeklyVel=0;mfgVelocity.forEach(function(s){totalWeeklyVel+=s.weeklyVel;});
+                        var monthlyDemand=Math.round(totalWeeklyVel*4.33);
+                        var totalOnHand=0;Object.values(inventoryData||{}).forEach(function(v){totalOnHand+=parseInt(v.onHand)||0;});
+                        var weeksOfStock=totalWeeklyVel>0?Math.round(totalOnHand/totalWeeklyVel*10)/10:0;
+                        var targetUnits=Math.round(totalWeeklyVel*mfgTargetWeeks);
+                        var prodNeeded=Math.max(0,targetUnits-totalOnHand);
+                        var recBatches=Math.max(0,Math.ceil(prodNeeded/BATCH));
+                        var recUnits=recBatches*BATCH;
+                        var avgCogs=0.35*COGS.Cart.cost+0.20*COGS.Badder.cost+0.30*COGS.Sauce.cost+0.15*COGS.Diamonds.cost;
+                        var prodCost=Math.round(recUnits*avgCogs);
+                        var estRevenue=Math.round(recUnits*(0.35*12+0.20*8+0.30*8+0.15*10)*0.84);
+                        var sellWindowDays=nextCycle?nextCycle.sellDays:25;
+                        var projSellUnits=Math.round(totalWeeklyVel/7*sellWindowDays);
+                        var cycleEff=totalOnHand+recUnits>0?Math.min(100,Math.round(projSellUnits/(totalOnHand+recUnits)*100)):0;
+                        var carryRisk=catRows.filter(function(r){return r.daysLeft>45;});
+                        var daysToPickup=nextCycle?Math.max(0,Math.round((nextCycle.pickup-today)/86400000)):0;
+                        var daysToStart=nextCycle?Math.round((nextCycle.prodStart-today)/86400000):0;
+                        var cycleStatus=daysToStart>3?'PLANNING':daysToStart>0?'START SOON':daysToPickup>0?'IN PRODUCTION':'PICKUP';
+                        var fmt2=function(d){return(d.getMonth()+1)+'/'+d.getDate();};
+                        var fmtDay=function(d){return['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]+' '+(d.getMonth()+1)+'/'+d.getDate();};
+
+                        return React.createElement('div',{style:{marginTop:24}},
+                          React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16,flexWrap:'wrap',gap:8}},
+                            React.createElement('div',null,React.createElement('div',{style:{fontSize:13,fontWeight:800,letterSpacing:3}},'PRODUCTION SCHEDULE'),React.createElement('div',{style:{fontSize:9,color:C.dim,marginTop:3}},'Last Tuesday cadence \u00b7 '+daysToPickup+'d to next pickup')),
+                            React.createElement('div',{style:{padding:'6px 14px',borderRadius:4,fontSize:11,fontWeight:800,letterSpacing:1,background:cycleStatus==='IN PRODUCTION'?C.goodBg:cycleStatus==='START SOON'?C.warnBg:C.surface,color:cycleStatus==='IN PRODUCTION'?C.good:cycleStatus==='START SOON'?C.warn:C.text,border:'1px solid '+(cycleStatus==='IN PRODUCTION'?C.goodBdr:cycleStatus==='START SOON'?C.warnBdr:C.border)}},cycleStatus)
+                          ),
+                          nextCycle&&React.createElement('div',{style:{background:C.surface,border:'1px solid '+(C.borderHi||C.border),borderRadius:8,padding:'20px 24px',marginBottom:16}},
+                            React.createElement('div',{style:{fontSize:9,color:C.dim,letterSpacing:2,marginBottom:14}},'NEXT CYCLE \u2014 '+nextCycle.month.toUpperCase()+' '+nextCycle.year),
+                            React.createElement('div',{style:{display:'flex',gap:0,marginBottom:16,borderRadius:4,overflow:'hidden',height:32}},
+                              [{l:'Prep',d:nextCycle.prodStart,d2:nextCycle.extStart,c:'#333'},{l:'Extraction',d:nextCycle.extStart,d2:nextCycle.extDone,c:'#1a237e'},{l:'Packaging',d:nextCycle.extDone,d2:nextCycle.pkgDone,c:'#1b5e20'},{l:'QC+Pickup',d:nextCycle.pkgDone,d2:nextCycle.pickup,c:'#4caf50'}].map(function(ph){
+                                var totalSpan=Math.max(1,(nextCycle.pickup-nextCycle.prodStart)/86400000);
+                                var phSpan=Math.max(1,(ph.d2-ph.d)/86400000);
+                                var pct=Math.round(phSpan/totalSpan*100);
+                                var isNow=today>=ph.d&&today<ph.d2;
+                                return React.createElement('div',{key:ph.l,style:{flex:pct,background:ph.c,display:'flex',flexDirection:'column',justifyContent:'center',alignItems:'center',borderRight:'1px solid #000',opacity:isNow?1:0.5}},
+                                  React.createElement('div',{style:{fontSize:7,fontWeight:700,color:'#fff',letterSpacing:0.5}},ph.l),
+                                  React.createElement('div',{style:{fontSize:7,color:'#fff9'}},fmt2(ph.d))
+                                );
+                              })
+                            ),
+                            React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(110px,1fr))',gap:10}},
+                              [{l:'Prod Start',d:nextCycle.prodStart},{l:'Extract Start',d:nextCycle.extStart},{l:'Pkg Complete',d:nextCycle.pkgDone},{l:'Pickup',d:nextCycle.pickup},{l:'On Shelf',d:nextCycle.shelfAvail},{l:'Sell Window',d:null,v:nextCycle.sellDays+'d (thru '+fmt2(nextCycle.sellEnd)+')'}].map(function(dt){
+                                var isPast=dt.d&&dt.d<today;var isToday=dt.d&&Math.abs(dt.d-today)<86400000;
+                                return React.createElement('div',{key:dt.l,style:{padding:'8px 10px',background:isToday?C.warnBg:isPast?'#0a0a0a':C.bg,border:'1px solid '+(isToday?C.warnBdr:C.border),borderRadius:4}},
+                                  React.createElement('div',{style:{fontSize:7,color:C.dim,letterSpacing:1}},dt.l),
+                                  React.createElement('div',{style:{fontSize:12,fontWeight:700,color:isToday?C.warn:isPast?C.dim:C.text,marginTop:2}},dt.v||fmtDay(dt.d))
+                                );
+                              })
+                            )
+                          ),
+                          React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:16},className:'gpi-twocol'},
+                            React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16}},
+                              React.createElement('div',{style:{fontSize:9,color:C.dim,letterSpacing:2,marginBottom:12}},'PRODUCTION RECOMMENDATION'),
+                              React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}},
+                                [{l:'Weekly Velocity',v:Math.round(totalWeeklyVel)+' units'},{l:'Monthly Demand',v:monthlyDemand.toLocaleString()+' units'},{l:'On Hand',v:totalOnHand.toLocaleString()+' units'},{l:'Weeks of Stock',v:weeksOfStock+'wk'},{l:'Target Supply',v:mfgTargetWeeks+'wk ('+targetUnits.toLocaleString()+')'},{l:'Produce This Cycle',v:prodNeeded>0?prodNeeded.toLocaleString()+' units':'\u2713 Stocked'},{l:'Rec. Batches',v:recBatches>0?recBatches+' \u00d7 1,000g':'None needed'},{l:'Est. Cost',v:prodCost>0?curK(prodCost):'\u2014'}].map(function(r,i){return React.createElement('div',{key:i,style:{padding:'6px 8px',background:C.bg,borderRadius:3,border:'1px solid '+C.border}},React.createElement('div',{style:{fontSize:7,color:C.dim,letterSpacing:0.5}},r.l),React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1}},r.v));})
+                              ),
+                              prodNeeded>0&&React.createElement('div',{style:{marginTop:12,padding:'8px 10px',borderRadius:4,background:'#1a237e22',border:'1px solid #1a237e44'}},
+                                React.createElement('div',{style:{fontSize:9,fontWeight:700,color:'#7986cb',marginBottom:4}},'PRODUCE '+prodNeeded.toLocaleString()+' UNITS \u2192 '+curK(estRevenue)+' projected revenue (84%)'),
+                                React.createElement('div',{style:{fontSize:8,color:C.dim}},'Cost: '+curK(prodCost)+' \u00b7 Net: '+curK(estRevenue-prodCost)+' \u00b7 ROI: '+Math.round((estRevenue-prodCost)/Math.max(1,prodCost)*100)+'%')
+                              )
+                            ),
+                            React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16}},
+                              React.createElement('div',{style:{fontSize:9,color:C.dim,letterSpacing:2,marginBottom:12}},'CYCLE METRICS'),
+                              React.createElement('div',{style:{marginBottom:16}},
+                                React.createElement('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:4}},React.createElement('span',{style:{fontSize:8,color:C.dim}},'Cycle Efficiency'),React.createElement('span',{style:{fontSize:11,fontWeight:800,color:cycleEff>80?C.good:cycleEff>50?C.warn:C.danger}},cycleEff+'%')),
+                                React.createElement('div',{style:{height:6,background:C.border,borderRadius:3,overflow:'hidden'}},React.createElement('div',{style:{height:'100%',width:cycleEff+'%',background:cycleEff>80?C.good:cycleEff>50?C.warn:C.danger,borderRadius:3}})),
+                                React.createElement('div',{style:{fontSize:8,color:C.dim,marginTop:3}},cycleEff>80?'Strong: batch should sell within the month':cycleEff>50?'Moderate: some inventory carries over':'Low: significant carry risk \u2014 reduce batch size')
+                              ),
+                              React.createElement('div',{style:{marginBottom:12,padding:'8px',background:C.bg,borderRadius:4,border:'1px solid '+C.border}},
+                                React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:1}},'SELL WINDOW'),
+                                React.createElement('div',{style:{fontSize:12,fontWeight:700,marginTop:2}},sellWindowDays+' days on shelf before month end'),
+                                React.createElement('div',{style:{fontSize:8,color:C.dim,marginTop:2}},'Projected sell-through: '+projSellUnits.toLocaleString()+' units')
+                              ),
+                              React.createElement('div',{style:{padding:'8px',background:carryRisk.length>0?C.warnBg:C.goodBg,borderRadius:4,border:'1px solid '+(carryRisk.length>0?C.warnBdr:C.goodBdr)}},
+                                React.createElement('div',{style:{fontSize:8,color:carryRisk.length>0?C.warn:C.good,letterSpacing:1,fontWeight:700}},'INVENTORY CARRY RISK'),
+                                carryRisk.length>0?React.createElement('div',{style:{marginTop:4}},carryRisk.slice(0,5).map(function(r,i){return React.createElement('div',{key:i,style:{fontSize:9,color:C.warn,marginTop:2}},r.sku.replace(/^Globs\s*-\s*/i,'').split(' - ')[0]+': '+r.daysLeft+'d left ('+r.onHand+' units)');})):React.createElement('div',{style:{fontSize:9,color:C.good,marginTop:2}},'All SKUs projected to sell within cycle')
+                              )
+                            )
+                          ),
+                          React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,overflow:'hidden'}},
+                            React.createElement('div',{style:{padding:'12px 16px',fontSize:9,color:C.dim,letterSpacing:2,borderBottom:'1px solid '+C.border}},'PRODUCTION CALENDAR \u2014 NEXT '+upCycles.length+' CYCLES'),
+                            React.createElement('div',{style:{overflowX:'auto'}},React.createElement('table',{style:{width:'100%',minWidth:500,borderCollapse:'collapse'}},
+                              React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Month','Prod Start','Extraction','Pkg Done','Pickup (Last Tue)','Sell Window','Status'].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'6px 10px',fontSize:8,fontWeight:700,color:C.dim,textAlign:i>=5?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
+                              React.createElement('tbody',null,upCycles.map(function(c,i){
+                                var isNext=i===0;
+                                return React.createElement('tr',{key:i,style:{background:isNext?'#1a237e11':i%2?'#0a0a0a':'transparent'}},
+                                  React.createElement('td',{style:{padding:'8px 10px',fontSize:11,fontWeight:isNext?700:500}},c.month+' '+c.year),
+                                  React.createElement('td',{style:{padding:'8px 10px',fontSize:10,color:c.prodStart<today?C.dim:C.text}},fmtDay(c.prodStart)),
+                                  React.createElement('td',{style:{padding:'8px 10px',fontSize:10,color:C.muted}},fmt2(c.extStart)+' \u2192 '+fmt2(c.extDone)),
+                                  React.createElement('td',{style:{padding:'8px 10px',fontSize:10,color:C.muted}},fmtDay(c.pkgDone)),
+                                  React.createElement('td',{style:{padding:'8px 10px',fontSize:11,fontWeight:700,color:isNext?'#4caf50':C.text}},fmtDay(c.pickup)),
+                                  React.createElement('td',{style:{padding:'8px 10px',fontSize:10,textAlign:'right',color:c.sellDays<20?C.warn:C.muted}},c.sellDays+'d'),
+                                  React.createElement('td',{style:{padding:'8px 10px',textAlign:'right'}},React.createElement('span',{style:{fontSize:8,fontWeight:700,padding:'2px 8px',borderRadius:2,background:isNext&&cycleStatus==='IN PRODUCTION'?C.goodBg:isNext?C.warnBg:'transparent',color:isNext&&cycleStatus==='IN PRODUCTION'?C.good:isNext?C.warn:C.dim,border:'1px solid '+(isNext?C.border:'transparent')}},isNext?cycleStatus:'PLANNED'))
+                                );
+                              }))
+                            ))
+                          )
+                        );
+                      })()}
+
                     </div>
                   );
                 })()}
@@ -1349,7 +1471,7 @@ window._STRAIN_DB=[
                 {tab==="yield"&&<YieldTab C={C}/>}
 
                 {/* ══ CASH FLOW ══ */}
-                {tab==="cashflow"&&<CashFlow C={C} accounts={accounts} periodDays={periodDays} setPeriodDays={setPeriodDays}/>}
+                {tab==="cashflow"&&<CashFlow C={C} accounts={accounts} periodDays={periodDays} setPeriodDays={setPeriodDays} inventoryData={inventoryData}/>}
 
                 {/* ══ DISPATCH MAP ══ */}
                 {tab==="dispatch"&&(function(){
@@ -1733,7 +1855,12 @@ window._STRAIN_DB=[
                   var invPool={};
                   Object.keys(inventoryData).forEach(function(sku){
                     var inv=inventoryData[sku];var oh=parseInt(inv.onHand)||0;
-                    if(oh>0)invPool[nk(sku)]={sku:sku,onHand:oh,bayArea:parseInt(inv.bayArea)||0,socal:parseInt(inv.socal)||0,farNorth:parseInt(inv.farNorth)||0};
+                    if(oh>0){
+                      var ba=parseInt(inv.bayArea)||0,sc=parseInt(inv.socal)||0,fn=parseInt(inv.farNorth)||0;
+                      // If no zone breakdown, distribute evenly based on onHand
+                      if(ba+sc+fn===0){ba=Math.round(oh*0.5);sc=Math.round(oh*0.25);fn=oh-ba-sc;}
+                      invPool[nk(sku)]={sku:sku,onHand:oh,bayArea:ba,socal:sc,farNorth:fn};
+                    }
                   });
                   var inStockCount=Object.keys(invPool).length;
                   var totalInvStart=0;
@@ -1742,9 +1869,22 @@ window._STRAIN_DB=[
                   Object.keys(invPool).forEach(function(k){var p=invPool[k];pool[k]={bayArea:p.bayArea,socal:p.socal,farNorth:p.farNorth};});
                   function zRem(k,zk){return(pool[k]&&pool[k][zk])||0;}
                   function take(k,zk,qty){if(pool[k])pool[k][zk]=Math.max(0,(pool[k][zk]||0)-qty);}
-                  function skuCat(sku){var s=sku.toLowerCase();return s.includes('cart')||s.includes('vape')?'cart':s.includes('badder')?'badder':s.includes('sauce')?'sauce':s.includes('diamond')?'diamonds':'other';}
-                  function catWs(cat){return cat==='cart'?10:cat==='diamonds'?10:8;}
-                  function buysCat(o,cat){return o.skus.some(function(s){var cl=s.category.toLowerCase();return(cat==='cart'&&(cl.includes('cart')||cl.includes('vape')))||(cat==='badder'&&cl.includes('badder'))||(cat==='sauce'&&cl.includes('sauce'))||(cat==='diamonds'&&cl.includes('diamond'));});}
+                  function skuCat(sku){var s=sku.toLowerCase();return s.includes('cart')||s.includes('vape')?'cart':s.includes('badder')?'badder':s.includes('sauce')?'sauce':s.includes('diamond')?'diamonds':s.includes('batter')?'battery':'other';}
+                  function catWs(cat){return cat==='cart'?12:cat==='diamonds'?10:cat==='battery'?13:8;}
+                  function buysCat(o,cat){
+                    // Check if account has bought this category OR a related one
+                    return o.skus.some(function(s){
+                      var cl=(s.category||'').toLowerCase();
+                      if(cat==='cart'&&(cl.includes('cart')||cl.includes('vape')))return true;
+                      if(cat==='badder'&&cl.includes('badder'))return true;
+                      if(cat==='sauce'&&cl.includes('sauce'))return true;
+                      if(cat==='diamonds'&&cl.includes('diamond'))return true;
+                      if(cat==='battery'&&cl.includes('batter'))return true;
+                      // Cross-sell: if they buy any concentrate, suggest all concentrates
+                      if((cat==='badder'||cat==='sauce'||cat==='diamonds')&&(cl.includes('badder')||cl.includes('sauce')||cl.includes('diamond')||cl.includes('shatter')))return true;
+                      return false;
+                    });
+                  }
 
                   var alloc={};var allocCount=0;
 
@@ -2268,6 +2408,15 @@ window._STRAIN_DB=[
                   else if(lowStock.length>0)stressFactors.push({label:lowStock.length+' SKUs near stockout',weight:1});
                   var demoFollowUps=demos.filter(function(d){return d.status==='follow-up';});
                   if(demoFollowUps.length>0)stressFactors.push({label:demoFollowUps.length+' demo follow-ups pending',weight:1});
+                  // Production cadence stress
+                  var _lt=function(y,m){var d=new Date(y,m+1,0);while(d.getDay()!==2)d.setDate(d.getDate()-1);return d;};
+                  var _today=new Date(2026,3,5);
+                  var _pickup=_lt(2026,_today.getMonth());if(_pickup<_today){_pickup=_lt(_today.getMonth()===11?2027:2026,(_today.getMonth()+1)%12);}
+                  var _daysToPickup=Math.max(0,Math.round((_pickup-_today)/86400000));
+                  var _prodStart=new Date(_pickup);_prodStart.setDate(_prodStart.getDate()-12);
+                  var _needsStart=_today>=_prodStart&&_daysToPickup>2;
+                  if(_daysToPickup<=7)stressFactors.push({label:'Production pickup in '+_daysToPickup+'d',weight:2});
+                  else if(_needsStart)stressFactors.push({label:'Production cycle active — pickup '+(_pickup.getMonth()+1)+'/'+_pickup.getDate(),weight:1});
 
                   var totalStress=stressFactors.reduce(function(s,f){return s+f.weight;},0);
                   var stressLevel=totalStress>=7?'RED':totalStress>=4?'YELLOW':'GREEN';
@@ -2344,7 +2493,7 @@ window._STRAIN_DB=[
                       )
                     ),
                     React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:12,marginBottom:24}},
-                      [{l:'Accounts',v:displayAccounts.length,c:C.text},{l:'Overdue',v:overdueAccts.length,c:overdueAccts.length>10?C.danger:C.warn},{l:'Fallen Off',v:fallenAccts.length,c:C.danger},{l:'Unresolved Returns',v:unresolvedReturns.length,c:unresolvedReturns.length>0?C.warn:C.good},{l:'Inventory OH',v:totalOH.toLocaleString(),c:totalOH<500?C.danger:C.text},{l:'Low Stock SKUs',v:lowStock.length,c:lowStock.length>3?C.danger:lowStock.length>0?C.warn:C.good}].map(function(s){return React.createElement('div',{key:s.l,style:{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'12px 14px'}},React.createElement('div',{style:{fontSize:7,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:4}},s.l),React.createElement('div',{style:{fontSize:18,fontWeight:800,color:s.c}},s.v));})
+                      [{l:'Accounts',v:displayAccounts.length,c:C.text},{l:'Overdue',v:overdueAccts.length,c:overdueAccts.length>10?C.danger:C.warn},{l:'Fallen Off',v:fallenAccts.length,c:C.danger},{l:'Unresolved Returns',v:unresolvedReturns.length,c:unresolvedReturns.length>0?C.warn:C.good},{l:'Inventory OH',v:totalOH.toLocaleString(),c:totalOH<500?C.danger:C.text},{l:'Low Stock SKUs',v:lowStock.length,c:lowStock.length>3?C.danger:lowStock.length>0?C.warn:C.good},{l:'Next Pickup',v:(_pickup.getMonth()+1)+'/'+_pickup.getDate()+' ('+_daysToPickup+'d)',c:_daysToPickup<=7?C.warn:C.text},{l:'Prod Cycle',v:_needsStart?'ACTIVE':'PLANNING',c:_needsStart?C.good:C.muted}].map(function(s){return React.createElement('div',{key:s.l,style:{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'12px 14px'}},React.createElement('div',{style:{fontSize:7,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:4}},s.l),React.createElement('div',{style:{fontSize:18,fontWeight:800,color:s.c}},s.v));})
                     ),
                     overdueAccts.length>0&&React.createElement('div',{style:{marginBottom:24}},
                       React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'OVERDUE ACCOUNTS — ACTION NEEDED'),
@@ -2424,32 +2573,32 @@ window._STRAIN_DB=[
                   var cb={'Vape Cart - Live Resin':COGS.Cart,'Badder':COGS.Badder,'Sauce':COGS.Sauce,'Diamonds':COGS.Diamonds,'Shatter':COGS.Shatter};
                   var CM={'Vape Cart - Live Resin':'Vape Cart - Live Resin','Live Resin':'Vape Cart - Live Resin'};
                   var byAcct={},byCat={};
-                  var tR=0,tC=0,tD=0,tU=0;
+                  var tR=0,tC=0,tU=0;
                   displayAccounts.forEach(function(acc){
                     var cr=(acc.periodCatRevenue&&acc.periodCatRevenue[pd])?acc.periodCatRevenue[pd]:(acc.catRevenue90||{});
-                    var aRev=0,aCogs=0,aDist=0,aUnits=0;
+                    var aRev=0,aCogs=0,aUnits=0;
                     Object.keys(cr).forEach(function(rc){
                       var rev=cr[rc];if(!rev||rev<=0)return;
                       var label=CM[rc]||rc;
                       var cogs=cb[label]||COGS.Other;
                       var units=cogs.wholesale>0?Math.round(rev/cogs.wholesale):0;
-                      var pc=units*cogs.cost;var d=rev*cogs.distroRate;
-                      if(!byCat[label])byCat[label]={label:label,revenue:0,cogs:0,distro:0,units:0};
-                      byCat[label].revenue+=rev;byCat[label].cogs+=pc;byCat[label].distro+=d;byCat[label].units+=units;
-                      aRev+=rev;aCogs+=pc;aDist+=d;aUnits+=units;
-                      tR+=rev;tC+=pc;tD+=d;tU+=units;
+                      var pc=units*cogs.cost;
+                      // Revenue = what YOU receive (84% after UpNorth takes 16% off top)
+                      var yourRev=rev*0.84;
+                      if(!byCat[label])byCat[label]={label:label,revenue:0,cogs:0,units:0};
+                      byCat[label].revenue+=yourRev;byCat[label].cogs+=pc;byCat[label].units+=units;
+                      aRev+=yourRev;aCogs+=pc;aUnits+=units;
+                      tR+=yourRev;tC+=pc;tU+=units;
                     });
                     if(aRev>0){
                       var acctReturns=returnsLog.filter(function(r){return r.account===acc.name&&!r.preMarket;});
                       var retCredits=acctReturns.reduce(function(s,r){return s+(r.totalValue||0);},0);
-                      var promos=(acc.orderedSkus||[]).filter(function(s){return(s.sku||'').toLowerCase().includes('promo')||(s.sku||'').toLowerCase().includes('sample');});
-                      var promoVal=promos.reduce(function(s,p){return s+(p.qty||0)*(p.wholesale>0?p.wholesale:5);},0);
-                      var net=aRev-aCogs-aDist-retCredits;
+                      var net=aRev-aCogs-retCredits;
                       var margin=aRev>0?net/aRev*100:0;
-                      byAcct[acc.name]={name:acc.name,rep:acc.rep||'',revenue:aRev,cogs:aCogs,distro:aDist,returns:retCredits,promoSpend:promoVal,net:net,margin:margin,units:aUnits};
+                      byAcct[acc.name]={name:acc.name,rep:acc.rep||'',revenue:aRev,cogs:aCogs,returns:retCredits,net:net,margin:margin,units:aUnits};
                     }
                   });
-                  var gp=tR-tC;var np=gp-tD;var mg=tR>0?np/tR*100:0;
+                  var gp=tR-tC;var np=gp;var mg=tR>0?np/tR*100:0;
                   var catRows=Object.values(byCat).sort(function(a,b){return b.revenue-a.revenue;});
                   var acctRows=Object.values(byAcct).sort(function(a,b){return b.revenue-a.revenue;});
                   var lowMargin=acctRows.filter(function(a){return a.revenue>500&&a.margin<25;});
@@ -2471,23 +2620,19 @@ window._STRAIN_DB=[
                         (function(){
                           var totalReturns=returnsLog.filter(function(r){return!r.preMarket;}).reduce(function(s,r){return s+(r.totalValue||0);},0);
                           var demoSpend=demos.length*demoCost;
-                          var pkgEst=Math.round(tU*1.5);// ~$1.50 avg pkg per unit
-                          var opex=tD+demoSpend;
-                          var adjNet=tR-tC-pkgEst-opex-totalReturns;
+                          var adjNet=tR-tC-demoSpend-totalReturns;
                           var adjMg=tR>0?adjNet/tR*100:0;
                           var rows=[
-                            {label:'Revenue',value:tR,bold:true,indent:0},
+                            {label:'Your Revenue (after 16% distro)',value:tR,bold:true,indent:0},
                             {label:'Cost of Goods Sold',value:null,bold:true,indent:0,header:true},
-                            {label:'Materials (oil + labor + testing)',value:-tC,indent:1},
-                            {label:'Packaging materials',value:-pkgEst,indent:1},
-                            {label:'Total COGS',value:-(tC+pkgEst),bold:true,indent:0,line:true},
-                            {label:'Gross Profit',value:tR-tC-pkgEst,bold:true,indent:0,highlight:true},
-                            {label:'Gross Margin',value:null,pct:tR>0?(tR-tC-pkgEst)/tR*100:0,indent:0},
-                            {label:'Operating Expenses',value:null,bold:true,indent:0,header:true},
-                            {label:'Distribution fees (16%)',value:-tD,indent:1},
+                            {label:'Production (oil + pkg + labor + testing)',value:-tC,indent:1},
+                            {label:'Total COGS',value:-tC,bold:true,indent:0,line:true},
+                            {label:'Gross Profit',value:tR-tC,bold:true,indent:0,highlight:true},
+                            {label:'Gross Margin',value:null,pct:tR>0?(tR-tC)/tR*100:0,indent:0},
+                            {label:'Other Expenses',value:null,bold:true,indent:0,header:true},
                             {label:'Marketing / demos',value:-demoSpend,indent:1},
                             {label:'Return credits',value:-totalReturns,indent:1},
-                            {label:'Total OpEx',value:-opex-totalReturns,bold:true,indent:0,line:true},
+                            {label:'Total Other',value:-(demoSpend+totalReturns),bold:true,indent:0,line:true},
                             {label:'Net Profit',value:adjNet,bold:true,indent:0,highlight:true,final:true},
                             {label:'Net Margin',value:null,pct:adjMg,indent:0,final:true},
                           ];
@@ -2502,17 +2647,16 @@ window._STRAIN_DB=[
                         })()
                       ),
                       React.createElement('div',{style:{marginTop:16,padding:'10px 0',borderTop:'1px solid '+C.border,fontSize:9,color:C.dim}},
-                        'Answers: Did we make money? → '+(np>0?'Yes, '+curK(np)+' net':'No, -'+curK(Math.abs(np))+' loss')+' · Where from? → '+catRows[0].label+' ('+curK(catRows[0].revenue)+') · What drags? → Distribution ('+curK(tD)+')'
+                        'Answers: Did we make money? → '+(np>0?'Yes, '+curK(np)+' net':'No, -'+curK(Math.abs(np))+' loss')+' · Where from? → '+(catRows.length>0?catRows[0].label+' ('+curK(catRows[0].revenue)+')':'—')+' · Margin → '+mg.toFixed(1)+'%'
                       )
                     ),
                     React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'BY CATEGORY'),
                     React.createElement('div',{style:{overflowX:'auto',marginBottom:24}},React.createElement('table',{style:{width:'100%',minWidth:420,borderCollapse:'collapse'}},
-                      React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Category','Revenue','COGS','Distro','Net','Margin','Units'].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'6px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=1?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
-                      React.createElement('tbody',null,catRows.map(function(r,i){var net=r.revenue-r.cogs-r.distro;var m=r.revenue>0?net/r.revenue*100:0;return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#0a0a0a'}},
+                      React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Category','Revenue (84%)','COGS','Net','Margin','Units'].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'6px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=1?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
+                      React.createElement('tbody',null,catRows.map(function(r,i){var net=r.revenue-r.cogs;var m=r.revenue>0?net/r.revenue*100:0;return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#0a0a0a'}},
                         React.createElement('td',{style:{padding:'7px 10px',fontSize:11,fontWeight:600}},r.label),
                         React.createElement('td',{style:{padding:'7px 10px',fontSize:11,textAlign:'right',fontWeight:700}},curK(r.revenue)),
                         React.createElement('td',{style:{padding:'7px 10px',fontSize:10,textAlign:'right',color:C.muted}},curK(r.cogs)),
-                        React.createElement('td',{style:{padding:'7px 10px',fontSize:10,textAlign:'right',color:C.muted}},curK(r.distro)),
                         React.createElement('td',{style:{padding:'7px 10px',fontSize:11,textAlign:'right',fontWeight:700,color:net>0?C.good:C.danger}},curK(net)),
                         React.createElement('td',{style:{padding:'7px 10px',fontSize:11,textAlign:'right',fontWeight:700,color:m>35?C.good:m>20?C.warn:C.danger}},m.toFixed(1)+'%'),
                         React.createElement('td',{style:{padding:'7px 10px',fontSize:10,textAlign:'right',color:C.dim}},r.units.toLocaleString())
@@ -2520,13 +2664,12 @@ window._STRAIN_DB=[
                     )),
                     React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'MARGIN BY ACCOUNT — '+pd+'d ('+acctRows.length+' accounts)'),
                     React.createElement('div',{style:{overflowX:'auto',marginBottom:24}},React.createElement('table',{style:{width:'100%',minWidth:520,borderCollapse:'collapse'}},
-                      React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Account','Rep','Revenue','COGS','Distro','Returns','Net','Margin'].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'6px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=2?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
+                      React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Account','Rep','Revenue (84%)','COGS','Returns','Net','Margin'].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'6px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=2?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
                       React.createElement('tbody',null,acctRows.slice(0,50).map(function(r,i){var isLow=r.revenue>500&&r.margin<25;return React.createElement('tr',{key:i,style:{background:isLow?C.dangerBg:i%2===0?'transparent':'#0a0a0a',cursor:'pointer'},onClick:function(){window._goAcct&&window._goAcct(r.name);}},
                         React.createElement('td',{style:{padding:'6px 10px',fontSize:11,fontWeight:isLow?700:500,color:isLow?C.danger:C.text}},r.name.length>30?r.name.slice(0,28)+'…':r.name),
                         React.createElement('td',{style:{padding:'6px 10px',fontSize:10,color:C.muted}},r.rep?r.rep.split(' ')[0]:'—'),
                         React.createElement('td',{style:{padding:'6px 10px',fontSize:11,textAlign:'right',fontWeight:600}},curK(r.revenue)),
                         React.createElement('td',{style:{padding:'6px 10px',fontSize:10,textAlign:'right',color:C.muted}},curK(r.cogs)),
-                        React.createElement('td',{style:{padding:'6px 10px',fontSize:10,textAlign:'right',color:C.muted}},curK(r.distro)),
                         React.createElement('td',{style:{padding:'6px 10px',fontSize:10,textAlign:'right',color:r.returns>0?C.danger:C.dim}},r.returns>0?'-'+cur(r.returns):'—'),
                         React.createElement('td',{style:{padding:'6px 10px',fontSize:11,textAlign:'right',fontWeight:700,color:r.net>0?C.good:C.danger}},curK(r.net)),
                         React.createElement('td',{style:{padding:'6px 10px',fontSize:11,textAlign:'right',fontWeight:700,color:r.margin>35?C.good:r.margin>20?C.warn:C.danger}},r.margin.toFixed(1)+'%')
@@ -2583,19 +2726,18 @@ window._STRAIN_DB=[
                       React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:12}},'SCENARIO SIMULATOR'),
                       React.createElement('div',{style:{fontSize:10,color:C.muted,marginBottom:16}},'Adjust production volume to see revenue, margin, and cash flow impact.'),
                       (function(){
-                        var baseUnits=tU||1;var baseRev=tR;var baseCogs=tC;var baseDist=tD;
+                        var baseUnits=tU||1;var baseRev=tR;var baseCogs=tC;
                         var scenarios=[
                           {label:'Current',mult:1.0},{label:'+25% Production',mult:1.25},{label:'+50% Production',mult:1.5},{label:'-25% Production',mult:0.75},{label:'Premium Pricing (+15%)',mult:1.0,priceUp:0.15},{label:'Economy (-10% Price)',mult:1.0,priceDown:0.10}
                         ];
                         return React.createElement('div',{style:{overflowX:'auto'}},React.createElement('table',{style:{width:'100%',minWidth:420,borderCollapse:'collapse'}},
-                          React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Scenario','Units','Revenue','COGS','Net Profit','Margin'].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'6px 10px',fontSize:8,fontWeight:700,color:C.dim,textAlign:i>=1?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
+                          React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Scenario','Units','Revenue (84%)','COGS','Net Profit','Margin'].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'6px 10px',fontSize:8,fontWeight:700,color:C.dim,textAlign:i>=1?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
                           React.createElement('tbody',null,scenarios.map(function(sc,i){
                             var u=Math.round(baseUnits*sc.mult);
                             var priceAdj=sc.priceUp?1+sc.priceUp:sc.priceDown?1-sc.priceDown:1;
                             var r=Math.round(baseRev*sc.mult*priceAdj);
                             var co=Math.round(baseCogs*sc.mult);
-                            var d=Math.round(r*0.16);
-                            var n=r-co-d;var m=r>0?n/r*100:0;
+                            var n=r-co;var m=r>0?n/r*100:0;
                             return React.createElement('tr',{key:i,style:{background:i===0?C.raised:i%2===0?'transparent':'#0a0a0a',fontWeight:i===0?700:400}},
                               React.createElement('td',{style:{padding:'6px 10px',fontSize:11,fontWeight:i===0?700:500}},sc.label),
                               React.createElement('td',{style:{padding:'6px 10px',fontSize:10,textAlign:'right'}},u.toLocaleString()),
@@ -3625,849 +3767,20 @@ const YIELD_KEY = 'gpi-yield-log';
     }
 
     // ── CASH FLOW TAB ─────────────────────────────────────────────────────────
-    function CashFlow({C,accounts,periodDays,setPeriodDays}) {
+    function CashFlow({C,accounts,periodDays,setPeriodDays,inventoryData}) {
       if (!C) C = DARK_C;
-      var pd = periodDays||365;
-      // ── Compute P&L from accounts data ──
-      var byType={};var totalRev=0,totalUnits=0;
-      (accounts||[]).forEach(function(a){
-        if(!a.hasSalesData)return;
-        (a.orderedSkus||[]).forEach(function(s){
-          var pu=(s.periodUnits&&s.periodUnits[pd])||0;
-          if(pu<=0)return;
-          var cat=s.category||'Other';
-          var cg=cogsFor(cat);
-          var rev=pu*cg.wholesale;
-          if(!byType[cat])byType[cat]={label:cg.label||cat,units:0,rev:0,cost:0};
-          byType[cat].units+=pu;byType[cat].rev+=rev;byType[cat].cost+=pu*cg.cost;
-          totalRev+=rev;totalUnits+=pu;
-        });
-      });
-      var totalCOGS=0,totalDistro=totalRev*0.16;
-      Object.values(byType).forEach(function(t){totalCOGS+=t.cost;});
-      var grossProfit=totalRev-totalCOGS;
-      var netProfit=grossProfit-totalDistro;
-      var margin=totalRev>0?(netProfit/totalRev*100):0;
-      var types=Object.values(byType).sort(function(a,b){return b.rev-a.rev;});
-
-                  // ── AP ledger — complete 365d from ACH + QuickBooks + Gmail ──
-      // Monthly subscriptions computed dynamically based on period
-      var MONTHLY_SUBS={vendor:'Monthly Subscriptions',desc:'Rent $825 + Cell/Internet $261 + Weedmaps $99 + Max $200 + QB $25',perMonth:1410,cat:'Overhead/Software'};
-      var subMonths=Math.ceil(pd/30);
-      var subTotal=MONTHLY_SUBS.perMonth*subMonths;
-      var AP_DATA=[
-        // Computed subscription line
-        {date:'recurring',vendor:MONTHLY_SUBS.vendor,desc:MONTHLY_SUBS.desc+' × '+subMonths+'mo',amount:subTotal,cat:MONTHLY_SUBS.cat},
-        // 2025 Q2
-        {date:'2025-04-01',vendor:'Leef',desc:'Product/biomass',amount:4990,cat:'COGS/Biomass'},
-        {date:'2025-04-10',vendor:'Cleancore (Octave)',desc:'Cart hardware',amount:9000,cat:'Hardware'},
-        {date:'2025-04-15',vendor:'Leef',desc:'Product/biomass',amount:4990,cat:'COGS/Biomass'},
-        {date:'2025-06-20',vendor:'Cleancore (Octave)',desc:'Cart hardware',amount:16525,cat:'Hardware'},
-        // 2025 Q3
-        {date:'2025-07-16',vendor:'Cleancore (Octave)',desc:'Cart hardware',amount:4520,cat:'Hardware'},
-        {date:'2025-07-18',vendor:'Cleancore (Octave)',desc:'Cart hardware',amount:10637.50,cat:'Hardware'},
-        {date:'2025-08-18',vendor:'Cruz Science',desc:'MFG partner payment',amount:2027.63,cat:'COGS/MFG'},
-        {date:'2025-08-18',vendor:'Cleancore (Octave)',desc:'Cart hardware',amount:4000,cat:'Hardware'},
-        // 2025 Q4
-        {date:'2025-09-30',vendor:'Euphoric Life',desc:'MFG finished goods',amount:2000,cat:'COGS/MFG'},
-        {date:'2025-10-13',vendor:'Encore Labs',desc:'INV 2509ENC1030',amount:2940,cat:'Lab/Testing'},
-        {date:'2025-10-13',vendor:'Encore Labs',desc:'INV 2509ENC1275',amount:1680,cat:'Lab/Testing'},
-        {date:'2025-10-20',vendor:'Cruz Science',desc:'MFG partner payment',amount:3000,cat:'COGS/MFG'},
-        {date:'2025-11-17',vendor:'Encore Labs',desc:'3 invoices (testing)',amount:2100,cat:'Lab/Testing'},
-        {date:'2025-11-18',vendor:'Euphoric Life',desc:'INV 3786326 + 3786327',amount:8287.22,cat:'COGS/MFG'},
-        {date:'2025-12-12',vendor:'Encore Labs',desc:'INV 2511ENC4680 + 4528',amount:2520,cat:'Lab/Testing'},
-        {date:'2025-12-12',vendor:'Cleancore (Octave)',desc:'Cart hardware',amount:6477.19,cat:'Hardware'},
-        {date:'2025-12-22',vendor:'Cruz Science',desc:'MFG partner payment',amount:1283.51,cat:'COGS/MFG'},
-        {date:'2025-12-30',vendor:'Treeform',desc:'INV36807 packaging',amount:5516.50,cat:'Packaging'},
-        // 2026 Q1
-        {date:'2026-01-06',vendor:'Two Packaging',desc:'Cart boxes (50% deposit)',amount:1262.20,cat:'Packaging'},
-        {date:'2026-01-14',vendor:'Encore Labs',desc:'INV 2601ENC0623',amount:2750,cat:'Lab/Testing'},
-        {date:'2026-01-19',vendor:'Two Packaging',desc:'Cart boxes (balance)',amount:1263.20,cat:'Packaging'},
-        {date:'2026-02-02',vendor:'Lava Rubber / Moodmats',desc:'INV #9155 merch',amount:3261.40,cat:'Merch/Equipment'},
-        {date:'2026-02-05',vendor:'Elfsight',desc:'Age verification (annual)',amount:60,cat:'Software'},
-        {date:'2026-02-13',vendor:'CLTV8 LLC',desc:'INV-3385 equipment',amount:4250,cat:'Merch/Equipment'},
-        {date:'2026-02-17',vendor:'Encore Labs',desc:'Lab testing',amount:2400,cat:'Lab/Testing'},
-        {date:'2026-02-17',vendor:'Brendan G (CAM)',desc:'Biomass/trim invoice',amount:6432.70,cat:'COGS/Biomass'},
-        {date:'2026-02-17',vendor:'Cleancore (Octave)',desc:'Cart hardware',amount:250,cat:'Hardware'},
-        {date:'2026-02-19',vendor:'VapeCartsCC',desc:'#1945 — 5,000 carts',amount:9527.50,cat:'Hardware'},
-        {date:'2026-02-23',vendor:'Encore Labs',desc:'Lab testing',amount:3600,cat:'Lab/Testing'},
-        {date:'2026-03-10',vendor:'Treeform',desc:'INV38610+38884',amount:1574.88,cat:'Packaging'},
-        {date:'2026-03-16',vendor:'Staybridge',desc:'HOF Ventura 4 nights',amount:915.39,cat:'Travel'},
-        {date:'2026-03-24',vendor:'VapeCartsCC',desc:'#1953 partial payment',amount:4034.17,cat:'Hardware'},
-        {date:'2026-03-27',vendor:'VapeCartsCC',desc:'#1956 — 10,000 carts',amount:19447.95,cat:'Hardware'},
-        {date:'2026-03-31',vendor:'Encore Labs',desc:'Lab testing',amount:2000,cat:'Lab/Testing'},
-        // 2026 Q2
-        {date:'2026-04-02',vendor:'Rapacke Law',desc:'USPTO trademark',amount:2250,cat:'Legal/IP'},
-        {date:'2026-04-17',vendor:'Treeform',desc:'INV39774 foam sign',amount:52.71,cat:'Packaging'}
-      ];
-      var now=new Date(2026,3,4);
-      var cutoff=new Date(now.getTime()-pd*86400000);
-      var periodAP=AP_DATA.filter(function(a){
-        if(!a.amount)return false;
-        if(a.date==='recurring')return true;
-        var parts=a.date.split('-');
-        var d=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2])||1);
-        return d>=cutoff;
-      });
-      var totalAP=periodAP.reduce(function(s,a){return s+(a.amount||0);},0);
-
-      // ── AP by category ──
-      var apByCat={};
-      periodAP.forEach(function(a){if(a.amount){apByCat[a.cat]=(apByCat[a.cat]||0)+a.amount;}});
-      var apCats=Object.entries(apByCat).sort(function(a,b){return b[1]-a[1];});
-
-      // ── AR schedule ──
-      // Compute latest 30d revenue from accounts as dynamic baseline
-      var computed30dRev=(accounts||[]).reduce(function(s,a){return s+((a.periodRevenue&&a.periodRevenue[30])||0);},0);
-      var computed30dUnits=0;(accounts||[]).forEach(function(a){(a.orderedSkus||[]).forEach(function(sk){computed30dUnits+=(sk.periodUnits&&sk.periodUnits[30])||0;});});
-      var latestMonthRev=computed30dRev>0?Math.round(computed30dRev):70954;
-      var latestMonthUnits=computed30dUnits>0?computed30dUnits:8675;
-
-      // ── VERIFIED RECEIVABLES from UpNorth Payout Emails ──
-      // Dec 2025: Euphoric $40,989.11 (due 2/13) + Cruz $5,102.46 (past due)
-      // Jan 2026: GON $16,875.68 + Euphoric $17,427.20 + Batteries $1,764.02 + Cruz $1,386.04 = $37,452.94 (due 3/13)
-      // Feb 2026: GON $33,008.08 + Euphoric $4,965.43 + Batteries $423.40 + Cruz $13.44 = $38,410.35 (due 4/13)
-      // Mar 2026: Estimated from Salesforce 30d data
-      var computed30dRevSafe=computed30dRev>0?computed30dRev:47795;
-      var AR_DATA=[
-        {m:'Dec 2025',salesRev:57556,pay:40989.11,cruzPay:5102.46,due:'Feb 13',st:'received',note:'Euphoric paid; Cruz past due'},
-        {m:'Jan 2026',salesRev:44329,pay:36066.90,cruzPay:1386.04,due:'Mar 13',st:'received',note:'GON+Euphoric+Batt paid; Cruz past due'},
-        {m:'Feb 2026',salesRev:46297,pay:38396.91,cruzPay:13.44,due:'Apr 13',st:'due',note:'GON $33K + Euphoric $5K + Batt $423'},
-        {m:'Mar 2026',salesRev:Math.round(computed30dRevSafe),pay:Math.round(computed30dRevSafe*0.84),cruzPay:0,due:'May 8 (2nd Fri)',st:'projected',note:'Estimated from Salesforce data'}
-      ];
-      // Cruz Science outstanding = $5,102.46 + $1,386.04 + $13.44 = $6,501.94 (payment scheduled week of Apr 2)
-      var cruzOutstanding=6501.94;
-      var totalConfirmedReceivables=AR_DATA.filter(function(r){return r.st!=='received';}).reduce(function(s,r){return s+r.pay+r.cruzPay;},0)+cruzOutstanding;
-      // Reconciliation: total must match known ~$92,693.91
-      var reconciliationTarget=92693.91;
-
-      var payout84=totalRev*0.84;
-
-      // ── Production-to-Cash Timing Model ──
-      var [extractDays,setExtractDays]=useState(10);// extraction+fill baseline
-      var [growthPct,setGrowthPct]=useState(15);
-      var [cfView,setCfView]=useState('combined');// combined, incoming, expenses, net
-      var [cfRange,setCfRange]=useState(90);// 30, 60, 90, 180
-      var [cfHover,setCfHover]=useState(null);
-      // Real-world UpNorth consignment timing:
-      // 1. Production Spend (Day 0) — cash out
-      // 2. Extraction + fill + QA (~extractDays)
-      // 3. UpNorth pickup (~5d after extraction)
-      // 4. Sale to dispensary — varies by SKU velocity
-      // 5. Month-end close (0-30d depending on sale date in month)
-      // 6. +6 weeks (42d) consignment delay
-      // 7. Payout: 2nd Friday of resulting month (~+7-14d)
-      var SKU_VELOCITY={cart:{label:'Carts',avgSellDays:14,pct:0.70},badder:{label:'Badder',avgSellDays:28,pct:0.12},sauce:{label:'Sauce',avgSellDays:35,pct:0.10},diamonds:{label:'Diamonds',avgSellDays:45,pct:0.08}};
-      var skuTimelines=Object.values(SKU_VELOCITY).map(function(sku){
-        var prodToPickup=extractDays+5;
-        var pickupToSale=sku.avgSellDays;
-        var saleToMonthEnd=15;// avg ~15d to end of month
-        var consignment=42;// 6 weeks
-        var payoutDelay=10;// ~2nd Friday
-        var totalDays=prodToPickup+pickupToSale+saleToMonthEnd+consignment+payoutDelay;
-        return Object.assign({},sku,{prodToPickup:prodToPickup,pickupToSale:pickupToSale,saleToMonthEnd:saleToMonthEnd,consignment:consignment,payoutDelay:payoutDelay,totalDays:totalDays});
-      });
-      var avgCycleDays=Math.round(skuTimelines.reduce(function(s,t){return s+t.totalDays*t.pct;},0));
-
-      // Forward-looking cash projections using timing model
-      var monthNames=['Apr','May','Jun','Jul','Aug','Sep'];
-      var baseMonthRev=latestMonthRev;
-      var baseUnits=latestMonthUnits;
-      var projMonths=monthNames.map(function(m,i){
-        var g=Math.pow(1+growthPct/100,i+1);
-        var rev=Math.round(baseMonthRev*g);
-        var units=Math.round(baseUnits*g);
-        var cartUnits=Math.round(units*0.70);var concUnits=units-cartUnits;
-        var apCarts=Math.round(cartUnits*4.82);var apConc=Math.round(concUnits*3.36);
-        var apLab=2400;var apFixed=1415;
-        var apTotal=apCarts+apConc+apLab+apFixed;
-        // Payout arrives ~avgCycleDays after production spend
-        // For month i, payout from production (i - Math.ceil(avgCycleDays/30)) months ago
-        var payoutIdx=i-Math.ceil(avgCycleDays/30);
-        var payoutRev=payoutIdx>=0?Math.round(baseMonthRev*Math.pow(1+growthPct/100,payoutIdx+1)):Math.round(baseMonthRev*0.9);
-        var payout=Math.round(payoutRev*0.84);
-        var cashGap=payout-apTotal;
-        return {month:m,rev:rev,units:units,payout:payout,apTotal:apTotal,cashGap:cashGap,prodSpend:apTotal,payoutSource:payoutIdx>=0?monthNames[payoutIdx]:'Prior'};
-      });
-
-      const STORE_KEY = 'gpi-cashflow-entries';
-      const [entries, setEntries] = useState([]);
-      const [loading, setLoading] = useState(true);
-      const [showForm, setShowForm] = useState(false);
-      const [form, setForm] = useState({date:'',vendor:'',invoiceNum:'',type:'expense',category:'',description:'',amount:'',notes:''});
-      const [fileError, setFileError] = useState('');
-      const [filter, setFilter] = useState('all');
-      const [scanning, setScanning] = useState(false);
-      const fileRef = useRef();
-
-      // ── Invoice Generator ──
-      const [invoiceModal, setInvoiceModal] = useState(null);
-      const INV_NUM_KEY = 'gpi-invoice-number';
-      const [invForm, setInvForm] = useState({month:'',gonInc:'',batteries:'',invNum:''});
-
-      async function loadNextInvNum() {
-        try { var r = await window.storage.get(INV_NUM_KEY); return r ? parseInt(r.value)+1 : 1040; } catch(e) { return 1040; }
-      }
-
-      async function openInvoiceForm() {
-        var nextNum = await loadNextInvNum();
-        var now = new Date();
-        var monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-        var prevMonth = now.getMonth() === 0 ? 11 : now.getMonth()-1;
-        var prevYear = now.getMonth() === 0 ? now.getFullYear()-1 : now.getFullYear();
-        setInvForm({month: monthNames[prevMonth]+' '+prevYear, gonInc:'', batteries:'', invNum: String(nextNum)});
-        setInvoiceModal('form');
-      }
-
-      async function generateInvoice() {
-        var gon = parseFloat(invForm.gonInc) || 0;
-        var batt = parseFloat(invForm.batteries) || 0;
-        if (gon <= 0) return;
-        var num = parseInt(invForm.invNum) || 1040;
-        try { await window.storage.set(INV_NUM_KEY, String(num)); } catch(e) {}
-        var today = new Date();
-        var invDate = (today.getMonth()+1)+'/'+today.getDate()+'/'+today.getFullYear();
-        var lines = [{service:'Gon Inc Sales', desc:'Gon Inc Sales '+invForm.month, amount:gon}];
-        if (batt > 0) lines.push({service:'Globs Batteries', desc:'Globs Batteries Sales '+invForm.month, amount:batt});
-        var total = lines.reduce(function(s,l){return s+l.amount;},0);
-        setInvoiceModal({num:num, date:invDate, month:invForm.month, lines:lines, total:total});
-      }
-
-      const CATS = {
-        expense: ['Production / COGS','Packaging Materials','Distribution Fees','Lab Testing','Marketing','Rent / Overhead','Equipment','Legal / Compliance','Payroll','Other Expense'],
-        income:  ['Wholesale Revenue','Consignment Revenue','Promo Credits','Refund / Return','Other Income']
-      };
-
-      useEffect(function() {
-        async function load() {
-          try { const r = await window.storage.get(STORE_KEY); if (r) setEntries(JSON.parse(r.value)); } catch(e) {}
-          setLoading(false);
-        }
-        load();
-      }, []);
-
-      async function save(next) {
-        setEntries(next);
-        try { await window.storage.set(STORE_KEY, JSON.stringify(next)); } catch(e) {}
-      }
-
-      async function scanImageInvoice(file) {
-        setScanning(true);
-        setFileError('🔍 Scanning invoice with AI...');
-        try {
-          const b64 = await new Promise(function(res, rej) {
-            const r = new FileReader();
-            r.onload = function(e) { res(e.target.result.split(',')[1]); };
-            r.onerror = rej;
-            r.readAsDataURL(file);
-          });
-          const mt = file.type === 'application/pdf' ? 'application/pdf' : (file.type || 'image/jpeg');
-          const resp = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              model: 'claude-sonnet-4-20250514',
-              max_tokens: 500,
-              messages: [{
-                role: 'user',
-                content: [
-                  { type: mt === 'application/pdf' ? 'document' : 'image',
-                    source: { type: 'base64', media_type: mt, data: b64 } },
-                  { type: 'text', text: 'Extract invoice data. Respond ONLY with JSON, no markdown:\n{"vendor":"","invoiceNum":"","date":"YYYY-MM-DD","amount":0,"description":"","category":"","type":"expense"}' }
-                ]
-              }]
-            })
-          });
-          const data = await resp.json();
-          const raw = (data.content||[]).find(function(c){return c.type==='text';});
-          if (!raw) throw new Error('No response from AI');
-          const clean = raw.text.replace(/```json|```/g,'').trim();
-          const parsed = JSON.parse(clean);
-          setForm(function(prev) {
-            return Object.assign({}, prev, {
-              vendor: parsed.vendor || prev.vendor,
-              invoiceNum: parsed.invoiceNum || prev.invoiceNum,
-              date: parsed.date || prev.date,
-              amount: parsed.amount ? String(parsed.amount) : prev.amount,
-              description: parsed.description || prev.description,
-              category: parsed.category || prev.category,
-              type: parsed.type || 'expense'
-            });
-          });
-          setShowForm(true);
-          setFileError('✓ Invoice scanned — review and save below');
-        } catch(err) {
-          setFileError('⚠ AI scan failed: ' + err.message + ' — try manual entry');
-        } finally {
-          setScanning(false);
-        }
-      }
-
-      function handleFileUpload(e) {
-        const file = e.target.files[0]; if (!file) return;
-        setFileError('');
-        const isImage = file.type.startsWith('image/');
-        const isPdf = file.type === 'application/pdf';
-        if (isImage || isPdf) {
-          scanImageInvoice(file);
-          e.target.value = '';
-          return;
-        }
-        const reader = new FileReader();
-        reader.onload = function(ev) {
-          try {
-            const text = ev.target.result;
-            const rows = parseCSVRFC4180(text);
-            if (rows.length < 2) { setFileError('No data rows found'); return; }
-            const hdr = rows[0].map(function(h) { return h.toLowerCase().trim(); });
-            const gi = function(kw) { return hdr.findIndex(function(h) { return h.includes(kw); }); };
-            const cols = { date: gi('date'), vendor: gi('vendor'), invoice: gi('invoice'), type: gi('type'), category: gi('category'), description: gi('desc'), amount: gi('amount'), notes: gi('note') };
-            const parsed = [];
-            rows.slice(1).forEach(function(row) {
-              const amount = parseFloat((row[cols.amount] || '').replace(/[$,]/g, '')) || 0;
-              if (!amount) return;
-              parsed.push({
-                id: Date.now() + Math.random(),
-                date: (row[cols.date] || '').trim(),
-                vendor: (row[cols.vendor] || '').trim(),
-                invoiceNum: (row[cols.invoice >= 0 ? cols.invoice : -1] || '').trim(),
-                type: (row[cols.type] || '').toLowerCase().includes('income') ? 'income' : 'expense',
-                category: (row[cols.category] || '').trim(),
-                description: (row[cols.description >= 0 ? cols.description : -1] || '').trim(),
-                amount: amount,
-                notes: (row[cols.notes >= 0 ? cols.notes : -1] || '').trim(),
-                source: 'import'
-              });
-            });
-            if (!parsed.length) { setFileError('No valid rows parsed — check column headers'); return; }
-            const next = entries.concat(parsed).sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
-            save(next);
-            setFileError('✓ Imported ' + parsed.length + ' entries');
-          } catch(err) { setFileError('Parse error: ' + err.message); }
-        };
-        reader.readAsText(file); e.target.value = '';
-      }
-
-      function submitEntry() {
-        if (!form.date || !form.amount || !form.vendor) return;
-        const entry = Object.assign({}, form, { id: Date.now(), amount: parseFloat(form.amount) || 0, source: 'manual' });
-        const next = [entry].concat(entries).sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
-        save(next);
-        setForm({date:'',vendor:'',invoiceNum:'',type:'expense',category:'',description:'',amount:'',notes:''});
-        setShowForm(false);
-      }
-
-      function deleteEntry(id) { save(entries.filter(function(e) { return e.id !== id; })); }
-
-      const filtered = useMemo(function() {
-        if (filter === 'all') return entries;
-        return entries.filter(function(e) { return e.type === filter; });
-      }, [entries, filter]);
-
-      const totalIncome = useMemo(function() { return entries.filter(function(e){return e.type==='income';}).reduce(function(s,e){return s+e.amount;},0); }, [entries]);
-      const totalExpense = useMemo(function() { return entries.filter(function(e){return e.type==='expense';}).reduce(function(s,e){return s+e.amount;},0); }, [entries]);
-      const netCash = totalIncome - totalExpense;
-
-      // Monthly summary
-      const monthlySummary = useMemo(function() {
-        const map = {};
-        entries.forEach(function(e) {
-          if (!e.date) return;
-          const mo = e.date.slice(0, 7);
-          if (!map[mo]) map[mo] = { month: mo, income: 0, expense: 0 };
-          if (e.type === 'income') map[mo].income += e.amount;
-          else map[mo].expense += e.amount;
-        });
-        return Object.values(map).sort(function(a,b){return b.month.localeCompare(a.month);}).slice(0, 12);
-      }, [entries]);
-
-      // Category breakdown
-      const catBreakdown = useMemo(function() {
-        const map = {};
-        entries.filter(function(e){return e.type==='expense';}).forEach(function(e) {
-          const cat = e.category || 'Uncategorized';
-          map[cat] = (map[cat] || 0) + e.amount;
-        });
-        return Object.entries(map).sort(function(a,b){return b[1]-a[1];});
-      }, [entries]);
-
-      const inpSt = { background: C.bg, border: '1px solid '+C.border, borderRadius: 3, color: C.text, fontSize: 12, fontFamily: 'inherit', padding: '7px 10px', outline: 'none', width: '100%' };
-      const selSt = Object.assign({}, inpSt, { cursor: 'pointer' });
-
-      if (loading) return <div style={{padding:40,color:C.dim,fontSize:12}}>Loading…</div>;
-
       return (
         <div>
-          {/* ═══ PERIOD SELECTOR ═══ */}
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14,flexWrap:'wrap'}}>
-            <span style={{fontSize:9,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>Revenue Window</span>
-            {[7,30,60,90,180,270,365].map(function(d){return<button key={d} onClick={function(){setPeriodDays(d);}} style={{padding:'4px 11px',borderRadius:2,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(pd===d?C.text:C.border),background:pd===d?C.text:'transparent',color:pd===d?C.bg:C.dim,fontWeight:pd===d?700:400}}>{d}d</button>;})}
-            <button onClick={openInvoiceForm} style={{marginLeft:'auto',padding:'6px 14px',borderRadius:3,fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid #2196f3',background:'#2196f322',color:'#2196f3',letterSpacing:0.5}}>Generate Invoice</button>
+            <span style={{fontSize:9,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>Revenue window</span>
+            {[7,30,60,90,180,270,365].map(function(d){return<button key={d} onClick={function(){setPeriodDays(d);}} style={{padding:'3px 8px',borderRadius:2,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(periodDays===d?C.text:C.border),background:periodDays===d?C.text:'transparent',color:periodDays===d?C.bg:C.dim,fontWeight:periodDays===d?700:400}}>{d}d</button>;})}
           </div>
-
-          {/* ═══ CASH FLOW ═══ */}
-          {(function(){
-              // ── DEMAND-DRIVEN ENGINE (computed above in projMonths/skuTimelines) ──
-              var rev365b=0,units365b=0,cart365=0,conc365=0;
-              (accounts||[]).forEach(function(a){if(!a.hasSalesData)return;rev365b+=(a.totalSales||0);(a.orderedSkus||[]).forEach(function(s){var u=(s.periodUnits&&s.periodUnits[365])||0;units365b+=u;if((s.category||'').includes('Cart'))cart365+=u;else conc365+=u;});});
-              var mRev=rev365b/12;var mUnits=units365b/12;
-              var cpu=units365b>0?(cart365*4.82+conc365*3.36)/units365b:4.20;
-              var mCOGS=mUnits*cpu;var mPkg=mUnits*1.50;var mDist=mRev*0.16;var mFixed=1415;var mMktg=180;
-              var mBase=mCOGS+mPkg+mDist+mFixed+mMktg;var c2r=mRev>0?mBase/mRev:0.65;
-              // Weekly data
-              var wks=Math.ceil(cfRange/7);var sd3=new Date(2026,3,1);var today=new Date(2026,3,5);
-              var payEvt2=[{d:new Date(2026,3,10),a:38396.91+6501.94,l:'Feb + Cruz $44.9K'},{d:new Date(2026,4,8),a:AR_DATA[3].pay,l:'Mar $'+Math.round(AR_DATA[3].pay/1000)+'K'},{d:new Date(2026,5,12),a:Math.round(mRev*Math.pow(1+growthPct/100,1)*0.84),l:'Apr est'},{d:new Date(2026,6,10),a:Math.round(mRev*Math.pow(1+growthPct/100,2)*0.84),l:'May est'},{d:new Date(2026,7,14),a:Math.round(mRev*Math.pow(1+growthPct/100,3)*0.84),l:'Jun est'},{d:new Date(2026,8,11),a:Math.round(mRev*Math.pow(1+growthPct/100,4)*0.84),l:'Jul est'}];
-              var dp=[];var bal2=5000;var nextPay=null;
-              for(var w=0;w<wks;w++){var ws2=new Date(sd3.getTime()+w*7*86400000);var we2=new Date(ws2.getTime()+7*86400000);var moOut=(ws2.getTime()-sd3.getTime())/86400000/30;var fExp=mBase*Math.pow(1+growthPct/100,(moOut+1)/12);var wExp=Math.round(fExp/4.33);var inf3=0,il2='',ip2=false;payEvt2.forEach(function(pe){if(pe.d>=ws2&&pe.d<we2){inf3+=pe.a;il2=pe.l;ip2=true;if(!nextPay&&pe.d>=today)nextPay={date:pe.d,amount:pe.a,label:pe.l};}});bal2+=inf3-wExp;var mo2=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct'][ws2.getMonth()];dp.push({w:w,dt:mo2+' '+ws2.getDate(),inf:inf3,out:wExp,net:bal2,ip:ip2,il:il2,isToday:ws2<=today&&we2>today,dateObj:ws2});}
-              if(!nextPay)nextPay={date:payEvt2[0].d,amount:payEvt2[0].a,label:payEvt2[0].l};
-              var minBal=Math.min.apply(null,dp.map(function(d){return d.net;}));
-              var wBurnRate=Math.round(mBase/4.33);
-              var runway=bal2>0?Math.round(bal2/wBurnRate*7):0;
-              var spDec=minBal>15000?{l:'SAFE TO SPEND',c:'#4caf50',d:'Funded for current growth.'}:minBal>0?{l:'HOLD SPEND',c:'#f5a623',d:'Tight. Delay non-essential.'}:{l:'RAISE CAPITAL',c:'#ff5252',d:'Projected negative. Act now.'};
-              var cashComp=growthPct>0&&minBal<5000;
-              // Chart
-              var W=700,H=260,pL=52,pR=12,pT=20,pB=32,cW3=W-pL-pR,cH3=H-pT-pB;
-              var allV2=[];dp.forEach(function(d){allV2.push(d.inf,d.out,d.net);});
-              var mx2=Math.max.apply(null,allV2.concat([1]));var mn3=Math.min.apply(null,allV2.concat([0]));if(mn3>0)mn3=0;var rn2=mx2-mn3||1;
-              function xc(i){return pL+i/(dp.length-1||1)*cW3;}
-              function yc(v){return pT+cH3-(v-mn3)/rn2*cH3;}
-              // Smooth curve helper
-              function smooth(pts){if(pts.length<2)return'';var d='M'+pts[0][0]+','+pts[0][1];for(var i=1;i<pts.length;i++){var x0=pts[i-1][0],y0=pts[i-1][1],x1=pts[i][0],y1=pts[i][1];var cx=(x0+x1)/2;d+=' C'+cx+','+y0+' '+cx+','+y1+' '+x1+','+y1;}return d;}
-              var iP2=dp.map(function(d,i){return[xc(i),yc(d.inf)];});
-              var oP2=dp.map(function(d,i){return[xc(i),yc(d.out)];});
-              var nP2=dp.map(function(d,i){return[xc(i),yc(d.net)];});
-              var nArea='M'+nP2[0][0]+','+yc(0)+' L'+nP2[0][0]+','+nP2[0][1]+smooth(nP2).slice(1+String(nP2[0][0]).length+1+String(nP2[0][1]).length)+'L'+nP2[nP2.length-1][0]+','+yc(0)+'Z';
-              // Danger zones
-              var dz=[];var inD=false,ds2=0;dp.forEach(function(d,i){if(d.net<0&&!inD){inD=true;ds2=i;}if((d.net>=0||i===dp.length-1)&&inD){inD=false;dz.push([ds2,i]);}});
-              var todayIdx=dp.findIndex(function(d){return d.isToday;});
-
-              return React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.borderHi,borderRadius:10,overflow:'hidden',marginBottom:20}},
-                // ── Summary Panel ──
-                React.createElement('div',{style:{padding:'16px 24px',borderBottom:'1px solid '+C.border,display:'flex',gap:24,flexWrap:'wrap',alignItems:'center'}},
-                  React.createElement('div',null,React.createElement('div',{style:{fontSize:7,color:C.dim,letterSpacing:1.5}},'CASH POSITION'),React.createElement('div',{style:{fontSize:22,fontWeight:900,color:bal2>0?C.text:C.danger}},curK(dp[dp.length-1].net))),
-                  React.createElement('div',{style:{borderLeft:'1px solid '+C.border,paddingLeft:20}},React.createElement('div',{style:{fontSize:7,color:C.dim,letterSpacing:1.5}},'NEXT PAYOUT'),React.createElement('div',{style:{fontSize:14,fontWeight:800,color:'#4caf50'}},curK(nextPay.amount)),React.createElement('div',{style:{fontSize:8,color:C.dim}},nextPay.label)),
-                  React.createElement('div',{style:{borderLeft:'1px solid '+C.border,paddingLeft:20}},React.createElement('div',{style:{fontSize:7,color:C.dim,letterSpacing:1.5}},'WEEKLY BURN'),React.createElement('div',{style:{fontSize:14,fontWeight:800,color:'#ff5252'}},curK(wBurnRate))),
-                  React.createElement('div',{style:{borderLeft:'1px solid '+C.border,paddingLeft:20}},React.createElement('div',{style:{fontSize:7,color:C.dim,letterSpacing:1.5}},'RUNWAY'),React.createElement('div',{style:{fontSize:14,fontWeight:800,color:runway>60?C.text:runway>30?'#f5a623':'#ff5252'}},runway+'d')),
-                  React.createElement('div',{style:{marginLeft:'auto',textAlign:'right'}},React.createElement('div',{style:{fontSize:14,fontWeight:900,color:spDec.c}},spDec.l),React.createElement('div',{style:{fontSize:8,color:C.dim}},spDec.d),cashComp&&React.createElement('div',{style:{fontSize:8,color:'#f5a623',fontWeight:700,marginTop:2}},'\u26a0 Cash compression detected'))
-                ),
-                // ── Controls ──
-                React.createElement('div',{style:{padding:'10px 24px',borderBottom:'1px solid '+C.border,display:'flex',gap:12,alignItems:'center',flexWrap:'wrap'}},
-                  React.createElement('div',{style:{display:'flex',gap:3}},{combined:'Combined',incoming:'Inflows',expenses:'Outflows',net:'Net'}.hasOwnProperty&&[['combined','Combined'],['incoming','Inflows'],['expenses','Outflows'],['net','Net']].map(function(v){return React.createElement('button',{key:v[0],onClick:function(){setCfView(v[0]);},style:{padding:'3px 10px',borderRadius:2,fontSize:8,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(cfView===v[0]?C.text:C.border),background:cfView===v[0]?C.text:'transparent',color:cfView===v[0]?C.bg:C.dim,fontWeight:cfView===v[0]?700:400,transition:'all 0.15s'}},v[1]);})),
-                  React.createElement('div',{style:{width:1,height:14,background:C.border}}),
-                  React.createElement('div',{style:{display:'flex',gap:3}},[30,60,90,180].map(function(d){return React.createElement('button',{key:d,onClick:function(){setCfRange(d);},style:{padding:'3px 8px',borderRadius:2,fontSize:8,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(cfRange===d?C.text:C.border),background:cfRange===d?C.text:'transparent',color:cfRange===d?C.bg:C.dim,fontWeight:cfRange===d?700:400,transition:'all 0.15s'}},d+'d');})),
-                  React.createElement('div',{style:{width:1,height:14,background:C.border}}),
-                  React.createElement('span',{style:{fontSize:8,color:C.dim}},'Growth:'),
-                  React.createElement('div',{style:{display:'flex',gap:3}},[0,5,10,15,20].map(function(g){return React.createElement('button',{key:g,onClick:function(){setGrowthPct(g);},style:{padding:'3px 8px',borderRadius:2,fontSize:8,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(growthPct===g?C.text:C.border),background:growthPct===g?C.text:'transparent',color:growthPct===g?C.bg:C.dim,fontWeight:growthPct===g?700:400,transition:'all 0.15s'}},g+'%');}))
-                ),
-                // ── Chart ──
-                React.createElement('div',{style:{padding:'16px 24px 20px',position:'relative'}},
-                  React.createElement('svg',{viewBox:'0 0 '+W+' '+H,style:{width:'100%',height:'auto',display:'block'},onMouseLeave:function(){setCfHover(null);}},
-                    // Subtle grid
-                    [0,0.25,0.5,0.75,1].map(function(f){var v=mn3+f*rn2;return React.createElement('g',{key:'g'+f},React.createElement('line',{x1:pL,y1:yc(v),x2:W-pR,y2:yc(v),stroke:C.border,strokeWidth:0.3,opacity:0.5}),React.createElement('text',{x:pL-6,y:yc(v)+3,textAnchor:'end',fontSize:7,fill:C.dim,fontFamily:'inherit',opacity:0.7},curK(v)));}),
-                    // Zero line
-                    React.createElement('line',{x1:pL,y1:yc(0),x2:W-pR,y2:yc(0),stroke:C.dim,strokeWidth:0.5,opacity:0.3}),
-                    // Danger zones
-                    dz.map(function(g,i){return React.createElement('rect',{key:'dz'+i,x:xc(g[0]),y:pT,width:Math.max(2,xc(g[1])-xc(g[0])),height:cH3,fill:'#ff5252',opacity:0.04,rx:2});}),
-                    // Net area fill
-                    (cfView==='combined'||cfView==='net')&&React.createElement('path',{d:nArea,fill:C.text,opacity:0.03}),
-                    // Smooth lines
-                    (cfView==='combined'||cfView==='incoming')&&React.createElement('path',{d:smooth(iP2),fill:'none',stroke:'#4caf50',strokeWidth:2,opacity:0.8,strokeLinejoin:'round'}),
-                    (cfView==='combined'||cfView==='expenses')&&React.createElement('path',{d:smooth(oP2),fill:'none',stroke:'#ff5252',strokeWidth:1.5,strokeDasharray:'6,3',opacity:0.7,strokeLinejoin:'round'}),
-                    (cfView==='combined'||cfView==='net')&&React.createElement('path',{d:smooth(nP2),fill:'none',stroke:C.text,strokeWidth:2.5,opacity:0.9,strokeLinejoin:'round'}),
-                    // Today marker
-                    todayIdx>=0&&React.createElement('g',{key:'today'},React.createElement('line',{x1:xc(todayIdx),y1:pT,x2:xc(todayIdx),y2:H-pB,stroke:C.text,strokeWidth:1,strokeDasharray:'2,4',opacity:0.4}),React.createElement('text',{x:xc(todayIdx),y:H-pB+22,textAnchor:'middle',fontSize:7,fill:C.text,fontWeight:700,opacity:0.6},'TODAY')),
-                    // Payout markers
-                    dp.map(function(d,i){if(!d.ip)return null;return React.createElement('g',{key:'pm'+i},React.createElement('line',{x1:xc(i),y1:yc(d.inf)-6,x2:xc(i),y2:H-pB,stroke:'#4caf50',strokeWidth:0.5,opacity:0.3}),React.createElement('circle',{cx:xc(i),cy:yc(d.inf),r:3.5,fill:'#4caf50',stroke:C.surface,strokeWidth:1.5}),React.createElement('text',{x:xc(i),y:yc(d.inf)-8,textAnchor:'middle',fontSize:6.5,fill:'#4caf50',fontWeight:700,opacity:0.9},curK(d.inf)));}),
-                    // X-axis labels
-                    dp.filter(function(d,i){var step=Math.max(1,Math.floor(wks/7));return i%step===0;}).map(function(d){return React.createElement('text',{key:'xl'+d.w,x:xc(d.w),y:H-pB+12,textAnchor:'middle',fontSize:7,fill:C.dim,fontFamily:'inherit',opacity:0.6},d.dt);}),
-                    // Hover zones
-                    dp.map(function(d,i){return React.createElement('rect',{key:'hv'+i,x:xc(i)-cW3/dp.length/2,y:pT,width:cW3/dp.length,height:cH3,fill:'transparent',cursor:'crosshair',onMouseEnter:function(){setCfHover(i);}});})
-                  ),
-                  // Hover tooltip
-                  cfHover!=null&&dp[cfHover]&&React.createElement('div',{style:{position:'absolute',top:20,left:Math.min(xc(cfHover)/W*100,72)+'%',background:C.bg,border:'1px solid '+C.borderHi,borderRadius:6,padding:'10px 14px',fontSize:9,pointerEvents:'none',zIndex:10,minWidth:160,boxShadow:'0 8px 24px rgba(0,0,0,0.4)'}},
-                    React.createElement('div',{style:{fontWeight:800,marginBottom:6,fontSize:11,color:C.text}},dp[cfHover].dt),
-                    React.createElement('div',{style:{display:'flex',justifyContent:'space-between',gap:16,marginBottom:3}},React.createElement('span',{style:{color:C.dim}},'Inflow'),React.createElement('span',{style:{color:'#4caf50',fontWeight:600}},cur(dp[cfHover].inf))),
-                    React.createElement('div',{style:{display:'flex',justifyContent:'space-between',gap:16,marginBottom:3}},React.createElement('span',{style:{color:C.dim}},'Expenses'),React.createElement('span',{style:{color:'#ff5252',fontWeight:600}},'-'+cur(dp[cfHover].out))),
-                    React.createElement('div',{style:{display:'flex',justifyContent:'space-between',gap:16,borderTop:'1px solid '+C.border,paddingTop:4,marginTop:2}},React.createElement('span',{style:{fontWeight:700}},'Net'),React.createElement('span',{style:{fontWeight:800,color:dp[cfHover].net>=0?C.text:'#ff5252'}},cur(dp[cfHover].net))),
-                    dp[cfHover].il&&React.createElement('div',{style:{fontSize:8,color:'#4caf50',marginTop:4,fontStyle:'italic'}},dp[cfHover].il)
-                  ),
-                  // Inline legend
-                  React.createElement('div',{style:{display:'flex',gap:20,marginTop:6,paddingLeft:pL}},
-                    (cfView==='combined'||cfView==='incoming')&&React.createElement('span',{style:{fontSize:8,color:'#4caf50',opacity:0.8}},'\u2014 Incoming'),
-                    (cfView==='combined'||cfView==='expenses')&&React.createElement('span',{style:{fontSize:8,color:'#ff5252',opacity:0.8}},'- - Expenses'),
-                    (cfView==='combined'||cfView==='net')&&React.createElement('span',{style:{fontSize:8,color:C.text}},'\u2014 Net Position'),
-                    dz.length>0&&React.createElement('span',{style:{fontSize:8,color:'#ff5252',fontWeight:600}},'\u25a0 Danger zone')
-                  )
-                )
-              );
-          })()}
-
-
-          {/* ═══ RECEIVABLES OVERVIEW ═══ */}
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:10,marginBottom:20}}>
-            {[{l:'Confirmed Receivables',v:cur(totalConfirmedReceivables),c:C.good,s:'All unpaid confirmed payouts'},{l:'Feb Payout Due',v:cur(38396.91),c:C.warn,s:'Due Apr 13 — GON+Euphoric+Batt'},{l:'Cruz Outstanding',v:cur(cruzOutstanding),c:C.danger,s:'$6,501.94 — payment scheduled'},{l:'Mar Payout (Est)',v:cur(AR_DATA[3].pay),c:C.muted,s:'Due May 8 (2nd Friday)'},{l:'Total AP Obligations',v:'-'+curK(totalAP),c:C.danger,s:periodAP.length+' expenses in window'},{l:'Net Position',v:curK(totalConfirmedReceivables-totalAP),c:totalConfirmedReceivables-totalAP>=0?C.good:C.danger,s:'Receivables minus obligations'}].map(function(s){return <div key={s.l} style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'12px 14px'}}><div style={{fontSize:7,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:3}}>{s.l}</div><div style={{fontSize:16,fontWeight:800,color:s.c}}>{s.v}</div><div style={{fontSize:8,color:C.dim,marginTop:2}}>{s.s}</div></div>;})}
+          <div style={{background:C.surface,border:'1px solid '+(C.borderHi||C.border),borderRadius:8,padding:'40px 24px',textAlign:'center',marginBottom:20}}>
+            <div style={{fontSize:13,fontWeight:800,letterSpacing:3,marginBottom:8}}>CASH FLOW</div>
+            <div style={{fontSize:11,color:C.muted,lineHeight:1.8,maxWidth:400,margin:'0 auto'}}>Cash flow visualization is being rebuilt for accuracy. Use the P&L tab for current profitability analysis and the Briefing tab for operational overview.</div>
           </div>
-          {/* ═══ RECONCILIATION ═══ */}
-          {Math.abs(totalConfirmedReceivables-reconciliationTarget)>1000&&<div style={{background:C.dangerBg,border:'1px solid '+C.dangerBdr,borderRadius:6,padding:'12px 16px',marginBottom:16,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-            <div><div style={{fontSize:9,fontWeight:700,color:C.danger,letterSpacing:1}}>⚠ RECEIVABLES RECONCILIATION MISMATCH</div><div style={{fontSize:9,color:C.muted,marginTop:2}}>Computed: {cur(totalConfirmedReceivables)} · Target: {cur(reconciliationTarget)} · Diff: {cur(Math.abs(totalConfirmedReceivables-reconciliationTarget))}</div></div>
-            <span style={{fontSize:8,fontWeight:700,color:C.danger}}>INVESTIGATE</span>
-          </div>}
-          {Math.abs(totalConfirmedReceivables-reconciliationTarget)<=1000&&<div style={{background:C.goodBg,border:'1px solid '+C.goodBdr,borderRadius:6,padding:'10px 16px',marginBottom:16,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-            <div style={{fontSize:9,color:C.good}}>✓ Receivables reconciled — {cur(totalConfirmedReceivables)} matches target {cur(reconciliationTarget)}</div>
-          </div>}
-
-          {/* ═══ CASH FLOW POSITION ═══ */}
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:16}}>
-            <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16}}>
-              <div style={{fontSize:9,color:C.dim,letterSpacing:2,textTransform:'uppercase',marginBottom:10}}>AP — Expenses ({pd}d)</div>
-              {periodAP.map(function(a,i){return <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'4px 0',borderBottom:'1px solid '+C.border}}><div><div style={{fontSize:10,fontWeight:600}}>{a.vendor}</div><div style={{fontSize:8,color:C.dim}}>{a.desc}</div></div><div style={{fontSize:11,fontWeight:700,color:C.danger,flexShrink:0,marginLeft:8}}>{cur(a.amount)}</div></div>;})}
-              <div style={{display:'flex',justifyContent:'space-between',paddingTop:8,marginTop:4}}><span style={{fontSize:10,fontWeight:800}}>Total AP</span><span style={{fontSize:13,fontWeight:900,color:C.danger}}>{cur(totalAP)}</span></div>
-              {apCats.length>0&&<div style={{marginTop:12,paddingTop:10,borderTop:'1px solid '+C.border}}><div style={{fontSize:8,color:C.dim,letterSpacing:1.5,marginBottom:6,textTransform:'uppercase'}}>By Category</div>{apCats.map(function(e){var pct=totalAP>0?e[1]/totalAP*100:0;return <div key={e[0]} style={{marginBottom:4}}><div style={{display:'flex',justifyContent:'space-between',fontSize:9}}><span style={{color:C.muted}}>{e[0]}</span><span style={{fontWeight:700}}>{cur(e[1])}</span></div><div style={{height:3,background:C.border,borderRadius:2,overflow:'hidden',marginTop:2}}><div style={{height:'100%',width:pct+'%',background:C.text,borderRadius:2}}></div></div></div>;})}</div>}
-            </div>
-
-            <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16}}>
-              <div style={{fontSize:9,color:C.dim,letterSpacing:2,textTransform:'uppercase',marginBottom:10}}>AR — PAYOUT SCHEDULE (VERIFIED FROM UPNORTH EMAILS)</div>
-              {AR_DATA.map(function(r,i){var sc=r.st==='received'?C.good:r.st==='due'?C.warn:C.muted;var totalPay=r.pay+(r.cruzPay||0);return <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px solid '+C.border}}>
-                <div style={{flex:1}}>
-                  <div style={{fontSize:11,fontWeight:700}}>{r.m}</div>
-                  <div style={{fontSize:8,color:C.dim}}>{r.note||''}</div>
-                </div>
-                <div style={{textAlign:'right',marginRight:12}}>
-                  <div style={{fontSize:8,color:C.dim}}>Sales Rev: {curK(r.salesRev)}</div>
-                  <div style={{fontSize:8,color:C.dim}}>Due: {r.due}</div>
-                </div>
-                <div style={{textAlign:'right',minWidth:90}}>
-                  <div style={{fontSize:13,fontWeight:800}}>{cur(totalPay)}</div>
-                  <span style={{fontSize:7,fontWeight:700,padding:'1px 6px',borderRadius:2,background:sc+'18',border:'1px solid '+sc+'44',color:sc,textTransform:'uppercase'}}>{r.st}</span>
-                </div>
-              </div>;})}
-              {cruzOutstanding>0&&<div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px solid '+C.border,background:C.dangerBg}}>
-                <div><div style={{fontSize:11,fontWeight:700,color:C.danger}}>Cruz Science — Past Due</div><div style={{fontSize:8,color:C.dim}}>Dec $5,102.46 + Jan $1,386.04 + Feb $13.44</div></div>
-                <div style={{textAlign:'right'}}><div style={{fontSize:13,fontWeight:800,color:C.danger}}>{cur(cruzOutstanding)}</div><span style={{fontSize:7,fontWeight:700,padding:'1px 6px',borderRadius:2,background:C.dangerBg,border:'1px solid '+C.dangerBdr,color:C.danger}}>PAST DUE</span></div>
-              </div>}
-              <div style={{display:'flex',justifyContent:'space-between',paddingTop:8,marginTop:4}}><span style={{fontSize:11,fontWeight:800}}>Total Outstanding</span><span style={{fontSize:14,fontWeight:900,color:C.warn}}>{cur(totalConfirmedReceivables)}</span></div>
-            </div>
-          </div>
-
-          {/* ═══ NET CASH POSITION ═══ */}
-          <div style={{background:C.raised,border:'1px solid '+C.borderHi,borderRadius:6,padding:16,marginBottom:24,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
-            <div>
-              <div style={{fontSize:8,color:C.dim,letterSpacing:1,textTransform:'uppercase'}}>Net Cash Position — Receivables vs Obligations</div>
-              <div style={{fontSize:9,color:C.muted,marginTop:2}}>Confirmed receivables minus AP expenses</div>
-            </div>
-            <div style={{textAlign:'right'}}>
-              <div style={{fontSize:9,color:C.dim}}>Receivables: <span style={{color:C.good,fontWeight:700}}>{cur(totalConfirmedReceivables)}</span></div>
-              <div style={{fontSize:9,color:C.dim}}>AP: <span style={{color:C.danger,fontWeight:700}}>-{cur(totalAP)}</span></div>
-              <div style={{fontSize:22,fontWeight:900,color:totalConfirmedReceivables-totalAP>0?C.good:C.danger,marginTop:4}}>{totalConfirmedReceivables-totalAP>=0?'+':''}{curK(totalConfirmedReceivables-totalAP)}</div>
-            </div>
-          </div>
-
-          <div style={{fontSize:9,color:C.dim,letterSpacing:2,textTransform:'uppercase',marginBottom:14}}>AR Payout Schedule — UpNorth → Family Tree Consulting</div>
-          <div style={{overflowX:'auto',marginBottom:24}}>
-            <table style={{width:'100%',minWidth:500,borderCollapse:'collapse',background:C.surface,border:'1px solid '+C.border,borderRadius:6}}>
-              <thead><tr>{['Sales Period','Gross Revenue','Distro (16%)','Your Payout (84%)','Due Date','Status'].map(function(h,i){return <th key={h} style={{padding:'8px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>1?'right':'left',borderBottom:'1px solid '+C.border,textTransform:'uppercase'}}>{h}</th>;})}</tr></thead>
-              <tbody>
-                {[{m:'Dec 2025',rev:57556,dist:9209,pay:39997.74,due:'Feb 13',st:'received'},
-                  {m:'Jan 2026',rev:44329,dist:7093,pay:37236,due:'Mar 13',st:'received'},
-                  {m:'Feb 2026',rev:46297,dist:7407,pay:38396.91,due:'Apr 13',st:'due'},
-                  {m:'Mar 2026',rev:latestMonthRev,dist:Math.round(latestMonthRev*0.16),pay:Math.round(latestMonthRev*0.84),due:'May 8',st:computed30dRev>0?'due':'projected'}
-                ].map(function(r,i){var sc=r.st==='received'?C.good:r.st==='due'?C.warn:C.muted;return <tr key={i} style={{background:i%2===0?'transparent':C.raised}}>
-                  <td style={{padding:'8px 10px',fontSize:11,fontWeight:600}}>{r.m}</td>
-                  <td style={{padding:'8px 10px',fontSize:11,color:C.muted}}>{curK(r.rev)}</td>
-                  <td style={{padding:'8px 10px',textAlign:'right',fontSize:10,color:C.dim}}>-{curK(r.dist)}</td>
-                  <td style={{padding:'8px 10px',textAlign:'right',fontSize:12,fontWeight:800}}>{cur(r.pay)}</td>
-                  <td style={{padding:'8px 10px',textAlign:'right',fontSize:10,color:C.muted}}>{r.due}</td>
-                  <td style={{padding:'8px 10px',textAlign:'right'}}><span style={{fontSize:8,fontWeight:700,padding:'2px 8px',borderRadius:2,background:sc+'18',border:'1px solid '+sc+'44',color:sc,textTransform:'uppercase'}}>{r.st}</span></td>
-                </tr>;})}
-                <tr style={{borderTop:'1px solid '+C.borderHi,background:C.raised}}>
-                  <td colSpan={3} style={{padding:'8px 10px',fontSize:11,fontWeight:800}}>Outstanding AR</td>
-                  <td style={{padding:'8px 10px',textAlign:'right',fontSize:13,fontWeight:900,color:C.warn}}>{cur(38396.91+Math.round(latestMonthRev*0.84))}</td>
-                  <td colSpan={2} style={{padding:'8px 10px',textAlign:'right',fontSize:9,color:C.dim}}>Feb + Mar payouts</td>
-                </tr>
-              </tbody>
-            </table>
-            <div style={{fontSize:9,color:C.dim,marginTop:6}}>Per contract §5(d): payment on 2nd Friday of month following sales period close. 100% to Family Tree Consulting.</div>
-          </div>
-
-          {/* ═══ PRODUCTION → CASH LIFECYCLE ═══ */}
-          <div style={{background:C.surface,border:'1px solid '+C.borderHi,borderRadius:8,padding:'20px 24px',marginBottom:20}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
-              <div>
-                <div style={{fontSize:11,fontWeight:800,letterSpacing:2}}>PRODUCTION → CASH LIFECYCLE</div>
-                <div style={{fontSize:9,color:C.dim,marginTop:2}}>Real UpNorth consignment timing · Avg cycle: <strong style={{color:C.text}}>{avgCycleDays} days</strong></div>
-              </div>
-              <div style={{display:'flex',alignItems:'center',gap:8}}>
-                <span style={{fontSize:8,color:C.dim}}>Extraction days:</span>
-                {[7,10,14].map(function(d){return <button key={d} onClick={function(){setExtractDays(d);}} style={{padding:'3px 8px',borderRadius:2,fontSize:9,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(extractDays===d?C.text:C.border),background:extractDays===d?C.text:'transparent',color:extractDays===d?C.bg:C.dim,fontWeight:extractDays===d?700:400}}>{d}d</button>;})}
-              </div>
-            </div>
-            <div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:500,borderCollapse:'collapse'}}>
-              <thead><tr style={{background:C.raised}}>{['SKU Type','% Mix','Prod→Pickup','Sell-Through','Month-End','Consignment','Payout','Total Days'].map(function(h,i){return <th key={h} style={{padding:'5px 8px',fontSize:8,fontWeight:700,color:C.dim,textAlign:i>=1?'right':'left',borderBottom:'1px solid '+C.border,letterSpacing:0.5}}>{h}</th>;})}</tr></thead>
-              <tbody>
-                {skuTimelines.map(function(t,i){return <tr key={t.label} style={{background:i%2===0?'transparent':C.raised}}>
-                  <td style={{padding:'6px 8px',fontSize:11,fontWeight:600}}>{t.label}</td>
-                  <td style={{padding:'6px 8px',fontSize:10,textAlign:'right',color:C.muted}}>{(t.pct*100).toFixed(0)}%</td>
-                  <td style={{padding:'6px 8px',fontSize:10,textAlign:'right'}}>{t.prodToPickup}d</td>
-                  <td style={{padding:'6px 8px',fontSize:10,textAlign:'right',color:t.pickupToSale>30?C.warn:C.good}}>{t.pickupToSale}d</td>
-                  <td style={{padding:'6px 8px',fontSize:10,textAlign:'right',color:C.muted}}>~{t.saleToMonthEnd}d</td>
-                  <td style={{padding:'6px 8px',fontSize:10,textAlign:'right',color:C.warn}}>42d</td>
-                  <td style={{padding:'6px 8px',fontSize:10,textAlign:'right',color:C.muted}}>~{t.payoutDelay}d</td>
-                  <td style={{padding:'6px 8px',fontSize:12,textAlign:'right',fontWeight:800,color:t.totalDays>100?C.danger:t.totalDays>80?C.warn:C.good}}>{t.totalDays}d</td>
-                </tr>;})}
-                <tr style={{borderTop:'1px solid '+C.borderHi,background:C.raised}}>
-                  <td style={{padding:'6px 8px',fontSize:11,fontWeight:800}}>WEIGHTED AVG</td>
-                  <td colSpan={6}></td>
-                  <td style={{padding:'6px 8px',fontSize:13,fontWeight:900,textAlign:'right',color:avgCycleDays>100?C.danger:C.warn}}>{avgCycleDays}d</td>
-                </tr>
-              </tbody>
-            </table></div>
-            <div style={{marginTop:12,display:'flex',gap:16,fontSize:9,color:C.dim,flexWrap:'wrap'}}>
-              <span>Fastest cash: <strong style={{color:C.good}}>{skuTimelines[0].label} ({skuTimelines[0].totalDays}d)</strong></span>
-              <span>Slowest cash: <strong style={{color:C.danger}}>{skuTimelines[skuTimelines.length-1].label} ({skuTimelines[skuTimelines.length-1].totalDays}d)</strong></span>
-              <span>Pre-formulated inventory reduces Prod→Pickup by {extractDays-3}+ days</span>
-            </div>
-          </div>
-
-          {/* ═══ GROWTH PROJECTION ═══ */}
-          <div style={{marginBottom:24}}>
-            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14,flexWrap:'wrap'}}>
-              <span style={{fontSize:9,color:C.dim,letterSpacing:2,textTransform:'uppercase'}}>Growth Projection</span>
-              <span style={{fontSize:9,color:C.muted}}>Base: Mar $71K</span>
-              <div style={{display:'flex',gap:4,marginLeft:'auto'}}>
-                {[5,10,15,20,25].map(function(g){return <button key={g} onClick={function(){setGrowthPct(g);}} style={{padding:'4px 10px',borderRadius:2,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(growthPct===g?C.text:C.border),background:growthPct===g?C.text:'transparent',color:growthPct===g?C.bg:C.dim,fontWeight:growthPct===g?700:400}}>{g}%</button>;})}
-              </div>
-            </div>
-
-            <div style={{overflowX:'auto'}}>
-              <table style={{width:'100%',minWidth:420,borderCollapse:'collapse',background:C.surface,border:'1px solid '+C.border,borderRadius:6}}>
-                <thead><tr>{['Month','Revenue','Units','Payout (84%)','Carts COGS','Conc COGS','Lab','Fixed','Total AP','Cash Gap'].map(function(h,i){return <th key={h} style={{padding:'5px 6px',fontSize:7,fontWeight:700,letterSpacing:0.8,color:C.dim,textAlign:i===0?'left':'right',borderBottom:'1px solid '+C.border,textTransform:'uppercase',whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead>
-                <tbody>
-                  {projMonths.map(function(m,i){return <tr key={i} style={{background:i%2===0?'transparent':C.raised}}>
-                    <td style={{padding:'6px',fontSize:11,fontWeight:700}}>{m.month}</td>
-                    <td style={{padding:'6px',textAlign:'right',fontSize:11,fontWeight:700}}>{curK(m.rev)}</td>
-                    <td style={{padding:'6px',textAlign:'right',fontSize:9,color:C.muted}}>{m.units.toLocaleString()}</td>
-                    <td style={{padding:'6px',textAlign:'right',fontSize:10,color:C.good,fontWeight:700}}>{curK(m.payout)}</td>
-                    <td style={{padding:'6px',textAlign:'right',fontSize:9,color:C.muted}}>{curK(m.apCarts)}</td>
-                    <td style={{padding:'6px',textAlign:'right',fontSize:9,color:C.muted}}>{curK(m.apConc)}</td>
-                    <td style={{padding:'6px',textAlign:'right',fontSize:9,color:C.dim}}>{curK(m.apLab)}</td>
-                    <td style={{padding:'6px',textAlign:'right',fontSize:9,color:C.dim}}>{curK(m.apFixed)}</td>
-                    <td style={{padding:'6px',textAlign:'right',fontSize:10,fontWeight:700,color:C.danger}}>{curK(m.apTotal)}</td>
-                    <td style={{padding:'6px',textAlign:'right',fontSize:11,fontWeight:800,color:m.cashGap>0?C.good:C.danger}}>{m.cashGap>=0?'+':''}{curK(m.cashGap)}</td>
-                  </tr>;})}
-                </tbody>
-              </table>
-            </div>
-
-            <div style={{marginTop:12,background:C.raised,border:'1px solid '+C.borderHi,borderRadius:6,padding:14}}>
-              <div style={{fontSize:8,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:8}}>6-Month Forecast at {growthPct}% MoM Growth</div>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(110px,1fr))',gap:10}}>
-                {[{l:'Projected Revenue',v:curK(projMonths.reduce(function(s,m){return s+m.rev;},0)),c:C.text},
-                  {l:'Projected AP',v:curK(projMonths.reduce(function(s,m){return s+m.apTotal;},0)),c:C.danger},
-                  {l:'Net Cash 6mo',v:curK(projMonths.reduce(function(s,m){return s+m.cashGap;},0)),c:projMonths.reduce(function(s,m){return s+m.cashGap;},0)>0?C.good:C.danger},
-                  {l:'Avg Monthly Gap',v:curK(projMonths.reduce(function(s,m){return s+m.cashGap;},0)/6),c:C.muted}
-                ].map(function(s){return <div key={s.l}><div style={{fontSize:7,color:C.dim,letterSpacing:1,textTransform:'uppercase',marginBottom:2}}>{s.l}</div><div style={{fontSize:16,fontWeight:800,color:s.c}}>{s.v}</div></div>;})}
-              </div>
-              <div style={{marginTop:10,fontSize:9,color:C.dim}}>⚠ AP timing note: Materials AP hits 21-42 days BEFORE production. Payouts arrive 30-45 days AFTER sales. At {growthPct}% growth, budget {curK(Math.max.apply(null,projMonths.map(function(m){return m.apTotal;})))} working capital for peak month.</div>
-            </div>
-          </div>
-
-          <div style={{fontSize:9,color:C.dim,letterSpacing:2,textTransform:'uppercase',marginBottom:14}}>Manual Entries & Invoice Scanner</div>
-          <div style={{display:'flex',gap:12,marginBottom:24,flexWrap:'wrap'}}>
-            {[{l:'Total Income',v:totalIncome,color:C.good},{l:'Total Expenses',v:totalExpense,color:C.danger},{l:'Net Cash Flow',v:netCash,color:netCash>=0?C.good:C.danger,alert:netCash<0}].map(function(it){return(
-              <div key={it.l} style={{background:it.alert?C.dangerBg:C.surface,border:'1px solid '+(it.alert?C.dangerBdr:C.border),borderRadius:6,padding:'18px 24px',flex:1,minWidth:160}}>
-                <div style={{fontSize:9,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:6}}>{it.l}</div>
-                <div style={{fontSize:28,fontWeight:800,color:it.color,lineHeight:1}}>{curK(Math.abs(it.v))}</div>
-                {it.l==='Net Cash Flow'&&<div style={{fontSize:9,color:C.dim,marginTop:4}}>{it.v>=0?'positive cash position':'⚠ cash gap — review expenses'}</div>}
-              </div>
-            );})}
-            <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'18px 24px',flex:1,minWidth:160}}>
-              <div style={{fontSize:9,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:6}}>Entries</div>
-              <div style={{fontSize:28,fontWeight:800,color:C.text,lineHeight:1}}>{entries.length}</div>
-              <div style={{fontSize:9,color:C.dim,marginTop:4}}>{entries.filter(function(e){return e.type==='income';}).length} income · {entries.filter(function(e){return e.type==='expense';}).length} expense</div>
-            </div>
-          </div>
-
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:18,marginBottom:24}}>
-            {/* Monthly summary */}
-            {monthlySummary.length>0&&(
-              <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'18px 20px'}}>
-                <div style={{fontSize:9,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:14}}>Monthly Summary</div>
-                <div style={{overflowX:'auto'}}>
-                  <table style={{width:'100%',minWidth:320,borderCollapse:'collapse'}}>
-                    <thead><tr>{['Month','Income','Expenses','Net'].map(function(h,i){return<th key={h} style={{padding:'5px 8px',fontSize:8,fontWeight:700,letterSpacing:1,textTransform:'uppercase',color:C.dim,textAlign:i===0?'left':'right',borderBottom:'1px solid '+C.border}}>{h}</th>;})}</tr></thead>
-                    <tbody>{monthlySummary.map(function(m,i){const net=m.income-m.expense;return(<tr key={m.month} style={{background:i%2===0?'transparent':C.raised}}><td style={{padding:'7px 8px',fontSize:11}}>{m.month}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:11,color:C.good}}>{curK(m.income)}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:11,color:C.danger}}>{curK(m.expense)}</td><td style={{padding:'7px 8px',textAlign:'right',fontSize:11,fontWeight:700,color:net>=0?C.good:C.danger}}>{curK(Math.abs(net))}{net<0?' ▼':' ▲'}</td></tr>);})}</tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-            {/* Expense breakdown */}
-            {catBreakdown.length>0&&(
-              <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'18px 20px'}}>
-                <div style={{fontSize:9,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:14}}>Expense Breakdown</div>
-                {catBreakdown.map(function(ce,i){const pct=totalExpense>0?ce[1]/totalExpense*100:0;return(
-                  <div key={ce[0]} style={{marginBottom:10}}>
-                    <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}><span style={{fontSize:10,color:C.muted}}>{ce[0]}</span><span style={{fontSize:11,fontWeight:700,color:C.text}}>{curK(ce[1])}<span style={{fontSize:9,color:C.dim,marginLeft:6}}>{pct.toFixed(0)}%</span></span></div>
-                    <div style={{height:4,background:C.raised,borderRadius:2,overflow:'hidden'}}><div style={{height:'100%',width:pct+'%',background:C.danger,borderRadius:2,transition:'width 0.3s'}}/></div>
-                  </div>
-                );})}
-              </div>
-            )}
-          </div>
-
-          {/* Action bar */}
-          <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16,flexWrap:'wrap'}}>
-            <div style={{display:'flex',gap:4}}>
-              {[['all','All'],['income','Income'],['expense','Expenses']].map(function(fl){return<button key={fl[0]} onClick={function(){setFilter(fl[0]);}} style={{padding:'5px 12px',borderRadius:3,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(filter===fl[0]?C.text:C.border),background:filter===fl[0]?C.text:'transparent',color:filter===fl[0]?C.bg:C.dim,fontWeight:filter===fl[0]?700:400}}>{fl[1]}</button>;})}
-            </div>
-            <div style={{marginLeft:'auto',display:'flex',gap:8,alignItems:'center'}}>
-              {scanning&&<span style={{fontSize:10,color:'#2196f3',animation:'pulse 1s infinite',letterSpacing:0.5}}>🔍 Scanning…</span>}
-              <input ref={fileRef} type="file" accept=".csv,.jpg,.jpeg,.png,.pdf,.heic" onChange={handleFileUpload} style={{display:'none'}}/>
-              <button onClick={function(){fileRef.current&&fileRef.current.click();}} disabled={scanning} style={{padding:'6px 14px',borderRadius:3,fontSize:11,fontWeight:600,cursor:scanning?'wait':'pointer',border:'1px solid '+C.border,background:'transparent',color:scanning?C.dim:C.muted,transition:'all 0.15s'}}>
-                {scanning?'Scanning…':'📄 Upload Invoice / CSV'}
-              </button>
-              <button onClick={function(){setShowForm(!showForm);}} style={{padding:'6px 14px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',border:'none',background:C.text,color:C.bg}}>+ Add Entry</button>
-            </div>
-          </div>
-          {fileError&&<div style={{marginBottom:12,fontSize:11,color:fileError.startsWith('✓')?C.good:fileError.startsWith('🔍')?'#2196f3':C.danger,background:fileError.startsWith('✓')?C.goodBg:fileError.startsWith('🔍')?'rgba(33,150,243,0.08)':C.dangerBg,border:'1px solid '+(fileError.startsWith('✓')?C.goodBdr:fileError.startsWith('🔍')?'#2196f344':C.dangerBdr),padding:'8px 12px',borderRadius:4}}>{fileError}</div>}
-
-          {/* Add entry form */}
-          {showForm&&(
-            <div style={{background:C.surface,border:'1px solid '+C.borderHi,borderRadius:6,padding:20,marginBottom:20}}>
-              <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,textTransform:'uppercase',marginBottom:16,color:C.muted}}>New Entry</div>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:12,marginBottom:12}}>
-                {[{label:'Date *',key:'date',type:'date'},{label:'Vendor / Source *',key:'vendor',type:'text',placeholder:'e.g. Uline, Greenline'},{label:'Invoice #',key:'invoiceNum',type:'text',placeholder:'INV-001'},{label:'Amount * ($)',key:'amount',type:'number',placeholder:'0.00'},{label:'Description',key:'description',type:'text',placeholder:'Brief description'}].map(function(f){return(
-                  <div key={f.key}>
-                    <div style={{fontSize:9,color:C.dim,letterSpacing:1,marginBottom:4}}>{f.label.toUpperCase()}</div>
-                    <input type={f.type} placeholder={f.placeholder||''} value={form[f.key]} onChange={function(e){setForm(Object.assign({},form,{[f.key]:e.target.value}));}} style={inpSt}/>
-                  </div>
-                );})}
-                <div>
-                  <div style={{fontSize:9,color:C.dim,letterSpacing:1,marginBottom:4}}>TYPE *</div>
-                  <select value={form.type} onChange={function(e){setForm(Object.assign({},form,{type:e.target.value,category:''}));}} style={Object.assign({},selSt,{background:C.bg})}>
-                    <option value="expense">Expense</option>
-                    <option value="income">Income</option>
-                  </select>
-                </div>
-                <div>
-                  <div style={{fontSize:9,color:C.dim,letterSpacing:1,marginBottom:4}}>CATEGORY</div>
-                  <select value={form.category} onChange={function(e){setForm(Object.assign({},form,{category:e.target.value}));}} style={Object.assign({},selSt,{background:C.bg})}>
-                    <option value="">Select…</option>
-                    {(CATS[form.type]||[]).map(function(c){return<option key={c} value={c}>{c}</option>;})}
-                  </select>
-                </div>
-                <div style={{gridColumn:'1/-1'}}>
-                  <div style={{fontSize:9,color:C.dim,letterSpacing:1,marginBottom:4}}>NOTES</div>
-                  <input placeholder="Optional notes..." value={form.notes} onChange={function(e){setForm(Object.assign({},form,{notes:e.target.value}));}} style={inpSt}/>
-                </div>
-              </div>
-              <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
-                <button onClick={function(){setShowForm(false);}} style={{padding:'6px 14px',borderRadius:3,fontSize:11,cursor:'pointer',border:'1px solid '+C.border,background:'transparent',color:C.dim}}>Cancel</button>
-                <button onClick={submitEntry} disabled={!form.date||!form.amount||!form.vendor} style={{padding:'6px 14px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',border:'none',background:C.text,color:C.bg,opacity:(!form.date||!form.amount||!form.vendor)?0.5:1}}>Save Entry</button>
-              </div>
-            </div>
-          )}
-
-          {/* CSV template hint */}
-          {entries.length===0&&(
-            <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'18px 20px',marginBottom:20,fontSize:11,color:C.muted,lineHeight:2}}>
-              <strong style={{color:C.text}}>Getting started:</strong> Click <strong style={{color:C.text}}>+ Add Entry</strong> to log individual invoices, or <strong style={{color:C.text}}>Upload Invoice / CSV</strong> to bulk import.<br/>
-              CSV format: <span style={{fontFamily:'monospace',color:C.dim}}>date, vendor, invoice, type, category, description, amount, notes</span>
-            </div>
-          )}
-
-          {/* Entries table */}
-          {filtered.length>0&&(
-            <div style={{border:'1px solid '+C.border,borderRadius:6,overflow:'hidden'}}>
-              <div style={{overflowX:'auto'}}>
-                <table style={{width:'100%',minWidth:460,borderCollapse:'collapse'}}>
-                  <thead><tr style={{background:C.raised}}>{["Date","Vendor","Invoice","Type","Category","Description","Amount",""].map(function(h,i){return<th key={i} style={{padding:'8px 14px',fontSize:8,fontWeight:700,letterSpacing:1.2,textTransform:'uppercase',color:C.dim,textAlign:i===6?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead>
-                  <tbody>
-                    {filtered.map(function(e,i){return(
-                      <tr key={e.id} style={{background:i%2===0?'transparent':'#0a0a0a',borderLeft:'3px solid '+(e.type==='income'?C.good:C.danger)}}>
-                        <td style={{padding:'9px 14px',fontSize:11,color:C.muted,whiteSpace:'nowrap'}}>{e.date||'—'}</td>
-                        <td style={{padding:'9px 14px',fontSize:12,fontWeight:500}}>{e.vendor||'—'}</td>
-                        <td style={{padding:'9px 14px',fontSize:10,color:C.dim,fontFamily:'monospace'}}>{e.invoiceNum||'—'}</td>
-                        <td style={{padding:'9px 14px'}}><span style={{fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:2,background:e.type==='income'?C.goodBg:C.dangerBg,color:e.type==='income'?C.good:C.danger,border:'1px solid '+(e.type==='income'?C.goodBdr:C.dangerBdr)}}>{e.type.toUpperCase()}</span></td>
-                        <td style={{padding:'9px 14px',fontSize:10,color:C.dim}}>{e.category||'—'}</td>
-                        <td style={{padding:'9px 14px',fontSize:11,color:C.muted}}>{e.description||'—'}</td>
-                        <td style={{padding:'9px 14px',textAlign:'right',fontSize:13,fontWeight:700,color:e.type==='income'?C.good:C.text}}>{e.type==='income'?'+':''}{cur(e.amount)}</td>
-                        <td style={{padding:'9px 14px',textAlign:'right'}}><button onClick={function(){deleteEntry(e.id);}} style={{background:'transparent',border:'none',color:C.dim,cursor:'pointer',fontSize:14,padding:'0 4px'}} title="Delete">×</button></td>
-                      </tr>
-                    );})}
-                  </tbody>
-                  <tfoot>
-                    <tr style={{background:C.raised,borderTop:'2px solid '+C.borderHi}}>
-                      <td colSpan={6} style={{padding:'10px 14px',fontSize:11,fontWeight:700,color:C.muted}}>
-                        {filter==='all'?'Total':filter==='income'?'Total Income':'Total Expenses'} ({filtered.length} entries)
-                      </td>
-                      <td style={{padding:'10px 14px',textAlign:'right',fontSize:14,fontWeight:800,color:filter==='income'?C.good:filter==='expense'?C.danger:netCash>=0?C.good:C.danger}}>
-                        {filter==='income'?curK(totalIncome):filter==='expense'?curK(totalExpense):curK(Math.abs(netCash))+' '+( netCash>=0?'net':'deficit')}
-                      </td>
-                      <td style={{padding:'10px 14px'}}/>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* ═══ INVOICE FORM MODAL ═══ */}
-          {invoiceModal==='form'&&(
-            <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:200}}>
-              <div style={{background:C.surface,border:'1px solid '+C.borderHi,borderRadius:6,padding:28,width:'90%',maxWidth:420}}>
-                <div style={{fontWeight:800,fontSize:13,letterSpacing:2,marginBottom:16}}>GENERATE INVOICE</div>
-                <div style={{display:'flex',flexDirection:'column',gap:12}}>
-                  <div><div style={{fontSize:9,color:C.dim,marginBottom:3}}>MONTH</div><input value={invForm.month} onChange={function(e){setInvForm(function(p){return Object.assign({},p,{month:e.target.value});});}} placeholder="January 2026" style={{background:C.bg,border:'1px solid '+C.border,borderRadius:3,color:C.text,fontSize:12,fontFamily:'inherit',padding:'6px 10px',outline:'none',width:'100%'}}/></div>
-                  <div><div style={{fontSize:9,color:C.dim,marginBottom:3}}>GON INC SALES ($) <span style={{color:C.warn}}>*</span></div><input type="number" step="0.01" value={invForm.gonInc} onChange={function(e){setInvForm(function(p){return Object.assign({},p,{gonInc:e.target.value});});}} placeholder="16875.68" style={{background:C.bg,border:'1px solid '+C.border,borderRadius:3,color:C.text,fontSize:12,fontFamily:'inherit',padding:'6px 10px',outline:'none',width:'100%'}}/></div>
-                  <div><div style={{fontSize:9,color:C.dim,marginBottom:3}}>GLOBS BATTERIES ($)</div><input type="number" step="0.01" value={invForm.batteries} onChange={function(e){setInvForm(function(p){return Object.assign({},p,{batteries:e.target.value});});}} placeholder="1764.02" style={{background:C.bg,border:'1px solid '+C.border,borderRadius:3,color:C.text,fontSize:12,fontFamily:'inherit',padding:'6px 10px',outline:'none',width:'100%'}}/></div>
-                  <div><div style={{fontSize:9,color:C.dim,marginBottom:3}}>INVOICE # <span style={{fontSize:7,color:C.dim}}>(auto-increments)</span></div><input type="number" value={invForm.invNum} onChange={function(e){setInvForm(function(p){return Object.assign({},p,{invNum:e.target.value});});}} style={{background:C.bg,border:'1px solid '+C.border,borderRadius:3,color:C.text,fontSize:12,fontFamily:'inherit',padding:'6px 10px',outline:'none',width:'100%'}}/></div>
-                </div>
-                <div style={{display:'flex',gap:10,justifyContent:'flex-end',marginTop:20}}>
-                  <button onClick={function(){setInvoiceModal(null);}} style={{padding:'6px 14px',borderRadius:3,fontSize:11,cursor:'pointer',border:'1px solid '+C.border,background:'transparent',color:C.dim}}>Cancel</button>
-                  <button onClick={generateInvoice} disabled={!invForm.gonInc} style={{padding:'6px 14px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',border:'none',background:'#2196f3',color:'#fff',opacity:invForm.gonInc?1:0.4}}>Preview Invoice</button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ═══ INVOICE PRINT MODAL ═══ */}
-          {invoiceModal&&invoiceModal!=='form'&&(
-            <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.95)',display:'flex',alignItems:'flex-start',justifyContent:'center',zIndex:300,overflowY:'auto',padding:'24px 0'}}>
-              <div style={{background:'#fff',color:'#000',width:720,borderRadius:6,overflow:'hidden',fontFamily:'Arial,Helvetica,sans-serif'}}>
-                <div style={{padding:'32px 40px 20px',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
-                  <div><div style={{fontSize:22,fontWeight:900,letterSpacing:2,marginBottom:6}}>INVOICE</div><div style={{fontSize:11,color:'#444'}}>The Family Tree Consulting</div><div style={{fontSize:11,color:'#444'}}>San Francisco, CA</div></div>
-                  <div style={{textAlign:'right'}}><div style={{fontSize:11,color:'#444'}}>Dylan@getglobs.com</div><div style={{fontSize:11,color:'#444'}}>+1 (707) 334-7631</div><div style={{fontSize:11,color:'#444'}}>Globs</div></div>
-                </div>
-                <div style={{padding:'0 40px 20px',display:'flex',justifyContent:'space-between'}}>
-                  <div><div style={{fontSize:10,fontWeight:700,color:'#888',letterSpacing:1,marginBottom:4}}>Bill to</div><div style={{fontSize:13,fontWeight:600}}>Up North Humboldt</div></div>
-                  <div style={{textAlign:'right'}}><div style={{fontSize:10,fontWeight:700,color:'#888',letterSpacing:1,marginBottom:4}}>Invoice details</div><div style={{fontSize:12}}>Invoice no.: {invoiceModal.num}</div><div style={{fontSize:12}}>Invoice date: {invoiceModal.date}</div></div>
-                </div>
-                <div style={{padding:'0 40px 24px'}}><table style={{width:'100%',borderCollapse:'collapse'}}>
-                  <thead><tr style={{borderBottom:'2px solid #000'}}><th style={{padding:'8px 0',fontSize:10,fontWeight:600,textAlign:'left',color:'#666',width:30}}>#</th><th style={{padding:'8px 0',fontSize:10,fontWeight:600,textAlign:'left',color:'#666'}}>Product or service</th><th style={{padding:'8px 0',fontSize:10,fontWeight:600,textAlign:'left',color:'#666'}}>Description</th><th style={{padding:'8px 0',fontSize:10,fontWeight:600,textAlign:'right',color:'#666'}}>Rate</th><th style={{padding:'8px 0',fontSize:10,fontWeight:600,textAlign:'right',color:'#666'}}>Amount</th></tr></thead>
-                  <tbody>{invoiceModal.lines.map(function(line,i){var fmt=function(n){return '$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});};return<tr key={i} style={{borderBottom:'1px solid #e0e0e0'}}><td style={{padding:'14px 0',fontSize:12,color:'#666'}}>{i+1}.</td><td style={{padding:'14px 0',fontSize:12,fontWeight:700}}>{line.service}</td><td style={{padding:'14px 0',fontSize:12,color:'#444'}}>{line.desc}</td><td style={{padding:'14px 0',fontSize:12,textAlign:'right'}}>{fmt(line.amount)}</td><td style={{padding:'14px 0',fontSize:12,textAlign:'right'}}>{fmt(line.amount)}</td></tr>;})}</tbody>
-                  <tfoot><tr style={{borderTop:'2px solid #000'}}><td colSpan={3}></td><td style={{padding:'14px 0',fontSize:13,fontWeight:700,textAlign:'right'}}>Total</td><td style={{padding:'14px 0',fontSize:18,fontWeight:900,textAlign:'right'}}>{'$'+invoiceModal.total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr></tfoot>
-                </table></div>
-                <div style={{padding:'0 40px 20px'}}><div style={{fontSize:12,fontWeight:700,marginBottom:4}}>Ways to pay</div><div style={{display:'inline-block',border:'1px solid #ccc',borderRadius:2,padding:'2px 8px',fontSize:10,color:'#666'}}>BANK</div></div>
-                <div style={{padding:'0 40px 32px'}}><div style={{fontSize:11,fontWeight:600,marginBottom:2}}>Note to customer</div><div style={{fontSize:11,color:'#666'}}>Thank you for your business.</div></div>
-                <div style={{padding:'12px 40px',background:'#f5f5f5',borderTop:'1px solid #e0e0e0',display:'flex',gap:10,justifyContent:'flex-end'}}>
-                  <button onClick={function(){window.print();}} style={{padding:'7px 18px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid #000',background:'#000',color:'#fff'}}>Print / Save PDF</button>
-                  <button onClick={function(){setInvoiceModal('form');}} style={{padding:'7px 18px',borderRadius:3,fontSize:11,cursor:'pointer',fontFamily:'inherit',border:'1px solid #ccc',background:'#fff',color:'#333'}}>Edit</button>
-                  <button onClick={function(){setInvoiceModal(null);}} style={{padding:'7px 18px',borderRadius:3,fontSize:11,cursor:'pointer',fontFamily:'inherit',border:'1px solid #ccc',background:'#fff',color:'#666'}}>Close</button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       );
-    }
-
-    // ── PASSWORD GATE ─────────────────────────────────────────────────────────
-    const PASS_HASH = "c67791d3666083816329c729f0f68e32c27fb78976f3788e4eeb6ee04e3b5de7";
-    async function checkPass(input) {
-      var enc = new TextEncoder().encode(input);
-      var buf = await crypto.subtle.digest('SHA-256', enc);
-      var hex = Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
-      return hex === PASS_HASH;
     }
     const AUTH_KEY = "gpi_auth";
     const AUTH_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
