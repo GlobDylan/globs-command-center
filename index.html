@@ -95,6 +95,23 @@
       .gpi-form-grid{grid-template-columns:1fr 1fr !important;}
       .gpi-form-row{grid-template-columns:1fr 1fr !important;}
       .gpi-twocol{grid-template-columns:1fr !important;}
+      /* Opps cards: stack header vertically */
+      .gpi-content div[style*="flexDirection:'column'"] > div[style*="flexWrap:'wrap'"]{flex-direction:column !important;align-items:flex-start !important;}
+      /* All tables: reduce minWidth for small screens */
+      table{min-width:0 !important;}
+      /* All stat card grids: 2 columns max */
+      div[style*="repeat(auto-fit"]{grid-template-columns:1fr 1fr !important;}
+      /* Ensure expanded content is visible */
+      div[style*="overflow:'hidden'"]{overflow:visible !important;}
+      div[style*="overflow: hidden"]{overflow:visible !important;}
+    }
+    @media(max-width:400px){
+      /* Very small: stat cards single column */
+      div[style*="repeat(auto-fit"]{grid-template-columns:1fr !important;}
+      .gpi-twocol{grid-template-columns:1fr !important;}
+      table th,table td{padding:3px 3px !important;font-size:7px !important;}
+      /* Filter buttons: allow horizontal scroll */
+      .gpi-content > div > div[style*="display:'flex'"][style*="gap:4"]{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap !important;padding-bottom:4px;}
     }
 
     /* Missile arc animation */
@@ -2063,13 +2080,13 @@ window._STRAIN_DB=[
                         var lines=(alloc[o.name]||[]).slice().sort(function(a,b){return b.lineRev-a.lineRev;});
                         var orderRev=lines.reduce(function(s,l){return s+l.lineRev;},0);
                         var orderUnits=lines.reduce(function(s,l){return s+l.qty;},0);
-                        return React.createElement('div',{key:o.name+i,style:{background:C.surface,border:'1px solid '+(lines.length>0?C.border:C.border),borderRadius:4,overflow:'hidden'}},
-                          React.createElement('div',{onClick:function(){setOpenOpps(function(p){var n2=Object.assign({},p);n2[o.name]=!n2[o.name];return n2;});},style:{padding:'10px 10px',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:6,cursor:'pointer',background:isOpen?C.raised:'transparent'}},
+                        return React.createElement('div',{key:o.name+i,style:{background:C.surface,border:'1px solid '+C.border,borderRadius:4}},
+                          React.createElement('div',{onClick:function(){setOpenOpps(function(p){var n2=Object.assign({},p);n2[o.name]=!n2[o.name];return n2;});},style:{padding:'12px 12px',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:6,cursor:'pointer',background:isOpen?C.raised:'transparent',WebkitTapHighlightColor:'transparent'}},
                             React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:4,minWidth:0,flex:1}},
                               React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}},
                                 React.createElement('span',{style:{color:C.dim,fontSize:9,width:10,userSelect:'none'}},isOpen?'\u25BC':'\u25B6'),
                                 React.createElement('span',{style:{width:6,height:6,borderRadius:'50%',background:DZC2[o.zone],flexShrink:0}}),
-                                React.createElement('span',{style:{fontWeight:700,fontSize:12}},o.name),
+                                React.createElement('span',{style:{fontWeight:700,fontSize:12,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'40vw'}},o.name),
                                 React.createElement('span',{style:{fontSize:8,padding:'1px 6px',borderRadius:2,border:'1px solid '+(o.status==="FALLEN OFF"?C.danger:C.warn)+'55',background:(o.status==="FALLEN OFF"?C.danger:C.warn)+'18',color:o.status==="FALLEN OFF"?C.danger:C.warn,fontWeight:700}},o.status),
                                 lines.length>0?React.createElement('span',{style:{fontSize:8,color:C.good,fontWeight:600}},lines.length+' SKUs \u00b7 '+curK(orderRev)+' / '+curK(o.budget)+' target'):React.createElement('span',{style:{fontSize:8,color:C.dim}},'no zone match')
                               ),
@@ -2083,7 +2100,7 @@ window._STRAIN_DB=[
                           isOpen&&lines.length>0?React.createElement('div',{style:{borderTop:'1px solid '+C.border,padding:'10px 8px'}},
                             React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:8,fontWeight:700}},'SUGGESTED REORDER \u00b7 target '+curK(o.budget)+' (avg '+curK(o.avgOrderVal)+') \u00b7 '+o.zone+' zone'),
                             React.createElement('div',{style:{overflowX:'auto',WebkitOverflowScrolling:'touch'}},
-                            React.createElement('table',{style:{width:'100%',minWidth:360,borderCollapse:'collapse'}},
+                            React.createElement('table',{style:{width:'100%',minWidth:280,borderCollapse:'collapse'}},
                               React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Strain','Type','Qty','$/ea','Line $','OH'].map(function(h,hi){return React.createElement('th',{key:h,style:{padding:'4px 6px',fontSize:7,fontWeight:700,letterSpacing:1,textTransform:'uppercase',color:C.dim,textAlign:hi>=2?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}},h);}))),
                               React.createElement('tbody',null,
                                 lines.map(function(l,li){return React.createElement('tr',{key:l.sku||li,style:{background:li%2===0?'transparent':'#0a0a0a'}},
