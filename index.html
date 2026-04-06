@@ -1253,19 +1253,22 @@ window._STRAIN_DB=[
                     </div>
                     <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14,flexWrap:'wrap'}}>
                       <input value={search} onChange={function(e){setSearch(e.target.value);}} placeholder="Search account or rep..." style={{background:C.surface,border:'1px solid '+C.border,borderRadius:3,padding:'6px 12px',color:C.text,fontSize:12,outline:'none',width:220,fontFamily:'inherit'}}/>
-                      <div style={{display:'flex',gap:4}}>{allZones.map(function(z){return<button key={z} onClick={function(){setZoneFilter(z);}} style={{padding:'4px 10px',borderRadius:2,fontSize:9,cursor:'pointer',border:'1px solid '+(zoneFilter===z?C.text:C.border),background:zoneFilter===z?C.text:'transparent',color:zoneFilter===z?C.bg:C.dim,fontWeight:zoneFilter===z?700:400}}>{z}</button>;})}</div>
-                      <div style={{display:'flex',gap:4}}>{["All","Legacy","On The Rise","New"].map(function(t){const active=tierFilter===t,color=t==="Legacy"?"#c9a84c":t==="On The Rise"?"#4cade0":t==="New"?"#888":C.text;return<button key={t} onClick={function(){setTierFilter(t);}} style={{padding:'4px 10px',borderRadius:2,fontSize:9,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(active?color:C.border),background:active?color+'22':'transparent',color:active?color:C.dim,fontWeight:active?700:400}}>{t}</button>;})}</div>
-                      <div style={{marginLeft:'auto',display:'flex',gap:6,alignItems:'center'}}>
+                      <div style={{display:'flex',gap:6,alignItems:'center'}}>
                         <span style={{fontSize:9,color:C.dim,letterSpacing:1}}>SORT</span>
                         {[["sales","Revenue"],["name","A–Z"],["skus","SKUs"]].map(function(kl){return<button key={kl[0]} onClick={function(){setSortBy(kl[0]);}} style={{padding:'4px 9px',borderRadius:2,fontSize:9,cursor:'pointer',border:'1px solid '+(sortBy===kl[0]?C.borderHi:C.border),background:sortBy===kl[0]?C.raised:'transparent',color:sortBy===kl[0]?C.text:C.dim,fontWeight:sortBy===kl[0]?700:400}}>{kl[1]}</button>;})}
-                        <span style={{fontSize:10,color:C.dim,marginLeft:4}}>{filteredAccounts.length} accounts</span>
                       </div>
+                      <span style={{fontSize:14,fontWeight:800,marginLeft:'auto'}}>{filteredAccounts.length} <span style={{fontSize:10,fontWeight:400,color:C.dim}}>accounts</span></span>
                     </div>
                     <div style={{border:'1px solid '+C.border,borderRadius:6,overflow:'hidden'}}>
                       {filteredAccounts.length===0&&<div style={{padding:40,textAlign:'center',color:C.dim,fontSize:12}}>No accounts match</div>}
                       {filteredAccounts.map(function(acc){return<AccountRow key={acc.name} account={acc} open={!!openAccts[acc.name]} onToggle={function(){setOpenAccts(function(p){const n=Object.assign({},p);n[acc.name]=!n[acc.name];return n;});}} skuAvgs={skuAvgs} periodDays={periodDays} returnsLog={returnsLog}/>;}) }
                     </div>
                     {filteredAccounts.length>0&&<div style={{display:'flex',gap:8,marginTop:10}}><button style={Object.assign({},btnSt('ghost'),{fontSize:10,color:C.dim})} onClick={function(){const o={};filteredAccounts.forEach(function(a){o[a.name]=true;});setOpenAccts(o);}}>Expand All</button><button style={Object.assign({},btnSt('ghost'),{fontSize:10,color:C.dim})} onClick={function(){setOpenAccts({});}}>Collapse All</button></div>}
+                    <div style={{display:'flex',gap:10,marginTop:14,flexWrap:'wrap',alignItems:'center',padding:'10px 0',borderTop:'1px solid '+C.border}}>
+                      <span style={{fontSize:8,color:C.dim,letterSpacing:1.5}}>FILTER</span>
+                      <div style={{display:'flex',gap:4}}>{allZones.map(function(z){return<button key={z} onClick={function(){setZoneFilter(z);}} style={{padding:'4px 10px',borderRadius:2,fontSize:9,cursor:'pointer',border:'1px solid '+(zoneFilter===z?C.text:C.border),background:zoneFilter===z?C.text:'transparent',color:zoneFilter===z?C.bg:C.dim,fontWeight:zoneFilter===z?700:400}}>{z}</button>;})}</div>
+                      <div style={{display:'flex',gap:4}}>{["All","Legacy","On The Rise","New"].map(function(t){const active=tierFilter===t,color=t==="Legacy"?"#c9a84c":t==="On The Rise"?"#4cade0":t==="New"?"#888":C.text;return<button key={t} onClick={function(){setTierFilter(t);}} style={{padding:'4px 10px',borderRadius:2,fontSize:9,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(active?color:C.border),background:active?color+'22':'transparent',color:active?color:C.dim,fontWeight:active?700:400}}>{t}</button>;})}</div>
+                    </div>
                   </>
                 )}
 
