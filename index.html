@@ -920,175 +920,127 @@ window._STRAIN_DB=[
 
       function handleCSVFile(e){
         const file=e.target.files[0];if(!file)return;
-        if(killSwitches.disableUploads||killSwitches.readOnly){toast('✗ Uploads disabled by admin');e.target.value='';return;}
-        var fErr=validateFile(file);if(fErr){toast('✗ '+fErr);e.target.value='';return;}
+        if(killSwitches.disableUploads||killSwitches.readOnly){toast('\u2717 Uploads disabled by admin');e.target.value='';return;}
+        var fErr=validateFile(file);if(fErr){toast('\u2717 '+fErr);e.target.value='';return;}
         logSecurity('UPLOAD',file.name+' ('+Math.round(file.size/1024)+'KB) by '+rolePerms.label);
         setCsvLoading(true);
-        toast('⏳ Parsing '+file.name+'…');
         const isXlsx=file.name.toLowerCase().endsWith('.xlsx')||file.name.toLowerCase().endsWith('.xls');
-
-        // Ensure SheetJS is loaded (mobile CDN can fail)
-        function doXlsxParse(){
-          // ── XLSX multi-sheet parsing ──
-          const reader=new FileReader();
-          reader.onerror=function(){setCsvLoading(false);toast('✗ Failed to read file');};
-          reader.onload=async function(ev){
-            try{
-              var wb=XLSX.read(ev.target.result,{type:'array',cellDates:true});
-              var loaded=[];
-
-              // ── Account Activity sheet ──
-              var aaSheet=wb.SheetNames.find(function(n){return n.toLowerCase().includes('account activity');});
-              if(aaSheet){
-                var aaCsv=XLSX.utils.sheet_to_csv(wb.Sheets[aaSheet]);
-                var r=parseCSV(aaCsv);
-                if(r.type==='account90'&&r.data&&r.data.length>0){
-                  setAccounts(r.data);await persist('gpi-accounts',r.data);
-                  loaded.push(r.data.length+' accounts');
-                }
-              }
-
-              // ── Current Inventory sheet ──
-              var invSheet=wb.SheetNames.find(function(n){return n.toLowerCase().includes('current inventory');});
-              if(invSheet){
-                var ws=wb.Sheets[invSheet];
-                var invRows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-                var invData={};
-                // Data starts at row 3 (after 3 header rows)
-                for(var ri=3;ri<invRows.length;ri++){
-                  var row=invRows[ri];
-                  var sku=String(row[0]||'').trim();
-                  if(!sku||!sku.toLowerCase().startsWith('globs'))continue;
-                  var pkgRaw=row[2];
-                  var pkgStr='';
-                  if(pkgRaw instanceof Date){pkgStr=(pkgRaw.getMonth()+1)+'/'+pkgRaw.getDate()+'/'+pkgRaw.getFullYear();}
-                  else if(pkgRaw){pkgStr=String(pkgRaw).split('T')[0];}
-                  invData[sku]={
-                    onHand:parseInt(row[6])||0,
-                    pkgDate:pkgStr,
-                    daysOld:String(row[3]||'').replace(/[^0-9]/g,''),
-                    batch:String(row[4]||'').trim(),
-                    thc:String(row[5]||'').replace('%','').trim(),
-                    type:String(row[1]||'').trim(),
-                    bayArea:parseInt(row[7])||parseInt(row[8])||0,
-                    socal:parseInt(row[9])||parseInt(row[10])||0,
-                    farNorth:parseInt(row[11])||parseInt(row[12])||0
-                  };
-                }
-                if(Object.keys(invData).length>0){
-                  setInventoryData(invData);
-                  var oh={};Object.keys(invData).forEach(function(k){oh[k]=invData[k].onHand;});
-                  setMfgInventory(oh);
-                  await persist('gpi-inventory',invData);
-                  loaded.push(Object.keys(invData).length+' inventory SKUs');
-                }
-              }
-
-              // ── Contacts sheet ──
-              var ctSheet=wb.SheetNames.find(function(n){return n.toLowerCase().includes('contact');});
-              if(ctSheet){
-                var ctRows=XLSX.utils.sheet_to_json(wb.Sheets[ctSheet],{header:1,defval:''});
-                var contacts={};
-                // Row 0=title, row 1=headers, rows 2+=data
-                for(var ci=2;ci<ctRows.length;ci++){
-                  var cr=ctRows[ci];
-                  var acctName=String(cr[0]||'').trim();
-                  if(!acctName)continue;
-                  if(!contacts[acctName])contacts[acctName]=[];
-                  contacts[acctName].push({
-                    name:String(cr[1]||'').trim(),
-                    phone:String(cr[2]||'').trim(),
-                    email:String(cr[3]||'').trim(),
-                    department:String(cr[4]||'').trim(),
-                    title:String(cr[5]||'').trim()
-                  });
-                }
-                if(Object.keys(contacts).length>0){
-                  setContactsData(contacts);
-                  await persist('gpi-contacts',contacts);
-                  var totalContacts=Object.values(contacts).reduce(function(s,arr){return s+arr.length;},0);
-                  loaded.push(totalContacts+' contacts at '+Object.keys(contacts).length+' accounts');
-                }
-              }
-
-              // ── Promos sheet (Marketing Workbook — Globs-specific) ──
-              var mwSheet=wb.SheetNames.find(function(n){return n.toLowerCase().includes('marketing workbook');});
-              if(mwSheet){
-                var mwRows=XLSX.utils.sheet_to_json(wb.Sheets[mwSheet],{header:1,defval:''});
-                var promoAccts=[];
-                for(var pi=1;pi<mwRows.length;pi++){
-                  var pr=mwRows[pi];
-                  var pAcct=String(pr[2]||'').trim();
-                  if(!pAcct||String(pr[1]||'').trim()!=='Globs')continue;
-                  var conf=String(pr[0]||'').trim();
-                  var startD=pr[3]instanceof Date?((pr[3].getMonth()+1)+'/'+pr[3].getDate()+'/'+pr[3].getFullYear()):String(pr[3]||'');
-                  var endD=pr[4]instanceof Date?((pr[4].getMonth()+1)+'/'+pr[4].getDate()+'/'+pr[4].getFullYear()):String(pr[4]||'');
-                  var pctOff=pr[18]?Math.round(parseFloat(pr[18])*100)+'%':'';
-                  var reqDays=parseInt(pr[19])||0;
-                  var existing=promoAccts.find(function(a){return a.name===pAcct;});
-                  if(!existing){existing={name:pAcct,promotions:[]};promoAccts.push(existing);}
-                  existing.promotions.push({confirmation:conf,startDate:startD,endDate:endD,pctOff:pctOff,reqDays:reqDays,event:String(pr[6]||'').trim()});
-                }
-                if(promoAccts.length>0){
-                  setPromoAccounts(promoAccts);await persist('gpi-promo-accounts',promoAccts);
-                  loaded.push(promoAccts.length+' promo accounts');
-                }
-              }
-
-              if(loaded.length>0){
-                toast('✓ Loaded from '+file.name+': '+loaded.join(' · '));logActivity('UPLOAD',file.name+' — '+loaded.join(', '));
-              } else {
-                toast('⚠ XLSX parsed but no recognized sheets found');
-              }
-            }catch(err){toast('✗ XLSX parse error: '+err.message);}
-            finally{setCsvLoading(false);}
-          };
-          reader.readAsArrayBuffer(file);e.target.value='';
-        }
+        toast('\u23f3 Reading '+file.name+'\u2026');
+        e.target.value='';
 
         if(isXlsx){
-          if(typeof XLSX!=='undefined'){
-            doXlsxParse();
-          } else {
-            // SheetJS not loaded (common on mobile) — load dynamically
-            toast('⏳ Loading XLSX parser…');
-            var sc=document.createElement('script');
-            sc.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-            sc.onload=function(){
-              if(typeof XLSX!=='undefined'){doXlsxParse();}
-              else{setCsvLoading(false);toast('✗ XLSX library failed to load — try refreshing the page');}
-            };
-            sc.onerror=function(){
-              // Try alternate CDN
-              var sc2=document.createElement('script');
-              sc2.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
-              sc2.onload=function(){
-                if(typeof XLSX!=='undefined'){doXlsxParse();}
-                else{setCsvLoading(false);toast('✗ XLSX library failed to load — check internet connection and refresh');}
-              };
-              sc2.onerror=function(){setCsvLoading(false);toast('✗ Cannot load XLSX parser — check internet connection');};
-              document.head.appendChild(sc2);
-            };
-            document.head.appendChild(sc);
-          }
-        } else {
-          // ── Legacy CSV parsing ──
+          // ── XLSX path: read as ArrayBuffer, parse with SheetJS ──
           const reader=new FileReader();
-          reader.onerror=function(){setCsvLoading(false);toast('✗ Failed to read file — check format and try again');};
-          reader.onload=async function(ev){
+          reader.onerror=function(){setCsvLoading(false);toast('\u2717 FileReader error — could not read file');};
+          reader.onload=function(ev){
+            var buf=ev.target.result;
+            toast('\u23f3 File read ('+Math.round(buf.byteLength/1024)+'KB). Loading parser\u2026');
+            function parseWorkbook(){
+              try{
+                if(typeof XLSX==='undefined'){setCsvLoading(false);toast('\u2717 XLSX parser not available. Please refresh page and try again.');return;}
+                toast('\u23f3 Parsing workbook\u2026');
+                var wb=XLSX.read(buf,{type:'array',cellDates:true});
+                var loaded=[];
+                // Account Activity
+                var aaSheet=wb.SheetNames.find(function(n){return n.toLowerCase().includes('account activity');});
+                if(aaSheet){
+                  var aaCsv=XLSX.utils.sheet_to_csv(wb.Sheets[aaSheet]);
+                  var r=parseCSV(aaCsv);
+                  if(r.type==='account90'&&r.data&&r.data.length>0){
+                    setAccounts(r.data);persist('gpi-accounts',r.data);
+                    loaded.push(r.data.length+' accounts');
+                  }
+                }
+                // Current Inventory
+                var invSheet=wb.SheetNames.find(function(n){return n.toLowerCase().includes('current inventory');});
+                if(invSheet){
+                  var ws2=wb.Sheets[invSheet];
+                  var invRows=XLSX.utils.sheet_to_json(ws2,{header:1,defval:''});
+                  var invData={};
+                  for(var ri=3;ri<invRows.length;ri++){
+                    var row=invRows[ri];
+                    var sku=String(row[0]||'').trim();
+                    if(!sku||!sku.toLowerCase().startsWith('globs'))continue;
+                    var pkgRaw=row[2];var pkgStr='';
+                    if(pkgRaw instanceof Date){pkgStr=(pkgRaw.getMonth()+1)+'/'+pkgRaw.getDate()+'/'+pkgRaw.getFullYear();}
+                    else if(pkgRaw){pkgStr=String(pkgRaw).split('T')[0];}
+                    invData[sku]={
+                      onHand:parseInt(row[6])||0,pkgDate:pkgStr,
+                      daysOld:String(row[3]||'').replace(/[^0-9]/g,''),
+                      batch:String(row[4]||'').trim(),
+                      thc:String(row[5]||'').replace('%','').trim(),
+                      type:String(row[1]||'').trim(),
+                      bayArea:parseInt(row[7])||parseInt(row[8])||0,
+                      socal:parseInt(row[9])||parseInt(row[10])||0,
+                      farNorth:parseInt(row[11])||parseInt(row[12])||0
+                    };
+                  }
+                  if(Object.keys(invData).length>0){
+                    setInventoryData(invData);
+                    var oh={};Object.keys(invData).forEach(function(k){oh[k]=invData[k].onHand;});
+                    setMfgInventory(oh);
+                    persist('gpi-inventory',invData);
+                    loaded.push(Object.keys(invData).length+' inventory SKUs');
+                  }
+                }
+                // Contacts
+                var ctSheet=wb.SheetNames.find(function(n){return n.toLowerCase().includes('contacts');});
+                if(ctSheet){
+                  var ctCsv=XLSX.utils.sheet_to_csv(wb.Sheets[ctSheet]);
+                  var ctLines=ctCsv.split('\n').slice(2);
+                  var ctArr=[];
+                  ctLines.forEach(function(ln){var cols=ln.split(',');if(cols[0]&&cols[1])ctArr.push({account:cols[0].trim(),name:cols[1].trim(),phone:cols[2]||'',email:cols[3]||'',dept:cols[4]||'',title:cols[5]||''});});
+                  if(ctArr.length>0){setContactsData(ctArr);persist('gpi-contacts',ctArr);loaded.push(ctArr.length+' contacts');}
+                }
+                // Marketing Workbook
+                var mktSheet=wb.SheetNames.find(function(n){return n.toLowerCase().includes('marketing');});
+                if(mktSheet){
+                  var mktCsv=XLSX.utils.sheet_to_csv(wb.Sheets[mktSheet]);
+                  var mktR=parseCSV(mktCsv);
+                  if(mktR.type==='account'&&mktR.data){setPromoAccounts(mktR.data);persist('gpi-promo-accounts',mktR.data);loaded.push(mktR.data.length+' promo accounts');}
+                }
+                if(loaded.length>0){toast('\u2713 Loaded: '+loaded.join(' \u00b7 '));}
+                else{toast('\u26a0 XLSX parsed but no recognized data found. Sheets: '+wb.SheetNames.join(', '));}
+              }catch(err){toast('\u2717 Parse error: '+err.message);}
+              finally{setCsvLoading(false);}
+            }
+            // Check if SheetJS is available
+            if(typeof XLSX!=='undefined'){
+              parseWorkbook();
+            } else {
+              // Dynamically load SheetJS
+              toast('\u23f3 XLSX parser not cached \u2014 downloading\u2026');
+              var urls=['https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js','https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js','https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js'];
+              var tryUrl=function(idx){
+                if(idx>=urls.length){setCsvLoading(false);toast('\u2717 Could not load XLSX parser from any CDN. Refresh the page and try again.');return;}
+                var sc=document.createElement('script');
+                sc.src=urls[idx];
+                sc.onload=function(){if(typeof XLSX!=='undefined'){parseWorkbook();}else{tryUrl(idx+1);}};
+                sc.onerror=function(){tryUrl(idx+1);};
+                document.head.appendChild(sc);
+              };
+              tryUrl(0);
+            }
+          };
+          reader.readAsArrayBuffer(file);
+        } else {
+          // ── CSV path ──
+          const reader=new FileReader();
+          reader.onerror=function(){setCsvLoading(false);toast('\u2717 Failed to read CSV');};
+          reader.onload=function(ev){
             try{
               const r=parseCSV(ev.target.result);
-              if(r.type==="inventory"){setInventoryData(r.data);const oh={};Object.keys(r.data).forEach(function(k){oh[k]=r.data[k].onHand;});setMfgInventory(oh);await persist("gpi-inventory",r.data);toast('✓ Loaded inventory: '+Object.keys(r.data).length+' SKUs');}
+              if(r.type==="inventory"){setInventoryData(r.data);var oh2={};Object.keys(r.data).forEach(function(k){oh2[k]=r.data[k].onHand;});setMfgInventory(oh2);persist("gpi-inventory",r.data);toast('\u2713 Loaded inventory: '+Object.keys(r.data).length+' SKUs');}
               else if(r.type==="account90"){
-                if(!r.data||r.data.length===0){toast('⚠ CSV parsed but 0 accounts found — check that rows contain "Globs" SKUs');setCsvLoading(false);return;}
-                setAccounts(r.data);await persist("gpi-accounts",r.data);toast('✓ Loaded '+r.data.length+' accounts · '+r.data.reduce(function(s,a){return s+(a.orderedSkus?a.orderedSkus.length:0);},0)+' SKU records');
+                if(!r.data||r.data.length===0){toast('\u26a0 CSV parsed but 0 accounts found');setCsvLoading(false);return;}
+                setAccounts(r.data);persist("gpi-accounts",r.data);toast('\u2713 Loaded '+r.data.length+' accounts');
               }
-              else if(r.type==="account"){setPromoAccounts(r.data);await persist("gpi-promo-accounts",r.data);toast('✓ Loaded promotions for '+r.data.length+' accounts');}
-              else toast("⚠ Unrecognized CSV format — expected Account Activity, Inventory, or Promotions CSV");
-            }catch(err){toast('✗ Parse error: '+err.message+' — check file format');}
+              else if(r.type==="account"){setPromoAccounts(r.data);persist("gpi-promo-accounts",r.data);toast('\u2713 Loaded promotions for '+r.data.length+' accounts');}
+              else toast("\u26a0 Unrecognized CSV format");
+            }catch(err){toast('\u2717 CSV parse error: '+err.message);}
             finally{setCsvLoading(false);}
           };
-          reader.readAsText(file);e.target.value="";
+          reader.readAsText(file);
         }
       }
       function handleJSONFile(e){const file=e.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(ev){setImportText(ev.target.result);setImportMode(true);};reader.readAsText(file);e.target.value="";}
