@@ -498,12 +498,12 @@ window._STRAIN_DB=[
         }
       });
       const PERIODS=[7,30,60,90,180,270,365];
+      function parseDateTs(dStr){if(!dStr)return NaN;var s=String(dStr).trim(),slash=s.split('/');if(slash.length===3){var y=parseInt(slash[2]),m=parseInt(slash[0])-1,day=parseInt(slash[1]);if(y<100)y+=2000;return new Date(y,m,day).getTime();}var dash=s.split('T')[0].split('-');if(dash.length===3&&dash[0].length===4)return new Date(parseInt(dash[0]),parseInt(dash[1])-1,parseInt(dash[2])).getTime();var fb=new Date(s).getTime();return isNaN(fb)?NaN:fb;}
       let fMax=0;
       Object.values(accs).forEach(function(a) {
         (a._rows||[]).forEach(function(r) {
           if (!r.date) return;
-          const p=r.date.split('/');
-          const ts=new Date(parseInt(p[2]),parseInt(p[0])-1,parseInt(p[1])).getTime();
+          const ts=parseDateTs(r.date);
           if (!isNaN(ts)&&ts>fMax) fMax=ts;
         });
       });
@@ -516,8 +516,7 @@ window._STRAIN_DB=[
         a.skuPeriodUnits={};
         (a._rows||[]).forEach(function(r) {
           if (!r.date||!r.extPrice) return;
-          const pts=r.date.split('/');
-          const ts=new Date(parseInt(pts[2]),parseInt(pts[0])-1,parseInt(pts[1])).getTime();
+          const ts=parseDateTs(r.date);
           if (isNaN(ts)) return;
           PERIODS.forEach(function(d) {
             if (ts>=cutoff[d]) {
@@ -535,8 +534,8 @@ window._STRAIN_DB=[
         const ods={};
         (a._rows||[]).forEach(function(r) {
           if (!r.date||!r.extPrice||r.extPrice<=0) return;
-          const p=r.date.split('/'); if(p.length!==3) return;
-          const ts=new Date(parseInt(p[2]),parseInt(p[0])-1,parseInt(p[1])).getTime();
+          const p=r.date.split('/'); 
+          const ts=parseDateTs(r.date);
           if (!isNaN(ts)) ods[ts]=true;
         });
         a.orderDayTs=Object.keys(ods).map(Number).sort(function(a,b){return a-b;});
@@ -1995,6 +1994,9 @@ window._STRAIN_DB=[
                   var oTotRev=OPP.reduce(function(s,o){return s+o.rev;},0);
 
                   return React.createElement('div',null,
+                    React.createElement('div',{style:{padding:'6px 10px',marginBottom:8,background:'#111',border:'1px solid #333',borderRadius:4,fontSize:9,color:'#aaa',fontFamily:'monospace',wordBreak:'break-all'}},
+                      'accts:'+displayAccounts.length+' OPP:'+OPP.length+' inv:'+inStockCount+'('+totalInvStart+'u) alloc:'+allocCount+'/'+curK(totalAllocRev)
+                    ),
                     inStockCount>0?React.createElement('div',{style:{padding:'8px 14px',marginBottom:12,background:'#1b5e2022',border:'1px solid #1b5e2044',borderRadius:4,fontSize:10,color:'#4caf50',fontWeight:600}},'\u2713 '+inStockCount+' inventory SKUs loaded \u00b7 '+totalInvStart+' total units \u00b7 '+allocCount+' accounts with suggestions'):React.createElement('div',{style:{padding:'16px',marginBottom:12,background:C.dangerBg,border:'1px solid '+C.dangerBdr,borderRadius:6,textAlign:'center'}},React.createElement('div',{style:{fontSize:12,fontWeight:700,color:C.danger,marginBottom:8}},'\u26a0 No inventory loaded'),React.createElement('div',{style:{fontSize:10,color:C.muted,marginBottom:12}},'Upload the Salesforce XLSX to generate order suggestions.'),React.createElement('label',{style:{display:'inline-block',padding:'12px 32px',borderRadius:4,fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.text,background:C.text,color:C.bg}},csvLoading?'\u23f3 Parsing\u2026':'\u21e7 Upload Salesforce XLSX',React.createElement('input',{type:'file',accept:'.csv,.xlsx,.xls',onChange:handleCSVFile,style:{display:'none'}}))),
                     React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:12,marginBottom:20}},
                       [{l:"At-Risk",v:OPP.length,c:C.warn},{l:"Fallen Off",v:oFallen.length,c:C.danger},{l:"Overdue",v:oOverdue.length,c:C.warn},{l:"At-Risk Rev",v:curK(oTotRev),c:C.text},{l:"Orders",v:allocCount+' / '+curK(totalAllocRev),c:C.good},{l:"Allocated",v:pctAlloc+'% ('+totalRemaining+' left)',c:pctAlloc>=95?C.good:C.muted}].map(function(s,i){return React.createElement('div',{key:i,style:{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'12px 14px'}},React.createElement('div',{style:{fontSize:7,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:4}},s.l),React.createElement('div',{style:{fontSize:18,fontWeight:800,color:s.c}},s.v));})
