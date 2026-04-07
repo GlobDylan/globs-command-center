@@ -2465,6 +2465,43 @@ window._STRAIN_DB=[
                 {/* ══ YIELD TRACKING ══ */}
                 {tab==="yield"&&<YieldTab C={C}/>}
 
+                {/* ══ P&L ══ */}
+                {tab==="pnl"&&(function(){
+                  var CM={"Vape Cart - Live Resin":"Cart","Badder":"Badder","Sauce":"Sauce","Diamonds":"Diamonds","Shatter":"Shatter","Sample/Promo":"Promo"};
+                  var cb2={"Cart":COGS.Cart,"Badder":COGS.Badder,"Sauce":COGS.Sauce,"Diamonds":COGS.Diamonds,"Shatter":COGS.Shatter,"Promo":COGS.Promo};
+                  var grossRev=0,units=0,cogsTotal=0,distroFees=0;
+                  accounts.forEach(function(acc){var cr=(acc.periodCatRevenue&&acc.periodCatRevenue[periodDays])?acc.periodCatRevenue[periodDays]:(acc.catRevenue90||{});Object.keys(cr).forEach(function(rc){var rev=cr[rc];if(!rev||rev<=0)return;var label=CM[rc]||rc;var cg=cb2[label]||COGS.Other;var u=cg.wholesale>0?Math.round(rev/cg.wholesale):0;grossRev+=rev;units+=u;cogsTotal+=u*cg.cost;distroFees+=rev*cg.distroRate;});});
+                  var netRev=grossRev-distroFees;
+                  var grossProfit=netRev-cogsTotal;
+                  var retTotal=(returnsLog||[]).filter(function(r){return !r.preMarket;}).reduce(function(s,r){return s+(r.totalValue||0);},0);
+                  var opex=0;
+                  var ebitda=grossProfit-retTotal-opex;
+                  var margin=netRev>0?ebitda/netRev*100:0;
+                  function row(label,val,opts){opts=opts||{};return React.createElement('div',{key:label,style:{display:'flex',justifyContent:'space-between',padding:'8px 12px',borderBottom:opts.border?'2px solid '+C.border:'1px solid '+C.border,background:opts.highlight?C.raised:'transparent'}},React.createElement('span',{style:{fontSize:opts.bold?12:10,fontWeight:opts.bold?800:400,color:opts.dim?C.dim:C.text,letterSpacing:opts.bold?1:0}},label),React.createElement('span',{style:{fontSize:opts.bold?13:11,fontWeight:opts.bold?800:600,color:opts.color||C.text,fontFamily:'monospace'}},val));}
+                  return React.createElement('div',null,
+                    React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:14}},React.createElement('span',{style:{fontSize:9,color:C.dim,letterSpacing:1.5}},'PERIOD'),
+                      [7,30,60,90,180,270,365].map(function(d){return React.createElement('button',{key:d,onClick:function(){setPeriodDays(d);},style:{padding:'4px 10px',borderRadius:2,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(periodDays===d?C.text:C.border),background:periodDays===d?C.text:'transparent',color:periodDays===d?C.bg:C.dim,fontWeight:periodDays===d?700:400}},d+'d');})
+                    ),
+                    React.createElement('div',{style:{fontSize:14,fontWeight:900,letterSpacing:3,marginBottom:16}},'PROFIT & LOSS STATEMENT'),
+                    React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,overflow:'hidden'}},
+                      row('Gross Revenue',cur(grossRev),{bold:true,border:true}),
+                      row('  Distribution Fees (16%)','('+cur(distroFees)+')',{dim:true}),
+                      row('Net Revenue (84%)',cur(netRev),{bold:true,border:true,highlight:true}),
+                      row(''),
+                      row('Cost of Goods Sold','('+cur(cogsTotal)+')',{dim:true}),
+                      row('  Units Produced',units.toLocaleString(),{dim:true}),
+                      row('Gross Profit',cur(grossProfit),{bold:true,border:true,color:grossProfit>0?C.good:C.danger}),
+                      row(''),
+                      row('Returns / Credits','('+cur(retTotal)+')',{dim:true,color:retTotal>0?C.danger:C.dim}),
+                      row('Operating Expenses','('+cur(opex)+')',{dim:true}),
+                      row(''),
+                      row('EBITDA',cur(ebitda),{bold:true,highlight:true,border:true,color:ebitda>0?C.good:C.danger}),
+                      row('Margin',margin.toFixed(1)+'%',{bold:true,highlight:true,color:margin>35?C.good:margin>20?C.warn:C.danger})
+                    ),
+                    React.createElement('div',{style:{marginTop:12,fontSize:8,color:C.dim,letterSpacing:0.5}},'Revenue = Salesforce '+periodDays+'d \u00b7 COGS = invoice-verified unit costs \u00b7 OpEx = manual entry (coming soon)')
+                  );
+                })()}
+
                 {/* ══ CASH FLOW ══ */}
                 {tab==="cashflow"&&<CashFlow C={C} accounts={accounts} periodDays={periodDays} setPeriodDays={setPeriodDays} inventoryData={inventoryData}/>}
 
