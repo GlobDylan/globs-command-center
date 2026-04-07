@@ -108,11 +108,13 @@
 
     @media(max-width:768px){
       /* Header */
-      .gpi-header{padding:0 12px !important;height:48px !important;}
-      .gpi-header img{height:28px !important;}
-      .gpi-header .hdr-actions{gap:4px !important;}
+      .gpi-header{padding:0 10px !important;height:auto !important;min-height:48px;flex-wrap:wrap;gap:6px;padding-top:8px !important;padding-bottom:8px !important;}
+      .gpi-header img{height:26px !important;}
+      .gpi-header .hdr-actions{gap:4px !important;width:100%;justify-content:flex-end;}
       .gpi-header .hdr-actions button,
       .gpi-header .hdr-actions label{font-size:7px !important;padding:3px 6px !important;letter-spacing:0.5px !important;}
+      .gpi-header .hdr-hide-mobile{display:none !important;}
+      .gpi-header .hdr-sync{font-size:7px !important;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
       /* Tab bar: horizontal scroll */
       .gpi-tab-bar{padding:0 8px !important;gap:0 !important;-webkit-overflow-scrolling:touch;scroll-behavior:smooth;}
       .gpi-tab-bar::after{content:'';position:sticky;right:0;min-width:24px;background:linear-gradient(to right,transparent,var(--bg,#000));pointer-events:none;flex-shrink:0;}
@@ -1560,13 +1562,13 @@ window._STRAIN_DB=[
               </div>
             </div>
             <div className="hdr-actions" style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',justifyContent:'flex-end'}}>
-              {lastSync&&<span style={{fontSize:9,color:C.dim,letterSpacing:0.5}}>synced {fmtDate(lastSync)}</span>}
+              {lastSync&&<span className="hdr-sync" style={{fontSize:9,color:C.dim,letterSpacing:0.5}}>synced {fmtDate(lastSync)}</span>}
               <input ref={csvRef} type="file" accept=".csv,.xlsx,.xls" onChange={handleCSVFile} style={{position:'absolute',opacity:0,width:0,height:0,overflow:'hidden'}}/>
               <input ref={jsonRef} type="file" accept=".json" onChange={handleJSONFile} style={{position:'absolute',opacity:0,width:0,height:0,overflow:'hidden'}}/>
               <button style={Object.assign({},btnSt('ghost'),{fontSize:12})} onClick={function(){setShowUniSearch(true);}} title="Universal Search">⌕</button>
               <button style={btnSt('ghost')} disabled={csvLoading} onClick={function(){csvRef.current&&csvRef.current.click();}}>{csvLoading?'Parsing…':(function(){var labels={accounts:'Upload Account Data',opportunities:'Upload Sales Data',dispatch:'Upload Dispatch Data',returns:'Upload Returns Data',executive:'Upload Financial Data',pnl:'Upload P&L Data',cashflow:'Upload Cash Flow Data',strains:'Upload Strain Data',mfg:'Upload MFG Data',packaging:'Upload Inventory Data'};return labels[tab]||'Upload Salesforce XLSX';})()}</button>
-              <button style={btnSt('outline')} onClick={function(){jsonRef.current&&jsonRef.current.click();}}>Import Scan</button>
-              <button style={btnSt('ghost')} onClick={function(){
+              <button className="hdr-hide-mobile" style={btnSt('outline')} onClick={function(){jsonRef.current&&jsonRef.current.click();}}>Import Scan</button>
+              <button className="hdr-hide-mobile" style={btnSt('ghost')} onClick={function(){
                 if(!rolePerms.canExport||killSwitches.disableExports){toast('✗ Export not permitted for your role');return;}
                 try{
                   var backup={exported:new Date().toISOString(),version:'GPI-v2',exportedBy:rolePerms.label};
@@ -1578,8 +1580,8 @@ window._STRAIN_DB=[
                   logSecurity('EXPORT','Backup exported by '+rolePerms.label);toast('✓ Backup exported');
                 }catch(e){toast('✗ Export failed: '+e.message);}
               }}>Export Backup</button>
-              <button className="theme-toggle" onClick={toggleTheme} title="Toggle light/dark mode">{lightMode?'◑ Dark':'◐ Light'}</button>
-              <span style={{fontSize:8,padding:'3px 8px',borderRadius:2,fontWeight:700,background:authRole==='exec'?C.goodBg:C.warnBg,color:authRole==='exec'?C.good:C.warn,border:'1px solid '+(authRole==='exec'?C.goodBdr:C.warnBdr),letterSpacing:1}}>{authUser?authUser.name.split(' ')[0].toUpperCase():''} · {(rolePerms.label||'').toUpperCase()}</span>
+              <button className="hdr-hide-mobile theme-toggle" onClick={toggleTheme} title="Toggle light/dark mode">{lightMode?'◑ Dark':'◐ Light'}</button>
+              <span className="hdr-user-badge" style={{fontSize:8,padding:'3px 8px',borderRadius:2,fontWeight:700,background:authRole==='exec'?C.goodBg:C.warnBg,color:authRole==='exec'?C.good:C.warn,border:'1px solid '+(authRole==='exec'?C.goodBdr:C.warnBdr),letterSpacing:1,whiteSpace:'nowrap'}}>{authUser?authUser.name.split(' ')[0].toUpperCase():''}</span>
               <button onClick={handleLogout} style={{fontSize:8,color:C.dim,background:'transparent',border:'1px solid '+C.border,borderRadius:2,padding:'3px 8px',cursor:'pointer',fontFamily:'inherit'}}>Sign Out</button>
             </div>
           </div>
