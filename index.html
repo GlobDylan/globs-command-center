@@ -866,7 +866,7 @@ window._STRAIN_DB=[
         {id:'danny',name:'Danny',role:'distro',pin:'',active:true,needsSetup:true,repName:'Danny Smith'},
         {id:'daniel',name:'Daniel',role:'distro',pin:'',active:true,needsSetup:true,repName:'Daniel Rojas'},
       ];
-      const USER_VERSION=2;// Increment when DEFAULT_USERS changes
+      const USER_VERSION=3;// Bumped: added sales reps, renamed Chere, removed placeholders
       const [users,setUsers]=useState(function(){try{var v=localStorage.getItem('gpi:gpi-users');var uv=localStorage.getItem('gpi:gpi-user-version');if(v&&uv&&parseInt(uv)===USER_VERSION)return JSON.parse(v);localStorage.setItem('gpi:gpi-user-version',String(USER_VERSION));localStorage.removeItem('gpi:gpi-users');return DEFAULT_USERS;}catch(e){return DEFAULT_USERS;}});
       const [userOverrides,setUserOverrides]=useState(function(){try{var v=localStorage.getItem('gpi:gpi-user-overrides');return v?JSON.parse(v):{};}catch(e){return{};}});
       function saveUsers(next){setUsers(next);try{localStorage.setItem('gpi:gpi-users',JSON.stringify(next));}catch(e){}}
