@@ -1626,19 +1626,18 @@ window._STRAIN_DB=[
                   }
                   var pipelines=[
                     {name:'VAPE CARTS',color:'#4a9eff',batches:[
-                      {id:'DROP #4 · GLO-VC-016–020',label:'5 Strains · 5,000 units',units:5000,ws:12,total:60000,distroRate:0.16,stage:'TRANSFER',stageDetail:'UpNorth pickup Apr 7',strains:['Modified Cherries','ICPJ','Sweet n\' Sour Diesel','Headband','Grandma\'s Cookies'],milestones:{MFG:'Feb 18',LAB:'Apr 1',COMPLIANCE:'Apr 6',PKG:'Apr 6',TRANSFER:'Apr 7'},costs:[
+                      {id:'DROP #4 · GLO-VC-016–020',label:'5 Strains · 5,000 units · Shipping Apr 7',units:5000,unitsSold:0,onHand:5000,ws:12,avgPrice:12,total:60000,revSold:0,distroRate:0.16,stage:'TRANSFER',stageDetail:'UpNorth pickup Apr 7 — 5,000 on hand',strains:['Modified Cherries','ICPJ','Sweet n\' Sour Diesel','Headband','Grandma\'s Cookies'],milestones:{MFG:'Feb 18',LAB:'Apr 1',COMPLIANCE:'Apr 6',PKG:'Apr 6',TRANSFER:'Apr 7'},costs:[
                         {label:'Cart Hardware',detail:'VapeCartsCC D742 · 5K × $1.85 · Feb 18',amt:9527.50},
                         {label:'Biomass (Tier 1)',detail:'CAM manifest · 145.49 lb × $30 · Feb 19',amt:4364.70},
                         {label:'GL Credit (Tier 2)',detail:'103.4 lb × $20/lb',amt:-2068},
                         {label:'Processing',detail:'Greenline · 145.49 lb × $40',amt:5819.60},
                         {label:'Tubes',detail:'Treeform INV38610 + INV38884',amt:1574.88},
                         {label:'Cart Boxes',detail:'Two Pkg CB010626 · 5K of 10K @ $0.244',amt:1262.70},
-                        {label:'Testing',detail:'5 strains × $400 (est)',amt:2000},
+                        {label:'Testing',detail:'5 strains × $400 (est — awaiting Encore inv)',amt:2000},
                         {label:'Labor',detail:'5,000 × $1.00/unit',amt:5000}
                       ]},
-                      {id:'DROP #2 · Jan 20 Carts',label:'5 Strains · 5,138 carts + 500 batteries',units:5138,ws:10,total:55370,distroRate:0.16,stage:'SALE',stageDetail:'In distribution — selling through',strains:['Wagyu Truffle Butter','Frozen Grapes','Ms Muffin','Sweet-n-Sour Diesel','White Widow'],milestones:{MFG:'Nov 11',LAB:'Jan 14',COMPLIANCE:'Jan 19',PKG:'Jan 19',TRANSFER:'Jan 20',DISTRO:'Jan 21'},costs:[
+                      {id:'DROP #2 · Jan 20 Carts',label:'5 Strains · 5,138 produced · 5,044 sold · 94 on hand',units:5138,unitsSold:5044,onHand:94,ws:10,avgPrice:10.24,total:51635,revSold:51635,distroRate:0.16,stage:'SALE',stageDetail:'$51,635 sold · 94 units on hand · avg $10.24',strains:['Wagyu Truffle Butter','Frozen Grapes','Ms Muffin','Sweet-n-Sour Diesel','White Widow'],milestones:{MFG:'Nov 11',LAB:'Jan 14',COMPLIANCE:'Jan 19',PKG:'Jan 19',TRANSFER:'Jan 20',DISTRO:'Jan 21',SALE:'Jan 27–Apr 7'},costs:[
                         {label:'Cart Hardware',detail:'Octave 1614 · 5,138 of 8K @ $1.85 + ship/fee',amt:10076},
-                        {label:'Extract (owned)',detail:'5,138g × $1.30/g',amt:6679.40},
                         {label:'Batteries',detail:'Octave 1636 · 500 SlickBox V2 @ $8 · Jan 5',amt:4088.90},
                         {label:'Testing',detail:'Encore 2601ENC0623 · 5 panel + expedite · Jan 14',amt:2750},
                         {label:'Tubes',detail:'Treeform INV34221 stock · 5,138 × $0.08',amt:411.04},
@@ -1648,8 +1647,7 @@ window._STRAIN_DB=[
                       ]}
                     ]},
                     {name:'EXTRACTS',color:'#f5a623',batches:[
-                      {id:'DROP #3 · Feb 10 Badder',label:'6 Strains · 5,766 units',units:5766,ws:8,total:46128,distroRate:0.16,stage:'SALE',stageDetail:'In distribution — selling through',strains:['Hella Lemons','Grandmas Cookies','Sweet-N-Sour Diesel','Frozen Grapes','Wagyu Truffle Butter','ICPJ'],milestones:{MFG:'Dec 2025',LAB:'Jan 27',COMPLIANCE:'Feb 9',PKG:'Feb 9',TRANSFER:'Feb 10',DISTRO:'Feb 11'},costs:[
-                        {label:'Extract (owned)',detail:'5,766g × $1.30/g',amt:7495.80},
+                      {id:'DROP #3 · Feb 10 Badder',label:'6 Strains · 5,766 produced · 4,173 sold · 1,593 on hand',units:5766,unitsSold:4173,onHand:1593,ws:8,avgPrice:7.34,total:46128,revSold:30648,distroRate:0.16,stage:'SALE',stageDetail:'$30,648 sold · 1,593 units on hand · avg $7.34',strains:['Hella Lemons','Grandmas Cookies','Sweet-N-Sour Diesel','Frozen Grapes','Wagyu Truffle Butter','ICPJ'],milestones:{MFG:'Dec 2025',LAB:'Jan 27',COMPLIANCE:'Feb 9',PKG:'Feb 9',TRANSFER:'Feb 10',DISTRO:'Feb 11',SALE:'Feb 17–Apr 10'},costs:[
                         {label:'Jars + Caps',detail:'Treeform INV36807 · 5,766 of 15,190 @ $0.35',amt:2093},
                         {label:'Testing',detail:'Encore 2601ENC1164 · 6 terp+panel · Jan 27',amt:2400},
                         {label:'Labor',detail:'5,766 × $1.00/unit',amt:5766}
@@ -1678,13 +1676,16 @@ window._STRAIN_DB=[
                                 var bdr=isPast?pipe.color+'66':isCurrent?pipe.color:'#222';
                                 var tc=isPast?pipe.color:isCurrent?'#000':'#333';
                                 var isSale=stg==='SALE';
-                                var saleActive=isSale&&currentIdx>=si;
-                                var soldAmt=saleActive?batchSellThrough(batch.strains,batch.ws,batch.total,batch.milestones.TRANSFER||''):0;
+                                var saleActive=isSale&&currentIdx>=si&&batch.unitsSold>0;
+                                var soldAmt=saleActive?batch.revSold:0;
+                                var isCollect=stg==='COLLECT'&&batch.milestones.COLLECT;
+                                var isPayout=stg==='PAYOUT'&&batch.milestones.PAYOUT;
                                 return(<div key={stg} style={{flex:1,minWidth:48,padding:'6px 3px',borderRadius:3,border:'1px solid '+(saleActive?C.good+'66':bdr),background:saleActive?C.good+'22':bg,textAlign:'center',animation:saleActive?'pulse 1.5s ease-in-out infinite':'none'}}>
                                   <div style={{fontSize:10}}>{STAGE_ICONS[stg]}</div>
                                   <div style={{fontSize:6,fontWeight:isCurrent||saleActive?800:500,color:saleActive?C.good:tc,letterSpacing:0.5,marginTop:2}}>{STAGE_LABELS[stg]}</div>
                                   {batch.milestones[stg]&&!saleActive&&<div style={{fontSize:6,color:isPast?pipe.color+'99':isCurrent?'#000':'#444',marginTop:1}}>{batch.milestones[stg]}</div>}
                                   {saleActive&&<div style={{fontSize:7,fontWeight:700,color:C.good,marginTop:2}}>{'$'+Math.round(soldAmt/1000)+'K/$'+Math.round(batch.total/1000)+'K'}</div>}
+                                  {saleActive&&batch.onHand>0&&<div style={{fontSize:6,color:'#f5a623',marginTop:1}}>{batch.onHand+' on hand'}</div>}
                                 </div>);
                               })}
                             </div>
@@ -1695,10 +1696,34 @@ window._STRAIN_DB=[
                             {batch.strains.length>0&&<div style={{display:'flex',gap:4,flexWrap:'wrap',marginTop:8}}>
                               {batch.strains.map(function(s){return<span key={s} style={{fontSize:8,padding:'2px 6px',borderRadius:2,background:pipe.color+'11',border:'1px solid '+pipe.color+'22',color:pipe.color}}>{s}</span>;})}
                             </div>}
-                            {batch.costs&&batch.costs.length>0&&(function(){var prodCost=batch.costs.reduce(function(s,r){return s+r.amt;},0);var dr=batch.distroRate||0.16;var distroFee=Math.round(batch.total*dr);var margin=batch.total-distroFee-prodCost;var pct=batch.total>0?((margin/batch.total)*100).toFixed(0):0;return<div style={{marginTop:8}}>
+                            {batch.costs&&batch.costs.length>0&&(function(){var prodCost=batch.costs.reduce(function(s,r){return s+r.amt;},0);var dr=batch.distroRate||0.16;var actualRev=batch.revSold||0;var projRev=batch.total||0;var useActual=actualRev>0;var revForCalc=useActual?actualRev:projRev;var distroFee=Math.round(revForCalc*dr);var netRev=revForCalc-distroFee;var margin=netRev-prodCost;var pct=revForCalc>0?((margin/revForCalc)*100).toFixed(0):0;return<div style={{marginTop:8}}>
+                              {batch.unitsSold>0&&<div style={{padding:'8px 10px',background:'#0d1117',border:'1px solid #1a1a1a',borderRadius:4,marginBottom:6,fontSize:10}}>
+                                <div style={{fontSize:8,fontWeight:700,letterSpacing:1.5,color:C.dim,marginBottom:4}}>SELL-THROUGH</div>
+                                <div style={{display:'flex',justifyContent:'space-between'}}>
+                                  <span style={{color:C.muted}}>Produced</span><span style={{fontWeight:600}}>{batch.units.toLocaleString()}</span>
+                                </div>
+                                <div style={{display:'flex',justifyContent:'space-between'}}>
+                                  <span style={{color:C.muted}}>Sold</span><span style={{fontWeight:600,color:C.good}}>{batch.unitsSold.toLocaleString()+' ('+Math.round(batch.unitsSold/batch.units*100)+'%)'}</span>
+                                </div>
+                                <div style={{display:'flex',justifyContent:'space-between'}}>
+                                  <span style={{color:C.muted}}>On Hand</span><span style={{fontWeight:600,color:batch.onHand>0?'#f5a623':C.good}}>{batch.onHand.toLocaleString()}</span>
+                                </div>
+                                <div style={{display:'flex',justifyContent:'space-between',marginTop:3,paddingTop:3,borderTop:'1px solid #222'}}>
+                                  <span style={{color:C.muted}}>Avg Price Realized</span><span style={{fontWeight:700}}>{'$'+batch.avgPrice.toFixed(2)}</span>
+                                </div>
+                                <div style={{display:'flex',justifyContent:'space-between'}}>
+                                  <span style={{color:C.muted}}>Revenue Collected</span><span style={{fontWeight:700,color:C.good}}>{'$'+actualRev.toLocaleString()}</span>
+                                </div>
+                                {batch.onHand>0&&<div style={{display:'flex',justifyContent:'space-between'}}>
+                                  <span style={{color:C.muted}}>Revenue Pending ({batch.onHand} × ${batch.avgPrice.toFixed(2)})</span><span style={{fontWeight:600,color:'#f5a623'}}>{'$'+Math.round(batch.onHand*batch.avgPrice).toLocaleString()}</span>
+                                </div>}
+                                <div style={{height:4,background:'#222',borderRadius:2,marginTop:6}}>
+                                  <div style={{height:4,background:C.good,borderRadius:2,width:Math.round(batch.unitsSold/batch.units*100)+'%'}}/>
+                                </div>
+                              </div>}
                               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 10px',background:'#0a0a0a',borderRadius:p2cExpanded[batch.id]?'4px 4px 0 0':'4px',border:'1px solid #1a1a1a',cursor:'pointer',fontSize:10}} onClick={function(){setP2cExpanded(function(p){var n2=Object.assign({},p);n2[batch.id]=!n2[batch.id];return n2;});}}>
                                 <span style={{fontWeight:700,color:C.dim}}><span style={{fontSize:8,marginRight:4}}>{p2cExpanded[batch.id]?'\u25BC':'\u25B6'}</span>{'COST STRUCTURE ('+batch.costs.length+' items)'}</span>
-                                <span style={{fontWeight:700,color:margin>0?C.good:C.danger}}>{'Margin: $'+margin.toLocaleString()+' ('+pct+'%)'}</span>
+                                <span style={{fontWeight:700,color:margin>0?C.good:C.danger}}>{'Margin: $'+margin.toLocaleString()+' ('+pct+'%) '+(useActual?'· actual':'· projected')}</span>
                               </div>
                               {p2cExpanded[batch.id]&&<div style={{padding:'8px 10px',background:'#0a0a0a',borderRadius:'0 0 4px 4px',border:'1px solid #1a1a1a',borderTop:'none'}}>
                                 {batch.costs.map(function(row,ri){return<div key={ri} style={{display:'flex',justifyContent:'space-between',fontSize:10,padding:'3px 0'}}>
@@ -1710,14 +1735,18 @@ window._STRAIN_DB=[
                                   <span style={{fontWeight:700,color:C.danger}}>{'$'+prodCost.toLocaleString()}</span>
                                 </div>
                                 <div style={{display:'flex',justifyContent:'space-between',fontSize:10,padding:'3px 0'}}>
+                                  <span style={{color:C.muted}}>{useActual?'Revenue (actual · '+batch.unitsSold+' sold × $'+batch.avgPrice.toFixed(2)+')':'Revenue (projected · '+batch.units+' × $'+batch.ws+')'}</span>
+                                  <span style={{fontWeight:600,color:C.good}}>{'$'+revForCalc.toLocaleString()}</span>
+                                </div>
+                                <div style={{display:'flex',justifyContent:'space-between',fontSize:10,padding:'3px 0'}}>
                                   <span style={{color:C.muted}}>{'UpNorth Distro Fee ('+Math.round(dr*100)+'%)'}</span>
-                                  <span style={{fontWeight:600,color:C.danger}}>{'$'+distroFee.toLocaleString()}</span>
+                                  <span style={{fontWeight:600,color:C.danger}}>{'-$'+distroFee.toLocaleString()}</span>
                                 </div>
                                 <div style={{display:'flex',justifyContent:'space-between',fontSize:12,padding:'6px 0',borderTop:'2px solid '+pipe.color,marginTop:4}}>
-                                  <span style={{fontWeight:800}}>NET MARGIN</span>
+                                  <span style={{fontWeight:800}}>{'NET MARGIN'+(useActual?' (actual)':' (projected)')}</span>
                                   <span style={{fontWeight:800,color:margin>0?C.good:C.danger}}>{'$'+margin.toLocaleString()+' ('+pct+'%)'}</span>
                                 </div>
-                                {batch.units>0&&<div style={{fontSize:8,color:C.dim,marginTop:4}}>{'Prod: $'+(prodCost/batch.units).toFixed(2)+'/unit · COGS: $'+((prodCost+distroFee)/batch.units).toFixed(2)+'/unit · Margin: $'+(margin/batch.units).toFixed(2)+'/unit'}</div>}
+                                {batch.units>0&&<div style={{fontSize:8,color:C.dim,marginTop:4}}>{'Prod: $'+(prodCost/batch.units).toFixed(2)+'/unit · COGS: $'+((prodCost+distroFee)/(useActual?batch.unitsSold:batch.units)).toFixed(2)+'/unit · Margin: $'+(margin/(useActual?batch.unitsSold:batch.units)).toFixed(2)+'/unit'}</div>}
                               </div>}
                             </div>;})()}
                           </div>);
