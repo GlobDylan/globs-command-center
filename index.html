@@ -180,6 +180,11 @@
       0%,100% { r:4; opacity:1; }
       50% { r:7; opacity:0.6; }
     }
+    @keyframes rep-pulse-ring {
+      0% { r:5; opacity:0.6; }
+      100% { r:12; opacity:0; }
+    }
+    .rep-pulse { animation: rep-pulse-ring 2s ease-out infinite; }
     @keyframes map-fade-out {
       0% { opacity:1; transform:scale(1); }
       70% { opacity:1; transform:scale(1); }
@@ -268,7 +273,7 @@
   </div>
 
   <script>
-window._DD=[["Ganjery","DNU",14,54,"Arcata","L",2296,5436,7156,17207,26926,40409],["Fifth and Green","DNU",11,18,"Crescent City","L",1680,3760,4440,12901,21621,34141],["Urbana on Geary","RB",56,180,"San Francisco","L",1520,1520,1520,8968,16207,24848],["PCF Distro","RB",88,182,"Riverbank","L",1125,1720,2732,12858,16148,24739],["Elevation 2477","DNU",97,120,"Nevada City","L",468,2348,6358,14238,19131,23121],["Airfield Supply Redwood City","RB",60,192,"Redwood City","L",1360,3968,6248,13804,18284,19909],["The Highlands Dispensary","RB",72,185,"Livermore","L",1120,2700,3360,8756,12893,19075],["The Fireplace Arcata","DNU",14,54,"Arcata","L",1200,2400,2740,6900,12221,17382],["Sundial Collective Redding","DNU",60,64,"Redding","L",480,1100,3080,7717,13447,15867],["Hyrba","RB",55,181,"San Francisco","L",1280,2500,3760,6860,10860,14937],["EcoCann","RB",47,155,"Sebastopol","L",240,240,640,3440,8511,13847],["The Sweet Spot Piner Rd.","RB",48,152,"Santa Rosa","L",0,0,2440,4780,6942,13143],["The Hook Outlet Watsonville","RB",72,215,"Watsonville","L",960,2268,2548,5908,8808,12816],["The Hook Capitola","RB",68,213,"Capitola","L",280,1000,1680,6340,8440,11720],["Down Under Industries","RB",52,160,"Petaluma","L",720,720,2720,5260,7740,11610],["Foothill Wellness","DNU",95,133,"Auburn","L",520,1480,1960,4840,7512,10873],["Sundial Collective Red Bluff","DNU",64,82,"Red Bluff","L",720,1500,2980,7320,8961,10241],["Kiskanu","RB",52,160,"Petaluma","L",160,1420,1420,3940,6140,10061],["Flora Terra","RB",48,152,"Santa Rosa","L",0,2776,2776,6129,7869,9869],["Farmacy Berkeley","RB",60,178,"Berkeley","L",600,880,1540,3690,5780,8581],["Siesta Life Encinitas","ZASP",194,374,"Encinitas","L",1040,2240,2240,3840,5320,7720],["The Outpost","DNU",41,124,"Ukiah","L",1152,2488,2488,5198,6630,7990],["Cali Love","DNU",75,100,"Chico","L",1020,1020,2040,3120,3920,7661],["Mercy Wellness Cotati","RB",51,158,"Cotati","L",1380,2058,2058,4121,5841,7642],["Hazy Bulldog Farms","RB",103,172,"Sonora","L",0,1120,1120,1740,4631,7351],["JANE Dispensary Cotati","RB",50,158,"Cotati","L",240,240,840,4290,5070,7270],["Urbana Off Mission","RB",57,182,"San Francisco","L",0,0,0,3463,5746,7266],["Redwood Herbal Alliance","DNU",12,65,"Fortuna","L",0,1360,1360,4960,6460,7260],["Bract House","RB",103,172,"Sonora","R",0,0,0,0,3465,6985],["Moe Greens","RB",57,180,"San Francisco","L",0,1520,2055,3166,4136,6461],["Pure Aloha","RB",68,198,"San Jose","L",2400,3400,3400,4000,4930,6330],["420 Kingdom","ZASP",163,325,"Sun Valley","R",0,0,0,0,3640,6201],["Satori Wellness Center","DNU",13,51,"McKinleyville","L",0,480,1200,3380,4221,6141],["Purple Lotus","RB",68,197,"San Jose","R",0,640,3640,5980,5980,5980],["Merced Business Ventures","RB",96,200,"Merced","L",480,1100,1100,2140,4020,5800],["EcoCannabis Oakland","RB",60,179,"Oakland","L",600,600,1070,2426,3726,5426],["NUG x Sundial Collective","RB",85,147,"Rancho Cordova","R",0,0,760,1840,5371,5371],["Root'd","RB",60,178,"Oakland","L",800,1120,1700,2460,2940,5320],["Humble Root","RB",80,151,"Sacramento","L",1920,1920,1920,3360,3360,4960],["Liberty Beach Center","ZASP",167,341,"Gardena","L",0,480,800,2720,3670,4870],["The Reserve SD","ZASP",200,383,"San Diego","L",165,515,816,2116,3416,4416],["Royal Healing Emporium Inc.","ZASP",114,308,"Lompoc","L",800,1660,1660,2260,3460,4700],["Farmacy Santa Ana","ZASP",176,346,"Santa Ana","L",75,225,556,2451,3426,4476],["Harborside San Jose","RB",68,197,"San Jose","L",0,240,240,680,2420,4356],["Banyan Tree Fresno","RB",108,219,"Fresno","L",203,203,203,203,2167,4152],["California Street Cannabis Clement","RB",56,180,"San Francisco","L",144,144,144,1644,2604,3654],["Nectar Costa Mesa","ZASP",174,349,"Costa Mesa","L",160,160,160,2381,3209,4009],["Megan's Organic Market SLO","ZASP",101,283,"San Luis Obispo","L",0,480,800,1440,1920,3512],["Element 7 Chula Vista","ZASP",203,392,"Chula Vista","R",0,0,0,0,0,3264],["The Cake House Wildomar","ZASP",191,352,"Wildomar","L",0,1260,1260,1260,1260,3850],["Grass Valley Provisions","DNU",97,121,"Grass Valley","L",0,0,0,640,640,3841],["The Pottery","ZASP",163,333,"Los Angeles","L",0,0,0,1862,2668,3682],["The Hook Santa Cruz","RB",67,213,"Santa Cruz","R",420,660,1000,2780,3660,3660],["Medithrive","RB",57,181,"San Francisco","L",0,0,320,1360,2320,3621],["Embr La Mesa","ZASP",203,385,"La Mesa","L",2400,2400,2400,2400,2400,3520],["Velvet Cannabis","RB",68,171,"Martinez","R",0,0,0,0,960,3520],["Sustainable Therapeutics (DBA Klover)","RB",59,189,"San Mateo","L",0,0,0,0,0,3510],["Mammoth Roots","RB",129,186,"Mammoth Lakes","L",0,0,0,600,1400,3420],["Tioga Green","RB",107,170,"Twain Harte","L",480,480,480,881,2161,3361],["Desert Kush Cathedral Canyon","ZASP",213,344,"Cathedral City","L",0,600,600,1500,2340,3172],["JANE Dispensary Healdsburg","RB",45,147,"Healdsburg","L",0,330,330,1730,2430,3130],["The Bright Spot","ZASP",202,391,"San Diego","L",0,1284,1284,1284,2068,3028],["Juva Retail","ZASP",164,338,"El Segundo","L",0,340,340,1060,2200,3000],["Green Heron","ZASP",137,281,"Bakersfield","R",0,0,0,0,1160,2864],["Harborside Oakland","RB",61,180,"Oakland","R",0,240,240,680,1220,2660],["Sunset Pipeline","RB",56,181,"San Francisco","R",0,0,0,0,1260,2220],["Mercy Wellness Santa Rosa","RB",50,154,"Santa Rosa","R",480,690,760,1650,2030,2710],["Livity","DNU",14,54,"Arcata","R",0,180,180,1100,2540,2700],["Bloomerang","RB",57,183,"San Francisco","R",0,0,160,1860,1860,2641],["Culture Cannabis Club Jurupa Valley","ZASP",185,336,"Mira Loma","N",0,2640,2640,2640,2640,2640],["Vallejo Relief Center","RB",64,167,"Vallejo","R",0,0,0,1040,1520,2620],["JANE Dispensary Santa Rosa","RB",49,153,"Santa Rosa","R",0,0,0,1500,2300,2300],["Off the Charts Riverbank","RB",88,182,"Riverbank","R",1000,1000,1000,1100,1840,2590],["Creekside Wellness","RB",84,171,"Stockton","R",720,720,1520,2570,2570,2570],["Harborside San Leandro","RB",62,183,"San Leandro","R",0,80,80,520,620,2036],["Urbn Leaf Bay Park","ZASP",198,385,"San Diego","R",0,240,240,680,1080,2520],["Off the Charts Vista","ZASP",194,366,"Vista","R",1000,1000,1000,1000,1400,2500],["Dragonfly Wellness Center","RB",61,159,"Napa","R",480,480,480,480,2441,2441],["California Street Cannabis","RB",57,180,"San Francisco","R",240,240,240,1140,1590,2390],["Shatter","RB",88,182,"Riverbank","R",560,560,560,820,1630,2390],["HerbNJoy Walnut Creek","RB",66,175,"Walnut Creek","R",0,1270,1492,1972,2372,2372],["Urbana Oakland","RB",60,179,"Oakland","R",0,0,0,0,330,970],["Goldy's","RB",61,178,"Oakland","R",448,448,628,1048,1528,2328],["North Beach Pipeline","RB",57,180,"San Francisco","R",0,0,0,0,1020,1640],["Purple Lotus Santa Clara St.","RB",68,197,"San Jose","N",0,0,2000,2000,2000,2000],["Harborside San Francisco","RB",56,181,"San Francisco","R",0,0,0,440,540,1980],["Padre Mu","ZASP",211,342,"Palm Springs","R",200,560,610,1018,1570,1978],["Sundial Collective Banning","ZASP",202,338,"Banning","R",0,0,0,0,0,1960],["Heart Of Humboldt","DNU",14,54,"Arcata","R",240,400,400,1040,1424,1904],["CBCB","RB",61,177,"Berkeley","R",0,0,280,280,840,1520],["Berkeley Patients Group","RB",60,177,"Berkeley","R",0,0,180,480,1180,1800],["The Chronic","ZASP",167,332,"Los Angeles","R",0,0,0,0,0,1760],["Urbn Leaf Vista","ZASP",193,368,"Vista","R",0,120,120,360,360,1760],["The Cake House Santa Rosa","RB",49,154,"Santa Rosa","R",0,0,0,0,160,1740],["Urbn Leaf Grover Beach","ZASP",103,289,"Grover Beach","R",0,80,80,80,280,1720],["Westwood Cannabis Stop","ZASP",161,333,"Los Angeles","R",0,520,520,520,720,1600],["Off the Charts Lemon Grove","ZASP",203,386,"Lemon Grove","R",1000,1000,1000,1000,1200,1600],["Fig & Thistle","RB",57,180,"San Francisco","R",800,800,800,1280,1600,1600],["The Velvet Fog","RB",63,183,"San Leandro","R",216,216,416,636,1156,1596],["Off the Charts USC","ZASP",165,334,"Los Angeles","R",0,0,0,0,400,1500],["A Therapeutic Alternative","RB",80,148,"Sacramento","R",0,0,424,504,964,1484],["Green Rush Cannabis Co.","RB",50,158,"Cotati","R",0,0,0,0,1120,1480],["Off the Charts Costa Mesa Harbor Blvd","ZASP",173,348,"Costa Mesa","R",1000,1000,1000,1000,1450,1450],["Essentials","RB",61,178,"Oakland","R",0,0,0,0,640,1440],["Barbary Coast","RB",57,180,"San Francisco","R",480,480,480,960,1430,1430],["Cali Love 101","RB",51,158,"Cotati","R",0,0,0,0,1400,1400],["Off the Charts Indio","ZASP",219,346,"Indio","R",1000,1000,1000,1000,1400,1400],["Off the Charts SF","RB",57,181,"San Francisco","R",1000,1000,1000,1000,1400,1400],["Humanity Wellness","RB",80,148,"Sacramento","R",0,0,0,200,200,1400],["Canna Culture","RB",69,201,"San Jose","R",480,480,480,1170,1370,1370],["StashCo","ZASP",160,324,"Northridge","R",0,0,100,100,1368,1368],["Culture Cannabis Club Maple Ave.","RB",109,224,"Fresno","R",0,0,0,1340,1340,1340],["Sessions By The Bay","RB",56,184,"Daly City","R",0,0,0,0,0,0],["High Season Fontana","ZASP",186,333,"Fontana","R",0,0,0,0,0,1298],["Santa Barbara Care Center","ZASP",128,317,"Goleta","R",0,0,0,0,0,1280],["Fire and Flower Palm Springs","ZASP",212,342,"Palm Springs","R",0,0,0,0,0,1250],["Nectar Markets of California LLC","ZASP",176,347,"Santa Ana","R",0,0,0,0,1240,1240],["St. Andrews Green","ZASP",159,324,"Chatsworth","N",744,1224,1224,1224,1224,1224],["Desert Kush Palm Canyon","ZASP",213,344,"Cathedral City","R",0,0,0,0,500,1220],["Kuda Cannabis","DNU",14,51,"McKinleyville","R",240,240,240,540,1080,1180],["StoneCloud Dispensary","RB",70,198,"San Jose","R",0,0,0,0,0,1120],["Santa Barbara Collective","ZASP",131,317,"Santa Barbara","R",0,0,0,480,480,1120],["Nexus Delivers","RB",82,151,"Sacramento","R",0,0,0,0,0,0],["Palm Royale Collective Too","ZASP",214,343,"Cathedral City","R",0,0,0,0,1100,1100],["Cali Love Willows","DNU",66,109,"Willows","N",0,1020,1020,1020,1020,1020],["Reefer Madness","DNU",60,66,"Redding","R",0,720,720,720,720,1020],["Off the Charts Goleta","ZASP",128,317,"Goleta","R",1000,1000,1000,1000,1000,1000],["Off the Charts Hemet","ZASP",198,346,"Hemet","R",1000,1000,1000,1000,1000,1000],["Off the Charts Manteca","RB",82,180,"Manteca","R",1000,1000,1000,1000,1000,1000],["Off the Charts Antioch","RB",74,171,"Antioch","N",1000,1000,1000,1000,1000,1000],["Off the Charts Artesia","ZASP",173,340,"Artesia","N",1000,1000,1000,1000,1000,1000],["Off the Charts Bell Gardens","ZASP",169,336,"Bell Gardens","N",1000,1000,1000,1000,1000,1000],["Off the Charts Corona","ZASP",185,339,"Corona","N",1000,1000,1000,1000,1000,1000],["Off the Charts Costa Mesa Newport Blvd","ZASP",174,349,"Costa Mesa","N",1000,1000,1000,1000,1000,1000],["Off the Charts Eagle Rock","ZASP",166,330,"Eagle Rock","N",1000,1000,1000,1000,1000,1000],["Off the Charts Harbor City","ZASP",166,343,"Harbor City","N",1000,1000,1000,1000,1000,1000],["Off the Charts Long Beach","ZASP",170,340,"Long Beach","N",1000,1000,1000,1000,1000,1000],["Off the Charts McFarland","RB",128,266,"McFarland","N",1000,1000,1000,1000,1000,1000],["Off the Charts Miramar","ZASP",199,380,"San Diego","N",1000,1000,1000,1000,1000,1000],["Off the Charts Monterey","RB",72,228,"Monterey","N",1000,1000,1000,1000,1000,1000],["Off the Charts National City","ZASP",201,389,"National City","N",1000,1000,1000,1000,1000,1000],["Off The Charts Oxnard","ZASP",143,327,"Oxnard","N",1000,1000,1000,1000,1000,1000],["Off the Charts Palm Springs Lounge","ZASP",213,342,"Palm Springs","N",1000,1000,1000,1000,1000,1000],["Off the Charts Ramona","ZASP",205,374,"Ramona","N",1000,1000,1000,1000,1000,1000],["Off the Charts Reseda","ZASP",159,326,"Reseda","N",1000,1000,1000,1000,1000,1000],["Off the Charts Stockton","RB",85,171,"Stockton","N",1000,1000,1000,1000,1000,1000],["Off the Charts Sylmar","ZASP",163,322,"Sylmar","N",1000,1000,1000,1000,1000,1000],["Off the Charts Van Nuys","ZASP",161,328,"Sherman Oaks","N",1000,1000,1000,1000,1000,1000],["Off the Charts Palm Springs Downtown","ZASP",211,343,"Palm Springs","N",1000,1000,1000,1000,1000,1000],["Outer Haze","RB",57,180,"San Francisco","R",0,0,0,0,0,990],["The Green Spot","RB",68,198,"San Jose","N",960,960,960,960,960,960],["Sage and Fire","ZASP",199,386,"San Diego","N",960,960,960,960,960,960],["Sundial Collective Woodland","RB",73,144,"Woodland","R",0,640,640,960,960,960],["The Fireplace Eureka","DNU",11,57,"Eureka","N",960,960,960,960,960,960],["Big Sur Cannabotanicals","RB",76,243,"Big Sur","R",0,0,0,0,464,944],["Greenwolf Bellflower","ZASP",172,340,"Bellflower","R",0,0,0,936,936,936],["10th Street Cannabis Co.","RB",86,186,"Modesto","R",0,0,0,900,900,900],["Pacific Paradise","DNU",14,54,"Arcata","R",0,0,0,0,880,880],["Element 7 Marina","RB",74,225,"Marina","R",0,0,0,0,0,880],["Megan's Organic Market Goleta","ZASP",128,317,"Goleta","R",0,0,230,550,870,870],["Dr.GreenRX","RB",82,151,"Sacramento","R",0,0,0,840,840,840],["The Cake House San Jose","RB",68,197,"San Jose","R",0,0,0,840,840,840],["Rhizome LLC (Farmhouse)","RB",68,197,"San Jose","R",0,240,240,315,560,835],["The Bakery","ZASP",164,336,"Los Angeles","R",0,0,0,0,0,820],["Dank City Delivery","RB",82,151,"Sacramento","R",0,0,0,0,800,800],["Hi Fidelity","RB",56,181,"San Francisco","R",0,0,0,440,760,760],["Leaf and Lion","DNU",119,117,"Truckee","N",700,700,700,700,700,700],["Project Cannabis SOMA","RB",57,180,"San Francisco","R",0,0,0,270,670,670],["Cannadel","RB",61,160,"Napa","R",0,0,0,0,0,660],["Dr. Greenthumb's La Mesa","ZASP",204,386,"La Mesa","R",0,0,0,0,0,650],["Culture Cannabis Club Bullard Ave","RB",108,219,"Fresno","R",0,0,0,641,641,641],["Emerald Triangle Cannabis","DNU",25,113,"Fort Bragg","N",0,640,640,640,640,640],["Natural Cannabis Company","DNU",44,139,"Cloverdale","R",0,0,0,0,0,640],["The Highway Lucerne","DNU",52,128,"Lucerne","R",0,0,0,0,0,640],["Moonflower Delivery","RB",57,181,"San Francisco","R",0,200,200,200,410,620],["Bigfeets","ZASP",189,348,"Lake Elsinore","R",0,0,0,600,600,600],["Grass Roots Non Profit","RB",80,149,"Sacramento","R",0,0,0,0,520,520],["The Cake House Corona","ZASP",187,340,"Corona","R",0,0,0,0,0,500],["The Cake House El Monte","ZASP",171,331,"El Monte","R",0,0,0,0,500,500],["Phenotopia","ZASP",168,344,"Long Beach","N",0,0,162,362,498,498],["365 Recreational Cannabis","RB",58,169,"Novato","N",0,0,0,0,0,480],["Bloom Room Pacifica","RB",55,186,"Pacifica","N",0,0,0,480,480,480],["Blue Mountain Collective","ZASP",201,325,"Big Bear Lake","N",0,0,0,0,0,480],["Greenlight Discount Pharmacy","ZASP",175,344,"Garden Grove","N",0,0,0,0,480,480],["Natural Aid Pharmacy","RB",57,185,"South San Francisco","N",0,480,480,480,480,480],["Urbn Leaf San Ysidro","ZASP",204,394,"San Diego","N",0,240,240,480,480,480],["Dixon Wellness","RB",71,153,"Dixon","N",0,0,0,0,0,420],["The Sanctuary","RB",82,145,"Sacramento","N",0,0,0,0,0,420],["CRISP","RB",80,147,"Sacramento","N",0,0,0,0,340,340],["LA Kush East LA","ZASP",167,332,"Los Angeles","N",0,0,0,0,0,320],["Backpack Boyz San Bernardino","ZASP",190,331,"San Bernardino","N",0,0,320,320,320,320],["Blissful Moments Healing Center","RB",60,178,"Emeryville","N",0,0,320,320,320,320],["Red Door Remedies","DNU",43,139,"Cloverdale","N",0,0,0,0,320,320],["Portola Pipeline","RB",57,182,"San Francisco","N",0,0,0,0,0,310],["Sacramento Confidential Delivery","RB",80,148,"Sacramento","N",200,282,282,282,282,282],["Alternatives Hampton","ZASP",183,330,"Rancho Cucamonga","N",0,0,0,0,0,0],["Ivy Hill","ZASP",168,329,"Pasadena","N",0,0,140,140,280,280],["Flore","RB",57,181,"San Francisco","N",0,80,80,80,80,240],["Urbn Leaf San Jose","RB",69,200,"San Jose","N",0,240,240,240,240,240],["Treehouse","RB",85,167,"Lodi","N",0,0,140,140,140,140],["South Bay Canna Clinic","ZASP",181,341,"Anaheim","N",0,0,0,0,0,140],["Green Gold Delivery","DNU",14,54,"Humboldt","N",0,0,140,140,140,140],["Green Remedy Richmond","RB",62,172,"Richmond","N",0,0,0,0,140,140],["Cloud 7 Express","ZASP",201,386,"San Diego","N",0,0,0,0,0,120],["LBX Distro","ZASP",167,337,"Los Angeles","N",0,0,0,0,16,16],["DT California LLC (Non Storefront Retail)","ZASP",167,337,"Los Angeles","N",5,5,5,5,5,5],["UpNorth Humboldt DTC","DNU",14,54,"Arcata","N",0,0,0,0,2,2],["Highway 29","RB",52,147,"Calistoga","N",0,0,0,0,0,0],["Surf City Original","ZASP",173,345,"Huntington Beach","N",0,0,0,0,0,0],["UpNorth Samples","DNU",14,54,"Arcata","N",0,0,0,0,0,0],["Bay Care Meds","RB",68,213,"Santa Cruz","N",0,0,0,0,0,0],["Natural Remedies Caregivers","RB",80,151,"Sacramento","N",0,0,0,0,0,0],["Gradus Hollywood","ZASP",163,331,"Los Angeles","N",0,0,0,0,0,0],["Markt Dispensary","RB",61,173,"San Pablo","N",0,0,0,0,0,0],["Euphoros","RB",145,269,"Lake Isabella","N",0,0,0,0,0,0],["Potent","RB",62,173,"El Sobrante","N",0,0,0,0,0,0],["Pro Genitor","ZASP",195,354,"Temecula","N",0,0,0,0,0,0],["WHTC","ZASP",167,337,"Los Angeles","N",0,0,0,0,0,0],["Cannavine Distro","RB",60,178,"Oakland","N",0,0,0,0,0,0],["Elevate Woodland Hills","ZASP",158,328,"Woodland Hills","N",0,0,0,0,0,0],["Herbal Pain Relief Center","ZASP",209,382,"Alpine","N",0,0,0,0,0,0],["Humboldt's Premium","DNU",11,57,"Eureka","N",0,0,0,0,0,0],["Marin Alliance for Medical Marijuana","RB",57,172,"Fairfax","N",0,0,0,0,0,0],["MJ Direct El Cajon","ZASP",204,383,"El Cajon","N",0,0,0,0,0,0],["Stash","ZASP",166,331,"Los Angeles","N",0,0,0,0,0,0],["Sticky Thumb SF","RB",55,186,"Pacifica","N",0,0,0,0,0,0],["The Herbivore","RB",61,179,"Oakland","N",0,0,0,0,0,0],["The Ounce","RB",56,181,"San Francisco","N",0,0,0,0,0,0]];
+window._DD=[["Ganjery","DNU",14,54,"Arcata","L",2296,5436,7156,17207,26926,40409],["Fifth and Green","DNU",11,18,"Crescent City","L",1680,3760,4440,12901,21621,34141],["Urbana on Geary","RB",56,180,"San Francisco","L",1520,1520,1520,8968,16207,24848],["PCF Distro","RB",88,182,"Riverbank","L",1125,1720,2732,12858,16148,24739],["Elevation 2477","DNU",97,120,"Nevada City","L",468,2348,6358,14238,19131,23121],["Airfield Supply Redwood City","RB",60,192,"Redwood City","L",1360,3968,6248,13804,18284,19909],["The Highlands Dispensary","RB",72,185,"Livermore","L",1120,2700,3360,8756,12893,19075],["The Fireplace Arcata","DNU",14,54,"Arcata","L",1200,2400,2740,6900,12221,17382],["Sundial Collective Redding","DNU",60,64,"Redding","L",480,1100,3080,7717,13447,15867],["Hyrba","RB",55,181,"San Francisco","L",1280,2500,3760,6860,10860,14937],["EcoCann","RB",47,155,"Sebastopol","L",240,240,640,3440,8511,13847],["The Sweet Spot Piner Rd.","RB",48,152,"Santa Rosa","L",0,0,2440,4780,6942,13143],["The Hook Outlet Watsonville","RB",72,215,"Watsonville","L",960,2268,2548,5908,8808,12816],["The Hook Capitola","RB",68,213,"Capitola","L",280,1000,1680,6340,8440,11720],["Down Under Industries","RB",52,160,"Petaluma","L",720,720,2720,5260,7740,11610],["Foothill Wellness","DNU",95,133,"Auburn","L",520,1480,1960,4840,7512,10873],["Sundial Collective Red Bluff","DNU",64,82,"Red Bluff","L",720,1500,2980,7320,8961,10241],["Kiskanu","RB",52,160,"Petaluma","L",160,1420,1420,3940,6140,10061],["Flora Terra","RB",48,152,"Santa Rosa","L",0,2776,2776,6129,7869,9869],["Farmacy Berkeley","RB",60,178,"Berkeley","L",600,880,1540,3690,5780,8581],["Siesta Life Encinitas","ZASP",194,374,"Encinitas","L",1040,2240,2240,3840,5320,7720],["The Outpost","DNU",41,124,"Ukiah","L",1152,2488,2488,5198,6630,7990],["Cali Love","DNU",75,100,"Chico","L",1020,1020,2040,3120,3920,7661],["Mercy Wellness Cotati","RB",51,158,"Cotati","L",1380,2058,2058,4121,5841,7642],["Hazy Bulldog Farms","RB",103,172,"Sonora","L",0,1120,1120,1740,4631,7351],["JANE Dispensary Cotati","RB",50,158,"Cotati","L",240,240,840,4290,5070,7270],["Urbana Off Mission","RB",57,182,"San Francisco","L",0,0,0,3463,5746,7266],["Redwood Herbal Alliance","DNU",12,65,"Fortuna","L",0,1360,1360,4960,6460,7260],["Bract House","RB",103,172,"Sonora","R",0,0,0,0,3465,6985],["Moe Greens","RB",57,180,"San Francisco","L",0,1520,2055,3166,4136,6461],["Pure Aloha","RB",68,198,"San Jose","L",2400,3400,3400,4000,4930,6330],["420 Kingdom","ZASP",163,325,"Sun Valley","R",0,0,0,0,3640,6201],["Satori Wellness Center","DNU",13,51,"McKinleyville","L",0,480,1200,3380,4221,6141],["Purple Lotus","RB",68,197,"San Jose","R",0,640,3640,5980,5980,5980],["Merced Business Ventures","RB",96,200,"Merced","L",480,1100,1100,2140,4020,5800],["EcoCannabis Oakland","RB",60,179,"Oakland","L",600,600,1070,2426,3726,5426],["NUG x Sundial Collective","RB",85,147,"Rancho Cordova","R",0,0,760,1840,5371,5371],["Root'd","RB",60,178,"Oakland","L",800,1120,1700,2460,2940,5320],["Humble Root","RB",80,151,"Sacramento","L",1920,1920,1920,3360,3360,4960],["Liberty Beach Center","ZASP",167,341,"Gardena","L",0,480,800,2720,3670,4870],["The Reserve SD","ZASP",200,383,"San Diego","L",165,515,816,2116,3416,4416],["Royal Healing Emporium Inc.","ZASP",114,308,"Lompoc","L",800,1660,1660,2260,3460,4700],["Farmacy Santa Ana","ZASP",176,346,"Santa Ana","L",75,225,556,2451,3426,4476],["Harborside San Jose","RB",68,197,"San Jose","L",0,240,240,680,2420,4356],["Banyan Tree Fresno","RB",108,219,"Fresno","L",203,203,203,203,2167,4152],["California Street Cannabis Clement","RB",56,180,"San Francisco","L",144,144,144,1644,2604,3654],["Nectar Costa Mesa","ZASP",174,349,"Costa Mesa","L",160,160,160,2381,3209,4009],["Megan's Organic Market SLO","ZASP",101,283,"San Luis Obispo","L",0,480,800,1440,1920,3512],["Element 7 Chula Vista","ZASP",203,392,"Chula Vista","R",0,0,0,0,0,3264],["The Cake House Wildomar","ZASP",191,352,"Wildomar","L",0,1260,1260,1260,1260,3850],["Grass Valley Provisions","DNU",97,121,"Grass Valley","L",0,0,0,640,640,3841],["The Pottery","ZASP",163,333,"Los Angeles","L",0,0,0,1862,2668,3682],["The Hook Santa Cruz","RB",67,213,"Santa Cruz","R",420,660,1000,2780,3660,3660],["Medithrive","RB",57,181,"San Francisco","L",0,0,320,1360,2320,3621],["Embr La Mesa","ZASP",203,385,"La Mesa","L",2400,2400,2400,2400,2400,3520],["Velvet Cannabis","RB",68,171,"Martinez","R",0,0,0,0,960,3520],["Sustainable Therapeutics (DBA Klover)","RB",59,189,"San Mateo","L",0,0,0,0,0,3510],["Mammoth Roots","RB",129,186,"Mammoth Lakes","L",0,0,0,600,1400,3420],["Tioga Green","RB",107,170,"Twain Harte","L",480,480,480,881,2161,3361],["Desert Kush Cathedral Canyon","ZASP",213,344,"Cathedral City","L",0,600,600,1500,2340,3172],["JANE Dispensary Healdsburg","RB",45,147,"Healdsburg","L",0,330,330,1730,2430,3130],["The Bright Spot","ZASP",202,391,"San Diego","L",0,1284,1284,1284,2068,3028],["Juva Retail","RB",68,197,"San Jose","L",0,340,340,1060,2200,3000],["Green Heron","ZASP",137,281,"Bakersfield","R",0,0,0,0,1160,2864],["Harborside Oakland","RB",61,180,"Oakland","R",0,240,240,680,1220,2660],["Sunset Pipeline","RB",56,181,"San Francisco","R",0,0,0,0,1260,2220],["Mercy Wellness Santa Rosa","RB",50,154,"Santa Rosa","R",480,690,760,1650,2030,2710],["Livity","DNU",14,54,"Arcata","R",0,180,180,1100,2540,2700],["Bloomerang","RB",57,183,"San Francisco","R",0,0,160,1860,1860,2641],["Culture Cannabis Club Jurupa Valley","ZASP",185,336,"Mira Loma","N",0,2640,2640,2640,2640,2640],["Vallejo Relief Center","RB",64,167,"Vallejo","R",0,0,0,1040,1520,2620],["JANE Dispensary Santa Rosa","RB",49,153,"Santa Rosa","R",0,0,0,1500,2300,2300],["Off the Charts Riverbank","RB",88,182,"Riverbank","R",1000,1000,1000,1100,1840,2590],["Creekside Wellness","RB",84,171,"Stockton","R",720,720,1520,2570,2570,2570],["Harborside San Leandro","RB",62,183,"San Leandro","R",0,80,80,520,620,2036],["Urbn Leaf Bay Park","ZASP",198,385,"San Diego","R",0,240,240,680,1080,2520],["Off the Charts Vista","ZASP",194,366,"Vista","R",1000,1000,1000,1000,1400,2500],["Dragonfly Wellness Center","RB",61,159,"Napa","R",480,480,480,480,2441,2441],["California Street Cannabis","RB",57,180,"San Francisco","R",240,240,240,1140,1590,2390],["Shatter","RB",88,182,"Riverbank","R",560,560,560,820,1630,2390],["HerbNJoy Walnut Creek","RB",66,175,"Walnut Creek","R",0,1270,1492,1972,2372,2372],["Urbana Oakland","RB",60,179,"Oakland","R",0,0,0,0,330,970],["Goldy's","RB",61,178,"Oakland","R",448,448,628,1048,1528,2328],["North Beach Pipeline","RB",57,180,"San Francisco","R",0,0,0,0,1020,1640],["Purple Lotus Santa Clara St.","RB",68,197,"San Jose","N",0,0,2000,2000,2000,2000],["Harborside San Francisco","RB",56,181,"San Francisco","R",0,0,0,440,540,1980],["Padre Mu","ZASP",211,342,"Palm Springs","R",200,560,610,1018,1570,1978],["Sundial Collective Banning","ZASP",202,338,"Banning","R",0,0,0,0,0,1960],["Heart Of Humboldt","DNU",14,54,"Arcata","R",240,400,400,1040,1424,1904],["CBCB","RB",61,177,"Berkeley","R",0,0,280,280,840,1520],["Berkeley Patients Group","RB",60,177,"Berkeley","R",0,0,180,480,1180,1800],["The Chronic","ZASP",167,332,"Los Angeles","R",0,0,0,0,0,1760],["Urbn Leaf Vista","ZASP",193,368,"Vista","R",0,120,120,360,360,1760],["The Cake House Santa Rosa","RB",49,154,"Santa Rosa","R",0,0,0,0,160,1740],["Urbn Leaf Grover Beach","ZASP",103,289,"Grover Beach","R",0,80,80,80,280,1720],["Westwood Cannabis Stop","ZASP",161,333,"Los Angeles","R",0,520,520,520,720,1600],["Off the Charts Lemon Grove","ZASP",203,386,"Lemon Grove","R",1000,1000,1000,1000,1200,1600],["Fig & Thistle","RB",57,180,"San Francisco","R",800,800,800,1280,1600,1600],["The Velvet Fog","RB",63,183,"San Leandro","R",216,216,416,636,1156,1596],["Off the Charts USC","ZASP",165,334,"Los Angeles","R",0,0,0,0,400,1500],["A Therapeutic Alternative","RB",80,148,"Sacramento","R",0,0,424,504,964,1484],["Green Rush Cannabis Co.","RB",50,158,"Cotati","R",0,0,0,0,1120,1480],["Off the Charts Costa Mesa Harbor Blvd","ZASP",173,348,"Costa Mesa","R",1000,1000,1000,1000,1450,1450],["Essentials","RB",61,178,"Oakland","R",0,0,0,0,640,1440],["Barbary Coast","RB",57,180,"San Francisco","R",480,480,480,960,1430,1430],["Cali Love 101","RB",51,158,"Cotati","R",0,0,0,0,1400,1400],["Off the Charts Indio","ZASP",219,346,"Indio","R",1000,1000,1000,1000,1400,1400],["Off the Charts SF","RB",57,181,"San Francisco","R",1000,1000,1000,1000,1400,1400],["Humanity Wellness","RB",80,148,"Sacramento","R",0,0,0,200,200,1400],["Canna Culture","RB",69,201,"San Jose","R",480,480,480,1170,1370,1370],["StashCo","ZASP",160,324,"Northridge","R",0,0,100,100,1368,1368],["Culture Cannabis Club Maple Ave.","RB",109,224,"Fresno","R",0,0,0,1340,1340,1340],["Sessions By The Bay","RB",56,184,"Daly City","R",0,0,0,0,0,0],["High Season Fontana","ZASP",186,333,"Fontana","R",0,0,0,0,0,1298],["Santa Barbara Care Center","ZASP",128,317,"Goleta","R",0,0,0,0,0,1280],["Fire and Flower Palm Springs","ZASP",212,342,"Palm Springs","R",0,0,0,0,0,1250],["Nectar Markets of California LLC","ZASP",176,347,"Santa Ana","R",0,0,0,0,1240,1240],["St. Andrews Green","ZASP",159,324,"Chatsworth","N",744,1224,1224,1224,1224,1224],["Desert Kush Palm Canyon","ZASP",213,344,"Cathedral City","R",0,0,0,0,500,1220],["Kuda Cannabis","DNU",14,51,"McKinleyville","R",240,240,240,540,1080,1180],["StoneCloud Dispensary","RB",70,198,"San Jose","R",0,0,0,0,0,1120],["Santa Barbara Collective","ZASP",131,317,"Santa Barbara","R",0,0,0,480,480,1120],["Nexus Delivers","RB",82,151,"Sacramento","R",0,0,0,0,0,0],["Palm Royale Collective Too","ZASP",214,343,"Cathedral City","R",0,0,0,0,1100,1100],["Cali Love Willows","DNU",66,109,"Willows","N",0,1020,1020,1020,1020,1020],["Reefer Madness","DNU",60,66,"Redding","R",0,720,720,720,720,1020],["Off the Charts Goleta","ZASP",128,317,"Goleta","R",1000,1000,1000,1000,1000,1000],["Off the Charts Hemet","ZASP",198,346,"Hemet","R",1000,1000,1000,1000,1000,1000],["Off the Charts Manteca","RB",82,180,"Manteca","R",1000,1000,1000,1000,1000,1000],["Off the Charts Antioch","RB",74,171,"Antioch","N",1000,1000,1000,1000,1000,1000],["Off the Charts Artesia","ZASP",173,340,"Artesia","N",1000,1000,1000,1000,1000,1000],["Off the Charts Bell Gardens","ZASP",169,336,"Bell Gardens","N",1000,1000,1000,1000,1000,1000],["Off the Charts Corona","ZASP",185,339,"Corona","N",1000,1000,1000,1000,1000,1000],["Off the Charts Costa Mesa Newport Blvd","ZASP",174,349,"Costa Mesa","N",1000,1000,1000,1000,1000,1000],["Off the Charts Eagle Rock","ZASP",166,330,"Eagle Rock","N",1000,1000,1000,1000,1000,1000],["Off the Charts Harbor City","ZASP",166,343,"Harbor City","N",1000,1000,1000,1000,1000,1000],["Off the Charts Long Beach","ZASP",170,340,"Long Beach","N",1000,1000,1000,1000,1000,1000],["Off the Charts McFarland","RB",128,266,"McFarland","N",1000,1000,1000,1000,1000,1000],["Off the Charts Miramar","ZASP",199,380,"San Diego","N",1000,1000,1000,1000,1000,1000],["Off the Charts Monterey","RB",72,228,"Monterey","N",1000,1000,1000,1000,1000,1000],["Off the Charts National City","ZASP",201,389,"National City","N",1000,1000,1000,1000,1000,1000],["Off The Charts Oxnard","ZASP",143,327,"Oxnard","N",1000,1000,1000,1000,1000,1000],["Off the Charts Palm Springs Lounge","ZASP",213,342,"Palm Springs","N",1000,1000,1000,1000,1000,1000],["Off the Charts Ramona","ZASP",205,374,"Ramona","N",1000,1000,1000,1000,1000,1000],["Off the Charts Reseda","ZASP",159,326,"Reseda","N",1000,1000,1000,1000,1000,1000],["Off the Charts Stockton","RB",85,171,"Stockton","N",1000,1000,1000,1000,1000,1000],["Off the Charts Sylmar","ZASP",163,322,"Sylmar","N",1000,1000,1000,1000,1000,1000],["Off the Charts Van Nuys","ZASP",161,328,"Sherman Oaks","N",1000,1000,1000,1000,1000,1000],["Off the Charts Palm Springs Downtown","ZASP",211,343,"Palm Springs","N",1000,1000,1000,1000,1000,1000],["Outer Haze","RB",57,180,"San Francisco","R",0,0,0,0,0,990],["The Green Spot","RB",68,198,"San Jose","N",960,960,960,960,960,960],["Sage and Fire","ZASP",199,386,"San Diego","N",960,960,960,960,960,960],["Sundial Collective Woodland","RB",73,144,"Woodland","R",0,640,640,960,960,960],["The Fireplace Eureka","DNU",11,57,"Eureka","N",960,960,960,960,960,960],["Big Sur Cannabotanicals","RB",76,243,"Big Sur","R",0,0,0,0,464,944],["Greenwolf Bellflower","ZASP",172,340,"Bellflower","R",0,0,0,936,936,936],["10th Street Cannabis Co.","RB",86,186,"Modesto","R",0,0,0,900,900,900],["Pacific Paradise","DNU",14,54,"Arcata","R",0,0,0,0,880,880],["Element 7 Marina","RB",74,225,"Marina","R",0,0,0,0,0,880],["Megan's Organic Market Goleta","ZASP",128,317,"Goleta","R",0,0,230,550,870,870],["Dr.GreenRX","RB",82,151,"Sacramento","R",0,0,0,840,840,840],["The Cake House San Jose","RB",68,197,"San Jose","R",0,0,0,840,840,840],["Rhizome LLC (Farmhouse)","RB",68,197,"San Jose","R",0,240,240,315,560,835],["The Bakery","ZASP",164,336,"Los Angeles","R",0,0,0,0,0,820],["Dank City Delivery","RB",82,151,"Sacramento","R",0,0,0,0,800,800],["Hi Fidelity","RB",56,181,"San Francisco","R",0,0,0,440,760,760],["Leaf and Lion","DNU",119,117,"Truckee","N",700,700,700,700,700,700],["Project Cannabis SOMA","RB",57,180,"San Francisco","R",0,0,0,270,670,670],["Cannadel","RB",61,160,"Napa","R",0,0,0,0,0,660],["Dr. Greenthumb's La Mesa","ZASP",204,386,"La Mesa","R",0,0,0,0,0,650],["Culture Cannabis Club Bullard Ave","RB",108,219,"Fresno","R",0,0,0,641,641,641],["Emerald Triangle Cannabis","DNU",25,113,"Fort Bragg","N",0,640,640,640,640,640],["Natural Cannabis Company","DNU",44,139,"Cloverdale","R",0,0,0,0,0,640],["The Highway Lucerne","DNU",52,128,"Lucerne","R",0,0,0,0,0,640],["Moonflower Delivery","RB",57,181,"San Francisco","R",0,200,200,200,410,620],["Bigfeets","ZASP",189,348,"Lake Elsinore","R",0,0,0,600,600,600],["Grass Roots Non Profit","RB",80,149,"Sacramento","R",0,0,0,0,520,520],["The Cake House Corona","ZASP",187,340,"Corona","R",0,0,0,0,0,500],["The Cake House El Monte","ZASP",171,331,"El Monte","R",0,0,0,0,500,500],["Phenotopia","RB",49,153,"Santa Rosa","N",0,0,162,362,498,498],["365 Recreational Cannabis","RB",58,169,"Novato","N",0,0,0,0,0,480],["Bloom Room Pacifica","RB",55,186,"Pacifica","N",0,0,0,480,480,480],["Blue Mountain Collective","ZASP",201,325,"Big Bear Lake","N",0,0,0,0,0,480],["Greenlight Discount Pharmacy","ZASP",175,344,"Garden Grove","N",0,0,0,0,480,480],["Natural Aid Pharmacy","RB",57,185,"South San Francisco","N",0,480,480,480,480,480],["Urbn Leaf San Ysidro","ZASP",204,394,"San Diego","N",0,240,240,480,480,480],["Dixon Wellness","RB",71,153,"Dixon","N",0,0,0,0,0,420],["The Sanctuary","RB",82,145,"Sacramento","N",0,0,0,0,0,420],["CRISP","RB",80,147,"Sacramento","N",0,0,0,0,340,340],["LA Kush East LA","ZASP",167,332,"Los Angeles","N",0,0,0,0,0,320],["Backpack Boyz San Bernardino","ZASP",190,331,"San Bernardino","N",0,0,320,320,320,320],["Blissful Moments Healing Center","RB",60,178,"Emeryville","N",0,0,320,320,320,320],["Red Door Remedies","DNU",43,139,"Cloverdale","N",0,0,0,0,320,320],["Portola Pipeline","RB",57,182,"San Francisco","N",0,0,0,0,0,310],["Sacramento Confidential Delivery","RB",80,148,"Sacramento","N",200,282,282,282,282,282],["Alternatives Hampton","ZASP",183,330,"Rancho Cucamonga","N",0,0,0,0,0,0],["Ivy Hill","ZASP",168,329,"Pasadena","N",0,0,140,140,280,280],["Flore","RB",57,181,"San Francisco","N",0,80,80,80,80,240],["Urbn Leaf San Jose","RB",69,200,"San Jose","N",0,240,240,240,240,240],["Treehouse","RB",85,167,"Lodi","N",0,0,140,140,140,140],["South Bay Canna Clinic","ZASP",181,341,"Anaheim","N",0,0,0,0,0,140],["Green Gold Delivery","DNU",14,54,"Humboldt","N",0,0,140,140,140,140],["Green Remedy Richmond","RB",62,172,"Richmond","N",0,0,0,0,140,140],["Cloud 7 Express","ZASP",201,386,"San Diego","N",0,0,0,0,0,120],["LBX Distro","ZASP",167,337,"Los Angeles","N",0,0,0,0,16,16],["DT California LLC (Non Storefront Retail)","ZASP",167,337,"Los Angeles","N",5,5,5,5,5,5],["UpNorth Humboldt DTC","DNU",14,54,"Arcata","N",0,0,0,0,2,2],["Highway 29","RB",52,147,"Calistoga","N",0,0,0,0,0,0],["Surf City Original","ZASP",173,345,"Huntington Beach","N",0,0,0,0,0,0],["UpNorth Samples","DNU",14,54,"Arcata","N",0,0,0,0,0,0],["Bay Care Meds","RB",68,213,"Santa Cruz","N",0,0,0,0,0,0],["Natural Remedies Caregivers","RB",80,151,"Sacramento","N",0,0,0,0,0,0],["Gradus Hollywood","ZASP",163,331,"Los Angeles","N",0,0,0,0,0,0],["Markt Dispensary","RB",61,173,"San Pablo","N",0,0,0,0,0,0],["Euphoros","RB",145,269,"Lake Isabella","N",0,0,0,0,0,0],["Potent","RB",62,173,"El Sobrante","N",0,0,0,0,0,0],["Pro Genitor","ZASP",195,354,"Temecula","N",0,0,0,0,0,0],["WHTC","ZASP",167,337,"Los Angeles","N",0,0,0,0,0,0],["Cannavine Distro","RB",60,178,"Oakland","N",0,0,0,0,0,0],["Elevate Woodland Hills","ZASP",158,328,"Woodland Hills","N",0,0,0,0,0,0],["Herbal Pain Relief Center","ZASP",209,382,"Alpine","N",0,0,0,0,0,0],["Humboldt's Premium","DNU",11,57,"Eureka","N",0,0,0,0,0,0],["Marin Alliance for Medical Marijuana","RB",57,172,"Fairfax","N",0,0,0,0,0,0],["MJ Direct El Cajon","ZASP",204,383,"El Cajon","N",0,0,0,0,0,0],["Stash","ZASP",166,331,"Los Angeles","N",0,0,0,0,0,0],["Sticky Thumb SF","RB",55,186,"Pacifica","N",0,0,0,0,0,0],["The Herbivore","RB",61,179,"Oakland","N",0,0,0,0,0,0],["The Ounce","RB",56,181,"San Francisco","N",0,0,0,0,0,0]];
 
 
 window._LBL={"Arcata":[-6,48,"end"],"Eureka":[-6,56,"end"],"Humboldt":[-6,64,"end"],"Lucerne":[2,118,"end"],"Ukiah":[2,126,"end"],"Healdsburg":[4,144,"end"],"Santa Rosa":[4,152,"end"],"Cotati":[4,160,"end"],"Petaluma":[4,168,"end"],"Vallejo":[14,166,"end"],"San Rafael":[6,174,"end"],"Berkeley":[14,174,"end"],"Oakland":[18,182,"end"],"SF":[8,186,"end"],"San Leandro":[20,190,"end"],"Pacifica":[6,194,"end"],"San Mateo":[16,198,"end"],"Redwood City":[16,206,"end"],"San Jose":[28,210,"end"],"Santa Cruz":[24,218,"end"],"Capitola":[24,226,"end"],"Watsonville":[26,234,"end"],"Monterey":[28,242,"end"],"SLO":[78,308,"end"],"Goleta":[84,316,"end"],"Santa Barbara":[86,324,"end"],"Oxnard":[106,330,"end"],"LA":[128,336,"end"],"Eagle Rock":[128,328,"end"],"Long Beach":[132,346,"end"],"Harbor City":[130,354,"end"],"Artesia":[132,362,"end"],"Costa Mesa":[134,370,"end"],"Santa Ana":[134,378,"end"],"Encinitas":[148,386,"end"],"Vista":[148,394,"end"],"Miramar":[152,402,"end"],"Bay Park":[152,410,"end"],"La Mesa":[154,418,"end"],"National City":[152,380,"end"],"Redding":[108,67,"start"],"Red Bluff":[112,78,"start"],"Willows":[98,105,"start"],"Grass Valley":[112,138,"start"],"Auburn":[108,146,"start"],"Woodland":[100,154,"start"],"Sacramento":[106,162,"start"],"Dixon":[96,170,"start"],"Napa":[66,158,"start"],"Walnut Creek":[84,178,"start"],"Antioch":[90,170,"start"],"Riverbank":[112,183,"start"],"Stockton":[108,190,"start"],"Manteca":[106,197,"start"],"Modesto":[112,204,"start"],"Merced":[122,200,"start"],"Fresno":[142,224,"start"],"Mcfarland":[152,260,"start"],"Sylmar":[178,318,"start"],"Reseda":[178,326,"start"],"Van Nuys":[178,334,"start"],"Palm Springs":[210,338,"start"],"Cathedral City":[210,346,"start"]};
@@ -416,7 +421,8 @@ window._STRAIN_DB=[
 {n:"Zkittlez",g:"I",c:"Grape Ape x Grapefruit",t:"Indica"},
 {n:"Zoap",g:"H",c:"Rainbow Sherbet x Pink Guava",t:"Hybrid"},
 {n:"Zundown",g:"I",c:"Z3 Banana Pheno x Sunset Sherbet",t:"Indica"},
-{n:"Zushi",g:"H",c:"Z x Kush Mints",t:"Hybrid"}
+{n:"Zushi",g:"H",c:"Z x Kush Mints",t:"Hybrid"},
+{n:"Modified Cherries",g:"H",c:"GMO x Cherry Pie",t:"Hybrid"}
 ];
 </script>
 <script type="text/babel" data-presets="react">
@@ -846,18 +852,36 @@ window._STRAIN_DB=[
       const PINS_DEPRECATED=null;// Individual user PINs replace shared PINs
       const DEFAULT_USERS=[
         {id:'dylan',name:'Dylan',role:'exec',pin:'2024',active:true},
-        {id:'cherie',name:'Cherie',role:'mfg',pin:'',active:true,needsSetup:true},
+        {id:'chere',name:'Chere',role:'mfg',pin:'',active:true,needsSetup:true},
         {id:'victor',name:'Victor',role:'mfg',pin:'',active:true,needsSetup:true},
         {id:'jonah',name:'Jonah',role:'distro',pin:'',active:true,needsSetup:true},
         {id:'ian',name:'Ian',role:'distro',pin:'',active:true,needsSetup:true},
+        {id:'mattb',name:'Matt Blackburn',role:'distro',pin:'',active:true,needsSetup:true,repName:'Matthew Blackburn'},
+        {id:'cp',name:'CP',role:'distro',pin:'',active:true,needsSetup:true,repName:'Christina Perpetua'},
+        {id:'briank',name:'Brian Kiser',role:'distro',pin:'',active:true,needsSetup:true,repName:'Brian Kiser'},
+        {id:'brianb',name:'Brian Bresee',role:'distro',pin:'',active:true,needsSetup:true,repName:'Brian Bresee'},
+        {id:'caraway',name:'Matt Caraway',role:'distro',pin:'',active:true,needsSetup:true,repName:'Matthew Caraway'},
+        {id:'eric',name:'Eric',role:'distro',pin:'',active:true,needsSetup:true,repName:'Eric Ervin'},
+        {id:'isaac',name:'Isaac',role:'distro',pin:'',active:true,needsSetup:true,repName:'Isaac Romero'},
+        {id:'danny',name:'Danny',role:'distro',pin:'',active:true,needsSetup:true,repName:'Danny Smith'},
+        {id:'daniel',name:'Daniel',role:'distro',pin:'',active:true,needsSetup:true,repName:'Daniel Rojas'},
       ];
-      const [users,setUsers]=useState(function(){try{var v=localStorage.getItem('gpi:gpi-users');return v?JSON.parse(v):DEFAULT_USERS;}catch(e){return DEFAULT_USERS;}});
+      const USER_VERSION=2;// Increment when DEFAULT_USERS changes
+      const [users,setUsers]=useState(function(){try{var v=localStorage.getItem('gpi:gpi-users');var uv=localStorage.getItem('gpi:gpi-user-version');if(v&&uv&&parseInt(uv)===USER_VERSION)return JSON.parse(v);localStorage.setItem('gpi:gpi-user-version',String(USER_VERSION));localStorage.removeItem('gpi:gpi-users');return DEFAULT_USERS;}catch(e){return DEFAULT_USERS;}});
       const [userOverrides,setUserOverrides]=useState(function(){try{var v=localStorage.getItem('gpi:gpi-user-overrides');return v?JSON.parse(v):{};}catch(e){return{};}});
       function saveUsers(next){setUsers(next);try{localStorage.setItem('gpi:gpi-users',JSON.stringify(next));}catch(e){}}
       function saveOverrides(next){setUserOverrides(next);try{localStorage.setItem('gpi:gpi-user-overrides',JSON.stringify(next));}catch(e){}}
       const [authUser,setAuthUser]=useState(null);// full user object on login
       const SESSION_TIMEOUT=30*60*1000;// 30 min inactivity
       const [authRole,setAuthRole]=useState(function(){try{var s=JSON.parse(sessionStorage.getItem('gpi-session'));if(s&&s.role&&Date.now()-s.lastActive<SESSION_TIMEOUT)return s.role;}catch(e){}return null;});
+      // Restore authUser from session
+      useEffect(function(){
+        try{var s=JSON.parse(sessionStorage.getItem('gpi-session'));
+        if(s&&s.userId){
+          var u=users.find(function(u2){return u2.id===s.userId;});
+          if(u){setAuthUser(u);if(u.role==='distro'&&u.repName){setDRep(u.repName);setORep(u.repName);}}
+        }}catch(e){}
+      },[]);
       const [loginInput,setLoginInput]=useState('');
       const [loginRole,setLoginRole]=useState('exec');
       const [loginError,setLoginError]=useState('');
@@ -891,8 +915,11 @@ window._STRAIN_DB=[
           var uo=userOverrides[selected.id]||{};
           if(uo.disabled){setLoginError('Account disabled by admin');return;}
           setAuthRole(selected.role);setAuthUser(selected);setLoginError('');setLoginInput('');setLoginConfirm('');setLoginStep(1);setLoginDept('');setLoginUserId('');
-          sessionStorage.setItem('gpi-session',JSON.stringify({role:selected.role,userId:selected.id,userName:selected.name,lastActive:Date.now(),loginAt:new Date().toISOString()}));
+          sessionStorage.setItem('gpi-session',JSON.stringify({role:selected.role,userId:selected.id,userName:selected.name,repName:selected.repName||'',lastActive:Date.now(),loginAt:new Date().toISOString()}));
           logSecurity('LOGIN',selected.name+' ('+ROLES[selected.role].label+')');
+          // Auto-filter to rep's accounts if distro user with repName
+          if(selected.role==='distro'&&selected.repName){setDRep(selected.repName);setORep(selected.repName);}
+          else{setDRep('ALL');setORep('ALL');}
         }else{
           setLoginError('Invalid PIN');logSecurity('LOGIN_FAILED','Failed PIN attempt for '+selected.name);
         }
@@ -906,9 +933,12 @@ window._STRAIN_DB=[
         saveUsers(updated);
         // Auto-login after setup
         setAuthRole(selected.role);setAuthUser(Object.assign({},selected,{pin:loginInput,needsSetup:false}));setLoginError('');setLoginInput('');setLoginConfirm('');setLoginStep(1);setLoginDept('');setLoginUserId('');
-        sessionStorage.setItem('gpi-session',JSON.stringify({role:selected.role,userId:selected.id,userName:selected.name,lastActive:Date.now(),loginAt:new Date().toISOString()}));
+        sessionStorage.setItem('gpi-session',JSON.stringify({role:selected.role,userId:selected.id,userName:selected.name,repName:selected.repName||'',lastActive:Date.now(),loginAt:new Date().toISOString()}));
         logSecurity('PIN_SETUP',selected.name+' created their PIN');
         logSecurity('LOGIN',selected.name+' ('+ROLES[selected.role].label+')');
+        // Auto-filter to rep's accounts if distro user
+        if(selected.role==='distro'&&selected.repName){setDRep(selected.repName);setORep(selected.repName);}
+        else{setDRep('ALL');setORep('ALL');}
       }
       function handleLogout(){logSecurity('LOGOUT',(authUser?authUser.name:'unknown')+' signed out');setAuthRole(null);setAuthUser(null);sessionStorage.removeItem('gpi-session');}
       function setKill(key,val){var next=Object.assign({},killSwitches);next[key]=val;setKillSwitches(next);try{localStorage.setItem('gpi:gpi-kill-switches',JSON.stringify(next));}catch(e){}logSecurity('KILL_SWITCH',key+'='+(val?'ON':'OFF'));}
@@ -937,6 +967,118 @@ window._STRAIN_DB=[
       const [periodDays,setPeriodDays]=useState(365);
       const [rideAlongs, setRideAlongs] = useState(null);
       const [zoneFlipped, setZoneFlipped] = useState({});
+      const [dRep, setDRep] = useState('ALL');// dispatch rep filter
+      const [dExpanded, setDExpanded] = useState({});// expanded account cards on flip
+      const [dInvoice, setDInvoice] = useState(null);// invoice popup {account, lines, total}
+      const [dPriceVerify, setDPriceVerify] = useState(null);// pricing verification step {account, lines}
+      const [dVerifiedPrices, setDVerifiedPrices] = useState({});// rep-verified prices {sku: price} persisted
+
+      // ── MOCK ORDER GENERATOR (same logic as Ops allocation) ──
+      function generateMockOrder(acctName){
+        var acc=displayAccounts.find(function(da){return da.name.replace(/ - Corporate$/i,'')===acctName;});
+        if(!acc)return{lines:[],total:0,budget:0};
+        var nk=function(k){return(k||'').toLowerCase().replace(/[^a-z0-9]/g,'');};
+        // Build inventory pool
+        var pool={};
+        Object.keys(inventoryData).forEach(function(sku){
+          var inv=inventoryData[sku];var oh=parseInt(inv.onHand)||0;
+          if(oh>0)pool[nk(sku)]={sku:sku,onHand:oh,rem:oh};
+        });
+        // Determine budget from avg order value
+        var skus=(acc.orderedSkus||[]).filter(function(s){return s.totalQty>0&&!((s.sku||'').toLowerCase().includes('promo')||(s.sku||'').toLowerCase().includes('sample'));});
+        var n=acc.orderDayTs?acc.orderDayTs.length:1;
+        var totalOrderVal=0;
+        skus.forEach(function(s){totalOrderVal+=(s.totalQty||0)*(s.wholesale>0?s.wholesale:cogsFor(s.category).wholesale);});
+        var avgOrderVal=Math.round(totalOrderVal/Math.max(1,n));
+        var budget=avgOrderVal>=1150?1500:avgOrderVal>=750?1000:500;
+        // Category helpers
+        function lSkuCat(sku){var s=sku.toLowerCase();return s.includes('cart')||s.includes('vape')?'cart':s.includes('badder')?'badder':s.includes('sauce')?'sauce':s.includes('diamond')?'diamonds':s.includes('batter')?'battery':'other';}
+        function lCatWs(cat){return cat==='cart'?12:cat==='diamonds'?10:cat==='battery'?13:8;}
+        function lBuysCat(cat){return skus.some(function(s){var cl=(s.category||'').toLowerCase();if(cat==='cart'&&(cl.includes('cart')||cl.includes('vape')))return true;if((cat==='badder'||cat==='sauce'||cat==='diamonds')&&(cl.includes('badder')||cl.includes('sauce')||cl.includes('diamond')||cl.includes('shatter')))return true;if(cat==='battery'&&cl.includes('batter'))return true;return false;});}
+        // Allocate
+        var spent=0;var lines=[];
+        Object.keys(pool).forEach(function(k){
+          if(spent>=budget)return;
+          var p=pool[k];if(p.rem<=0)return;
+          var cat=lSkuCat(p.sku);if(cat==='other')return;
+          if(!lBuysCat(cat))return;
+          var ws=lCatWs(cat);
+          var maxU=Math.floor((budget-spent)/ws);
+          var qty=Math.min(20,p.rem,maxU);
+          qty=Math.floor(qty/5)*5;
+          if(qty<5&&p.rem>=2&&(budget-spent)>=ws*2)qty=Math.min(p.rem,Math.ceil((budget-spent)/ws));
+          if(qty<1)return;
+          p.rem-=qty;spent+=qty*ws;
+          var strain=p.sku.replace(/^Globs\s*-\s*/i,'').split(' - ')[0].trim();
+          var catLabel=cat==='cart'?'Vape Cart':cat.charAt(0).toUpperCase()+cat.slice(1);
+          lines.push({strain:strain,sku:p.sku,cat:catLabel,qty:qty,ws:ws,lineRev:qty*ws});
+        });
+        return{lines:lines,total:spent,budget:budget,avgOrderVal:avgOrderVal};
+      }
+
+      function openInvoice(acctName){
+        var order=generateMockOrder(acctName);
+        var acc=displayAccounts.find(function(da){return da.name.replace(/ - Corporate$/i,'')===acctName;});
+        // Check if all CATEGORIES have verified prices from this rep
+        var repId=authUser?authUser.id:'';
+        var vpKey='gpi:verified-cat-prices-'+repId;
+        var stored={};try{var raw=localStorage.getItem(vpKey);if(raw)stored=JSON.parse(raw);}catch(e){}
+        // Expire verified prices after 90 days
+        var now=Date.now();var NINETY_DAYS=90*86400000;
+        Object.keys(stored).forEach(function(cat){if(stored[cat].ts&&now-stored[cat].ts>NINETY_DAYS)delete stored[cat];});
+        // Get unique categories in this order
+        var cats={};order.lines.forEach(function(l){cats[l.cat]=l.ws;});
+        var allVerified=order.lines.length>0&&Object.keys(cats).every(function(cat){return stored[cat]!==undefined;});
+        if(allVerified){
+          // Apply verified category prices
+          var verifiedLines=order.lines.map(function(l){var vp=stored[l.cat].price;return Object.assign({},l,{ws:vp,lineRev:l.qty*vp});});
+          var verifiedTotal=verifiedLines.reduce(function(s,l){return s+l.lineRev;},0);
+          setDInvoice({account:acctName,rep:acc?acc.rep:'',zone:acc?acc.zone:'',lines:verifiedLines,total:verifiedTotal,budget:order.budget,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})});
+        }else{
+          // Show category pricing verification step
+          var catList=Object.keys(cats).map(function(cat){return{cat:cat,suggestedWs:cats[cat],verifiedWs:stored[cat]!==undefined?stored[cat].price:cats[cat],lineCount:order.lines.filter(function(l){return l.cat===cat;}).length,totalQty:order.lines.filter(function(l){return l.cat===cat;}).reduce(function(s,l){return s+l.qty;},0)};});
+          setDPriceVerify({account:acctName,rep:acc?acc.rep:'',zone:acc?acc.zone:'',categories:catList,allLines:order.lines,budget:order.budget});
+        }
+      }
+
+      function confirmVerifiedPrices(){
+        if(!dPriceVerify)return;
+        var repId=authUser?authUser.id:'';
+        var vpKey='gpi:verified-cat-prices-'+repId;
+        var stored={};try{var raw=localStorage.getItem(vpKey);if(raw)stored=JSON.parse(raw);}catch(e){}
+        // Save verified category prices with timestamp
+        dPriceVerify.categories.forEach(function(c){stored[c.cat]={price:c.verifiedWs,ts:Date.now()};});
+        try{localStorage.setItem(vpKey,JSON.stringify(stored));}catch(e){}
+        setDVerifiedPrices(stored);
+        // Generate invoice with verified category prices
+        var catPriceMap={};dPriceVerify.categories.forEach(function(c){catPriceMap[c.cat]=c.verifiedWs;});
+        var finalLines=dPriceVerify.allLines.map(function(l){var vp=catPriceMap[l.cat]||l.ws;return Object.assign({},l,{ws:vp,lineRev:l.qty*vp});});
+        var finalTotal=finalLines.reduce(function(s,l){return s+l.lineRev;},0);
+        var acc=displayAccounts.find(function(da){return da.name.replace(/ - Corporate$/i,'')===dPriceVerify.account;});
+        setDInvoice({account:dPriceVerify.account,rep:acc?acc.rep:'',zone:acc?acc.zone:'',lines:finalLines,total:finalTotal,budget:dPriceVerify.budget,date:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})});
+        setDPriceVerify(null);
+        logSecurity('PRICE_VERIFY',(authUser?authUser.name:'unknown')+' verified category pricing for '+dPriceVerify.account);
+      }
+
+      function shareInvoice(){
+        if(!dInvoice)return;
+        var inv=dInvoice;
+        var text='GLOBS — SUGGESTED REORDER\n';
+        text+=inv.date+'\n\n';
+        text+='Account: '+inv.account+'\n';
+        if(inv.rep)text+='Rep: '+inv.rep+'\n';
+        text+='Target: $'+inv.budget+'\n\n';
+        text+='─────────────────────────────\n';
+        inv.lines.forEach(function(l){
+          text+=l.qty+'x  '+l.strain+' ('+l.cat+')\n';
+          text+='    @ $'+l.ws.toFixed(2)+' = $'+l.lineRev.toFixed(2)+'\n';
+        });
+        text+='─────────────────────────────\n';
+        text+='ORDER TOTAL: $'+inv.total.toFixed(2)+'\n';
+        text+='\n— Globs GPI Command Center';
+        if(navigator.share){navigator.share({title:'Globs Order — '+inv.account,text:text}).catch(function(){});}
+        else{if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){toast('✓ Invoice copied');});}}
+      }
       const [accounts,setAccounts]=useState([]);
       const [promoAccounts,setPromoAccounts]=useState([]);
       const [priceData,setPriceData]=useState({});
@@ -1183,6 +1325,73 @@ window._STRAIN_DB=[
       function setBatchCode(ck,v){setMfgBatchData(function(prev){const next=Object.assign({},prev);if(!next[ck])next[ck]={};next[ck]=Object.assign({},next[ck],{batchCode:v});return next;});}
       function setPkgComp(g,id,f,v){setPkgComps(function(prev){const next=JSON.parse(JSON.stringify(prev));if(next[g]&&next[g][id])next[g][id][f]=v;return next;});}
       function persistPkg(){setPkgComps(function(cur){persist("gpi-pkg-comps",cur);return cur;});}
+
+      // ── PACKING SLIP SCANNER ─────────────────────────────────────────────
+      const [slipImage,setSlipImage]=useState(null);// base64 image
+      const [slipParsing,setSlipParsing]=useState(false);
+      const [slipSuggestions,setSlipSuggestions]=useState(null);// [{component,group,id,qty}]
+      const [slipError,setSlipError]=useState('');
+      const slipRef=useRef(null);
+
+      function handleSlipUpload(e){
+        var file=e.target.files&&e.target.files[0];if(!file)return;
+        setSlipError('');setSlipSuggestions(null);
+        var reader=new FileReader();
+        reader.onload=function(ev){
+          var b64=ev.target.result.split(',')[1];
+          var mime=file.type||'image/jpeg';
+          setSlipImage({data:b64,mime:mime,name:file.name});
+          parseSlipWithAI(b64,mime);
+        };
+        reader.readAsDataURL(file);
+        e.target.value='';
+      }
+
+      async function parseSlipWithAI(b64,mime){
+        setSlipParsing(true);setSlipError('');
+        try{
+          // Build component list for AI context
+          var compList=[];
+          Object.keys(PKG).forEach(function(grp){PKG[grp].forEach(function(c){compList.push({group:grp,id:c.id,name:c.name,desc:c.desc});});});
+
+          var response=await fetch("https://api.anthropic.com/v1/messages",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+              model:"claude-sonnet-4-20250514",
+              max_tokens:1000,
+              messages:[{role:"user",content:[
+                {type:"image",source:{type:"base64",media_type:mime,data:b64}},
+                {type:"text",text:"This is a photo of a packing slip or shipping invoice for packaging supplies. Extract ALL items and quantities from this document.\n\nHere are the known inventory components to match against:\n"+JSON.stringify(compList)+"\n\nRespond ONLY with a JSON array. Each element: {\"component\":\"name\",\"group\":\"group\",\"id\":\"component_id\",\"qty\":number}\nIf an item doesn't match a known component, use group:\"Unknown\" and id:\"unknown\".\nOnly return the JSON array, no other text."}
+              ]}]
+            })
+          });
+          var data=await response.json();
+          var text=(data.content||[]).map(function(b){return b.text||'';}).join('');
+          var clean=text.replace(/```json|```/g,'').trim();
+          var parsed=JSON.parse(clean);
+          if(Array.isArray(parsed)&&parsed.length>0){
+            setSlipSuggestions(parsed);
+          }else{
+            setSlipError('Could not extract items from this image. Try a clearer photo.');
+          }
+        }catch(err){
+          setSlipError('AI parsing failed: '+err.message);
+        }
+        setSlipParsing(false);
+      }
+
+      function applySlipSuggestions(){
+        if(!slipSuggestions)return;
+        slipSuggestions.forEach(function(s){
+          if(s.group&&s.id&&s.group!=='Unknown'&&s.qty>0){
+            setPkgComp(s.group,s.id,"onHand",String(s.qty));
+          }
+        });
+        persistPkg();
+        setSlipImage(null);setSlipSuggestions(null);
+        toast('✓ Inventory updated from packing slip');
+      }
 
       const BATCH=1000,MIN_BATCH=6;
       function scaledMax(base){return Math.max(MIN_BATCH,Math.round(base*mfgTargetWeeks/6));}
@@ -1620,7 +1829,35 @@ window._STRAIN_DB=[
                   const inpSt={background:C.bg,border:'1px solid '+C.border,borderRadius:2,color:C.text,fontSize:11,fontFamily:'inherit',padding:'3px 7px',outline:'none',textAlign:'right'};
                   function CompTable(p2){const{grp,label,demand}=p2,items=PKG[grp]||[],check=matsCheck(grp);return(<div style={{marginBottom:24}}><div style={{display:'flex',alignItems:'center',gap:12,marginBottom:10}}><div style={{fontSize:11,fontWeight:800,letterSpacing:2}}>{label.toUpperCase()}</div>{demand>0&&<div style={{fontSize:9,color:C.dim}}>MFG demand: {demand.toLocaleString()} units</div>}<div style={{marginLeft:'auto'}}>{check.ok?<span style={{fontSize:9,fontWeight:700,color:C.good,background:C.goodBg,border:'1px solid '+C.goodBdr,padding:'2px 8px',borderRadius:2}}>✓ ALL MATERIALS OK</span>:<span style={{fontSize:9,fontWeight:700,color:C.danger,background:C.dangerBg,border:'1px solid '+C.dangerBdr,padding:'2px 8px',borderRadius:2}}>▲ {check.shortfalls.length} SHORTFALL{check.shortfalls.length>1?'S':''}</span>}</div></div><div style={{border:'1px solid '+C.border,borderRadius:6,overflowX:'auto'}}><table style={{width:'100%',minWidth:500,borderCollapse:'collapse'}}><thead><tr style={{background:C.raised}}>{["Component","Desc","Lead","$/unit","Per Unit","On Hand","On Order","Needed","Avail","Status"].map(function(h,i){return<th key={h} style={{padding:'7px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=4?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead><tbody>{items.map(function(c,i){const inv=(pkgComps[grp]&&pkgComps[grp][c.id])||{},oh=parseInt(inv.onHand||0)||0,oo=parseInt(inv.onOrder||0)||0,needed=demand>0?Math.ceil(demand*c.perUnit):0,avail=oh+oo,short=needed>0?Math.max(0,needed-avail):0,ok=needed===0||avail>=needed,urgent=short>0&&c.lead>14;return(<tr key={c.id} style={{background:short>0?(urgent?C.dangerBg:C.warnBg):i%2===0?'transparent':'#0a0a0a'}}><td style={{padding:'7px 10px',fontSize:11,fontWeight:600,color:short>0?(urgent?C.danger:C.warn):C.text,whiteSpace:'nowrap'}}>{c.name}</td><td style={{padding:'7px 10px',fontSize:10,color:C.dim}}>{c.desc}</td><td style={{padding:'7px 10px',fontSize:10,color:c.lead>14?C.warn:C.muted,whiteSpace:'nowrap'}}>{c.lead<7?c.lead+'d':Math.round(c.lead/7)+'wk'}</td><td style={{padding:'7px 10px',fontSize:10,color:C.dim,textAlign:'right'}}>{c.cost>0?cur(c.cost):'—'}</td><td style={{padding:'7px 10px',fontSize:10,color:C.dim,textAlign:'right'}}>{c.perUnit<1?(c.perUnit*1000).toFixed(0)+'/1k':c.perUnit+'x'}</td><td style={{padding:'5px 6px',textAlign:'right'}}><input type="number" min="0" defaultValue={inv.onHand!=null?inv.onHand:c.initOnHand} onBlur={function(e){setPkgComp(grp,c.id,"onHand",e.target.value);persistPkg();}} style={Object.assign({},inpSt,{width:80})}/></td><td style={{padding:'5px 6px',textAlign:'right'}}><select value={parseInt(inv.onOrder!=null?inv.onOrder:c.initOnOrder)||0} onChange={function(e){setPkgComp(grp,c.id,"onOrder",e.target.value);}} onBlur={persistPkg} style={{background:C.bg,border:'1px solid '+C.border,borderRadius:2,color:C.text,fontSize:11,fontFamily:'inherit',padding:'3px 4px',outline:'none',width:90,cursor:'pointer'}}>{[0,250,500,750,1000,1500,2000,2500,3000,4000,5000,7500,10000,15000,20000,25000,30000].map(function(v){return<option key={v} value={v} style={{background:'#111'}}>{v===0?'—':v.toLocaleString()}</option>;})}</select></td><td style={{padding:'7px 10px',fontSize:11,textAlign:'right',fontWeight:needed>0?600:400,color:needed>0?C.text:C.dim}}>{needed>0?needed.toLocaleString():'—'}</td><td style={{padding:'7px 10px',fontSize:11,textAlign:'right',color:ok?C.muted:C.danger}}>{avail.toLocaleString()}</td><td style={{padding:'7px 10px',textAlign:'right'}}>{short>0?<span style={{fontSize:9,fontWeight:700,color:urgent?C.danger:C.warn,background:urgent?C.dangerBg:C.warnBg,border:'1px solid '+(urgent?C.dangerBdr:C.warnBdr),padding:'2px 6px',borderRadius:2,whiteSpace:'nowrap'}}>-{short.toLocaleString()} {urgent?'· ORDER NOW':'· order'}</span>:needed>0?<span style={{fontSize:9,color:C.good}}>✓</span>:<span style={{fontSize:9,color:C.dim}}>—</span>}</td></tr>);})} </tbody></table></div></div>);}
                   const concCheck=matsCheck('Concentrates'),cartCheck=matsCheck('Carts');
-                  return(<div><div style={{display:'flex',alignItems:'center',gap:16,marginBottom:20,padding:'12px 16px',background:C.surface,border:'1px solid '+C.border,borderRadius:6,flexWrap:'wrap'}}><div style={{fontSize:9,color:C.dim,letterSpacing:2,textTransform:'uppercase'}}>Active MFG Plan</div>{[["Concentrates",mfgDemand.Concentrates,concCheck],["Carts",mfgDemand.Carts,cartCheck]].map(function(lc){return<div key={lc[0]} style={{display:'flex',alignItems:'center',gap:8,background:C.raised,border:'1px solid '+(lc[2].ok?C.goodBdr:C.dangerBdr),borderRadius:4,padding:'6px 12px'}}><span style={{fontSize:11,fontWeight:700}}>{lc[0]}</span><span style={{fontSize:10,color:C.dim}}>{lc[1]>0?lc[1].toLocaleString()+' units':'no data'}</span><span style={{fontSize:10,color:lc[2].ok?C.good:C.danger}}>{lc[2].ok?'✓':'▲ '+lc[2].shortfalls.length+' short'}</span></div>;})} <div style={{marginLeft:'auto',fontSize:9,color:C.dim}}>Based on {mfgTargetWeeks}wk target</div></div><CompTable grp="Concentrates" label="Concentrates" demand={mfgDemand.Concentrates}/><CompTable grp="Carts" label="Carts" demand={mfgDemand.Carts}/><CompTable grp="General" label="General Packaging" demand={(mfgDemand.Concentrates||0)+(mfgDemand.Carts||0)}/></div>);
+                  return(<div>
+                  {/* ── PACKING SLIP SCANNER ── */}
+                  <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16,marginBottom:20}}>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12,flexWrap:'wrap',gap:8}}>
+                      <div><div style={{fontSize:11,fontWeight:800,letterSpacing:2}}>📸 PACKING SLIP SCANNER</div><div style={{fontSize:9,color:C.dim,marginTop:2}}>Upload a photo of your packing slip — AI reads it and suggests inventory updates</div></div>
+                      <div><input ref={slipRef} type="file" accept="image/*" capture="environment" onChange={handleSlipUpload} style={{display:'none'}}/><button onClick={function(){slipRef.current&&slipRef.current.click();}} style={{padding:'8px 16px',borderRadius:4,fontSize:10,fontWeight:700,cursor:'pointer',border:'1px solid #f5a623',background:'#f5a62311',color:'#f5a623',fontFamily:'inherit',letterSpacing:1}}>📷 SCAN PACKING SLIP</button></div>
+                    </div>
+                    {slipParsing&&<div style={{padding:20,textAlign:'center'}}><div style={{fontSize:12,color:'#f5a623',marginBottom:6}}>🔍 Reading packing slip...</div><div style={{fontSize:9,color:C.dim}}>AI is extracting items and quantities</div></div>}
+                    {slipError&&<div style={{fontSize:10,color:C.danger,padding:'8px 12px',background:C.dangerBg,borderRadius:4,marginBottom:8}}>{slipError}</div>}
+                    {slipSuggestions&&(<div>
+                      <div style={{fontSize:10,fontWeight:700,color:C.good,marginBottom:8,letterSpacing:1}}>SUGGESTED INVENTORY UPDATES</div>
+                      <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',fontSize:11}}>
+                        <thead><tr style={{background:C.raised}}>{['Component','Group','Qty','Status'].map(function(h){return<th key={h} style={{padding:'6px 10px',fontSize:8,fontWeight:700,color:C.dim,textAlign:'left',borderBottom:'1px solid '+C.border}}>{h}</th>;})}</tr></thead>
+                        <tbody>{slipSuggestions.map(function(s,i){var known=s.group!=='Unknown';return<tr key={i} style={{background:i%2===0?'transparent':C.raised}}>
+                          <td style={{padding:'6px 10px',fontWeight:600,color:known?C.text:C.warn}}>{s.component}</td>
+                          <td style={{padding:'6px 10px',color:C.dim}}>{s.group}</td>
+                          <td style={{padding:'6px 10px',fontWeight:700}}>{s.qty?s.qty.toLocaleString():'—'}</td>
+                          <td style={{padding:'6px 10px'}}>{known?<span style={{fontSize:9,color:C.good}}>✓ matched</span>:<span style={{fontSize:9,color:C.warn}}>⚠ unmatched</span>}</td>
+                        </tr>;})}</tbody>
+                      </table></div>
+                      <div style={{display:'flex',gap:8,marginTop:12,justifyContent:'flex-end'}}>
+                        <button onClick={function(){setSlipSuggestions(null);setSlipImage(null);}} style={{padding:'6px 14px',borderRadius:3,fontSize:9,cursor:'pointer',border:'1px solid '+C.border,background:'transparent',color:C.dim,fontFamily:'inherit'}}>Cancel</button>
+                        <button onClick={applySlipSuggestions} style={{padding:'6px 14px',borderRadius:3,fontSize:9,fontWeight:700,cursor:'pointer',border:'none',background:C.good,color:'#fff',fontFamily:'inherit'}}>✓ Apply Updates</button>
+                      </div>
+                    </div>)}
+                    {slipImage&&!slipSuggestions&&!slipParsing&&(<div style={{marginTop:8}}><img src={'data:'+slipImage.mime+';base64,'+slipImage.data} alt="Packing slip" style={{maxWidth:'100%',maxHeight:200,borderRadius:4,border:'1px solid '+C.border}}/></div>)}
+                  </div>
+
+                  <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:20,padding:'12px 16px',background:C.surface,border:'1px solid '+C.border,borderRadius:6,flexWrap:'wrap'}}><div style={{fontSize:9,color:C.dim,letterSpacing:2,textTransform:'uppercase'}}>Active MFG Plan</div>{[["Concentrates",mfgDemand.Concentrates,concCheck],["Carts",mfgDemand.Carts,cartCheck]].map(function(lc){return<div key={lc[0]} style={{display:'flex',alignItems:'center',gap:8,background:C.raised,border:'1px solid '+(lc[2].ok?C.goodBdr:C.dangerBdr),borderRadius:4,padding:'6px 12px'}}><span style={{fontSize:11,fontWeight:700}}>{lc[0]}</span><span style={{fontSize:10,color:C.dim}}>{lc[1]>0?lc[1].toLocaleString()+' units':'no data'}</span><span style={{fontSize:10,color:lc[2].ok?C.good:C.danger}}>{lc[2].ok?'✓':'▲ '+lc[2].shortfalls.length+' short'}</span></div>;})} <div style={{marginLeft:'auto',fontSize:9,color:C.dim}}>Based on {mfgTargetWeeks}wk target</div></div><CompTable grp="Concentrates" label="Concentrates" demand={mfgDemand.Concentrates}/><CompTable grp="Carts" label="Carts" demand={mfgDemand.Carts}/><CompTable grp="General" label="General Packaging" demand={(mfgDemand.Concentrates||0)+(mfgDemand.Carts||0)}/></div>);
                 })()}
 
                 {/* velocity tab removed */}
@@ -1641,6 +1878,18 @@ window._STRAIN_DB=[
                   var TC2={L:"#33cc66",R:"#ff8800",N:"#888"};
                   var TN2={L:"Legacy",R:"Rising",N:"New"};
                   var ML={x:76,y:221},RV={x:99,y:183},AR2={x:14,y:55},LA2={x:172,y:334};
+                  // ── FIELD REPS (positions based on Salesforce territory center of gravity) ──
+                  var REPS=[
+                    {name:'CP',full:'Christina Perpetua',zone:'RB',x:80,y:151,city:'Sacramento'},
+                    {name:'Brian K',full:'Brian Kiser',zone:'RB',x:72,y:185,city:'Livermore'},
+                    {name:'Eric',full:'Eric Ervin',zone:'RB',x:80,y:200,city:'Central Valley'},
+                    {name:'Matt B',full:'Matthew Blackburn',zone:'RB',x:57,y:181,city:'SF'},
+                    {name:'Caraway',full:'Matthew Caraway',zone:'RB',x:68,y:197,city:'South Bay'},
+                    {name:'Brian B',full:'Brian Bresee',zone:'DNU',x:14,y:55,city:'Humboldt'},
+                    {name:'Isaac',full:'Isaac Romero',zone:'ZASP',x:200,y:383,city:'San Diego'},
+                    {name:'Danny',full:'Danny Smith',zone:'ZASP',x:114,y:308,city:'Central Coast'},
+                    {name:'Daniel',full:'Daniel Rojas',zone:'ZASP',x:205,y:345,city:'Inland Empire'}
+                  ];
                   function hub2(z){return z==="ZASP"?LA2:z==="DNU"?AR2:RV;}
 
                   // Build DD from CSV accounts data when available, else fall back to hardcoded _DD
@@ -1680,22 +1929,103 @@ window._STRAIN_DB=[
                   var tC={L:0,R:0,N:0};accts.forEach(function(a){tC[a.tr]++;});
                   var CA="M6,8 L70,8 L124,8 L124,131 L124,152 L151,172 L165,193 L178,213 L189,234 L189,254 L189,262 L219,262 L240,275 L259,291 L270,303 L275,316 L281,324 L275,336 L273,348 L267,361 L267,377 L267,389 L267,396 L202,396 L201,391 L198,389 L198,383 L197,377 L194,369 L189,361 L182,355 L180,352 L176,348 L171,347 L167,348 L168,344 L166,339 L165,336 L164,335 L161,334 L157,332 L150,334 L147,330 L143,325 L132,320 L127,319 L112,318 L107,314 L108,310 L107,299 L107,290 L101,284 L101,280 L94,273 L92,269 L85,258 L82,250 L77,245 L73,236 L73,230 L76,221 L69,215 L65,213 L60,209 L59,201 L56,193 L56,189 L56,182 L57,180 L56,179 L55,175 L56,173 L51,171 L49,169 L45,168 L44,165 L42,159 L40,154 L34,150 L30,142 L27,139 L26,134 L25,129 L23,121 L21,114 L22,106 L22,100 L16,96 L15,89 L7,81 L6,76 L5,72 L9,67 L10,64 L11,59 L12,57 L14,55 L13,47 L12,42 L15,33 L14,27 L12,20 L11,14 L11,9 L6,8 Z";
                   var HWY=[{id:'i5',d:'M54,8 L53,19 L60,66 L64,82 L67,109 L79,148 L84,173 L88,210 L108,222 L137,279 L145,296 L160,320 L165,333 L176,345 L193,370 L200,387',lx:95,ly:200,ln:'I-5'},{id:'h101',d:'M12,57 L41,124 L45,146 L49,153 L51,158 L56,176 L57,180 L61,192 L68,212 L72,228 L89,267 L101,283 L108,296 L131,317 L141,323 L157,328 L163,333',lx:75,ly:250,ln:'101'},{id:'i80',d:'M60,179 L60,177 L68,171 L68,157 L79,148 L99,126 L115,117 L124,110',lx:95,ly:138,ln:'I-80'},{id:'h99',d:'M64,82 L67,109 L76,139 L79,148 L84,173 L87,186 L96,200 L108,222 L115,240 L137,279',lx:100,ly:215,ln:'99'},{id:'i10',d:'M165,333 L182,332 L190,331 L202,338 L212,342 L238,346 L263,350',lx:225,ly:340,ln:'I-10'},{id:'i15',d:'M200,387 L195,374 L195,356 L186,340 L190,331 L193,300 L194,298 L209,269',lx:200,ly:310,ln:'I-15'}];
-                  window._dCities=cities;window._dZC=ZC;window._dTC=TC2;window._dTN=TN2;window._dZN=ZN;window._curK=curK;window._setTab=setTab;
+                  window._dCities=cities;window._dZC=ZC;window._dTC=TC2;window._dTN=TN2;window._dZN=ZN;window._curK=curK;window._setTab=setTab;window._dRep=dRep;
+                  // Build rep lookup for accounts
+                  window._dRepMap={};displayAccounts.forEach(function(da){window._dRepMap[da.name.replace(/ - Corporate$/i,'')]=da.rep||'';});
                   window._goAcct=function(nm){if(window._setTab)window._setTab('accounts');setTimeout(function(){var sb=document.querySelector('input[placeholder*="Search"]');if(sb){var ns=Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set;ns.call(sb,nm.split(' ').slice(0,2).join(' '));sb.dispatchEvent(new Event('input',{bubbles:true}));}},300);};
-                  window._dClick=function(ct){var det=document.getElementById('gpi-ddet');if(!det)return;var city=window._dCities.find(function(c){return c.ct===ct;});if(!city){det.style.display='none';return;}var zc=window._dZC;var tc=window._dTC;var tn=window._dTN;var zn=window._dZN;var ck=window._curK;var h='<div style="display:flex;justify-content:space-between;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #222"><b style="font-size:14px">'+city.ct+'</b><b style="color:'+zc[city.z]+'">'+ck(city.tot)+' · '+city.accts.length+' accts</b></div>';city.accts.forEach(function(a){h+='<div style="margin-bottom:6px;padding:8px;background:#111;border-radius:4px;border-left:3px solid '+tc[a.tr]+';cursor:pointer" onclick="window._goAcct(\''+a.nm.replace(/'/g,'').replace(/"/g,'')+'\')">';h+='<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-weight:700;color:'+tc[a.tr]+';font-size:11px">'+a.nm+'</span><span style="font-weight:800;color:#fff">'+ck(a.rv)+'</span></div>';h+='<div style="display:flex;gap:8px;font-size:8px;color:#666"><span style="border:1px solid '+tc[a.tr]+'33;padding:0 4px;border-radius:2px;color:'+tc[a.tr]+'">'+tn[a.tr]+'</span><span>'+zn[city.z]+'</span></div></div>';});h+='<div style="margin-top:6px;text-align:center;font-size:8px;color:#555;cursor:pointer" onclick="document.getElementById(\'gpi-ddet\').style.display=\'none\'">dismiss</div>';det.innerHTML=h;det.style.display='block';det.style.border='1px solid '+zc[city.z]+'44';};
+                  window._dClick=function(ct){var det=document.getElementById('gpi-ddet');if(!det)return;var city=window._dCities.find(function(c){return c.ct===ct;});if(!city){det.style.display='none';return;}var zc=window._dZC;var tc=window._dTC;var tn=window._dTN;var zn=window._dZN;var ck=window._curK;var rep=window._dRep||'ALL';var filtAccts=rep!=='ALL'?city.accts.filter(function(a){return(window._dRepMap[a.nm]||'')===rep;}):city.accts;var filtRev=filtAccts.reduce(function(s,a){return s+a.rv;},0);var h='<div style="display:flex;justify-content:space-between;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #222"><b style="font-size:14px">'+city.ct+'</b><b style="color:'+zc[city.z]+'">'+ck(filtRev)+' · '+filtAccts.length+' accts</b></div>';filtAccts.forEach(function(a){h+='<div style="margin-bottom:6px;padding:8px;background:#111;border-radius:4px;border-left:3px solid '+tc[a.tr]+';cursor:pointer" onclick="window._goAcct(\''+a.nm.replace(/'/g,'').replace(/"/g,'')+'\')">';h+='<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-weight:700;color:'+tc[a.tr]+';font-size:11px">'+a.nm+'</span><span style="font-weight:800;color:#fff">'+ck(a.rv)+'</span></div>';h+='<div style="display:flex;gap:8px;font-size:8px;color:#666"><span style="border:1px solid '+tc[a.tr]+'33;padding:0 4px;border-radius:2px;color:'+tc[a.tr]+'">'+tn[a.tr]+'</span><span>'+zn[city.z]+'</span></div></div>';});if(filtAccts.length===0)h+='<div style="text-align:center;color:#555;font-size:10px;padding:12px">No accounts for this rep in '+city.ct+'</div>';h+='<div style="margin-top:6px;text-align:center;font-size:8px;color:#555;cursor:pointer" onclick="document.getElementById(\'gpi-ddet\').style.display=\'none\'">dismiss</div>';det.innerHTML=h;det.style.display='block';det.style.border='1px solid '+zc[city.z]+'44';};
                   var ZONES=[{key:"DNU",name:"NorCal",color:"#ffeb3b",vb:'-15 25 160 155',hub:AR2,star:"14,48 16,53 22,53 17,57 19,62 14,58 9,62 11,57 6,53 12,53",ss:"#000"},{key:"RB",name:"Central CA",color:"#2196f3",vb:'-25 115 190 165',hub:RV,star:"99,176 101,181 107,181 102,185 104,190 99,186 94,190 96,185 91,181 97,181",ss:"#fff"},{key:"ZASP",name:"SoCal",color:"#f44336",vb:'50 230 230 195',hub:LA2,star:"172,327 174,332 180,332 175,336 177,341 172,337 167,341 169,336 164,332 170,332",ss:"#fff"}];
                   function buildZone(zone){
                     var zCities=cities.filter(function(c){return c.z===zone.key;}).sort(function(a,b){return b.tot-a.tot;});
                     var zAccts=accts.filter(function(a){return a.z===zone.key;});
                     var zRev=zAccts.reduce(function(s,a){return s+a.rv;},0);
                     if(!zCities.length)return null;
+                    // Parse viewbox bounds to filter misplaced accounts
+                    var vbParts=zone.vb.split(' ').map(Number);var vbX=vbParts[0],vbY=vbParts[1],vbW=vbParts[2],vbH=vbParts[3];
+                    var pad=20;// allow some padding
+                    zCities=zCities.filter(function(c2){return c2.x>=vbX-pad&&c2.x<=vbX+vbW+pad&&c2.y>=vbY-pad&&c2.y<=vbY+vbH+pad;});
+                    if(!zCities.length)return null;
                     var maxN=Math.max.apply(null,zCities.map(function(c){return c.accts.length;}));
                     var svgKids=[];
                     svgKids.push(React.createElement('path',{key:'ca',d:CA,fill:'#0a0a0a',stroke:'#151515',strokeWidth:0.5}));
                     HWY.forEach(function(hw){svgKids.push(React.createElement('path',{key:'hw-'+hw.id,d:hw.d,fill:'none',stroke:'#222',strokeWidth:0.8,opacity:0.4}));svgKids.push(React.createElement('text',{key:'hwl-'+hw.id,x:hw.lx,y:hw.ly,fontSize:3,fill:'#333',opacity:0.5,fontFamily:'monospace'},hw.ln));});
-                    zCities.forEach(function(c2,ci){var dx=c2.x-zone.hub.x,dy=c2.y-zone.hub.y,dist=Math.sqrt(dx*dx+dy*dy);if(dist>120)return;svgKids.push(React.createElement('line',{key:'hl'+ci,x1:zone.hub.x,y1:zone.hub.y,x2:c2.x,y2:c2.y,stroke:zone.color,strokeWidth:0.8,opacity:Math.max(0.1,0.3-dist/500),className:'logistics-line',style:{animationDelay:(ci*0.15)+'s'}}));});
+                    // Compute rep revenue for animation velocity (used when rep filtered)
+                    var repRevMap={};
+                    zAccts.forEach(function(a){
+                      var acc=displayAccounts.find(function(da){return da.name.replace(/ - Corporate$/i,'')=== a.nm;});
+                      var repName=acc&&acc.rep?acc.rep:'';
+                      if(!repRevMap[repName])repRevMap[repName]=0;
+                      repRevMap[repName]+=a.rv;
+                    });
+                    var maxRepRev=Math.max.apply(null,Object.values(repRevMap).concat([1]));
+                    var isRepFiltered=dRep!=='ALL';
+                    var filteredRep=isRepFiltered?dRep:'';
+
+                    // Filter cities to rep's accounts when filtered
+                    var drawCities=isRepFiltered?zCities.filter(function(c2){return c2.accts.some(function(a2){var acc2=displayAccounts.find(function(da){return da.name.replace(/ - Corporate$/i,'')===a2.nm;});return acc2&&acc2.rep===filteredRep;});}):zCities;
+
+                    // If rep filtered and no accounts in this zone, show blank dark zone
+                    if(isRepFiltered&&drawCities.length===0){
+                      var repObj=REPS.find(function(rp){return rp.full===filteredRep;});
+                      return React.createElement('div',{key:zone.key,style:{flex:'1 1 30%',minWidth:260}},
+                        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6,padding:'6px 10px',background:'#0a0a0a',borderRadius:4,border:'1px solid #1a1a1a'}},
+                          React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6}},React.createElement('span',{style:{width:10,height:10,borderRadius:'50%',background:zone.color,display:'inline-block',opacity:0.15}}),React.createElement('span',{style:{fontSize:13,fontWeight:700,opacity:0.25}},zone.name)),
+                          React.createElement('div',{style:{textAlign:'right',opacity:0.25}},React.createElement('div',{style:{fontSize:9,color:C.dim}},'No activity'))
+                        ),
+                        React.createElement('div',{style:{height:310,background:'#050505',borderRadius:6,border:'1px solid #111',display:'flex',alignItems:'center',justifyContent:'center'}},
+                          React.createElement('div',{style:{textAlign:'center',opacity:0.2}},
+                            React.createElement('div',{style:{fontSize:24,marginBottom:4}},'—'),
+                            React.createElement('div',{style:{fontSize:9,color:C.dim}},(repObj?repObj.name:filteredRep.split(' ')[0])+' has no accounts here')
+                          )
+                        )
+                      );
+                    }
+
+                    drawCities.forEach(function(c2,ci){var dx=c2.x-zone.hub.x,dy=c2.y-zone.hub.y,dist=Math.sqrt(dx*dx+dy*dy);if(dist>120)return;
+
+                      // Compute median order cadence for this city's accounts
+                      var cityGaps=[];
+                      var relevantAccts=isRepFiltered?c2.accts.filter(function(a2){var acc2=displayAccounts.find(function(da){return da.name.replace(/ - Corporate$/i,'')===a2.nm;});return acc2&&acc2.rep===filteredRep;}):c2.accts;
+                      relevantAccts.forEach(function(a2){
+                        var acc2=displayAccounts.find(function(da){return da.name.replace(/ - Corporate$/i,'')===a2.nm;});
+                        if(acc2&&acc2.orderDayTs&&acc2.orderDayTs.length>=2){
+                          var ts=acc2.orderDayTs.slice().sort(function(a,b){return a-b;});
+                          var gaps=[];for(var gi=1;gi<ts.length;gi++)gaps.push((ts[gi]-ts[gi-1])/86400000);
+                          gaps.sort(function(a,b){return a-b;});
+                          var med=gaps.length%2===0?Math.round((gaps[Math.floor(gaps.length/2)-1]+gaps[Math.floor(gaps.length/2)])/2):Math.round(gaps[Math.floor(gaps.length/2)]);
+                          if(med>0)cityGaps.push(med);
+                        }
+                      });
+                      // Median of city medians
+                      var cityMedian=30;// default
+                      if(cityGaps.length>0){cityGaps.sort(function(a,b){return a-b;});cityMedian=cityGaps.length%2===0?Math.round((cityGaps[Math.floor(cityGaps.length/2)-1]+cityGaps[Math.floor(cityGaps.length/2)])/2):Math.round(cityGaps[Math.floor(cityGaps.length/2)]);}
+                      // Cadence drives animation: 7d=0.3s blazing, 14d=0.6s, 30d=1.2s, 60d=2s, 90+=2.5s static-ish
+                      var cadenceSpeed=Math.max(0.3,Math.min(2.5,cityMedian/25));
+                      // Line thickness: faster cadence = thicker
+                      var cadenceThick=Math.max(0.4,Math.min(1.8,2.0-cityMedian/60));
+                      // Opacity: faster cadence = brighter
+                      var cadenceOpacity=Math.max(0.1,Math.min(0.6,0.7-cityMedian/200));
+                      // Dead accounts (no recent orders) get static dashed
+                      var daysSinceAny=Infinity;
+                      relevantAccts.forEach(function(a2){
+                        var acc2=displayAccounts.find(function(da){return da.name.replace(/ - Corporate$/i,'')===a2.nm;});
+                        if(acc2&&acc2.orderDayTs&&acc2.orderDayTs.length>0){
+                          var last=Math.max.apply(null,acc2.orderDayTs);
+                          var ds=Math.round((Date.now()-last)/86400000);
+                          if(ds<daysSinceAny)daysSinceAny=ds;
+                        }
+                      });
+                      var isDead=daysSinceAny>90;
+
+                      if(isDead){
+                        // Static dashed line — fallen off
+                        svgKids.push(React.createElement('line',{key:'hl'+ci,x1:zone.hub.x,y1:zone.hub.y,x2:c2.x,y2:c2.y,stroke:zone.color,strokeWidth:0.4,opacity:0.08,strokeDasharray:'2,4'}));
+                      }else{
+                        svgKids.push(React.createElement('line',{key:'hl'+ci,x1:zone.hub.x,y1:zone.hub.y,x2:c2.x,y2:c2.y,stroke:zone.color,strokeWidth:cadenceThick,opacity:cadenceOpacity,className:'logistics-line',style:{animationDuration:cadenceSpeed.toFixed(1)+'s',animationDelay:(ci*0.1)+'s'}}));
+                      }
+                    });
                     svgKids.push(React.createElement('g',{key:'star',className:'hub-star'},React.createElement('polygon',{points:zone.star,fill:zone.color,stroke:zone.ss,strokeWidth:0.5})));
-                    zCities.forEach(function(c2,i){
+                    drawCities.forEach(function(c2,i){
                       var n=c2.accts.length;
                       var r=2.5;
                       var ckids=[];
@@ -1707,35 +2037,115 @@ window._STRAIN_DB=[
                       }
                       svgKids.push(React.createElement('g',{key:'c'+i,style:{transformOrigin:c2.x+'px '+c2.y+'px',animation:'popIn 0.3s ease-out '+(0.8+i*0.05).toFixed(2)+'s both',cursor:'pointer'},onClick:function(){window._dClick(c2.ct);}},ckids));
                     });
-                    var cityList=[];
-                    zCities.forEach(function(c2,i){
-                      cityList.push(React.createElement('div',{key:'cl'+i,style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'4px 0',borderBottom:'1px solid #111',cursor:'pointer',fontSize:10},onClick:function(){window._dClick(c2.ct);}},React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6}},React.createElement('span',{style:{width:Math.max(6,3+c2.accts.length*1.5),height:Math.max(6,3+c2.accts.length*1.5),borderRadius:'50%',background:zone.color,opacity:0.6,display:'inline-block',flexShrink:0}}),React.createElement('span',{style:{fontWeight:600}},c2.ct),React.createElement('span',{style:{fontSize:8,color:'#555'}},c2.accts.length+' accts')),React.createElement('span',{style:{fontWeight:700,color:'#888'}},curK(c2.tot))));
+                    // ── REP MARKERS ──
+                    // When filtered: show only the selected rep (any role)
+                    // When ALL: show all reps (exec only)
+                    var showReps=isRepFiltered?REPS.filter(function(r){return r.zone===zone.key&&r.full===filteredRep;}):(authRole==='exec'?REPS.filter(function(r){return r.zone===zone.key;}):[]); 
+                    showReps.forEach(function(rep,ri){
+                      var rx=rep.x,ry=rep.y;
+                      svgKids.push(React.createElement('g',{key:'rep-'+ri,style:{animation:'popIn 0.4s ease-out '+(1.2+ri*0.15).toFixed(2)+'s both'}},
+                        React.createElement('circle',{cx:rx,cy:ry,r:4.5,fill:'#000',stroke:'#fff',strokeWidth:0.8,opacity:0.9}),
+                        React.createElement('circle',{cx:rx,cy:ry,r:7,fill:'none',stroke:'#fff',strokeWidth:0.3,opacity:0.4,className:'rep-pulse'}),
+                        React.createElement('text',{x:rx,y:ry+1.2,fontSize:3,fill:'#fff',fontWeight:700,fontFamily:'monospace',textAnchor:'middle',style:{pointerEvents:'none'}},rep.name.split(' ')[0].charAt(0)+(rep.name.split(' ').length>1?rep.name.split(' ')[1].charAt(0):rep.name.charAt(1))),
+                        React.createElement('text',{x:rx+6,y:ry+1,fontSize:3,fill:'#fff',fontWeight:600,fontFamily:'monospace',textAnchor:'start',opacity:0.8,style:{pointerEvents:'none'}},rep.name)
+                      ));
                     });
-                    // Build account list for the back of the card
-                    var zAcctsSorted=zAccts.slice().sort(function(a,b){return b.rv-a.rv;});
+                    var cityList=[];
+                    drawCities.forEach(function(c2,i){
+                      var cityAcctCount=isRepFiltered?c2.accts.filter(function(a2){var acc2=displayAccounts.find(function(da){return da.name.replace(/ - Corporate$/i,'')===a2.nm;});return acc2&&acc2.rep===filteredRep;}).length:c2.accts.length;
+                      var cityRevFilt=isRepFiltered?c2.accts.filter(function(a2){var acc2=displayAccounts.find(function(da){return da.name.replace(/ - Corporate$/i,'')===a2.nm;});return acc2&&acc2.rep===filteredRep;}).reduce(function(s,a2){return s+a2.rv;},0):c2.tot;
+                      cityList.push(React.createElement('div',{key:'cl'+i,style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'4px 0',borderBottom:'1px solid #111',cursor:'pointer',fontSize:10},onClick:function(){window._dClick(c2.ct);}},React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6}},React.createElement('span',{style:{width:Math.max(6,3+cityAcctCount*1.5),height:Math.max(6,3+cityAcctCount*1.5),borderRadius:'50%',background:zone.color,opacity:0.6,display:'inline-block',flexShrink:0}}),React.createElement('span',{style:{fontWeight:600}},c2.ct),React.createElement('span',{style:{fontSize:8,color:'#555'}},cityAcctCount+' accts')),React.createElement('span',{style:{fontWeight:700,color:'#888'}},curK(cityRevFilt))));
+                    });
+                    // Build account list for the back of the card — filtered to rep when active
+                    var zAcctsBase=isRepFiltered?zAccts.filter(function(a){var acc2=displayAccounts.find(function(da){return da.name.replace(/ - Corporate$/i,'')===a.nm;});return acc2&&acc2.rep===filteredRep;}):zAccts.slice();
+                    // Sort by ops priority: OVERDUE first, then FALLEN OFF, then Rising, then Legacy — within each group by revenue
+                    var zAcctsSorted=zAcctsBase.map(function(a){
+                      var acc2=displayAccounts.find(function(da){return da.name.replace(/ - Corporate$/i,'')===a.nm;});
+                      var pri=2;// default Legacy
+                      if(acc2&&acc2.orderDayTs&&acc2.orderDayTs.length>=2){
+                        var ts2=acc2.orderDayTs.slice().sort(function(aa,bb){return aa-bb;});
+                        var ds=Math.max(0,Math.round((Date.now()-ts2[ts2.length-1])/86400000));
+                        var gaps2=[];for(var gi2=1;gi2<ts2.length;gi2++)gaps2.push((ts2[gi2]-ts2[gi2-1])/86400000);
+                        gaps2.sort(function(aa,bb){return aa-bb;});
+                        var med=gaps2.length%2===0?Math.round((gaps2[Math.floor(gaps2.length/2)-1]+gaps2[Math.floor(gaps2.length/2)])/2):Math.round(gaps2[Math.floor(gaps2.length/2)]);
+                        if(med<1)med=1;
+                        if(ds>90&&(ds>med*3||a.rv<1))pri=3;// FALLEN OFF (last)
+                        else if(ds>Math.max(med*1.5,21))pri=0;// OVERDUE (most urgent)
+                      }else if(acc2&&acc2.orderDayTs&&acc2.orderDayTs.length===1){
+                        var ds2=Math.max(0,Math.round((Date.now()-acc2.orderDayTs[0])/86400000));
+                        if(ds2>60)pri=3;// FALLEN OFF (last)
+                      }
+                      if(pri===2&&a.tr==='R')pri=1;// Rising
+                      return Object.assign({},a,{_pri:pri});
+                    }).sort(function(a,b){return a._pri!==b._pri?a._pri-b._pri:b.rv-a.rv;});
                     var isFlipped=!!zoneFlipped[zone.key];
+                    var repObj2=isRepFiltered?REPS.find(function(rp){return rp.full===filteredRep;}):null;
+                    var drawRev=isRepFiltered?drawCities.reduce(function(s,c2){return s+c2.accts.filter(function(a2){var acc2=displayAccounts.find(function(da){return da.name.replace(/ - Corporate$/i,'')===a2.nm;});return acc2&&acc2.rep===filteredRep;}).reduce(function(s2,a2){return s2+a2.rv;},0);},0):zRev;
                     return React.createElement('div',{key:zone.key,style:{flex:'1 1 30%',minWidth:260}},
                       React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6,padding:'6px 10px',background:zone.color+'11',borderRadius:4,border:'1px solid '+zone.color+'33'}},
-                        React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6}},React.createElement('span',{style:{width:10,height:10,borderRadius:'50%',background:zone.color,display:'inline-block'}}),React.createElement('span',{style:{fontSize:13,fontWeight:700}},zone.name)),
-                        React.createElement('div',{style:{textAlign:'right'}},React.createElement('div',{style:{fontSize:14,fontWeight:800}},curK(zRev)),React.createElement('div',{style:{fontSize:9,color:C.dim}},zCities.length+' cities · '+zAccts.length+' accts'))),
+                        React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6}},React.createElement('span',{style:{width:10,height:10,borderRadius:'50%',background:zone.color,display:'inline-block'}}),React.createElement('span',{style:{fontSize:13,fontWeight:700}},zone.name),isRepFiltered&&React.createElement('span',{style:{fontSize:9,color:zone.color,marginLeft:4}},'· '+(repObj2?repObj2.name:filteredRep.split(' ')[0]))),
+                        React.createElement('div',{style:{textAlign:'right'}},React.createElement('div',{style:{fontSize:14,fontWeight:800}},curK(drawRev)),React.createElement('div',{style:{fontSize:9,color:C.dim}},drawCities.length+' cities · '+(isRepFiltered?drawCities.reduce(function(s,c2){return s+c2.accts.filter(function(a2){var acc2=displayAccounts.find(function(da){return da.name.replace(/ - Corporate$/i,'')===a2.nm;});return acc2&&acc2.rep===filteredRep;}).length;},0):zAccts.length)+' accts'))),
                       React.createElement('div',{className:'zone-flip-container'},
                         React.createElement('div',{className:'zone-flip-inner'+(isFlipped?' flipped':''),style:{minHeight:310}},
                           React.createElement('div',{className:'zone-flip-front',style:{position:'relative'}},
-                            React.createElement('svg',{key:'z'+zone.key+periodDays,viewBox:zone.vb,style:{width:'100%',height:300,background:'#050505',borderRadius:6,border:'1px solid '+zone.color+'22',display:'block',overflow:'hidden'}},svgKids),
+                            React.createElement('svg',{key:'z'+zone.key+periodDays+dRep,viewBox:zone.vb,style:{width:'100%',height:300,background:'#050505',borderRadius:6,border:'1px solid '+zone.color+'22',display:'block',overflow:'hidden'}},svgKids),
                             React.createElement('button',{onClick:function(){setZoneFlipped(function(p){var n=Object.assign({},p);n[zone.key]=true;return n;});},style:{position:'absolute',bottom:8,right:8,padding:'4px 8px',borderRadius:3,fontSize:9,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+zone.color+'44',background:'#000c',color:zone.color,zIndex:2}},'\ud83d\udccb Accounts')
                           ),
                           React.createElement('div',{className:'zone-flip-back',style:{background:'#050505',borderRadius:6,border:'1px solid '+zone.color+'22',minHeight:300,padding:'10px 12px',overflowY:'auto',maxHeight:340}},
                             React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}},
-                              React.createElement('div',{style:{fontSize:11,fontWeight:700,color:zone.color,letterSpacing:1}},zone.name+' ACCOUNTS ('+zAcctsSorted.length+') · '+periodDays+'D'),
+                              React.createElement('div',{style:{fontSize:11,fontWeight:700,color:zone.color,letterSpacing:1}},zone.name+(isRepFiltered?' · '+(repObj2?repObj2.name:filteredRep.split(' ')[0]):'')+' ('+zAcctsSorted.length+') · '+periodDays+'D'),
                               React.createElement('button',{onClick:function(){setZoneFlipped(function(p){var n=Object.assign({},p);n[zone.key]=false;return n;});},style:{padding:'4px 8px',borderRadius:3,fontSize:9,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+zone.color+'44',background:'transparent',color:zone.color}},'\ud83d\uddfa Map')
                             ),
-                            zAcctsSorted.map(function(a,ai){return React.createElement('div',{key:ai,style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 0',borderBottom:'1px solid #151515',cursor:'pointer',fontSize:10},onClick:function(){window._goAcct&&window._goAcct(a.nm);}},
-                              React.createElement('div',{style:{flex:1,minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontWeight:500}},a.nm),
-                              React.createElement('div',{style:{display:'flex',gap:8,flexShrink:0,alignItems:'center'}},
-                                React.createElement('span',{style:{fontSize:8,color:'#555'}},a.ct),
-                                React.createElement('span',{style:{fontWeight:700,color:zone.color,minWidth:40,textAlign:'right'}},curK(a.rv))
-                              )
-                            );})
+                            zAcctsSorted.map(function(a,ai){
+                              // Compute order status for this account
+                              var acc2=displayAccounts.find(function(da){return da.name.replace(/ - Corporate$/i,'')===a.nm;});
+                              var status='';var statusColor='';var daysSince=0;var median=0;
+                              if(acc2&&acc2.orderDayTs&&acc2.orderDayTs.length>=2){
+                                var ts2=acc2.orderDayTs.slice().sort(function(aa,bb){return aa-bb;});
+                                daysSince=Math.max(0,Math.round((Date.now()-ts2[ts2.length-1])/86400000));
+                                var gaps2=[];for(var gi2=1;gi2<ts2.length;gi2++)gaps2.push((ts2[gi2]-ts2[gi2-1])/86400000);
+                                gaps2.sort(function(aa,bb){return aa-bb;});
+                                median=gaps2.length%2===0?Math.round((gaps2[Math.floor(gaps2.length/2)-1]+gaps2[Math.floor(gaps2.length/2)])/2):Math.round(gaps2[Math.floor(gaps2.length/2)]);
+                                if(median<1)median=1;
+                                if(daysSince>90&&(daysSince>median*3||a.rv<1)){status='FALLEN OFF';statusColor=C.danger;}
+                                else if(daysSince>Math.max(median*1.5,21)){status='OVERDUE';statusColor='#f5a623';}
+                              }else if(acc2&&acc2.orderDayTs&&acc2.orderDayTs.length===1){
+                                daysSince=Math.max(0,Math.round((Date.now()-acc2.orderDayTs[0])/86400000));
+                                if(daysSince>60){status='FALLEN OFF';statusColor=C.danger;}
+                              }
+                              var tierColor=TC2[a.tr]||'#555';var tierLabel=TN2[a.tr]||'';
+                              var isExp=!!dExpanded[a.nm+zone.key];
+                              var mockOrder=isExp?generateMockOrder(a.nm):null;
+                              return React.createElement('div',{key:ai,style:{borderBottom:'1px solid #151515',marginBottom:2}},
+                                React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 0',cursor:'pointer',fontSize:10},onClick:function(){setDExpanded(function(p){var n2=Object.assign({},p);n2[a.nm+zone.key]=!n2[a.nm+zone.key];return n2;});}},
+                                  React.createElement('div',{style:{flex:1,minWidth:0,display:'flex',alignItems:'center',gap:4}},
+                                    React.createElement('span',{style:{fontSize:8,color:'#444',flexShrink:0}},isExp?'▼':'▶'),
+                                    React.createElement('span',{style:{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontWeight:500}},a.nm),
+                                    status&&React.createElement('span',{style:{fontSize:7,fontWeight:700,color:statusColor,background:statusColor+'18',border:'1px solid '+statusColor+'33',padding:'1px 4px',borderRadius:2,whiteSpace:'nowrap',flexShrink:0}},status),
+                                    !status&&React.createElement('span',{style:{fontSize:7,color:tierColor,border:'1px solid '+tierColor+'33',padding:'1px 4px',borderRadius:2,whiteSpace:'nowrap',flexShrink:0}},tierLabel)
+                                  ),
+                                  React.createElement('div',{style:{display:'flex',gap:6,flexShrink:0,alignItems:'center'}},
+                                    daysSince>0&&React.createElement('span',{style:{fontSize:7,color:daysSince>60?C.danger:daysSince>30?'#f5a623':'#555'}},daysSince+'d'),
+                                    React.createElement('span',{style:{fontWeight:700,color:zone.color,minWidth:36,textAlign:'right'}},curK(a.rv))
+                                  )
+                                ),
+                                isExp&&mockOrder&&React.createElement('div',{style:{padding:'6px 0 8px 16px',fontSize:9}},
+                                  mockOrder.lines.length>0?React.createElement('div',null,
+                                    React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}},
+                                      React.createElement('span',{style:{color:C.dim,letterSpacing:1,fontSize:8}},'SUGGESTED ORDER · Target $'+mockOrder.budget),
+                                      React.createElement('span',{style:{color:C.good,fontWeight:700,fontSize:11}},'$'+mockOrder.total.toFixed(0))
+                                    ),
+                                    mockOrder.lines.map(function(l,li){return React.createElement('div',{key:li,style:{display:'flex',justifyContent:'space-between',padding:'2px 0',color:C.muted}},
+                                      React.createElement('span',null,l.qty+'x '+l.strain),
+                                      React.createElement('span',{style:{color:C.dim}},'$'+l.lineRev.toFixed(0))
+                                    );}),
+                                    React.createElement('div',{style:{display:'flex',gap:6,marginTop:6}},
+                                      React.createElement('button',{onClick:function(e){e.stopPropagation();openInvoice(a.nm);},style:{padding:'4px 10px',borderRadius:3,fontSize:8,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.good,background:C.good+'22',color:C.good}},'📄 Generate Invoice'),
+                                      React.createElement('button',{onClick:function(e){e.stopPropagation();window._goAcct&&window._goAcct(a.nm);},style:{padding:'4px 10px',borderRadius:3,fontSize:8,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.border,background:'transparent',color:C.dim}},'View Account')
+                                    )
+                                  ):React.createElement('div',{style:{color:C.dim,fontStyle:'italic'}},'No inventory loaded — upload Salesforce XLSX to generate suggestions')
+                                )
+                              );})
                           )
                         )
                       )
@@ -1857,6 +2267,20 @@ window._STRAIN_DB=[
                         <div style={{marginLeft:'auto',display:'flex',gap:6}}>
                         </div>
                       </div>
+                      {authRole==='exec'&&(function(){
+                        var dRepSet={};accts.forEach(function(a){var acc=displayAccounts.find(function(da){return da.name.replace(/ - Corporate$/i,'')===a.nm;});if(acc&&acc.rep)dRepSet[acc.rep]=true;});
+                        var dRepList=Object.keys(dRepSet).sort();
+                        return React.createElement('div',{style:{display:'flex',gap:4,marginBottom:14,flexWrap:'wrap',alignItems:'center'}},
+                          React.createElement('span',{style:{fontSize:8,color:C.dim,marginRight:6,letterSpacing:1,textTransform:'uppercase'}},'rep'),
+                          ['ALL'].concat(dRepList).map(function(r){
+                            var isActive=dRep===r;
+                            var repObj=REPS.find(function(rp){return rp.full===r;});
+                            var label=r==='ALL'?'All':repObj?repObj.name:r.split(' ')[0];
+                            return React.createElement('div',{key:'dr-'+r,onClick:function(){setDRep(r);},style:{padding:'3px 10px',borderRadius:3,fontSize:10,fontFamily:'monospace',cursor:'pointer',border:'1px solid '+(isActive?'#fff':'#1a1a1a'),background:isActive?'#fff':'transparent',color:isActive?'#000':C.dim,fontWeight:isActive?700:400}},label);
+                          })
+                        );
+                      })()}
+                      {authRole==='distro'&&authUser&&authUser.repName&&React.createElement('div',{style:{padding:'6px 12px',marginBottom:14,background:'#2196f311',border:'1px solid #2196f333',borderRadius:4,fontSize:10,color:'#2196f3',fontWeight:600}},'\u{1F464} Viewing: '+authUser.name+' · '+(authUser.repName||''))}
 
                       {/* ── RIDE ALONG RESULTS ── */}
                       {rideAlongs && rideAlongs.routes.length > 0 && (
@@ -1955,6 +2379,77 @@ window._STRAIN_DB=[
                       )}
                       <div style={{display:'flex',gap:14,flexWrap:'wrap',marginBottom:12}}>{ZONES.map(function(z){return buildZone(z);})}</div>
                       <div id="gpi-ddet" style={{display:'none',background:C.surface,borderRadius:4,padding:'10px 14px',fontSize:10,marginBottom:16}}></div>
+                      {dPriceVerify&&React.createElement('div',{style:{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.85)',zIndex:999,display:'flex',alignItems:'center',justifyContent:'center',padding:16},onClick:function(){setDPriceVerify(null);}},
+                        React.createElement('div',{style:{background:C.surface,border:'1px solid #f5a623',borderRadius:8,padding:24,width:'100%',maxWidth:400,maxHeight:'80vh',overflowY:'auto'},onClick:function(e){e.stopPropagation();}},
+                          React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}},
+                            React.createElement('div',null,
+                              React.createElement('div',{style:{fontSize:14,fontWeight:800,letterSpacing:3,color:'#f5a623'}},'VERIFY PRICING'),
+                              React.createElement('div',{style:{fontSize:9,color:C.dim,marginTop:2}},'Confirm wholesale price per category')
+                            ),
+                            React.createElement('button',{onClick:function(){setDPriceVerify(null);},style:{background:'transparent',border:'none',color:C.dim,fontSize:18,cursor:'pointer'}},'×')
+                          ),
+                          React.createElement('div',{style:{padding:'8px 12px',background:'#f5a62311',border:'1px solid #f5a62333',borderRadius:4,marginBottom:16,fontSize:9,color:'#f5a623'}},'Set your wholesale price for each product category. These prices are saved and apply to all future orders.'),
+                          dPriceVerify.categories.map(function(cat,i){
+                            return React.createElement('div',{key:i,style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 0',borderBottom:'1px solid #222'}},
+                              React.createElement('div',null,
+                                React.createElement('div',{style:{fontSize:13,fontWeight:700}},cat.cat),
+                                React.createElement('div',{style:{fontSize:9,color:C.dim}},cat.totalQty+' units across '+cat.lineCount+' SKUs')
+                              ),
+                              React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8}},
+                                React.createElement('span',{style:{fontSize:9,color:C.dim}},'$'),
+                                React.createElement('input',{type:'number',step:'0.50',min:'0',value:cat.verifiedWs,onChange:function(e){var val=parseFloat(e.target.value)||0;setDPriceVerify(function(prev){var next=Object.assign({},prev);next.categories=prev.categories.map(function(cc,ii){return ii===i?Object.assign({},cc,{verifiedWs:val}):cc;});return next;});},style:{width:80,background:C.bg,border:'2px solid #f5a623',borderRadius:4,color:'#f5a623',fontSize:16,fontWeight:800,fontFamily:'inherit',padding:'6px 8px',textAlign:'center',outline:'none'}}),
+                                React.createElement('span',{style:{fontSize:9,color:C.dim,minWidth:50,textAlign:'right'}},'$'+(cat.totalQty*cat.verifiedWs).toFixed(0))
+                              )
+                            );
+                          }),
+                          React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 0',borderTop:'2px solid #f5a623',marginTop:4}},
+                            React.createElement('span',{style:{fontSize:11,fontWeight:800,letterSpacing:2}},'ORDER TOTAL'),
+                            React.createElement('span',{style:{fontSize:20,fontWeight:800,color:'#f5a623'}},'$'+dPriceVerify.categories.reduce(function(s,c){return s+c.totalQty*c.verifiedWs;},0).toFixed(0))
+                          ),
+                          React.createElement('div',{style:{display:'flex',gap:8,marginTop:12}},
+                            React.createElement('button',{onClick:confirmVerifiedPrices,style:{flex:1,padding:'12px',borderRadius:4,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'none',background:'#f5a623',color:'#000',letterSpacing:1}},'✓ Confirm & Generate Invoice'),
+                            React.createElement('button',{onClick:function(){setDPriceVerify(null);},style:{padding:'12px 16px',borderRadius:4,fontSize:11,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.border,background:'transparent',color:C.dim}},'Cancel')
+                          )
+                        )
+                      )}
+                      {dInvoice&&React.createElement('div',{style:{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.85)',zIndex:999,display:'flex',alignItems:'center',justifyContent:'center',padding:16},onClick:function(){setDInvoice(null);}},
+                        React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.borderHi,borderRadius:8,padding:24,width:'100%',maxWidth:420,maxHeight:'80vh',overflowY:'auto'},onClick:function(e){e.stopPropagation();}},
+                          React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}},
+                            React.createElement('div',null,
+                              React.createElement('div',{style:{fontSize:14,fontWeight:800,letterSpacing:3}},'GLOBS'),
+                              React.createElement('div',{style:{fontSize:9,color:C.dim,letterSpacing:1}},'SUGGESTED REORDER')
+                            ),
+                            React.createElement('button',{onClick:function(){setDInvoice(null);},style:{background:'transparent',border:'none',color:C.dim,fontSize:18,cursor:'pointer'}},'×')
+                          ),
+                          React.createElement('div',{style:{borderBottom:'1px solid '+C.border,paddingBottom:12,marginBottom:12}},
+                            React.createElement('div',{style:{fontSize:13,fontWeight:700,marginBottom:4}},dInvoice.account),
+                            React.createElement('div',{style:{fontSize:9,color:C.dim}},dInvoice.date+(dInvoice.rep?' · '+dInvoice.rep:'')+(dInvoice.zone?' · '+dInvoice.zone:'')),
+                            React.createElement('div',{style:{fontSize:9,color:C.muted,marginTop:2}},'Target: $'+dInvoice.budget)
+                          ),
+                          React.createElement('table',{style:{width:'100%',borderCollapse:'collapse',marginBottom:12}},
+                            React.createElement('thead',null,React.createElement('tr',{style:{borderBottom:'1px solid '+C.border}},
+                              React.createElement('th',{style:{padding:'6px 0',fontSize:8,fontWeight:700,color:C.dim,textAlign:'left',letterSpacing:1}},'QTY'),
+                              React.createElement('th',{style:{padding:'6px 0',fontSize:8,fontWeight:700,color:C.dim,textAlign:'left',letterSpacing:1}},'PRODUCT'),
+                              React.createElement('th',{style:{padding:'6px 0',fontSize:8,fontWeight:700,color:C.dim,textAlign:'right',letterSpacing:1}},'UNIT'),
+                              React.createElement('th',{style:{padding:'6px 0',fontSize:8,fontWeight:700,color:C.dim,textAlign:'right',letterSpacing:1}},'TOTAL')
+                            )),
+                            React.createElement('tbody',null,dInvoice.lines.map(function(l,i){return React.createElement('tr',{key:i,style:{borderBottom:'1px solid #111'}},
+                              React.createElement('td',{style:{padding:'8px 0',fontSize:12,fontWeight:700}},l.qty),
+                              React.createElement('td',{style:{padding:'8px 4px',fontSize:11}},React.createElement('div',{style:{fontWeight:500}},l.strain),React.createElement('div',{style:{fontSize:8,color:C.dim}},l.cat)),
+                              React.createElement('td',{style:{padding:'8px 0',fontSize:11,textAlign:'right',color:C.dim}},'$'+l.ws.toFixed(2)),
+                              React.createElement('td',{style:{padding:'8px 0',fontSize:11,textAlign:'right',fontWeight:600}},'$'+l.lineRev.toFixed(2))
+                            );}))
+                          ),
+                          React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 0',borderTop:'2px solid '+C.text}},
+                            React.createElement('span',{style:{fontSize:11,fontWeight:800,letterSpacing:2}},'ORDER TOTAL'),
+                            React.createElement('span',{style:{fontSize:18,fontWeight:800,color:C.good}},'$'+dInvoice.total.toFixed(2))
+                          ),
+                          React.createElement('div',{style:{display:'flex',gap:8,marginTop:12}},
+                            React.createElement('button',{onClick:shareInvoice,style:{flex:1,padding:'10px',borderRadius:4,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'none',background:C.good,color:'#fff',letterSpacing:1}},'📤 Share Invoice'),
+                            React.createElement('button',{onClick:function(){setDInvoice(null);},style:{padding:'10px 16px',borderRadius:4,fontSize:11,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.border,background:'transparent',color:C.dim}},'Close')
+                          )
+                        )
+                      )}
                     </div>
                   );
                 })()}
@@ -1999,7 +2494,7 @@ window._STRAIN_DB=[
                       </div>
                       <div style={{border:'1px solid '+C.border,borderRadius:6,overflow:'hidden'}}><div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:460,borderCollapse:'collapse'}}>
                         <thead><tr style={{background:C.raised}}>{["Strain","","Cross","Tags","Description"].map(function(h,i){return<th key={h+i} style={{padding:'8px '+(i===1?'6px':'14px'),fontSize:8,fontWeight:700,letterSpacing:1.2,textTransform:'uppercase',color:C.dim,textAlign:'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead>
-                        <tbody>{filtered.map(function(s,i){var cross='';var dm=s.d.match(/[\u2013\u2014\u2015–—-]\s*(.+?)\s*[\u2019',]s?\s+(brings|offers|delivers|creates|create|drip|hits|rolls|born|with|a |an |the |this |for )/i);if(dm)cross=dm[1].replace(/\s+(brings|offers|delivers|creates|create|drip|hits|rolls|born).*$/i,'').trim();if(!cross){var xm=s.d.match(/(\w[\w\s']+?)\s*[×xX]\s*(\w[\w\s']+?)[\s,.']/);if(xm)cross=xm[1].trim()+' × '+xm[2].trim();}return(
+                        <tbody>{filtered.map(function(s,i){var cross='';var cdb=(window._STRAIN_DB||[]);var cMatch=cdb.find(function(cs){return cs.n.toLowerCase().replace(/[^a-z0-9]/g,'')===s.n.toLowerCase().replace(/[^a-z0-9]/g,'');});if(cMatch&&cMatch.c)cross=cMatch.c.replace(/\s*x\s*/gi,' × ');return(
                           <tr key={s.n} style={{background:i%2===0?'transparent':'#0a0a0a'}}>
                             <td style={{padding:'9px 14px',fontSize:12,fontWeight:600,whiteSpace:'nowrap'}}>{s.n}</td>
                             <td style={{padding:'9px 6px',textAlign:'center'}}><span style={{fontSize:11,fontWeight:900,color:tc2(s.t),background:tc2(s.t)+'22',border:'1px solid '+tc2(s.t)+'44',borderRadius:2,padding:'2px 6px',display:'inline-block',minWidth:18,textAlign:'center'}}>{s.t.charAt(0)}</span></td>
@@ -2119,13 +2614,52 @@ window._STRAIN_DB=[
                         React.createElement('span',{style:{fontSize:8,color:C.dim,letterSpacing:1.5,width:50,flexShrink:0}},'STATUS'),
                         React.createElement('div',{style:{display:'flex',gap:4,flexWrap:'wrap'}},["ALL","FALLEN OFF","OVERDUE"].map(function(s){return React.createElement('button',{key:s,onClick:function(){setOStatus(s);},style:{padding:'4px 10px',borderRadius:2,fontSize:9,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(oStatus===s?C.text:C.border),background:oStatus===s?C.text:'transparent',color:oStatus===s?C.bg:C.dim,fontWeight:oStatus===s?700:400}},s==="ALL"?"All":s);}))
                       ),
-                      React.createElement('div',{style:{display:'flex',gap:6,alignItems:'center'}},
+                      authRole==='exec'?React.createElement('div',{style:{display:'flex',gap:6,alignItems:'center'}},
                         React.createElement('span',{style:{fontSize:8,color:C.dim,letterSpacing:1.5,width:50,flexShrink:0}},'REP'),
                         React.createElement('div',{style:{display:'flex',gap:4,flexWrap:'wrap'}},["ALL"].concat(uniqueReps).map(function(r){return React.createElement('button',{key:r,onClick:function(){setORep(r);},style:{padding:'4px 10px',borderRadius:2,fontSize:9,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(oRep===r?'#2196f3':C.border),background:oRep===r?'#2196f322':'transparent',color:oRep===r?'#2196f3':C.dim,fontWeight:oRep===r?700:400}},r==="ALL"?"All":r.split(' ')[0]);}))
-                      )
+                      ):authUser&&authUser.repName?React.createElement('div',{style:{padding:'6px 12px',background:'#2196f311',border:'1px solid #2196f333',borderRadius:4,fontSize:10,color:'#2196f3',fontWeight:600}},'\u{1F464} '+authUser.name+' · '+(authUser.repName||'')):null
                     ),
-                    React.createElement('div',{style:{display:'flex',gap:8,marginBottom:16,alignItems:'center'}},
+                    React.createElement('div',{style:{display:'flex',gap:8,marginBottom:16,alignItems:'center',flexWrap:'wrap'}},
                       React.createElement('button',{onClick:function(){generateRideAlongs();},style:{padding:'8px 18px',borderRadius:4,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid #f5a623',background:'#f5a62322',color:'#f5a623',letterSpacing:0.5}},'\u{1F697} Generate Ride Alongs'),
+                      // ── ZONE EXPORT BUTTONS ──
+                      ['DNU','RB','ZASP'].map(function(zk){
+                        var zAccts=OPP.filter(function(o){return o.zone===zk;});
+                        if(zAccts.length===0)return null;
+                        var zColor=DZC2[zk]||'#888';
+                        return React.createElement('button',{key:'exp-'+zk,onClick:function(){
+                          var zName=DZN2[zk]||zk;
+                          var zLabel=zoneLabel[zk]||zk;
+                          var dateStr=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+                          var zRev=zAccts.reduce(function(s,o){return s+o.rev;},0);
+                          var fallen=zAccts.filter(function(o){return o.status==='FALLEN OFF';});
+                          var overdue=zAccts.filter(function(o){return o.status==='OVERDUE';});
+                          // Build clean summary text
+                          var body=zName+' ('+zLabel+') — Zone Report\n'+dateStr+'\n\n';
+                          body+=zAccts.length+' accounts | $'+zRev.toLocaleString()+' total revenue | '+fallen.length+' fallen off | '+overdue.length+' overdue\n\n';
+                          function fmtAcctBlock(list,label){
+                            if(list.length===0)return '';
+                            var out='── '+label+' ('+list.length+') ──\n\n';
+                            list.forEach(function(o,idx){
+                              var lines=alloc[o.name]||[];
+                              var sugRev=lines.reduce(function(s,l){return s+l.lineRev;},0);
+                              out+=o.name+(o.rep?' ('+o.rep+')':'')+'\n';
+                              out+='  '+o.daysSince+'d since last | cadence '+o.median+'d | $'+o.rev.toLocaleString()+' rev | '+o.orders+' orders\n';
+                              if(lines.length>0){
+                                out+='  Suggested: '+lines.map(function(l){return l.qty+'x '+l.strain;}).join(', ')+' ($'+sugRev.toFixed(0)+')\n';
+                              }
+                              out+='\n';
+                            });
+                            return out;
+                          }
+                          body+=fmtAcctBlock(fallen,'FALLEN OFF');
+                          body+=fmtAcctBlock(overdue,'OVERDUE');
+                          var subj=zName+' Zone Report — '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
+                          // Store for share actions
+                          window._zoneExport={subj:subj,body:body};
+                          toast('\u2713 '+zName+' report ready — use Share/Copy below');
+                        },style:{padding:'6px 12px',borderRadius:3,fontSize:9,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+zColor+'66',background:zColor+'11',color:zColor,letterSpacing:0.5}},'✉ '+zk+' ('+zAccts.length+')');
+                      }),
+                      window._zoneExport&&React.createElement('div',{style:{display:'flex',gap:4,marginLeft:'auto'}},shareActions(window._zoneExport.subj,window._zoneExport.body,{padding:'5px 14px',borderRadius:3,fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'inherit'})),
                       (oRep!=="ALL"||oZone!=="ALL")&&(function(){
                         var filterLabel=oRep!=="ALL"?oRep:(DZN2[oZone]||oZone);
                         var filtAccts=oFilt.filter(function(o){return alloc[o.name]&&alloc[o.name].length>0;});
@@ -2151,7 +2685,10 @@ window._STRAIN_DB=[
                         return React.createElement('div',{style:{display:'flex',gap:6,marginLeft:'auto'}},shareActions(subj,body,bs));
                       })()
                     ),
-                    React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:8}},oFilt.length+' opportunities'),
+                    React.createElement('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}},
+                      React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}},oFilt.length+' opportunities'),
+                      React.createElement('button',{onClick:function(){var allOpen=oFilt.every(function(o){return openOpps[o.name];});var next={};oFilt.forEach(function(o){next[o.name]=!allOpen;});setOpenOpps(next);},style:{fontSize:8,color:C.dim,background:'transparent',border:'1px solid '+C.border,borderRadius:2,padding:'3px 10px',cursor:'pointer',fontFamily:'inherit',letterSpacing:1}},oFilt.every(function(o){return openOpps[o.name];})?'▲ COLLAPSE ALL':'▼ EXPAND ALL')
+                    ),
                     React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:6}},
                       oFilt.map(function(o,i){
                         var ratio=o.median>0?(o.daysSince/o.median).toFixed(1):'?';
@@ -3685,6 +4222,58 @@ const YIELD_KEY = 'gpi-yield-log';
       const [yieldLog, setYieldLog] = useState([]);
       const [yLoading, setYLoading] = useState(true);
       const [yForm, setYForm] = useState({strain:'',weightLbs:'',biomassPrice:'25',tollFee:'40',yieldPct:'',notes:''});
+      const [csvPreview, setCsvPreview] = useState(null);// {rows:[], headers:[]}
+      const csvUpRef = useRef(null);
+
+      function handleYieldCSV(e){
+        var file=e.target.files&&e.target.files[0];if(!file)return;
+        var reader=new FileReader();
+        reader.onload=function(ev){
+          try{
+            var text=ev.target.result;
+            var lines=text.split(/\r?\n/).filter(function(l){return l.trim();});
+            if(lines.length<2){alert('CSV must have a header row and at least one data row');return;}
+            var headers=lines[0].split(',').map(function(h){return h.trim().replace(/^"|"$/g,'').toLowerCase();});
+            // Flexible column matching
+            function findCol(){for(var i=0;i<arguments.length;i++){var idx=headers.indexOf(arguments[i]);if(idx>=0)return idx;}return -1;}
+            var si=findCol('strain','strain name','name','product');
+            var wi=findCol('weight','weight (lbs)','weight_lbs','weightlbs','input_lbs','lbs','input weight');
+            var yi=findCol('yield','yield %','yield_pct','yieldpct','yield pct','yield(%)');
+            var bi=findCol('biomass price','biomass_price','biomassprice','$/lb','price_per_lb','biomass');
+            var ti=findCol('toll','toll fee','toll_fee','tollfee','processing','toll processing');
+            var ni=findCol('notes','note','batch','batch #','batch_id');
+            if(si<0){alert('Could not find a "Strain" column. Headers found: '+headers.join(', '));return;}
+            var rows=[];
+            for(var r=1;r<lines.length;r++){
+              var cols=lines[r].split(',').map(function(c){return c.trim().replace(/^"|"$/g,'');});
+              var strain=cols[si]||'';if(!strain)continue;
+              rows.push({
+                strain:strain,
+                weightLbs:wi>=0?parseFloat(cols[wi])||0:0,
+                yieldPct:yi>=0?parseFloat(cols[yi])||0:0,
+                biomassPrice:bi>=0?parseFloat(cols[bi])||25:25,
+                tollFee:ti>=0?parseFloat(cols[ti])||40:40,
+                notes:ni>=0?(cols[ni]||''):'CSV import'
+              });
+            }
+            setCsvPreview({rows:rows,headers:headers,colMap:{strain:si,weight:wi,yield:yi,biomass:bi,toll:ti,notes:ni}});
+          }catch(err){alert('CSV parse error: '+err.message);}
+        };
+        reader.readAsText(file);
+        e.target.value='';
+      }
+
+      function commitCSVImport(){
+        if(!csvPreview||!csvPreview.rows.length)return;
+        var newEntries=csvPreview.rows.map(function(row){
+          var wt=row.weightLbs,bp=row.biomassPrice,toll=row.tollFee,yld=row.yieldPct;
+          var inputGrams=wt*453.6,biomassCost=wt*bp,tollCost=wt*toll,totalCost=biomassCost+tollCost;
+          var outputGrams=inputGrams*(yld/100),costPerGram=outputGrams>0?totalCost/outputGrams:0;
+          return{id:Date.now()+'-'+Math.random().toString(36).substr(2,5),strain:row.strain,weightLbs:wt,biomassPrice:bp,tollFee:toll,yieldPct:yld,inputGrams:inputGrams,outputGrams:outputGrams,biomassCost:biomassCost,tollCost:tollCost,totalCost:totalCost,costPerGram:costPerGram,notes:row.notes,ts:new Date().toISOString()};
+        });
+        saveLog(newEntries.concat(yieldLog));
+        setCsvPreview(null);
+      }
 
       useEffect(function(){
         async function load(){try{var r=await window.storage.get(YIELD_KEY);if(r)setYieldLog(JSON.parse(r.value));}catch(e){}setYLoading(false);}
@@ -3743,7 +4332,32 @@ const YIELD_KEY = 'gpi-yield-log';
         <div>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20,flexWrap:'wrap',gap:12}}>
             <div><div style={{fontSize:14,fontWeight:800,letterSpacing:3}}>YIELD + COST TRACKING</div><div style={{fontSize:9,color:C.dim,marginTop:3}}>Input biomass → Greenline processing → output extract · cost per gram</div></div>
+            <div style={{display:'flex',gap:8}}>
+              <input ref={csvUpRef} type="file" accept=".csv" onChange={handleYieldCSV} style={{display:'none'}}/>
+              <button onClick={function(){csvUpRef.current&&csvUpRef.current.click();}} style={{padding:'6px 14px',borderRadius:3,fontSize:10,fontWeight:700,cursor:'pointer',border:'1px solid '+C.border,background:C.surface,color:C.text,fontFamily:'inherit',letterSpacing:1}}>📤 UPLOAD CSV</button>
+            </div>
           </div>
+
+          {csvPreview&&(<div style={{background:C.surface,border:'1px solid #f5a623',borderRadius:6,padding:16,marginBottom:20}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+              <div style={{fontSize:11,fontWeight:800,color:'#f5a623',letterSpacing:2}}>CSV PREVIEW — {csvPreview.rows.length} ENTRIES</div>
+              <div style={{display:'flex',gap:8}}>
+                <button onClick={function(){setCsvPreview(null);}} style={{padding:'5px 12px',borderRadius:3,fontSize:9,cursor:'pointer',border:'1px solid '+C.border,background:'transparent',color:C.dim,fontFamily:'inherit'}}>Cancel</button>
+                <button onClick={commitCSVImport} style={{padding:'5px 12px',borderRadius:3,fontSize:9,fontWeight:700,cursor:'pointer',border:'none',background:C.good,color:'#fff',fontFamily:'inherit'}}>✓ Import {csvPreview.rows.length} Entries</button>
+              </div>
+            </div>
+            <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',fontSize:10}}>
+              <thead><tr style={{background:C.raised}}>{['Strain','Weight (lbs)','Yield %','Biomass $/lb','Toll $/lb','Notes'].map(function(h){return<th key={h} style={{padding:'6px 8px',fontSize:8,fontWeight:700,color:C.dim,textAlign:'left',borderBottom:'1px solid '+C.border}}>{h}</th>;})}</tr></thead>
+              <tbody>{csvPreview.rows.slice(0,10).map(function(row,i){return<tr key={i} style={{background:i%2===0?'transparent':C.raised}}>
+                <td style={{padding:'6px 8px',fontWeight:600}}>{row.strain}</td>
+                <td style={{padding:'6px 8px'}}>{row.weightLbs||'—'}</td>
+                <td style={{padding:'6px 8px'}}>{row.yieldPct||'—'}</td>
+                <td style={{padding:'6px 8px'}}>${row.biomassPrice}</td>
+                <td style={{padding:'6px 8px'}}>${row.tollFee}</td>
+                <td style={{padding:'6px 8px',color:C.dim}}>{row.notes||'—'}</td>
+              </tr>;})}{csvPreview.rows.length>10&&<tr><td colSpan={6} style={{padding:'6px 8px',fontSize:9,color:C.dim}}>...and {csvPreview.rows.length-10} more</td></tr>}</tbody>
+            </table></div>
+          </div>)}
 
           {/* Summary cards */}
           {yieldLog.length>0&&(
