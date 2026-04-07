@@ -1204,7 +1204,6 @@ window._STRAIN_DB=[
       useEffect(function(){boot();},[]); // eslint-disable-line
       async function boot(){
         async function load(k,s){try{const r=await window.storage.get(k);if(r)s(JSON.parse(r.value));}catch(e){}}
-        // Step 1: Always load localStorage first (instant, works offline)
         await load("gpi-accounts",setAccounts);
         await load("gpi-promo-accounts",setPromoAccounts);
         await load("gpi-prices",setPriceData);
@@ -1214,26 +1213,39 @@ window._STRAIN_DB=[
         try{const r=await window.storage.get("gpi-sync");if(r)setLastSync(r.value);}catch(e){}
         await load(RETURNS_KEY,setReturnsLog);
         await load("gpi-contacts",setContactsData);
-        // Step 2: Then try Firebase in background (non-blocking)
-        setTimeout(function(){
-          try{
-            var fbTimeout=new Promise(function(r){setTimeout(function(){r(null);},5000);});
-            Promise.race([fbGetAll(),fbTimeout]).then(function(fb){
-              if(fb&&typeof fb==='object'){
-                var fbLoaded=[];
-                if(fb['gpi-accounts']&&Array.isArray(fb['gpi-accounts'])){setAccounts(fb['gpi-accounts']);fbLoaded.push(fb['gpi-accounts'].length+' accounts');}
-                if(fb['gpi-promo-accounts']){setPromoAccounts(fb['gpi-promo-accounts']);}
-                if(fb['gpi-prices']){setPriceData(fb['gpi-prices']);}
-                if(fb['gpi-snaps']){setSnapshots(fb['gpi-snaps']);}
-                if(fb['gpi-inventory']){var inv=fb['gpi-inventory'];setInventoryData(inv);var oh={};Object.keys(inv).forEach(function(k2){oh[k2]=inv[k2].onHand;});setMfgInventory(oh);fbLoaded.push(Object.keys(inv).length+' SKUs');}
-                if(fb['gpi-returns-log']){setReturnsLog(fb['gpi-returns-log']);}
-                if(fb['gpi-contacts']){setContactsData(fb['gpi-contacts']);}
-                if(fb['gpi-sync']){setLastSync(fb['gpi-sync']);}
-                if(fbLoaded.length>0){toast('\u2601 Synced from cloud: '+fbLoaded.join(' \u00b7 '));}
+      }
+      const [cloudSyncing,setCloudSyncing]=useState(false);
+      async function cloudSync(){
+        if(cloudSyncing)return;
+        setCloudSyncing(true);toast('\u2601 Syncing from cloud...');
+        try{
+          var loaded=[];
+          var keys=[
+            {k:'gpi-accounts',s:setAccounts,label:'accounts',isArr:true},
+            {k:'gpi-promo-accounts',s:setPromoAccounts},
+            {k:'gpi-prices',s:setPriceData},
+            {k:'gpi-snaps',s:setSnapshots},
+            {k:'gpi-contacts',s:setContactsData},
+            {k:'gpi-returns-log',s:setReturnsLog}
+          ];
+          for(var i=0;i<keys.length;i++){
+            try{
+              var d=await fbGet(keys[i].k);
+              if(d){
+                keys[i].s(d);
+                if(keys[i].isArr&&Array.isArray(d))loaded.push(d.length+' '+(keys[i].label||keys[i].k));
+                await window.storage.set(keys[i].k,JSON.stringify(d));
               }
-            }).catch(function(e){console.warn('Firebase sync failed:',e);});
-          }catch(e){console.warn('Firebase sync error:',e);}
-        },100);
+            }catch(e){console.warn('Sync '+keys[i].k+' failed:',e);}
+          }
+          try{
+            var inv=await fbGet('gpi-inventory');
+            if(inv&&typeof inv==='object'){setInventoryData(inv);var oh={};Object.keys(inv).forEach(function(k2){oh[k2]=inv[k2].onHand;});setMfgInventory(oh);loaded.push(Object.keys(inv).length+' SKUs');await window.storage.set('gpi-inventory',JSON.stringify(inv));}
+          }catch(e){}
+          try{var ts=await fbGet('gpi-sync');if(ts)setLastSync(ts);}catch(e){}
+          toast(loaded.length>0?'\u2601 Synced: '+loaded.join(' \u00b7 '):'\u2601 Cloud is empty \u2014 upload XLSX first');
+        }catch(e){toast('\u2717 Cloud sync failed: '+e.message);console.error(e);}
+        setCloudSyncing(false);
       }
       async function persist(k,v){try{await window.storage.set(k,JSON.stringify(v));await window.storage.set("gpi-sync",new Date().toISOString());setLastSync(new Date().toISOString());fbPut(k,v);}catch(e){console.error(e);}}
       function toast(msg){setNotice(msg);setTimeout(function(){setNotice("");},15000);}
@@ -1592,6 +1604,7 @@ window._STRAIN_DB=[
               <input ref={csvRef} type="file" accept=".csv,.xlsx,.xls" onChange={handleCSVFile} style={{position:'absolute',opacity:0,width:0,height:0,overflow:'hidden'}}/>
               <input ref={jsonRef} type="file" accept=".json" onChange={handleJSONFile} style={{position:'absolute',opacity:0,width:0,height:0,overflow:'hidden'}}/>
               <button style={Object.assign({},btnSt('ghost'),{fontSize:12})} onClick={function(){setShowUniSearch(true);}} title="Universal Search">⌕</button>
+              <button style={Object.assign({},btnSt('ghost'),{fontSize:10,color:cloudSyncing?C.warn:C.good})} onClick={cloudSync} disabled={cloudSyncing} title="Sync data from cloud">{cloudSyncing?'⟳ Syncing...':'☁ Sync'}</button>
               <button style={btnSt('ghost')} disabled={csvLoading} onClick={function(){csvRef.current&&csvRef.current.click();}}>{csvLoading?'Parsing…':(function(){var labels={accounts:'Upload Account Data',opportunities:'Upload Sales Data',dispatch:'Upload Dispatch Data',returns:'Upload Returns Data',executive:'Upload Financial Data',pnl:'Upload P&L Data',cashflow:'Upload Cash Flow Data',strains:'Upload Strain Data',mfg:'Upload MFG Data',packaging:'Upload Inventory Data'};return labels[tab]||'Upload Salesforce XLSX';})()}</button>
               <button className="hdr-hide-mobile" style={btnSt('outline')} onClick={function(){jsonRef.current&&jsonRef.current.click();}}>Import Scan</button>
               <button className="hdr-hide-mobile" style={btnSt('ghost')} onClick={function(){
