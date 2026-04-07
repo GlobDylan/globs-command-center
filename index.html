@@ -1204,24 +1204,7 @@ window._STRAIN_DB=[
       useEffect(function(){boot();},[]); // eslint-disable-line
       async function boot(){
         async function load(k,s){try{const r=await window.storage.get(k);if(r)s(JSON.parse(r.value));}catch(e){}}
-        // Try Firebase first (cross-device sync), fall back to localStorage
-        try{
-          var fbTimeout=new Promise(function(r){setTimeout(function(){r(null);},5000);});
-          var fb=await Promise.race([fbGetAll(),fbTimeout]);
-          if(fb&&typeof fb==='object'){
-            var fbLoaded=[];
-            if(fb['gpi-accounts']&&Array.isArray(fb['gpi-accounts'])){setAccounts(fb['gpi-accounts']);fbLoaded.push(fb['gpi-accounts'].length+' accounts');}
-            if(fb['gpi-promo-accounts']){setPromoAccounts(fb['gpi-promo-accounts']);}
-            if(fb['gpi-prices']){setPriceData(fb['gpi-prices']);}
-            if(fb['gpi-snaps']){setSnapshots(fb['gpi-snaps']);}
-            if(fb['gpi-inventory']){var inv=fb['gpi-inventory'];setInventoryData(inv);var oh={};Object.keys(inv).forEach(function(k2){oh[k2]=inv[k2].onHand;});setMfgInventory(oh);fbLoaded.push(Object.keys(inv).length+' SKUs');}
-            if(fb['gpi-returns-log']){setReturnsLog(fb['gpi-returns-log']);}
-            if(fb['gpi-contacts']){setContactsData(fb['gpi-contacts']);}
-            if(fb['gpi-sync']){setLastSync(fb['gpi-sync']);}
-            if(fbLoaded.length>0){toast('\u2601 Synced from cloud: '+fbLoaded.join(' \u00b7 '));return;}
-          }
-        }catch(e){console.warn('Firebase boot failed, using localStorage:',e);}
-        // Fallback: localStorage
+        // Step 1: Always load localStorage first (instant, works offline)
         await load("gpi-accounts",setAccounts);
         await load("gpi-promo-accounts",setPromoAccounts);
         await load("gpi-prices",setPriceData);
@@ -1231,6 +1214,26 @@ window._STRAIN_DB=[
         try{const r=await window.storage.get("gpi-sync");if(r)setLastSync(r.value);}catch(e){}
         await load(RETURNS_KEY,setReturnsLog);
         await load("gpi-contacts",setContactsData);
+        // Step 2: Then try Firebase in background (non-blocking)
+        setTimeout(function(){
+          try{
+            var fbTimeout=new Promise(function(r){setTimeout(function(){r(null);},5000);});
+            Promise.race([fbGetAll(),fbTimeout]).then(function(fb){
+              if(fb&&typeof fb==='object'){
+                var fbLoaded=[];
+                if(fb['gpi-accounts']&&Array.isArray(fb['gpi-accounts'])){setAccounts(fb['gpi-accounts']);fbLoaded.push(fb['gpi-accounts'].length+' accounts');}
+                if(fb['gpi-promo-accounts']){setPromoAccounts(fb['gpi-promo-accounts']);}
+                if(fb['gpi-prices']){setPriceData(fb['gpi-prices']);}
+                if(fb['gpi-snaps']){setSnapshots(fb['gpi-snaps']);}
+                if(fb['gpi-inventory']){var inv=fb['gpi-inventory'];setInventoryData(inv);var oh={};Object.keys(inv).forEach(function(k2){oh[k2]=inv[k2].onHand;});setMfgInventory(oh);fbLoaded.push(Object.keys(inv).length+' SKUs');}
+                if(fb['gpi-returns-log']){setReturnsLog(fb['gpi-returns-log']);}
+                if(fb['gpi-contacts']){setContactsData(fb['gpi-contacts']);}
+                if(fb['gpi-sync']){setLastSync(fb['gpi-sync']);}
+                if(fbLoaded.length>0){toast('\u2601 Synced from cloud: '+fbLoaded.join(' \u00b7 '));}
+              }
+            }).catch(function(e){console.warn('Firebase sync failed:',e);});
+          }catch(e){console.warn('Firebase sync error:',e);}
+        },100);
       }
       async function persist(k,v){try{await window.storage.set(k,JSON.stringify(v));await window.storage.set("gpi-sync",new Date().toISOString());setLastSync(new Date().toISOString());fbPut(k,v);}catch(e){console.error(e);}}
       function toast(msg){setNotice(msg);setTimeout(function(){setNotice("");},15000);}
