@@ -1206,7 +1206,8 @@ window._STRAIN_DB=[
         async function load(k,s){try{const r=await window.storage.get(k);if(r)s(JSON.parse(r.value));}catch(e){}}
         // Try Firebase first (cross-device sync), fall back to localStorage
         try{
-          var fb=await fbGetAll();
+          var fbTimeout=new Promise(function(r){setTimeout(function(){r(null);},5000);});
+          var fb=await Promise.race([fbGetAll(),fbTimeout]);
           if(fb&&typeof fb==='object'){
             var fbLoaded=[];
             if(fb['gpi-accounts']&&Array.isArray(fb['gpi-accounts'])){setAccounts(fb['gpi-accounts']);fbLoaded.push(fb['gpi-accounts'].length+' accounts');}
