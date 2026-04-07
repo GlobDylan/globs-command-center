@@ -891,6 +891,11 @@ window._STRAIN_DB=[
     }
 
     // ── MAIN APP ──────────────────────────────────────────────────────────────
+    var FIREBASE_URL='https://globs-gpi-c01af-default-rtdb.firebaseio.com/gpi';
+    function fbPut(key,data){try{fetch(FIREBASE_URL+'/'+key+'.json',{method:'PUT',body:JSON.stringify(data)});}catch(e){console.warn('Firebase write failed:',e);}}
+    function fbGet(key){return fetch(FIREBASE_URL+'/'+key+'.json').then(function(r){return r.json();}).catch(function(e){console.warn('Firebase read failed:',e);return null;});}
+    function fbGetAll(){return fetch(FIREBASE_URL+'.json').then(function(r){return r.json();}).catch(function(e){console.warn('Firebase read all failed:',e);return null;});}
+
     function GPI() {
       const [tab,setTab]=useState("accounts");
       function switchTab(t){try{document.activeElement.blur();}catch(e){}setTab(t);}
@@ -1199,6 +1204,23 @@ window._STRAIN_DB=[
       useEffect(function(){boot();},[]); // eslint-disable-line
       async function boot(){
         async function load(k,s){try{const r=await window.storage.get(k);if(r)s(JSON.parse(r.value));}catch(e){}}
+        // Try Firebase first (cross-device sync), fall back to localStorage
+        try{
+          var fb=await fbGetAll();
+          if(fb&&typeof fb==='object'){
+            var fbLoaded=[];
+            if(fb['gpi-accounts']&&Array.isArray(fb['gpi-accounts'])){setAccounts(fb['gpi-accounts']);fbLoaded.push(fb['gpi-accounts'].length+' accounts');}
+            if(fb['gpi-promo-accounts']){setPromoAccounts(fb['gpi-promo-accounts']);}
+            if(fb['gpi-prices']){setPriceData(fb['gpi-prices']);}
+            if(fb['gpi-snaps']){setSnapshots(fb['gpi-snaps']);}
+            if(fb['gpi-inventory']){var inv=fb['gpi-inventory'];setInventoryData(inv);var oh={};Object.keys(inv).forEach(function(k2){oh[k2]=inv[k2].onHand;});setMfgInventory(oh);fbLoaded.push(Object.keys(inv).length+' SKUs');}
+            if(fb['gpi-returns-log']){setReturnsLog(fb['gpi-returns-log']);}
+            if(fb['gpi-contacts']){setContactsData(fb['gpi-contacts']);}
+            if(fb['gpi-sync']){setLastSync(fb['gpi-sync']);}
+            if(fbLoaded.length>0){toast('\u2601 Synced from cloud: '+fbLoaded.join(' \u00b7 '));return;}
+          }
+        }catch(e){console.warn('Firebase boot failed, using localStorage:',e);}
+        // Fallback: localStorage
         await load("gpi-accounts",setAccounts);
         await load("gpi-promo-accounts",setPromoAccounts);
         await load("gpi-prices",setPriceData);
@@ -1209,7 +1231,7 @@ window._STRAIN_DB=[
         await load(RETURNS_KEY,setReturnsLog);
         await load("gpi-contacts",setContactsData);
       }
-      async function persist(k,v){try{await window.storage.set(k,JSON.stringify(v));await window.storage.set("gpi-sync",new Date().toISOString());setLastSync(new Date().toISOString());}catch(e){console.error(e);}}
+      async function persist(k,v){try{await window.storage.set(k,JSON.stringify(v));await window.storage.set("gpi-sync",new Date().toISOString());setLastSync(new Date().toISOString());fbPut(k,v);}catch(e){console.error(e);}}
       function toast(msg){setNotice(msg);setTimeout(function(){setNotice("");},15000);}
 
       const [csvLoading,setCsvLoading]=useState(false);
