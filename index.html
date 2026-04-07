@@ -2467,38 +2467,43 @@ window._STRAIN_DB=[
 
                 {/* ══ P&L ══ */}
                 {tab==="pnl"&&(function(){
-                  var CM={"Vape Cart - Live Resin":"Cart","Badder":"Badder","Sauce":"Sauce","Diamonds":"Diamonds","Shatter":"Shatter","Sample/Promo":"Promo"};
-                  var cb2={"Cart":COGS.Cart,"Badder":COGS.Badder,"Sauce":COGS.Sauce,"Diamonds":COGS.Diamonds,"Shatter":COGS.Shatter,"Promo":COGS.Promo};
-                  var grossRev=0,units=0,cogsTotal=0,distroFees=0;
-                  accounts.forEach(function(acc){var cr=(acc.periodCatRevenue&&acc.periodCatRevenue[periodDays])?acc.periodCatRevenue[periodDays]:(acc.catRevenue90||{});Object.keys(cr).forEach(function(rc){var rev=cr[rc];if(!rev||rev<=0)return;var label=CM[rc]||rc;var cg=cb2[label]||COGS.Other;var u=cg.wholesale>0?Math.round(rev/cg.wholesale):0;grossRev+=rev;units+=u;cogsTotal+=u*cg.cost;distroFees+=rev*cg.distroRate;});});
-                  var netRev=grossRev-distroFees;
-                  var grossProfit=netRev-cogsTotal;
-                  var retTotal=(returnsLog||[]).filter(function(r){return !r.preMarket;}).reduce(function(s,r){return s+(r.totalValue||0);},0);
-                  var opex=0;
-                  var ebitda=grossProfit-retTotal-opex;
-                  var margin=netRev>0?ebitda/netRev*100:0;
-                  function row(label,val,opts){opts=opts||{};return React.createElement('div',{key:label,style:{display:'flex',justifyContent:'space-between',padding:'8px 12px',borderBottom:opts.border?'2px solid '+C.border:'1px solid '+C.border,background:opts.highlight?C.raised:'transparent'}},React.createElement('span',{style:{fontSize:opts.bold?12:10,fontWeight:opts.bold?800:400,color:opts.dim?C.dim:C.text,letterSpacing:opts.bold?1:0}},label),React.createElement('span',{style:{fontSize:opts.bold?13:11,fontWeight:opts.bold?800:600,color:opts.color||C.text,fontFamily:'monospace'}},val));}
+                  var CM={"Vape Cart - Live Resin":"Vape Cart","Badder":"Badder","Sauce":"Sauce","Diamonds":"Diamonds","Shatter":"Shatter"};
+                  var cb2={"Vape Cart":COGS.Cart,"Badder":COGS.Badder,"Sauce":COGS.Sauce,"Diamonds":COGS.Diamonds,"Shatter":COGS.Shatter};
+                  var byType={},tR=0,tC=0,tU=0;
+                  displayAccounts.forEach(function(acc){var cr=(acc.periodCatRevenue&&acc.periodCatRevenue[periodDays])?acc.periodCatRevenue[periodDays]:(acc.catRevenue90||{});Object.keys(cr).forEach(function(rc){var rev=cr[rc];if(!rev||rev<=0)return;var label=CM[rc]||rc;var cg=cb2[label]||COGS.Other;var u=cg.wholesale>0?Math.round(rev/cg.wholesale):0;var yourRev=rev*0.84;var pc=u*cg.cost;if(!byType[label])byType[label]={label:label,units:0,revenue:0,cogs:0};byType[label].units+=u;byType[label].revenue+=yourRev;byType[label].cogs+=pc;tR+=yourRev;tC+=pc;tU+=u;});});
+                  var gp=tR-tC;var retTotal=(returnsLog||[]).filter(function(r){return !r.preMarket;}).reduce(function(s,r){return s+(r.totalValue||0);},0);
+                  var net=gp-retTotal;var mg=tR>0?gp/tR*100:0;var nmg=tR>0?net/tR*100:0;
+                  var types=Object.values(byType).sort(function(a,b){return b.revenue-a.revenue;});
+                  function row(label,val,opts){opts=opts||{};return React.createElement('div',{key:label,style:{display:'flex',justifyContent:'space-between',padding:opts.bold?'10px 14px':'6px 14px',borderBottom:opts.border?'2px solid '+C.text+'22':'1px solid '+C.border+'44',background:opts.highlight?C.raised:'transparent'}},React.createElement('span',{style:{fontSize:opts.bold?12:10,fontWeight:opts.bold?800:400,color:opts.dim?C.dim:C.text,letterSpacing:opts.bold?1.5:0.5}},label),React.createElement('span',{style:{fontSize:opts.bold?14:11,fontWeight:opts.bold?800:600,color:opts.color||C.text,fontFamily:'monospace'}},val));}
                   return React.createElement('div',null,
                     React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:14}},React.createElement('span',{style:{fontSize:9,color:C.dim,letterSpacing:1.5}},'PERIOD'),
                       [7,30,60,90,180,270,365].map(function(d){return React.createElement('button',{key:d,onClick:function(){setPeriodDays(d);},style:{padding:'4px 10px',borderRadius:2,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(periodDays===d?C.text:C.border),background:periodDays===d?C.text:'transparent',color:periodDays===d?C.bg:C.dim,fontWeight:periodDays===d?700:400}},d+'d');})
                     ),
-                    React.createElement('div',{style:{fontSize:14,fontWeight:900,letterSpacing:3,marginBottom:16}},'PROFIT & LOSS STATEMENT'),
+                    React.createElement('div',{style:{fontSize:14,fontWeight:900,letterSpacing:3,marginBottom:16}},'PROFIT & LOSS'),
                     React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,overflow:'hidden'}},
-                      row('Gross Revenue',cur(grossRev),{bold:true,border:true}),
-                      row('  Distribution Fees (16%)','('+cur(distroFees)+')',{dim:true}),
-                      row('Net Revenue (84%)',cur(netRev),{bold:true,border:true,highlight:true}),
-                      row(''),
-                      row('Cost of Goods Sold','('+cur(cogsTotal)+')',{dim:true}),
-                      row('  Units Produced',units.toLocaleString(),{dim:true}),
-                      row('Gross Profit',cur(grossProfit),{bold:true,border:true,color:grossProfit>0?C.good:C.danger}),
-                      row(''),
-                      row('Returns / Credits','('+cur(retTotal)+')',{dim:true,color:retTotal>0?C.danger:C.dim}),
-                      row('Operating Expenses','('+cur(opex)+')',{dim:true}),
-                      row(''),
-                      row('EBITDA',cur(ebitda),{bold:true,highlight:true,border:true,color:ebitda>0?C.good:C.danger}),
-                      row('Margin',margin.toFixed(1)+'%',{bold:true,highlight:true,color:margin>35?C.good:margin>20?C.warn:C.danger})
+                      row('Net Revenue (after 16% distro)',cur(tR),{bold:true,border:true}),
+                      React.createElement('div',{key:'cogs-hdr',style:{padding:'8px 14px 2px',fontSize:8,color:C.dim,letterSpacing:1.5}},'COST OF GOODS SOLD'),
+                      types.map(function(t){return row('  '+t.label+' ('+t.units.toLocaleString()+'u \u00d7 $'+(t.units>0?(t.cogs/t.units).toFixed(2):'0')+')','('+cur(t.cogs)+')',{dim:true});}),
+                      row('Total COGS','('+cur(tC)+')',{border:true}),
+                      row('Gross Profit',cur(gp),{bold:true,color:gp>0?C.good:C.danger}),
+                      row('Gross Margin',mg.toFixed(1)+'%',{color:mg>35?C.good:mg>20?C.warn:C.danger}),
+                      React.createElement('div',{key:'sep',style:{height:8}}),
+                      retTotal>0?row('Returns / Credits','('+cur(retTotal)+')',{dim:true,color:C.danger}):null,
+                      retTotal>0?row('Net Income',cur(net),{bold:true,highlight:true,border:true,color:net>0?C.good:C.danger}):null,
+                      retTotal>0?row('Net Margin',nmg.toFixed(1)+'%',{highlight:true,color:nmg>35?C.good:nmg>20?C.warn:C.danger}):null
                     ),
-                    React.createElement('div',{style:{marginTop:12,fontSize:8,color:C.dim,letterSpacing:0.5}},'Revenue = Salesforce '+periodDays+'d \u00b7 COGS = invoice-verified unit costs \u00b7 OpEx = manual entry (coming soon)')
+                    React.createElement('div',{style:{marginTop:16,background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16}},
+                      React.createElement('div',{style:{fontSize:9,color:C.dim,letterSpacing:1.5,marginBottom:10}},'UNIT ECONOMICS'),
+                      React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))',gap:8}},
+                        types.map(function(t){var unitNet=t.units>0?(t.revenue-t.cogs)/t.units:0;var unitMg=t.revenue>0?(t.revenue-t.cogs)/t.revenue*100:0;return React.createElement('div',{key:t.label,style:{background:C.bg,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}},
+                          React.createElement('div',{style:{fontSize:10,fontWeight:700,marginBottom:6}},t.label),
+                          React.createElement('div',{style:{fontSize:8,color:C.dim}},'Revenue: '+cur(t.revenue)),
+                          React.createElement('div',{style:{fontSize:8,color:C.dim}},'COGS: '+cur(t.cogs)),
+                          React.createElement('div',{style:{fontSize:8,fontWeight:700,color:unitMg>35?C.good:unitMg>20?C.warn:C.danger}},'Margin: '+unitMg.toFixed(1)+'% ($'+unitNet.toFixed(2)+'/unit)')
+                        );})
+                      )
+                    ),
+                    React.createElement('div',{style:{marginTop:10,fontSize:8,color:C.dim,letterSpacing:0.5}},'Revenue = Salesforce '+periodDays+'d \u00d7 84% (net of UpNorth 16%) \u00b7 COGS = invoice-verified: Cart $5.50, Badder $3.08, Sauce $3.00')
                   );
                 })()}
 
