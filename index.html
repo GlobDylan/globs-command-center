@@ -892,9 +892,9 @@ window._STRAIN_DB=[
 
     // ── MAIN APP ──────────────────────────────────────────────────────────────
     var FIREBASE_URL='https://globs-gpi-c01af-default-rtdb.firebaseio.com/gpi';
-    function fbPut(key,data){try{fetch(FIREBASE_URL+'/'+key+'.json',{method:'PUT',body:JSON.stringify(data)});}catch(e){console.warn('Firebase write failed:',e);}}
-    function fbGet(key){return fetch(FIREBASE_URL+'/'+key+'.json').then(function(r){return r.json();}).catch(function(e){console.warn('Firebase read failed:',e);return null;});}
-    function fbGetAll(){return fetch(FIREBASE_URL+'.json').then(function(r){return r.json();}).catch(function(e){console.warn('Firebase read all failed:',e);return null;});}
+    function fbPut(key,data){try{fetch(FIREBASE_URL+'/'+key+'.json',{method:'PUT',body:JSON.stringify(JSON.stringify(data))}).catch(function(e){console.warn('Firebase write failed:',e);});}catch(e){console.warn('Firebase write error:',e);}}
+    function fbGet(key){return fetch(FIREBASE_URL+'/'+key+'.json').then(function(r){return r.json();}).then(function(v){return typeof v==='string'?JSON.parse(v):v;}).catch(function(e){console.warn('Firebase read failed:',e);return null;});}
+    function fbGetAll(){return fetch(FIREBASE_URL+'.json').then(function(r){return r.json();}).then(function(obj){if(!obj||typeof obj!=='object')return null;var out={};Object.keys(obj).forEach(function(k){try{out[k]=typeof obj[k]==='string'?JSON.parse(obj[k]):obj[k];}catch(e){out[k]=obj[k];}});return out;}).catch(function(e){console.warn('Firebase read all failed:',e);return null;})}
 
     function GPI() {
       const [tab,setTab]=useState("accounts");
