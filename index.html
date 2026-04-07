@@ -56,12 +56,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" onerror="window.__GPI_ERRORS.push('Failed to load: xlsx');var b=document.getElementById('gpi-error-banner');if(b)b.innerHTML+='<br>Failed: xlsx';"></script>
   <style>
     :root {
-      --bg:#000000; --surface:#0a0a0a; --raised:#111111; --border:#1a1a1a; --border-hi:#333333;
-      --text:#ffffff; --muted:#b0b0b0; --dim:#666666;
-      --accent:#ffffff; --accent-glow:rgba(255,255,255,0.08);
-      --danger:#ff3333; --danger-bg:#160000; --danger-bdr:#380000;
-      --warn:#ff8800; --warn-bg:#1a0e00; --warn-bdr:#3a2000;
-      --good:#33cc66; --good-bg:#001a0d; --good-bdr:#004d20;
+      --bg:#000000; --surface:#050505; --raised:#0d0d0d; --border:#151515; --border-hi:#2a2a2a;
+      --text:#ffffff; --muted:#999999; --dim:#555555;
+      --accent:#ffffff; --accent-glow:rgba(255,255,255,0.06);
+      --danger:#ff3333; --danger-bg:#120000; --danger-bdr:#2a0000;
+      --warn:#ff8800; --warn-bg:#120800; --warn-bdr:#2a1800;
+      --good:#33cc66; --good-bg:#001208; --good-bdr:#003818;
     }
     body.light-mode {
       --bg:#f5f5f5; --surface:#ffffff; --raised:#ebebeb; --border:#d4d4d4; --border-hi:#aaaaaa;
@@ -617,8 +617,8 @@ window._STRAIN_DB=[
 
     // ── CONSTANTS ─────────────────────────────────────────────────────────────
     const DARK_C = {
-      bg:"#000000",surface:"#0a0a0a",raised:"#111111",border:"#1a1a1a",borderHi:"#333333",
-      text:"#ffffff",muted:"#b0b0b0",dim:"#666666",
+      bg:"#000000",surface:"#050505",raised:"#0d0d0d",border:"#151515",borderHi:"#2a2a2a",
+      text:"#ffffff",muted:"#999999",dim:"#555555",
       danger:"#ff3333",dangerBg:"#160000",dangerBdr:"#380000",
       warn:"#ff8800",warnBg:"#1a0e00",warnBdr:"#3a2000",
       good:"#33cc66",goodBg:"#001a0d",goodBdr:"#004d20",
@@ -747,7 +747,7 @@ window._STRAIN_DB=[
           <div style={{overflowX:'auto'}}>
             <table style={{width:'100%',minWidth:560,borderCollapse:'collapse'}}>
               <thead><tr style={{background:C.raised}}>{["Quarter","Event","Dates","Discount","Days","Status"].map(function(h,i){return<th key={h} style={{padding:'6px 16px',fontSize:9,fontWeight:700,letterSpacing:1.2,textTransform:'uppercase',color:C.dim,textAlign:i>=3?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead>
-              <tbody>{qs.map(function(q){return byQ[q].map(function(p,pi){const col=cc(p.confirmation);const dr=p.startDate&&p.endDate&&p.startDate!==p.endDate?(p.startDate+' – '+p.endDate):(p.startDate||p.event||'—');return(<tr key={q+'-'+pi} style={{background:pi%2===0?'transparent':'#0a0a0a'}}>{pi===0?<td style={{padding:'8px 16px',fontSize:11,fontWeight:700}}>{q}</td>:<td style={{padding:'8px 16px'}}/>}<td style={{padding:'8px 16px',fontSize:11,color:C.muted}}>{p.event||'—'}</td><td style={{padding:'8px 16px',fontSize:10,color:C.dim}}>{dr}</td><td style={{padding:'8px 16px',textAlign:'right',fontWeight:700,fontSize:12,color:p.pctOff?C.text:C.dim}}>{p.pctOff||'—'}</td><td style={{padding:'8px 16px',textAlign:'right',fontSize:11,color:C.dim}}>{p.reqDays?p.reqDays+'d':'—'}</td><td style={{padding:'8px 16px',textAlign:'right'}}>{p.confirmation?<span style={{background:col.bg,border:'1px solid '+col.bdr,color:col.color,padding:'2px 8px',borderRadius:2,fontSize:9,fontWeight:700}}>{p.confirmation.toUpperCase()}</span>:<span style={{color:C.dim}}>—</span>}</td></tr>);});})}</tbody>
+              <tbody>{qs.map(function(q){return byQ[q].map(function(p,pi){const col=cc(p.confirmation);const dr=p.startDate&&p.endDate&&p.startDate!==p.endDate?(p.startDate+' – '+p.endDate):(p.startDate||p.event||'—');return(<tr key={q+'-'+pi} style={{background:pi%2===0?'transparent':'#050505'}}>{pi===0?<td style={{padding:'8px 16px',fontSize:11,fontWeight:700}}>{q}</td>:<td style={{padding:'8px 16px'}}/>}<td style={{padding:'8px 16px',fontSize:11,color:C.muted}}>{p.event||'—'}</td><td style={{padding:'8px 16px',fontSize:10,color:C.dim}}>{dr}</td><td style={{padding:'8px 16px',textAlign:'right',fontWeight:700,fontSize:12,color:p.pctOff?C.text:C.dim}}>{p.pctOff||'—'}</td><td style={{padding:'8px 16px',textAlign:'right',fontSize:11,color:C.dim}}>{p.reqDays?p.reqDays+'d':'—'}</td><td style={{padding:'8px 16px',textAlign:'right'}}>{p.confirmation?<span style={{background:col.bg,border:'1px solid '+col.bdr,color:col.color,padding:'2px 8px',borderRadius:2,fontSize:9,fontWeight:700}}>{p.confirmation.toUpperCase()}</span>:<span style={{color:C.dim}}>—</span>}</td></tr>);});})}</tbody>
             </table>
           </div>
         </div>
@@ -821,16 +821,16 @@ window._STRAIN_DB=[
                   <table style={{width:'100%',minWidth:480,borderCollapse:'collapse'}}>
                     <thead>
                       <tr style={{background:C.raised}}>{["SKU","Type","Wholesale","Retail","Markup","Consumer Pays","Target Range","Alignment","Mkt Avg"].map(function(h,i){return<th key={h} style={{padding:'7px 12px',fontSize:9,fontWeight:700,letterSpacing:1.2,textTransform:'uppercase',color:C.dim,textAlign:i>=2?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr>
-                      <tr style={{background:'#0a0a0a'}}><td colSpan={9} style={{padding:'4px 12px',fontSize:8,color:C.dim}}>Tax: ~{Math.round(tax*100)}% consumer burden · 2×–2.5× markup target</td></tr>
+                      <tr style={{background:'#050505'}}><td colSpan={9} style={{padding:'4px 12px',fontSize:8,color:C.dim}}>Tax: ~{Math.round(tax*100)}% consumer burden · 2×–2.5× markup target</td></tr>
                     </thead>
                     <tbody>
-                      {rows.length>0?rows.map(function(r,i){const mu=r.mu,isOut=mu?!mu.aligned:false,mc=!mu?C.dim:mu.aligned?C.good:C.warn;return(<tr key={i} style={{background:isOut?C.dangerBg:i%2===0?'transparent':'#0a0a0a'}}><td style={{padding:'8px 12px',fontSize:12,fontWeight:500,color:isOut?C.danger:C.text}}>{r.strain}</td><td style={{padding:'8px 12px'}}><TypeTag label={r.category}/></td><td style={{padding:'8px 12px',textAlign:'right',fontSize:11,fontWeight:600}}>{cur(r.wholesale)}</td><td style={{padding:'8px 12px',textAlign:'right',fontWeight:700,fontSize:13}}>{cur(r.retailPrice)}</td><td style={{padding:'8px 12px',textAlign:'right',fontSize:11,fontWeight:700,color:mc}}>{mu?mu.raw+'x':'—'}</td><td style={{padding:'8px 12px',textAlign:'right',fontSize:11,color:C.muted}}>{mu?cur(mu.consumer):'—'}</td><td style={{padding:'8px 12px',textAlign:'right',fontSize:9,color:C.dim}}>{cur(r.wholesale*2)}–{cur(r.wholesale*2.5)}</td><td style={{padding:'8px 12px',textAlign:'right'}}>{mu?<span style={{background:mu.aligned?C.goodBg:C.dangerBg,border:'1px solid '+(mu.aligned?C.goodBdr:C.dangerBdr),color:mu.aligned?C.good:C.danger,fontSize:8,fontWeight:700,padding:'2px 6px',borderRadius:2,whiteSpace:'nowrap'}}>{mu.label.toUpperCase()}</span>:<span style={{fontSize:9,color:C.dim}}>—</span>}</td><td style={{padding:'8px 12px',textAlign:'right',fontSize:11,color:C.muted}}>{r.avg>0?cur(r.avg):'—'}</td></tr>);}):(account.orderedSkus||[]).length>0?(<><tr><td colSpan={9} style={{padding:'7px 16px',background:C.raised,borderBottom:'1px solid '+C.border,fontSize:9,color:C.muted}}>◎ No live menu data · {periodSkus.length} SKUs in {periodDays}d window</td></tr>{periodSkus.map(function(s,i){return(<tr key={i} style={{background:i%2===0?'transparent':'#0a0a0a',opacity:0.85}}><td style={{padding:'9px 16px',fontSize:12,fontWeight:500,color:C.muted}}>{s.strain}{s.soldThrough&&<span style={{marginLeft:8,background:C.goodBg,border:'1px solid '+C.goodBdr,color:C.good,fontSize:8,fontWeight:700,padding:'1px 6px',borderRadius:2}}>↻ SOLD THROUGH</span>}</td><td style={{padding:'9px 16px'}}><TypeTag label={s.category||'—'}/></td><td style={{padding:'9px 16px',textAlign:'right',fontSize:12,color:C.text,fontWeight:600}}>{cur(s.wholesale>0?s.wholesale:cogsFor(s.category).wholesale)}</td><td colSpan={6} style={{padding:'9px 16px',textAlign:'right',fontSize:9,color:C.dim}}>{(s.periodUnits&&s.periodUnits[periodDays]||0)+' units · '+(s.orderCount>1?s.orderCount+'× ordered':'ORDERED')}</td></tr>);})} </>):<tr><td colSpan={9} style={{padding:'14px 16px',textAlign:'center',fontSize:11,color:C.dim,fontStyle:'italic'}}>No data available</td></tr>}
+                      {rows.length>0?rows.map(function(r,i){const mu=r.mu,isOut=mu?!mu.aligned:false,mc=!mu?C.dim:mu.aligned?C.good:C.warn;return(<tr key={i} style={{background:isOut?C.dangerBg:i%2===0?'transparent':'#050505'}}><td style={{padding:'8px 12px',fontSize:12,fontWeight:500,color:isOut?C.danger:C.text}}>{r.strain}</td><td style={{padding:'8px 12px'}}><TypeTag label={r.category}/></td><td style={{padding:'8px 12px',textAlign:'right',fontSize:11,fontWeight:600}}>{cur(r.wholesale)}</td><td style={{padding:'8px 12px',textAlign:'right',fontWeight:700,fontSize:13}}>{cur(r.retailPrice)}</td><td style={{padding:'8px 12px',textAlign:'right',fontSize:11,fontWeight:700,color:mc}}>{mu?mu.raw+'x':'—'}</td><td style={{padding:'8px 12px',textAlign:'right',fontSize:11,color:C.muted}}>{mu?cur(mu.consumer):'—'}</td><td style={{padding:'8px 12px',textAlign:'right',fontSize:9,color:C.dim}}>{cur(r.wholesale*2)}–{cur(r.wholesale*2.5)}</td><td style={{padding:'8px 12px',textAlign:'right'}}>{mu?<span style={{background:mu.aligned?C.goodBg:C.dangerBg,border:'1px solid '+(mu.aligned?C.goodBdr:C.dangerBdr),color:mu.aligned?C.good:C.danger,fontSize:8,fontWeight:700,padding:'2px 6px',borderRadius:2,whiteSpace:'nowrap'}}>{mu.label.toUpperCase()}</span>:<span style={{fontSize:9,color:C.dim}}>—</span>}</td><td style={{padding:'8px 12px',textAlign:'right',fontSize:11,color:C.muted}}>{r.avg>0?cur(r.avg):'—'}</td></tr>);}):(account.orderedSkus||[]).length>0?(<><tr><td colSpan={9} style={{padding:'7px 16px',background:C.raised,borderBottom:'1px solid '+C.border,fontSize:9,color:C.muted}}>◎ No live menu data · {periodSkus.length} SKUs in {periodDays}d window</td></tr>{periodSkus.map(function(s,i){return(<tr key={i} style={{background:i%2===0?'transparent':'#050505',opacity:0.85}}><td style={{padding:'9px 16px',fontSize:12,fontWeight:500,color:C.muted}}>{s.strain}{s.soldThrough&&<span style={{marginLeft:8,background:C.goodBg,border:'1px solid '+C.goodBdr,color:C.good,fontSize:8,fontWeight:700,padding:'1px 6px',borderRadius:2}}>↻ SOLD THROUGH</span>}</td><td style={{padding:'9px 16px'}}><TypeTag label={s.category||'—'}/></td><td style={{padding:'9px 16px',textAlign:'right',fontSize:12,color:C.text,fontWeight:600}}>{cur(s.wholesale>0?s.wholesale:cogsFor(s.category).wholesale)}</td><td colSpan={6} style={{padding:'9px 16px',textAlign:'right',fontSize:9,color:C.dim}}>{(s.periodUnits&&s.periodUnits[periodDays]||0)+' units · '+(s.orderCount>1?s.orderCount+'× ordered':'ORDERED')}</td></tr>);})} </>):<tr><td colSpan={9} style={{padding:'14px 16px',textAlign:'center',fontSize:11,color:C.dim,fontStyle:'italic'}}>No data available</td></tr>}
                     </tbody>
                   </table>
                 </div>
               )}
               {section==="promotions"&&<PromotionsSection promotions={account.promotions||[]}/>}
-              {section==="returns"&&(function(){var acctReturns=(returnsLog||[]).filter(function(r){return r.account===account.name&&!r.preMarket;});var totalCredits=acctReturns.reduce(function(s,r){return s+(r.totalValue||0);},0);return<div style={{padding:'12px 16px'}}>{acctReturns.length>0?<><div style={{display:'flex',justifyContent:'space-between',marginBottom:10}}><span style={{fontSize:9,color:C.dim,letterSpacing:1.5}}>RETURNS & DEFECTS</span><span style={{fontSize:11,fontWeight:700,color:C.danger}}>${totalCredits.toFixed(0)} in credits</span></div><div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:380,borderCollapse:'collapse'}}><thead><tr style={{background:C.raised}}>{['Date','Strain','Cat','Qty','Value','Reason','Status'].map(function(h,i){return<th key={h} style={{padding:'5px 8px',fontSize:8,fontWeight:700,color:C.dim,textAlign:i>=3?'right':'left',borderBottom:'1px solid '+C.border}}>{h}</th>;})}</tr></thead><tbody>{acctReturns.map(function(r,i){return<tr key={i} style={{background:i%2===0?'transparent':'#0a0a0a'}}><td style={{padding:'5px 8px',fontSize:10,color:C.muted}}>{r.date}</td><td style={{padding:'5px 8px',fontSize:10}}>{r.strain}</td><td style={{padding:'5px 8px',fontSize:9,color:C.dim}}>{r.category}</td><td style={{padding:'5px 8px',fontSize:10,textAlign:'right'}}>{r.qty}</td><td style={{padding:'5px 8px',fontSize:10,textAlign:'right',color:C.danger}}>${(r.totalValue||0).toFixed(2)}</td><td style={{padding:'5px 8px',fontSize:9,color:C.muted}}>{r.reason||'—'}</td><td style={{padding:'5px 8px',fontSize:9,textAlign:'right'}}><span style={{padding:'1px 6px',borderRadius:2,fontSize:8,fontWeight:700,background:r.status==='CREDIT APPLIED'?C.goodBg:C.warnBg,color:r.status==='CREDIT APPLIED'?C.good:C.warn,border:'1px solid '+(r.status==='CREDIT APPLIED'?C.goodBdr:C.warnBdr)}}>{r.status}</span></td></tr>;})}</tbody></table></div></>:<div style={{padding:'20px 0',textAlign:'center',fontSize:11,color:C.dim}}>No returns recorded for this account</div>}</div>;})()}
+              {section==="returns"&&(function(){var acctReturns=(returnsLog||[]).filter(function(r){return r.account===account.name&&!r.preMarket;});var totalCredits=acctReturns.reduce(function(s,r){return s+(r.totalValue||0);},0);return<div style={{padding:'12px 16px'}}>{acctReturns.length>0?<><div style={{display:'flex',justifyContent:'space-between',marginBottom:10}}><span style={{fontSize:9,color:C.dim,letterSpacing:1.5}}>RETURNS & DEFECTS</span><span style={{fontSize:11,fontWeight:700,color:C.danger}}>${totalCredits.toFixed(0)} in credits</span></div><div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:380,borderCollapse:'collapse'}}><thead><tr style={{background:C.raised}}>{['Date','Strain','Cat','Qty','Value','Reason','Status'].map(function(h,i){return<th key={h} style={{padding:'5px 8px',fontSize:8,fontWeight:700,color:C.dim,textAlign:i>=3?'right':'left',borderBottom:'1px solid '+C.border}}>{h}</th>;})}</tr></thead><tbody>{acctReturns.map(function(r,i){return<tr key={i} style={{background:i%2===0?'transparent':'#050505'}}><td style={{padding:'5px 8px',fontSize:10,color:C.muted}}>{r.date}</td><td style={{padding:'5px 8px',fontSize:10}}>{r.strain}</td><td style={{padding:'5px 8px',fontSize:9,color:C.dim}}>{r.category}</td><td style={{padding:'5px 8px',fontSize:10,textAlign:'right'}}>{r.qty}</td><td style={{padding:'5px 8px',fontSize:10,textAlign:'right',color:C.danger}}>${(r.totalValue||0).toFixed(2)}</td><td style={{padding:'5px 8px',fontSize:9,color:C.muted}}>{r.reason||'—'}</td><td style={{padding:'5px 8px',fontSize:9,textAlign:'right'}}><span style={{padding:'1px 6px',borderRadius:2,fontSize:8,fontWeight:700,background:r.status==='CREDIT APPLIED'?C.goodBg:C.warnBg,color:r.status==='CREDIT APPLIED'?C.good:C.warn,border:'1px solid '+(r.status==='CREDIT APPLIED'?C.goodBdr:C.warnBdr)}}>{r.status}</span></td></tr>;})}</tbody></table></div></>:<div style={{padding:'20px 0',textAlign:'center',fontSize:11,color:C.dim}}>No returns recorded for this account</div>}</div>;})()}
               {section==="margin"&&(function(){var cb2={'Vape Cart - Live Resin':COGS.Cart,'Badder':COGS.Badder,'Sauce':COGS.Sauce,'Diamonds':COGS.Diamonds,'Shatter':COGS.Shatter};var CM2={'Live Resin':'Vape Cart - Live Resin'};var cr=(account.periodCatRevenue&&account.periodCatRevenue[periodDays])?account.periodCatRevenue[periodDays]:(account.catRevenue90||{});var aRev=0,aCogs=0;Object.keys(cr).forEach(function(rc){var rev=cr[rc];if(!rev||rev<=0)return;var label=CM2[rc]||rc;var cogs=cb2[label]||COGS.Other;var units=cogs.wholesale>0?Math.round(rev/cogs.wholesale):0;aCogs+=units*cogs.cost;aRev+=rev*0.84;});var acctRet=(returnsLog||[]).filter(function(r){return r.account===account.name&&!r.preMarket;}).reduce(function(s,r){return s+(r.totalValue||0);},0);var net=aRev-aCogs-acctRet;var margin=aRev>0?net/aRev*100:0;return<div style={{padding:'12px 16px'}}><div style={{fontSize:9,color:C.dim,letterSpacing:1.5,marginBottom:10}}>MARGIN ANALYSIS ({periodDays}d)</div><div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:10,marginBottom:12}}>{[{l:'Revenue (84%)',v:curK(aRev),c:C.text},{l:'COGS',v:'-'+curK(aCogs),c:C.muted},{l:'Returns',v:acctRet>0?'-'+cur(acctRet):'—',c:acctRet>0?C.danger:C.dim},{l:'Net / Margin',v:curK(net)+' / '+margin.toFixed(1)+'%',c:margin>35?C.good:margin>20?C.warn:C.danger}].map(function(s){return<div key={s.l} style={{background:C.bg,border:'1px solid '+C.border,borderRadius:4,padding:'8px 10px',textAlign:'center'}}><div style={{fontSize:7,color:C.dim,letterSpacing:1,marginBottom:3}}>{s.l}</div><div style={{fontSize:13,fontWeight:700,color:s.c}}>{s.v}</div></div>;})}</div></div>;})()}
             </div>
           )}
@@ -965,6 +965,7 @@ window._STRAIN_DB=[
       const [dPriceVerify, setDPriceVerify] = useState(null);// pricing verification step {account, lines}
       const [dVerifiedPrices, setDVerifiedPrices] = useState({});// rep-verified prices {sku: price} persisted
       const [p2cExpanded, setP2cExpanded] = useState({});// P2C cost structure expand/collapse
+      const [demoForm, setDemoForm] = useState({account:'',rep:'',date:'',timeBlock:'',notes:'',statusFilter:'ALL'});// demo scheduling form
 
       // ── MOCK ORDER GENERATOR (same logic as Ops allocation) ──
       function generateMockOrder(acctName){
@@ -1589,7 +1590,7 @@ window._STRAIN_DB=[
                         <div style={{overflowX:'auto'}}>
                           <table style={{width:'100%',minWidth:560,borderCollapse:'collapse'}}>
                             <thead><tr>{["Type","Units","Revenue (84%)","Cost","Net","Margin"].map(function(h,i){return<th key={h} style={{padding:'5px 8px',fontSize:8,fontWeight:700,letterSpacing:1,textTransform:'uppercase',color:C.dim,textAlign:i===0?'left':'right',borderBottom:'1px solid '+C.border}}>{h}</th>;})}</tr></thead>
-                            <tbody>{types.map(function(t,i){const net=t.revenue-t.cogs,m2=t.revenue>0?net/t.revenue*100:0;return<tr key={t.label} style={{background:i%2===0?'transparent':'#0a0a0a'}}><td style={{padding:'8px 8px',fontSize:11,fontWeight:600}}>{t.label}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,color:C.muted}}>{t.units.toLocaleString()}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:11,fontWeight:700}}>{curK(t.revenue)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,color:C.muted}}>{curK(t.cogs)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:11,fontWeight:700,color:net>0?C.good:C.danger}}>{curK(net)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,color:m2>40?C.good:m2>20?C.warn:C.danger}}>{m2.toFixed(1)}%</td></tr>;})}
+                            <tbody>{types.map(function(t,i){const net=t.revenue-t.cogs,m2=t.revenue>0?net/t.revenue*100:0;return<tr key={t.label} style={{background:i%2===0?'transparent':'#050505'}}><td style={{padding:'8px 8px',fontSize:11,fontWeight:600}}>{t.label}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,color:C.muted}}>{t.units.toLocaleString()}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:11,fontWeight:700}}>{curK(t.revenue)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,color:C.muted}}>{curK(t.cogs)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:11,fontWeight:700,color:net>0?C.good:C.danger}}>{curK(net)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,color:m2>40?C.good:m2>20?C.warn:C.danger}}>{m2.toFixed(1)}%</td></tr>;})}
                             <tr style={{borderTop:'1px solid '+C.border,background:C.raised}}><td style={{padding:'8px 8px',fontSize:11,fontWeight:800}}>TOTAL</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,fontWeight:700}}>{tU.toLocaleString()}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:11,fontWeight:800}}>{curK(tR)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,fontWeight:700}}>{curK(tC)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:11,fontWeight:800,color:np>0?C.good:C.danger}}>{curK(np)}</td><td style={{padding:'8px 8px',textAlign:'right',fontSize:10,fontWeight:800,color:mg>40?C.good:C.warn}}>{mg.toFixed(1)}%</td></tr>
                             </tbody>
                           </table>
@@ -1626,7 +1627,9 @@ window._STRAIN_DB=[
                   }
                   var pipelines=[
                     {name:'VAPE CARTS',color:'#4a9eff',batches:[
-                      {id:'DROP #4 · GLO-VC-016–020',label:'5 Strains · 5,000 units · Shipping Apr 7',units:5000,unitsSold:0,onHand:5000,ws:12,avgPrice:12,total:60000,revSold:0,distroRate:0.16,stage:'TRANSFER',stageDetail:'UpNorth pickup Apr 7 — 5,000 on hand',strains:['Modified Cherries','ICPJ','Sweet n\' Sour Diesel','Headband','Grandma\'s Cookies'],milestones:{MFG:'Feb 18',LAB:'Apr 1',COMPLIANCE:'Apr 6',PKG:'Apr 6',TRANSFER:'Apr 7'},costs:[
+                      {id:'DROP #4 · GLO-VC-016–020',label:'5 Strains · 5,000 units · Shipping Apr 7',units:5000,unitsSold:0,onHand:5000,ws:12,avgPrice:12,total:60000,revSold:0,distroRate:0.16,stage:'TRANSFER',stageDetail:'UpNorth pickup Apr 7 — 5,000 on hand',strains:['Modified Cherries','ICPJ','Sweet n\' Sour Diesel','Headband','Grandma\'s Cookies'],milestones:{MFG:'Feb 18',LAB:'Apr 1',COMPLIANCE:'Apr 6',PKG:'Apr 6',TRANSFER:'Apr 7',COLLECT:'1 period · Apr (6-wk)',PAYOUT:'Jun 12'},salesPeriods:[
+                        {month:'Apr',units:20,rev:240,payoutDate:'Jun 12',status:'PENDING'},
+                      ],costs:[
                         {label:'Cart Hardware',detail:'VapeCartsCC D742 · 5K × $1.85 · Feb 18',amt:9527.50},
                         {label:'Biomass (Tier 1)',detail:'CAM manifest · 145.49 lb × $30 · Feb 19',amt:4364.70},
                         {label:'GL Credit (Tier 2)',detail:'103.4 lb × $20/lb',amt:-2068},
@@ -1636,26 +1639,125 @@ window._STRAIN_DB=[
                         {label:'Testing',detail:'5 strains × $400 (est — awaiting Encore inv)',amt:2000},
                         {label:'Labor',detail:'5,000 × $1.00/unit',amt:5000}
                       ]},
-                      {id:'DROP #2 · Jan 20 Carts',label:'5 Strains · 5,138 produced · 5,044 sold · 94 on hand',units:5138,unitsSold:5044,onHand:94,ws:10,avgPrice:10.24,total:51635,revSold:51635,distroRate:0.16,stage:'SALE',stageDetail:'$51,635 sold · 94 units on hand · avg $10.24',strains:['Wagyu Truffle Butter','Frozen Grapes','Ms Muffin','Sweet-n-Sour Diesel','White Widow'],milestones:{MFG:'Nov 11',LAB:'Jan 14',COMPLIANCE:'Jan 19',PKG:'Jan 19',TRANSFER:'Jan 20',DISTRO:'Jan 21',SALE:'Jan 27–Apr 7'},costs:[
+                      {id:'DROP #2 · Jan 20 Carts',label:'5 Strains · 5,138 produced · 5,044 sold · 94 on hand',units:5138,unitsSold:5044,onHand:94,ws:10,avgPrice:10.24,total:51635,revSold:51635,distroRate:0.16,stage:'SALE',stageDetail:'$51,635 sold · 94 units on hand · avg $10.24',strains:['Wagyu Truffle Butter','Frozen Grapes','Ms Muffin','Sweet-n-Sour Diesel','White Widow'],milestones:{MFG:'Nov 11',LAB:'Jan 14',COMPLIANCE:'Jan 19',PKG:'Jan 19',TRANSFER:'Jan 20',DISTRO:'Jan 21',SALE:'Jan 27–Apr 7',COLLECT:'4 periods · Jan–Apr',PAYOUT:'Mar 13 · Apr 10 · May 8 · Jun 12'},salesPeriods:[
+                        {month:'Jan',units:2018,rev:20090,payoutDate:'Mar 13',status:'PAID'},
+                        {month:'Feb',units:2300,rev:26205,payoutDate:'Apr 10',status:'DUE'},
+                        {month:'Mar',units:1416,rev:12855,payoutDate:'May 8',status:'PENDING'},
+                        {month:'Apr',units:125,rev:831,payoutDate:'Jun 12',status:'PENDING'},
+                      ],costs:[
                         {label:'Cart Hardware',detail:'Octave 1614 · 5,138 of 8K @ $1.85 + ship/fee',amt:10076},
+                        {label:'Extract (owned)',detail:'5,138g × $1.30/g · pre-formulated',amt:6679.40},
                         {label:'Batteries',detail:'Octave 1636 · 500 SlickBox V2 @ $8 · Jan 5',amt:4088.90},
                         {label:'Testing',detail:'Encore 2601ENC0623 · 5 panel + expedite · Jan 14',amt:2750},
                         {label:'Tubes',detail:'Treeform INV34221 stock · 5,138 × $0.08',amt:411.04},
                         {label:'Cart Boxes',detail:'Two Pkg CB010626 · 5,138 × $0.244',amt:1253.67},
                         {label:'Shrink Bands',detail:'Treeform INV37161 · 5,138 × $0.0176',amt:90.43},
                         {label:'Labor',detail:'5,138 × $1.00/unit',amt:5138}
+                      ]},
+                      {id:'DROP #3B · Mar 3 Carts',label:'5 Strains · 4,630 produced · 4,529 sold · 101 on hand',units:4630,unitsSold:4529,onHand:101,ws:10,avgPrice:9.12,total:41304,revSold:41304,distroRate:0.16,stage:'SALE',stageDetail:'$41,304 sold · 101 units on hand · avg $9.12',strains:['Ice Cream Paint Job','Grandma\'s Cookies','Lemon Thai','Hella Oranges','Sweet n\' Sour Diesel'],milestones:{MFG:'Feb 2026',LAB:'Feb 2026',COMPLIANCE:'Mar 3',PKG:'Mar 2',TRANSFER:'Mar 3',DISTRO:'Mar 4',SALE:'Mar 4–Apr 7',COLLECT:'2 periods · Mar–Apr',PAYOUT:'May 8 · Jun 12'},salesPeriods:[
+                        {month:'Mar',units:4461,rev:39605,payoutDate:'May 8',status:'PENDING'},
+                        {month:'Apr',units:207,rev:1670,payoutDate:'Jun 12',status:'PENDING'},
+                      ],costs:[
+                        {label:'Extract (owned)',detail:'4,630g × $1.30/g · pre-formulated',amt:6019},
+                        {label:'Cart Hardware',detail:'Octave 1614 · 2,862 remaining of 8K @ $1.85',amt:5294.70},
+                        {label:'Testing',detail:'5 strains × $400 (est — no Encore inv)',amt:2000},
+                        {label:'Tubes',detail:'Treeform INV34221 stock · 4,630 × $0.08',amt:370.40},
+                        {label:'Cart Boxes',detail:'Two Pkg CB010626 · 4,630 × $0.244',amt:1129.72},
+                        {label:'Shrink Bands',detail:'Treeform INV37161 · 4,630 × $0.0176',amt:81.49},
+                        {label:'Labor',detail:'4,630 × $1.00/unit',amt:4630}
                       ]}
                     ]},
                     {name:'EXTRACTS',color:'#f5a623',batches:[
-                      {id:'DROP #3 · Feb 10 Badder',label:'6 Strains · 5,766 produced · 4,173 sold · 1,593 on hand',units:5766,unitsSold:4173,onHand:1593,ws:8,avgPrice:7.34,total:46128,revSold:30648,distroRate:0.16,stage:'SALE',stageDetail:'$30,648 sold · 1,593 units on hand · avg $7.34',strains:['Hella Lemons','Grandmas Cookies','Sweet-N-Sour Diesel','Frozen Grapes','Wagyu Truffle Butter','ICPJ'],milestones:{MFG:'Dec 2025',LAB:'Jan 27',COMPLIANCE:'Feb 9',PKG:'Feb 9',TRANSFER:'Feb 10',DISTRO:'Feb 11',SALE:'Feb 17–Apr 10'},costs:[
+                      {id:'DROP #3 · Feb 10 Badder',label:'6 Strains · 5,766 produced · 4,173 sold · 1,593 on hand',units:5766,unitsSold:4173,onHand:1593,ws:8,avgPrice:7.34,total:46128,revSold:30648,distroRate:0.16,stage:'SALE',stageDetail:'$30,648 sold · 1,593 units on hand · avg $7.34',strains:['Hella Lemons','Grandmas Cookies','Sweet-N-Sour Diesel','Frozen Grapes','Wagyu Truffle Butter','ICPJ'],milestones:{MFG:'Dec 2025',LAB:'Jan 27',COMPLIANCE:'Feb 9',PKG:'Feb 9',TRANSFER:'Feb 10',DISTRO:'Feb 11',SALE:'Feb 17–Apr 10',COLLECT:'3 periods · Feb–Apr',PAYOUT:'Apr 10 · May 8 · Jun 12'},salesPeriods:[
+                        {month:'Feb',units:1732,rev:13540,payoutDate:'Apr 10',status:'DUE'},
+                        {month:'Mar',units:2650,rev:18816,payoutDate:'May 8',status:'PENDING'},
+                        {month:'Apr',units:685,rev:5240,payoutDate:'Jun 12',status:'PENDING'},
+                      ],costs:[
+                        {label:'Extract (owned)',detail:'5,766g × $1.30/g · pre-formulated',amt:7495.80},
                         {label:'Jars + Caps',detail:'Treeform INV36807 · 5,766 of 15,190 @ $0.35',amt:2093},
                         {label:'Testing',detail:'Encore 2601ENC1164 · 6 terp+panel · Jan 27',amt:2400},
                         {label:'Labor',detail:'5,766 × $1.00/unit',amt:5766}
+                      ]},
+                      {id:'DROP #3B · Mar 3 Sauce',label:'4 Strains · 3,968 produced · 1,689 sold · 2,279 on hand',units:3968,unitsSold:1689,onHand:2279,ws:8,avgPrice:7.41,total:29398,revSold:12515,distroRate:0.16,stage:'SALE',stageDetail:'$12,515 sold · 2,279 units on hand · avg $7.41',strains:['Hella Oranges','Ice Cream Paint Job','Strawberry Milk','Sweet-N-Sour Diesel'],milestones:{MFG:'Feb 2026',LAB:'Feb 2026',COMPLIANCE:'Mar 2',PKG:'Mar 2',TRANSFER:'Mar 3',DISTRO:'Mar 4',SALE:'Mar 10–Apr 7',COLLECT:'2 periods · Mar–Apr',PAYOUT:'May 8 · Jun 12'},salesPeriods:[
+                        {month:'Mar',units:903,rev:6785,payoutDate:'May 8',status:'PENDING'},
+                        {month:'Apr',units:516,rev:3725,payoutDate:'Jun 12',status:'PENDING'},
+                      ],costs:[
+                        {label:'Extract (GL owed)',detail:'3,968g × $1.25/g · owed to Greenline',amt:4960},
+                        {label:'Jars + Caps',detail:'Treeform INV36807 · 3,968 of 15,190 @ $0.35',amt:1388.80},
+                        {label:'Testing',detail:'4 strains × $400 (est)',amt:1600},
+                        {label:'Labor',detail:'3,968 × $1.00/unit',amt:3968}
                       ]}
                     ]}
                   ];
                   return(<div style={{marginTop:24}}>
                     <div style={{fontSize:11,fontWeight:800,letterSpacing:3,marginBottom:16}}>PRODUCTION → CASH PIPELINE</div>
+                    {(function(){
+                      var allBatches=pipelines.reduce(function(a,p){return a.concat(p.batches);},[]);
+                      var totalProduced=allBatches.reduce(function(s,b){return s+b.units;},0);
+                      var totalSold=allBatches.reduce(function(s,b){return s+(b.unitsSold||0);},0);
+                      var totalOnHand=allBatches.reduce(function(s,b){return s+(b.onHand||0);},0);
+                      var totalRevCollected=allBatches.reduce(function(s,b){return s+(b.revSold||0);},0);
+                      var totalRevProjected=allBatches.reduce(function(s,b){return s+(b.total||0);},0);
+                      var totalProdCost=allBatches.reduce(function(s,b){return s+(b.costs?b.costs.reduce(function(cs,r){return cs+r.amt;},0):0);},0);
+                      var totalDistro=Math.round(totalRevProjected*0.16);
+                      var totalCOGS=totalProdCost+totalDistro;
+                      var netRevCollected=totalRevCollected-Math.round(totalRevCollected*0.16);
+                      var pendingRev=allBatches.reduce(function(s,b){return s+((b.onHand||0)*(b.avgPrice||0));},0);
+                      var glOwed=28144;// Net GL payable after $2K credit
+                      var glLimit=75000;
+                      return<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:8,marginBottom:20}}>
+                        <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}}>
+                          <div style={{fontSize:7,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>2026 Produced</div>
+                          <div style={{fontSize:20,fontWeight:800}}>{totalProduced.toLocaleString()}</div>
+                          <div style={{fontSize:8,color:C.dim}}>{allBatches.length+' batches'}</div>
+                        </div>
+                        <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}}>
+                          <div style={{fontSize:7,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>Sold / On Hand</div>
+                          <div style={{fontSize:20,fontWeight:800,color:C.good}}>{totalSold.toLocaleString()}</div>
+                          <div style={{fontSize:8,color:'#f5a623'}}>{totalOnHand.toLocaleString()+' at UpNorth'}</div>
+                        </div>
+                        <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}}>
+                          <div style={{fontSize:7,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>Revenue Collected</div>
+                          <div style={{fontSize:20,fontWeight:800,color:C.good}}>{'$'+Math.round(totalRevCollected/1000)+'K'}</div>
+                          <div style={{fontSize:8,color:'#f5a623'}}>{'$'+Math.round(pendingRev/1000)+'K pending'}</div>
+                        </div>
+                        <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}}>
+                          <div style={{fontSize:7,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>Production Cost</div>
+                          <div style={{fontSize:20,fontWeight:800,color:C.danger}}>{'$'+Math.round(totalProdCost/1000)+'K'}</div>
+                          <div style={{fontSize:8,color:C.dim}}>{'+ $'+Math.round(totalDistro/1000)+'K distro (16%)'}</div>
+                        </div>
+                        <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}}>
+                          <div style={{fontSize:7,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>Net After Distro</div>
+                          <div style={{fontSize:20,fontWeight:800,color:netRevCollected-totalProdCost>0?C.good:C.danger}}>{'$'+Math.round((netRevCollected-totalProdCost)/1000)+'K'}</div>
+                          <div style={{fontSize:8,color:C.dim}}>{'on $'+Math.round(netRevCollected/1000)+'K net rev'}</div>
+                        </div>
+                        <div style={{background:C.surface,border:'1px solid '+(glOwed>glLimit*0.7?C.danger+'66':C.border),borderRadius:4,padding:'10px 12px'}}>
+                          <div style={{fontSize:7,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>GL Credit Used</div>
+                          <div style={{fontSize:20,fontWeight:800,color:glOwed>glLimit*0.7?'#f5a623':C.text}}>{'$'+Math.round(glOwed/1000)+'K'}</div>
+                          <div style={{fontSize:8,color:C.dim}}>{'of $'+Math.round(glLimit/1000)+'K ('+Math.round(glOwed/glLimit*100)+'%)'}</div>
+                        </div>
+                        <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px',gridColumn:'1 / -1'}}>
+                          <div style={{fontSize:7,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:6}}>2026 PROJECTED CASH CYCLE</div>
+                          <div style={{display:'flex',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
+                            <div>
+                              <div style={{fontSize:9,color:C.muted}}>Total Cash Invested</div>
+                              <div style={{fontSize:16,fontWeight:800,color:C.danger}}>{'$'+Math.round((totalProdCost-glOwed)/1000)+'K cash + $'+Math.round(glOwed/1000)+'K GL credit'}</div>
+                            </div>
+                            <div>
+                              <div style={{fontSize:9,color:C.muted}}>Total Expected Revenue (all batches)</div>
+                              <div style={{fontSize:16,fontWeight:800}}>{'$'+Math.round(totalRevProjected/1000)+'K gross → $'+Math.round(totalRevProjected*0.84/1000)+'K net'}</div>
+                            </div>
+                            <div>
+                              <div style={{fontSize:9,color:C.muted}}>Projected Net Margin (all drops)</div>
+                              <div style={{fontSize:16,fontWeight:800,color:(totalRevProjected*0.84-totalProdCost)>0?C.good:C.danger}}>{'$'+Math.round((totalRevProjected*0.84-totalProdCost)/1000)+'K ('+Math.round((totalRevProjected*0.84-totalProdCost)/totalRevProjected*100)+'%)'}</div>
+                            </div>
+                          </div>
+                          <div style={{marginTop:8,fontSize:9,color:C.dim,borderTop:'1px solid '+C.border,paddingTop:6}}>
+                            {'First $ out: Nov 2025 (Octave 1614) · First $ in: Jan 27 (first sale) · Next payout: Apr 10 ($38.4K Feb report) · Cycle: production to final payout spans ~4 months per drop · UpNorth terms: calendar month sales + 6-wk consignment → 2nd Friday payout · GL terms: $75K credit · 75-day net'}
+                          </div>
+                        </div>
+                      </div>;
+                    })()}
                     {pipelines.map(function(pipe){return(
                       <div key={pipe.name} style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16,marginBottom:16}}>
                         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
@@ -1696,6 +1798,19 @@ window._STRAIN_DB=[
                             {batch.strains.length>0&&<div style={{display:'flex',gap:4,flexWrap:'wrap',marginTop:8}}>
                               {batch.strains.map(function(s){return<span key={s} style={{fontSize:8,padding:'2px 6px',borderRadius:2,background:pipe.color+'11',border:'1px solid '+pipe.color+'22',color:pipe.color}}>{s}</span>;})}
                             </div>}
+                            {batch.salesPeriods&&batch.salesPeriods.length>0&&<div style={{marginTop:8,padding:'8px 10px',background:'#0d1117',borderRadius:4,border:'1px solid #1a1a1a'}}>
+                              <div style={{fontSize:7,fontWeight:700,letterSpacing:1.5,color:C.dim,marginBottom:6}}>SALES PERIODS → PAYOUTS</div>
+                              {batch.salesPeriods.map(function(sp){var pctOfBatch=batch.units>0?Math.round(sp.units/batch.units*100):0;var isPaid=sp.status==='PAID';var isDue=sp.status==='DUE';return<div key={sp.month} style={{display:'flex',alignItems:'center',gap:8,padding:'3px 0',borderBottom:'1px solid #111'}}>
+                                <span style={{fontSize:9,fontWeight:600,minWidth:32,color:C.muted}}>{sp.month}</span>
+                                <div style={{flex:1,height:4,background:'#222',borderRadius:2,position:'relative'}}>
+                                  <div style={{height:4,background:pipe.color,borderRadius:2,width:Math.min(pctOfBatch*2,100)+'%'}}/>
+                                </div>
+                                <span style={{fontSize:8,color:C.muted,minWidth:50,textAlign:'right'}}>{sp.units.toLocaleString()+' ('+pctOfBatch+'%)'}</span>
+                                <span style={{fontSize:8,color:C.dim,minWidth:18,textAlign:'right'}}>{'$'+Math.round(sp.rev/1000)+'K'}</span>
+                                <span style={{fontSize:7,fontWeight:700,minWidth:52,textAlign:'right',color:isPaid?C.good:isDue?'#f5a623':C.dim}}>{'→ '+sp.payoutDate}</span>
+                                <span style={{fontSize:6,fontWeight:700,padding:'1px 4px',borderRadius:2,background:isPaid?C.good+'22':isDue?'#f5a62322':'transparent',color:isPaid?C.good:isDue?'#f5a623':C.dim,border:'1px solid '+(isPaid?C.good+'44':isDue?'#f5a62344':'transparent')}}>{sp.status}</span>
+                              </div>;})}
+                            </div>}
                             {batch.costs&&batch.costs.length>0&&(function(){var prodCost=batch.costs.reduce(function(s,r){return s+r.amt;},0);var dr=batch.distroRate||0.16;var actualRev=batch.revSold||0;var projRev=batch.total||0;var useActual=actualRev>0;var revForCalc=useActual?actualRev:projRev;var distroFee=Math.round(revForCalc*dr);var netRev=revForCalc-distroFee;var margin=netRev-prodCost;var pct=revForCalc>0?((margin/revForCalc)*100).toFixed(0):0;return<div style={{marginTop:8}}>
                               {batch.unitsSold>0&&<div style={{padding:'8px 10px',background:'#0d1117',border:'1px solid #1a1a1a',borderRadius:4,marginBottom:6,fontSize:10}}>
                                 <div style={{fontSize:8,fontWeight:700,letterSpacing:1.5,color:C.dim,marginBottom:4}}>SELL-THROUGH</div>
@@ -1721,11 +1836,11 @@ window._STRAIN_DB=[
                                   <div style={{height:4,background:C.good,borderRadius:2,width:Math.round(batch.unitsSold/batch.units*100)+'%'}}/>
                                 </div>
                               </div>}
-                              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 10px',background:'#0a0a0a',borderRadius:p2cExpanded[batch.id]?'4px 4px 0 0':'4px',border:'1px solid #1a1a1a',cursor:'pointer',fontSize:10}} onClick={function(){setP2cExpanded(function(p){var n2=Object.assign({},p);n2[batch.id]=!n2[batch.id];return n2;});}}>
+                              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 10px',background:'#050505',borderRadius:p2cExpanded[batch.id]?'4px 4px 0 0':'4px',border:'1px solid #1a1a1a',cursor:'pointer',fontSize:10}} onClick={function(){setP2cExpanded(function(p){var n2=Object.assign({},p);n2[batch.id]=!n2[batch.id];return n2;});}}>
                                 <span style={{fontWeight:700,color:C.dim}}><span style={{fontSize:8,marginRight:4}}>{p2cExpanded[batch.id]?'\u25BC':'\u25B6'}</span>{'COST STRUCTURE ('+batch.costs.length+' items)'}</span>
                                 <span style={{fontWeight:700,color:margin>0?C.good:C.danger}}>{'Margin: $'+margin.toLocaleString()+' ('+pct+'%) '+(useActual?'· actual':'· projected')}</span>
                               </div>
-                              {p2cExpanded[batch.id]&&<div style={{padding:'8px 10px',background:'#0a0a0a',borderRadius:'0 0 4px 4px',border:'1px solid #1a1a1a',borderTop:'none'}}>
+                              {p2cExpanded[batch.id]&&<div style={{padding:'8px 10px',background:'#050505',borderRadius:'0 0 4px 4px',border:'1px solid #1a1a1a',borderTop:'none'}}>
                                 {batch.costs.map(function(row,ri){return<div key={ri} style={{display:'flex',justifyContent:'space-between',fontSize:10,padding:'3px 0'}}>
                                   <span style={{color:C.muted}}>{row.label}: <span style={{fontSize:7,color:C.dim}}>{row.detail}</span></span>
                                   <span style={{fontWeight:600,color:row.amt<0?C.good:C.danger,whiteSpace:'nowrap'}}>{row.amt<0?'-$'+Math.abs(row.amt).toLocaleString():'$'+row.amt.toLocaleString()}</span>
@@ -1798,7 +1913,7 @@ window._STRAIN_DB=[
                                     <thead><tr style={{background:C.raised}}>{cols.map(function(h,i){return<th key={h} style={{padding:'7px 14px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=2?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead>
                                     <tbody>
                                       {strainRows.map(function(s,i){const sf=((mfgBatchData[cat.key]&&mfgBatchData[cat.key].strains)||{})[s.strain]||{};return(
-                                        <tr key={i} style={{background:i%2===0?'transparent':'#0a0a0a',borderLeft:'3px solid '+typeColor(s.type)+'66'}}>
+                                        <tr key={i} style={{background:i%2===0?'transparent':'#050505',borderLeft:'3px solid '+typeColor(s.type)+'66'}}>
                                           <td style={{padding:'7px 14px',fontSize:10,color:C.dim,width:30}}>{i+1}</td>
                                           <td style={{padding:'7px 14px'}}><div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:9,fontWeight:700,color:typeColor(s.type),background:typeColor(s.type)+'22',border:'1px solid '+typeColor(s.type)+'44',borderRadius:2,padding:'1px 5px',flexShrink:0}}>{s.type.slice(0,3).toUpperCase()}</span><span style={{fontSize:12}}>{s.strain}</span></div></td>
                                           <td style={{padding:'7px 10px',textAlign:'right',fontSize:11,color:C.muted}}>{s.vel||s.score}</td>
@@ -1823,7 +1938,7 @@ window._STRAIN_DB=[
                       <div style={{border:'1px solid '+C.border,borderRadius:6,overflow:'hidden'}}><div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:680,borderCollapse:'collapse'}}>
                         <thead><tr style={{background:C.raised}}>{["SKU","Type","GL/CP","Batch","THC%","Age","Active Days","Units","Wk Vel","On-Hand","Days Left","Suggested","Order Qty","Unit COGS","Total Cost","Est. Rev","Status"].map(function(h,i){return<th key={h} style={{padding:'6px 8px',fontSize:7,fontWeight:700,letterSpacing:1,textTransform:'uppercase',color:C.dim,textAlign:i>=3?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead>
                         <tbody>{catRows.map(function(r,i){const st=sst(r.status);return(
-                          <tr key={r.sku} style={{background:i%2===0?'transparent':'#0a0a0a',borderLeft:r.status==='critical'?'3px solid '+C.danger:r.status==='low'?'3px solid '+C.warn:'3px solid transparent'}}>
+                          <tr key={r.sku} style={{background:i%2===0?'transparent':'#050505',borderLeft:r.status==='critical'?'3px solid '+C.danger:r.status==='low'?'3px solid '+C.warn:'3px solid transparent'}}>
                             <td style={{padding:'9px 12px',fontSize:12,fontWeight:500}}>{r.strain}{!r.reliable&&<span style={{marginLeft:6,fontSize:8,color:C.warn,border:'1px solid '+C.warnBdr,padding:'1px 4px',borderRadius:2}}>≈</span>}</td>
                             <td style={{padding:'9px 12px'}}><TypeTag label={r.cogs.label}/></td>
                             <td style={{padding:'5px 8px'}}><button onClick={function(){setMfgMethod(function(p){var n=Object.assign({},p);n[r.sku]=r.method==='GL'?'CP':'GL';return n;});}} style={{padding:'3px 8px',borderRadius:3,fontSize:9,fontWeight:700,cursor:'pointer',fontFamily:'inherit',letterSpacing:0.5,border:'1px solid '+(r.method==='CP'?'#2196f3':'#f5a623'),background:(r.method==='CP'?'#2196f322':'#f5a62322'),color:r.method==='CP'?'#2196f3':'#f5a623'}}>{r.method}</button></td>
@@ -1909,7 +2024,7 @@ window._STRAIN_DB=[
                             React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(110px,1fr))',gap:10}},
                               [{l:'Prod Start',d:nextCycle.prodStart},{l:'Extract Start',d:nextCycle.extStart},{l:'Pkg Complete',d:nextCycle.pkgDone},{l:'Pickup',d:nextCycle.pickup},{l:'On Shelf',d:nextCycle.shelfAvail},{l:'Sell Window',d:null,v:nextCycle.sellDays+'d (thru '+fmt2(nextCycle.sellEnd)+')'}].map(function(dt){
                                 var isPast=dt.d&&dt.d<today;var isToday=dt.d&&Math.abs(dt.d-today)<86400000;
-                                return React.createElement('div',{key:dt.l,style:{padding:'8px 10px',background:isToday?C.warnBg:isPast?'#0a0a0a':C.bg,border:'1px solid '+(isToday?C.warnBdr:C.border),borderRadius:4}},
+                                return React.createElement('div',{key:dt.l,style:{padding:'8px 10px',background:isToday?C.warnBg:isPast?'#050505':C.bg,border:'1px solid '+(isToday?C.warnBdr:C.border),borderRadius:4}},
                                   React.createElement('div',{style:{fontSize:7,color:C.dim,letterSpacing:1}},dt.l),
                                   React.createElement('div',{style:{fontSize:12,fontWeight:700,color:isToday?C.warn:isPast?C.dim:C.text,marginTop:2}},dt.v||fmtDay(dt.d))
                                 );
@@ -1951,7 +2066,7 @@ window._STRAIN_DB=[
                               React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Month','Prod Start','Extraction','Pkg Done','Pickup (Last Tue)','Sell Window','Status'].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'6px 10px',fontSize:8,fontWeight:700,color:C.dim,textAlign:i>=5?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
                               React.createElement('tbody',null,upCycles.map(function(c,i){
                                 var isNext=i===0;
-                                return React.createElement('tr',{key:i,style:{background:isNext?'#1a237e11':i%2?'#0a0a0a':'transparent'}},
+                                return React.createElement('tr',{key:i,style:{background:isNext?'#1a237e11':i%2?'#050505':'transparent'}},
                                   React.createElement('td',{style:{padding:'8px 10px',fontSize:11,fontWeight:isNext?700:500}},c.month+' '+c.year),
                                   React.createElement('td',{style:{padding:'8px 10px',fontSize:10,color:c.prodStart<today?C.dim:C.text}},fmtDay(c.prodStart)),
                                   React.createElement('td',{style:{padding:'8px 10px',fontSize:10,color:C.muted}},fmt2(c.extStart)+' \u2192 '+fmt2(c.extDone)),
@@ -1977,7 +2092,7 @@ window._STRAIN_DB=[
                   Object.keys(catVels).forEach(function(cat){const grp={Cart:'Carts',Badder:'Concentrates',Sauce:'Concentrates',Diamonds:'Concentrates'}[cat],b=Math.min(catMax[cat],Math.max(MIN_BATCH,Math.ceil(Math.round(catVels[cat]*mfgTargetWeeks)/BATCH)));mfgDemand[grp]=(mfgDemand[grp]||0)+b*BATCH;});
                   function matsCheck(grp){const demand=mfgDemand[grp]||0;if(demand===0)return{ok:true,shortfalls:[]};const items=PKG[grp]||[],sf=[];items.forEach(function(c){const inv=(pkgComps[grp]&&pkgComps[grp][c.id])||{},oh=parseInt(inv.onHand||0)||0,oo=parseInt(inv.onOrder||0)||0,needed=Math.ceil(demand*c.perUnit),avail=oh+oo;if(avail<needed)sf.push(Object.assign({},c,{needed,avail,short:needed-avail,urgent:c.lead>14}));});return{ok:sf.length===0,shortfalls:sf};}
                   const inpSt={background:C.bg,border:'1px solid '+C.border,borderRadius:2,color:C.text,fontSize:11,fontFamily:'inherit',padding:'3px 7px',outline:'none',textAlign:'right'};
-                  function CompTable(p2){const{grp,label,demand}=p2,items=PKG[grp]||[],check=matsCheck(grp);return(<div style={{marginBottom:24}}><div style={{display:'flex',alignItems:'center',gap:12,marginBottom:10}}><div style={{fontSize:11,fontWeight:800,letterSpacing:2}}>{label.toUpperCase()}</div>{demand>0&&<div style={{fontSize:9,color:C.dim}}>MFG demand: {demand.toLocaleString()} units</div>}<div style={{marginLeft:'auto'}}>{check.ok?<span style={{fontSize:9,fontWeight:700,color:C.good,background:C.goodBg,border:'1px solid '+C.goodBdr,padding:'2px 8px',borderRadius:2}}>✓ ALL MATERIALS OK</span>:<span style={{fontSize:9,fontWeight:700,color:C.danger,background:C.dangerBg,border:'1px solid '+C.dangerBdr,padding:'2px 8px',borderRadius:2}}>▲ {check.shortfalls.length} SHORTFALL{check.shortfalls.length>1?'S':''}</span>}</div></div><div style={{border:'1px solid '+C.border,borderRadius:6,overflowX:'auto'}}><table style={{width:'100%',minWidth:500,borderCollapse:'collapse'}}><thead><tr style={{background:C.raised}}>{["Component","Desc","Lead","$/unit","Per Unit","On Hand","On Order","Needed","Avail","Status"].map(function(h,i){return<th key={h} style={{padding:'7px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=4?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead><tbody>{items.map(function(c,i){const inv=(pkgComps[grp]&&pkgComps[grp][c.id])||{},oh=parseInt(inv.onHand||0)||0,oo=parseInt(inv.onOrder||0)||0,needed=demand>0?Math.ceil(demand*c.perUnit):0,avail=oh+oo,short=needed>0?Math.max(0,needed-avail):0,ok=needed===0||avail>=needed,urgent=short>0&&c.lead>14;return(<tr key={c.id} style={{background:short>0?(urgent?C.dangerBg:C.warnBg):i%2===0?'transparent':'#0a0a0a'}}><td style={{padding:'7px 10px',fontSize:11,fontWeight:600,color:short>0?(urgent?C.danger:C.warn):C.text,whiteSpace:'nowrap'}}>{c.name}</td><td style={{padding:'7px 10px',fontSize:10,color:C.dim}}>{c.desc}</td><td style={{padding:'7px 10px',fontSize:10,color:c.lead>14?C.warn:C.muted,whiteSpace:'nowrap'}}>{c.lead<7?c.lead+'d':Math.round(c.lead/7)+'wk'}</td><td style={{padding:'7px 10px',fontSize:10,color:C.dim,textAlign:'right'}}>{c.cost>0?cur(c.cost):'—'}</td><td style={{padding:'7px 10px',fontSize:10,color:C.dim,textAlign:'right'}}>{c.perUnit<1?(c.perUnit*1000).toFixed(0)+'/1k':c.perUnit+'x'}</td><td style={{padding:'5px 6px',textAlign:'right'}}><input type="number" min="0" defaultValue={inv.onHand!=null?inv.onHand:c.initOnHand} onBlur={function(e){setPkgComp(grp,c.id,"onHand",e.target.value);persistPkg();}} style={Object.assign({},inpSt,{width:80})}/></td><td style={{padding:'5px 6px',textAlign:'right'}}><select value={parseInt(inv.onOrder!=null?inv.onOrder:c.initOnOrder)||0} onChange={function(e){setPkgComp(grp,c.id,"onOrder",e.target.value);}} onBlur={persistPkg} style={{background:C.bg,border:'1px solid '+C.border,borderRadius:2,color:C.text,fontSize:11,fontFamily:'inherit',padding:'3px 4px',outline:'none',width:90,cursor:'pointer'}}>{[0,250,500,750,1000,1500,2000,2500,3000,4000,5000,7500,10000,15000,20000,25000,30000].map(function(v){return<option key={v} value={v} style={{background:'#111'}}>{v===0?'—':v.toLocaleString()}</option>;})}</select></td><td style={{padding:'7px 10px',fontSize:11,textAlign:'right',fontWeight:needed>0?600:400,color:needed>0?C.text:C.dim}}>{needed>0?needed.toLocaleString():'—'}</td><td style={{padding:'7px 10px',fontSize:11,textAlign:'right',color:ok?C.muted:C.danger}}>{avail.toLocaleString()}</td><td style={{padding:'7px 10px',textAlign:'right'}}>{short>0?<span style={{fontSize:9,fontWeight:700,color:urgent?C.danger:C.warn,background:urgent?C.dangerBg:C.warnBg,border:'1px solid '+(urgent?C.dangerBdr:C.warnBdr),padding:'2px 6px',borderRadius:2,whiteSpace:'nowrap'}}>-{short.toLocaleString()} {urgent?'· ORDER NOW':'· order'}</span>:needed>0?<span style={{fontSize:9,color:C.good}}>✓</span>:<span style={{fontSize:9,color:C.dim}}>—</span>}</td></tr>);})} </tbody></table></div></div>);}
+                  function CompTable(p2){const{grp,label,demand}=p2,items=PKG[grp]||[],check=matsCheck(grp);return(<div style={{marginBottom:24}}><div style={{display:'flex',alignItems:'center',gap:12,marginBottom:10}}><div style={{fontSize:11,fontWeight:800,letterSpacing:2}}>{label.toUpperCase()}</div>{demand>0&&<div style={{fontSize:9,color:C.dim}}>MFG demand: {demand.toLocaleString()} units</div>}<div style={{marginLeft:'auto'}}>{check.ok?<span style={{fontSize:9,fontWeight:700,color:C.good,background:C.goodBg,border:'1px solid '+C.goodBdr,padding:'2px 8px',borderRadius:2}}>✓ ALL MATERIALS OK</span>:<span style={{fontSize:9,fontWeight:700,color:C.danger,background:C.dangerBg,border:'1px solid '+C.dangerBdr,padding:'2px 8px',borderRadius:2}}>▲ {check.shortfalls.length} SHORTFALL{check.shortfalls.length>1?'S':''}</span>}</div></div><div style={{border:'1px solid '+C.border,borderRadius:6,overflowX:'auto'}}><table style={{width:'100%',minWidth:500,borderCollapse:'collapse'}}><thead><tr style={{background:C.raised}}>{["Component","Desc","Lead","$/unit","Per Unit","On Hand","On Order","Needed","Avail","Status"].map(function(h,i){return<th key={h} style={{padding:'7px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=4?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead><tbody>{items.map(function(c,i){const inv=(pkgComps[grp]&&pkgComps[grp][c.id])||{},oh=parseInt(inv.onHand||0)||0,oo=parseInt(inv.onOrder||0)||0,needed=demand>0?Math.ceil(demand*c.perUnit):0,avail=oh+oo,short=needed>0?Math.max(0,needed-avail):0,ok=needed===0||avail>=needed,urgent=short>0&&c.lead>14;return(<tr key={c.id} style={{background:short>0?(urgent?C.dangerBg:C.warnBg):i%2===0?'transparent':'#050505'}}><td style={{padding:'7px 10px',fontSize:11,fontWeight:600,color:short>0?(urgent?C.danger:C.warn):C.text,whiteSpace:'nowrap'}}>{c.name}</td><td style={{padding:'7px 10px',fontSize:10,color:C.dim}}>{c.desc}</td><td style={{padding:'7px 10px',fontSize:10,color:c.lead>14?C.warn:C.muted,whiteSpace:'nowrap'}}>{c.lead<7?c.lead+'d':Math.round(c.lead/7)+'wk'}</td><td style={{padding:'7px 10px',fontSize:10,color:C.dim,textAlign:'right'}}>{c.cost>0?cur(c.cost):'—'}</td><td style={{padding:'7px 10px',fontSize:10,color:C.dim,textAlign:'right'}}>{c.perUnit<1?(c.perUnit*1000).toFixed(0)+'/1k':c.perUnit+'x'}</td><td style={{padding:'5px 6px',textAlign:'right'}}><input type="number" min="0" defaultValue={inv.onHand!=null?inv.onHand:c.initOnHand} onBlur={function(e){setPkgComp(grp,c.id,"onHand",e.target.value);persistPkg();}} style={Object.assign({},inpSt,{width:80})}/></td><td style={{padding:'5px 6px',textAlign:'right'}}><select value={parseInt(inv.onOrder!=null?inv.onOrder:c.initOnOrder)||0} onChange={function(e){setPkgComp(grp,c.id,"onOrder",e.target.value);}} onBlur={persistPkg} style={{background:C.bg,border:'1px solid '+C.border,borderRadius:2,color:C.text,fontSize:11,fontFamily:'inherit',padding:'3px 4px',outline:'none',width:90,cursor:'pointer'}}>{[0,250,500,750,1000,1500,2000,2500,3000,4000,5000,7500,10000,15000,20000,25000,30000].map(function(v){return<option key={v} value={v} style={{background:'#111'}}>{v===0?'—':v.toLocaleString()}</option>;})}</select></td><td style={{padding:'7px 10px',fontSize:11,textAlign:'right',fontWeight:needed>0?600:400,color:needed>0?C.text:C.dim}}>{needed>0?needed.toLocaleString():'—'}</td><td style={{padding:'7px 10px',fontSize:11,textAlign:'right',color:ok?C.muted:C.danger}}>{avail.toLocaleString()}</td><td style={{padding:'7px 10px',textAlign:'right'}}>{short>0?<span style={{fontSize:9,fontWeight:700,color:urgent?C.danger:C.warn,background:urgent?C.dangerBg:C.warnBg,border:'1px solid '+(urgent?C.dangerBdr:C.warnBdr),padding:'2px 6px',borderRadius:2,whiteSpace:'nowrap'}}>-{short.toLocaleString()} {urgent?'· ORDER NOW':'· order'}</span>:needed>0?<span style={{fontSize:9,color:C.good}}>✓</span>:<span style={{fontSize:9,color:C.dim}}>—</span>}</td></tr>);})} </tbody></table></div></div>);}
                   const concCheck=matsCheck('Concentrates'),cartCheck=matsCheck('Carts');
                   return(<div>
                   {/* ── PACKING SLIP SCANNER ── */}
@@ -2097,7 +2212,7 @@ window._STRAIN_DB=[
                     if(!zCities.length)return null;
                     var maxN=Math.max.apply(null,zCities.map(function(c){return c.accts.length;}));
                     var svgKids=[];
-                    svgKids.push(React.createElement('path',{key:'ca',d:CA,fill:'#0a0a0a',stroke:'#151515',strokeWidth:0.5}));
+                    svgKids.push(React.createElement('path',{key:'ca',d:CA,fill:'#050505',stroke:'#151515',strokeWidth:0.5}));
                     HWY.forEach(function(hw){svgKids.push(React.createElement('path',{key:'hw-'+hw.id,d:hw.d,fill:'none',stroke:'#222',strokeWidth:0.8,opacity:0.4}));svgKids.push(React.createElement('text',{key:'hwl-'+hw.id,x:hw.lx,y:hw.ly,fontSize:3,fill:'#333',opacity:0.5,fontFamily:'monospace'},hw.ln));});
                     // Compute rep revenue for animation velocity (used when rep filtered)
                     var repRevMap={};
@@ -2118,7 +2233,7 @@ window._STRAIN_DB=[
                     if(isRepFiltered&&drawCities.length===0){
                       var repObj=REPS.find(function(rp){return rp.full===filteredRep;});
                       return React.createElement('div',{key:zone.key,style:{flex:'1 1 30%',minWidth:260}},
-                        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6,padding:'6px 10px',background:'#0a0a0a',borderRadius:4,border:'1px solid #1a1a1a'}},
+                        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6,padding:'6px 10px',background:'#050505',borderRadius:4,border:'1px solid #1a1a1a'}},
                           React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6}},React.createElement('span',{style:{width:10,height:10,borderRadius:'50%',background:zone.color,display:'inline-block',opacity:0.15}}),React.createElement('span',{style:{fontSize:13,fontWeight:700,opacity:0.25}},zone.name)),
                           React.createElement('div',{style:{textAlign:'right',opacity:0.25}},React.createElement('div',{style:{fontSize:9,color:C.dim}},'No activity'))
                         ),
@@ -2479,7 +2594,7 @@ window._STRAIN_DB=[
                                 </div>
                                 {zoneRoutes.map(function(route, ri) {
                                   return (
-                                    <div key={ri} style={{marginBottom:8,background:'#0a0a0a',borderRadius:6,border:'1px solid '+zoneColor+'22',overflow:'hidden'}}>
+                                    <div key={ri} style={{marginBottom:8,background:'#050505',borderRadius:6,border:'1px solid '+zoneColor+'22',overflow:'hidden'}}>
                                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',background:'#111',borderBottom:'1px solid #1a1a1a'}}>
                                         <div style={{display:'flex',alignItems:'center',gap:10}}>
                                           <span style={{fontSize:16,fontWeight:900,color:zoneColor}}>Day {route.dayNum}</span>
@@ -2645,7 +2760,7 @@ window._STRAIN_DB=[
                       <div style={{border:'1px solid '+C.border,borderRadius:6,overflow:'hidden'}}><div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:460,borderCollapse:'collapse'}}>
                         <thead><tr style={{background:C.raised}}>{["Strain","","Cross","Tags","Description"].concat(authRole==='exec'?["Vel/wk"]:[]).map(function(h,i){return<th key={h+i} style={{padding:'8px '+(i===1?'6px':'14px'),fontSize:8,fontWeight:700,letterSpacing:1.2,textTransform:'uppercase',color:C.dim,textAlign:i>=5?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead>
                         <tbody>{filtered.map(function(s,i){var cross='';var cdb=(window._STRAIN_DB||[]);var cMatch=cdb.find(function(cs){return cs.n.toLowerCase().replace(/[^a-z0-9]/g,'')===s.n.toLowerCase().replace(/[^a-z0-9]/g,'');});if(cMatch&&cMatch.c)cross=cMatch.c.replace(/\s*x\s*/gi,' × ');return(
-                          <tr key={s.n} style={{background:i%2===0?'transparent':'#0a0a0a'}}>
+                          <tr key={s.n} style={{background:i%2===0?'transparent':'#050505'}}>
                             <td style={{padding:'9px 14px',fontSize:12,fontWeight:600,whiteSpace:'nowrap'}}>{s.n}</td>
                             <td style={{padding:'9px 6px',textAlign:'center'}}><span style={{fontSize:11,fontWeight:900,color:tc2(s.t),background:tc2(s.t)+'22',border:'1px solid '+tc2(s.t)+'44',borderRadius:2,padding:'2px 6px',display:'inline-block',minWidth:18,textAlign:'center'}}>{s.t.charAt(0)}</span></td>
                             <td style={{padding:'9px 14px',fontSize:10,color:C.muted,whiteSpace:'nowrap'}}>{cross||'—'}</td>
@@ -3138,7 +3253,7 @@ window._STRAIN_DB=[
                           <div style={{overflowX:'auto'}}>
                             <table style={{width:'100%',minWidth:520,borderCollapse:'collapse'}}>
                               <thead><tr style={{background:C.raised}}>{['Date','Strain','Type','Account','Qty','$/Unit','Total','Reason','Status','Notes',''].map(function(h,i){return<th key={h+i} style={{padding:'8px 10px',fontSize:7,fontWeight:700,letterSpacing:1,textTransform:'uppercase',color:C.dim,textAlign:i>=4&&i<=6?'right':i===8?'center':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead>
-                              <tbody>{returnsLog.map(function(r,i){var sc=statusColors[r.status]||statusColors.PENDING;return<tr key={r.id} style={{background:i%2===0?'transparent':'#0a0a0a'}}>
+                              <tbody>{returnsLog.map(function(r,i){var sc=statusColors[r.status]||statusColors.PENDING;return<tr key={r.id} style={{background:i%2===0?'transparent':'#050505'}}>
                                 <td style={{padding:'8px 10px',fontSize:10,color:C.muted,whiteSpace:'nowrap'}}>{r.date}</td>
                                 <td style={{padding:'8px 10px',fontSize:11,fontWeight:600}}>{r.strain}</td>
                                 <td style={{padding:'8px 10px',fontSize:9,color:C.dim}}>{r.category}</td>
@@ -3276,7 +3391,7 @@ window._STRAIN_DB=[
                         React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Account','Rep','Days Silent','Median','365d Rev'].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'6px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=2?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
                         React.createElement('tbody',null,overdueAccts.sort(function(a,b){return(b.totalSales||0)-(a.totalSales||0);}).slice(0,20).map(function(a,i){
                           var ts=(a.orderDayTs||[]).slice().sort(function(x,y){return x-y;});var ds=ts.length>0?Math.round((now-ts[ts.length-1])/86400000):0;
-                          return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#0a0a0a',cursor:'pointer'},onClick:function(){window._goAcct&&window._goAcct(a.name);}},
+                          return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#050505',cursor:'pointer'},onClick:function(){window._goAcct&&window._goAcct(a.name);}},
                             React.createElement('td',{style:{padding:'6px 10px',fontSize:11,fontWeight:500}},a.name),
                             React.createElement('td',{style:{padding:'6px 10px',fontSize:10,color:C.muted}},a.rep||'—'),
                             React.createElement('td',{style:{padding:'6px 10px',fontSize:11,textAlign:'right',fontWeight:700,color:ds>90?C.danger:C.warn}},ds+'d'),
@@ -3307,7 +3422,7 @@ window._STRAIN_DB=[
                       );
                     })(),
                     // ── Win-Back Tracking ──
-                    (function(){var winBacks=[];displayAccounts.forEach(function(a){if(!a.orderDayTs||a.orderDayTs.length<3)return;var ts=a.orderDayTs.slice().sort(function(x,y){return x-y;});for(var gi=1;gi<ts.length;gi++){var gap=(ts[gi]-ts[gi-1])/86400000;if(gap>90&&gi<ts.length-1){winBacks.push({name:a.name,gapDays:Math.round(gap),reactivated:new Date(ts[gi]).toLocaleDateString('en-US',{month:'short',year:'numeric'}),ordersAfter:ts.length-gi,rev:a.totalSales||0});break;}}});if(!winBacks.length)return null;return React.createElement('div',{style:{marginBottom:24}},React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'WIN-BACK SUCCESS — '+winBacks.length+' REACTIVATED ACCOUNTS'),React.createElement('div',{style:{overflowX:'auto'}},React.createElement('table',{style:{width:'100%',minWidth:380,borderCollapse:'collapse'}},React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Account','Gap','Reactivated','Orders Since','365d Rev'].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'5px 8px',fontSize:8,fontWeight:700,color:C.dim,textAlign:i>=1?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),React.createElement('tbody',null,winBacks.sort(function(a,b){return b.rev-a.rev;}).slice(0,15).map(function(w,i){return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#0a0a0a',cursor:'pointer'},onClick:function(){window._goAcct&&window._goAcct(w.name);}},React.createElement('td',{style:{padding:'5px 8px',fontSize:11,fontWeight:500}},w.name),React.createElement('td',{style:{padding:'5px 8px',fontSize:10,textAlign:'right',color:C.warn}},w.gapDays+'d'),React.createElement('td',{style:{padding:'5px 8px',fontSize:10,textAlign:'right',color:C.muted}},w.reactivated),React.createElement('td',{style:{padding:'5px 8px',fontSize:10,textAlign:'right',color:C.good}},w.ordersAfter),React.createElement('td',{style:{padding:'5px 8px',fontSize:11,textAlign:'right',fontWeight:600}},curK(w.rev)));})))));})(),
+                    (function(){var winBacks=[];displayAccounts.forEach(function(a){if(!a.orderDayTs||a.orderDayTs.length<3)return;var ts=a.orderDayTs.slice().sort(function(x,y){return x-y;});for(var gi=1;gi<ts.length;gi++){var gap=(ts[gi]-ts[gi-1])/86400000;if(gap>90&&gi<ts.length-1){winBacks.push({name:a.name,gapDays:Math.round(gap),reactivated:new Date(ts[gi]).toLocaleDateString('en-US',{month:'short',year:'numeric'}),ordersAfter:ts.length-gi,rev:a.totalSales||0});break;}}});if(!winBacks.length)return null;return React.createElement('div',{style:{marginBottom:24}},React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'WIN-BACK SUCCESS — '+winBacks.length+' REACTIVATED ACCOUNTS'),React.createElement('div',{style:{overflowX:'auto'}},React.createElement('table',{style:{width:'100%',minWidth:380,borderCollapse:'collapse'}},React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Account','Gap','Reactivated','Orders Since','365d Rev'].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'5px 8px',fontSize:8,fontWeight:700,color:C.dim,textAlign:i>=1?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),React.createElement('tbody',null,winBacks.sort(function(a,b){return b.rev-a.rev;}).slice(0,15).map(function(w,i){return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#050505',cursor:'pointer'},onClick:function(){window._goAcct&&window._goAcct(w.name);}},React.createElement('td',{style:{padding:'5px 8px',fontSize:11,fontWeight:500}},w.name),React.createElement('td',{style:{padding:'5px 8px',fontSize:10,textAlign:'right',color:C.warn}},w.gapDays+'d'),React.createElement('td',{style:{padding:'5px 8px',fontSize:10,textAlign:'right',color:C.muted}},w.reactivated),React.createElement('td',{style:{padding:'5px 8px',fontSize:10,textAlign:'right',color:C.good}},w.ordersAfter),React.createElement('td',{style:{padding:'5px 8px',fontSize:11,textAlign:'right',fontWeight:600}},curK(w.rev)));})))));})(),
                     // ── Time-to-Cash Cycle (Real Timing) ──
                     React.createElement('div',{style:{marginBottom:24}},React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'PRODUCTION → CASH CYCLE (UPNORTH CONSIGNMENT)'),React.createElement('div',{className:'gpi-form-grid',style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(100px,1fr))',gap:12}},
                       [{l:'Extraction',v:'~10d',s:'Fill + QA'},{l:'Pickup',v:'+5d',s:'UpNorth collects'},{l:'Sell-Through',v:'14-45d',s:'By SKU velocity'},{l:'Month Close',v:'~15d avg',s:'End of sale month'},{l:'Consignment',v:'+42d',s:'6 wk hold'},{l:'Payout',v:'2nd Fri',s:'Of payout month'},{l:'Cart Cycle',v:'~86d',s:'Fastest SKU'},{l:'Diamond Cycle',v:'~117d',s:'Slowest SKU'}].map(function(s){return React.createElement('div',{key:s.l,style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'10px 12px',textAlign:'center'}},React.createElement('div',{style:{fontSize:7,color:C.dim,letterSpacing:1.5,marginBottom:3}},s.l),React.createElement('div',{style:{fontSize:14,fontWeight:800,color:C.text}},s.v),React.createElement('div',{style:{fontSize:8,color:C.muted,marginTop:2}},s.s));})
@@ -3317,7 +3432,7 @@ window._STRAIN_DB=[
                       React.createElement('div',{style:{background:C.warnBg,border:'1px solid '+C.warnBdr,borderRadius:6,padding:'12px 16px'}},
                         React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:1.5}},'NEXT PAYOUT — FEB SALES'),
                         React.createElement('div',{style:{fontSize:18,fontWeight:900,color:C.warn}},'$38,396.91'),
-                        React.createElement('div',{style:{fontSize:9,color:C.muted,marginTop:2}},'Due Apr 13 · GON $33K + Euphoric $5K + Batt $423')
+                        React.createElement('div',{style:{fontSize:9,color:C.muted,marginTop:2}},'Due Apr 10 · GON $33K + Euphoric $5K + Batt $423')
                       ),
                       React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'12px 16px'}},
                         React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:1.5}},'TOTAL RECEIVABLES OUTSTANDING'),
@@ -3428,7 +3543,7 @@ window._STRAIN_DB=[
                     React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'BY CATEGORY'),
                     React.createElement('div',{style:{overflowX:'auto',marginBottom:24}},React.createElement('table',{style:{width:'100%',minWidth:420,borderCollapse:'collapse'}},
                       React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Category','Revenue (84%)','COGS','Net','Margin','Units'].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'6px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=1?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
-                      React.createElement('tbody',null,catRows.map(function(r,i){var net=r.revenue-r.cogs;var m=r.revenue>0?net/r.revenue*100:0;return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#0a0a0a'}},
+                      React.createElement('tbody',null,catRows.map(function(r,i){var net=r.revenue-r.cogs;var m=r.revenue>0?net/r.revenue*100:0;return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#050505'}},
                         React.createElement('td',{style:{padding:'7px 10px',fontSize:11,fontWeight:600}},r.label),
                         React.createElement('td',{style:{padding:'7px 10px',fontSize:11,textAlign:'right',fontWeight:700}},curK(r.revenue)),
                         React.createElement('td',{style:{padding:'7px 10px',fontSize:10,textAlign:'right',color:C.muted}},curK(r.cogs)),
@@ -3440,7 +3555,7 @@ window._STRAIN_DB=[
                     React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'MARGIN BY ACCOUNT — '+pd+'d ('+acctRows.length+' accounts)'),
                     React.createElement('div',{style:{overflowX:'auto',marginBottom:24}},React.createElement('table',{style:{width:'100%',minWidth:520,borderCollapse:'collapse'}},
                       React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Account','Rep','Revenue (84%)','COGS','Returns','Net','Margin'].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'6px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=2?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
-                      React.createElement('tbody',null,acctRows.slice(0,50).map(function(r,i){var isLow=r.revenue>500&&r.margin<25;return React.createElement('tr',{key:i,style:{background:isLow?C.dangerBg:i%2===0?'transparent':'#0a0a0a',cursor:'pointer'},onClick:function(){window._goAcct&&window._goAcct(r.name);}},
+                      React.createElement('tbody',null,acctRows.slice(0,50).map(function(r,i){var isLow=r.revenue>500&&r.margin<25;return React.createElement('tr',{key:i,style:{background:isLow?C.dangerBg:i%2===0?'transparent':'#050505',cursor:'pointer'},onClick:function(){window._goAcct&&window._goAcct(r.name);}},
                         React.createElement('td',{style:{padding:'6px 10px',fontSize:11,fontWeight:isLow?700:500,color:isLow?C.danger:C.text}},r.name.length>30?r.name.slice(0,28)+'…':r.name),
                         React.createElement('td',{style:{padding:'6px 10px',fontSize:10,color:C.muted}},r.rep?r.rep.split(' ')[0]:'—'),
                         React.createElement('td',{style:{padding:'6px 10px',fontSize:11,textAlign:'right',fontWeight:600}},curK(r.revenue)),
@@ -3513,7 +3628,7 @@ window._STRAIN_DB=[
                             var r=Math.round(baseRev*sc.mult*priceAdj);
                             var co=Math.round(baseCogs*sc.mult);
                             var n=r-co;var m=r>0?n/r*100:0;
-                            return React.createElement('tr',{key:i,style:{background:i===0?C.raised:i%2===0?'transparent':'#0a0a0a',fontWeight:i===0?700:400}},
+                            return React.createElement('tr',{key:i,style:{background:i===0?C.raised:i%2===0?'transparent':'#050505',fontWeight:i===0?700:400}},
                               React.createElement('td',{style:{padding:'6px 10px',fontSize:11,fontWeight:i===0?700:500}},sc.label),
                               React.createElement('td',{style:{padding:'6px 10px',fontSize:10,textAlign:'right'}},u.toLocaleString()),
                               React.createElement('td',{style:{padding:'6px 10px',fontSize:11,textAlign:'right',fontWeight:600}},curK(r)),
@@ -3559,8 +3674,106 @@ window._STRAIN_DB=[
                     {item:'Lighters',cost:1.25,moq:1000,lead:'2 wk',notes:'High retention rate'},
                     {item:'Rolling Trays',cost:5.00,moq:250,lead:'4 wk',notes:'Premium account gifts'},
                   ];
+                  var TIME_BLOCKS=['9\u201312','10\u20131','11\u20132','12\u20133','1\u20134','2\u20135'];
+                  // Compute account statuses using same logic as Suggested Accounts engine
+                  var demoAccounts=(function(){
+                    if(!displayAccounts||!displayAccounts.length)return[];
+                    var now=Date.now();
+                    return displayAccounts.map(function(a){
+                      var ts=(a.orderDayTs||[]).slice().sort(function(x,y){return x-y;});
+                      if(!ts.length)return null;
+                      var ds=Math.max(0,Math.round((now-ts[ts.length-1])/86400000));
+                      var rev=a.totalSales||0;if(rev<100)return null;
+                      var gaps=[];for(var gi=1;gi<ts.length;gi++)gaps.push((ts[gi]-ts[gi-1])/86400000);
+                      gaps.sort(function(x,y){return x-y;});
+                      var med=gaps.length>0?gaps[Math.floor(gaps.length/2)]:30;
+                      var avgOrd=rev/Math.max(1,ts.length);
+                      var alreadyScheduled=demos.some(function(d){return d.account===a.name&&d.status!=='completed';});
+                      if(alreadyScheduled)return null;
+                      var status='',statusColor=C.dim,reason='',opportunity=0;
+                      if(ds>90){
+                        status='Win-back';statusColor=C.danger;reason='Inactive '+ds+'d \u2014 win-back candidate';opportunity=avgOrd;
+                      }else if(ds>Math.max(med*1.5,21)&&rev>500){
+                        status='Declining';statusColor='#f5a623';reason='Overdue '+ds+'d (median '+Math.round(med)+'d)';opportunity=Math.round(avgOrd*1.5);
+                      }else if(rev>2000&&ts.length>=5&&ds<=med*1.2){
+                        status='Active-High';statusColor=C.good;reason='$'+Math.round(rev).toLocaleString()+' lifetime';opportunity=Math.round(avgOrd);
+                      }else if(ts.length<=3&&rev<1500){
+                        status='New/Low';statusColor='#2196f3';reason='Only '+ts.length+' orders \u2014 room to grow';opportunity=Math.round(avgOrd*2);
+                      }else{return null;}
+                      var rep=(a.orderedSkus||[]).reduce(function(best,s){return(s.rep&&s.rep!=='\u2014')?s.rep:best;},'');
+                      return{name:a.name,rep:rep,rev:rev,daysSince:ds,status:status,statusColor:statusColor,reason:reason,opportunity:opportunity};
+                    }).filter(Boolean).sort(function(a,b){
+                      var pri={'Declining':0,'Win-back':1,'New/Low':2,'Active-High':3};
+                      return(pri[a.status]||2)-(pri[b.status]||2)||(b.rev-a.rev);
+                    });
+                  })();
+                  var statusCounts={};demoAccounts.forEach(function(a){statusCounts[a.status]=(statusCounts[a.status]||0)+1;});
+                  var filteredDemoAccts=demoForm.statusFilter==='ALL'?demoAccounts:demoAccounts.filter(function(a){return a.status===demoForm.statusFilter;});
                   return React.createElement('div',null,
                     React.createElement('div',{style:{fontSize:14,fontWeight:900,letterSpacing:3,marginBottom:24}},'MARKETING & PLANNING'),
+                    // ── Demo Scheduling with Account Filtering ──
+                    React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'16px 20px',marginBottom:24}},
+                      React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:12}},'SCHEDULE DEMO'),
+                      // Status filter buttons
+                      React.createElement('div',{style:{display:'flex',gap:6,flexWrap:'wrap',marginBottom:12}},
+                        ['ALL','Declining','Active-High','Win-back','New/Low'].map(function(s){
+                          var sel=demoForm.statusFilter===s;
+                          var clr=s==='Declining'?'#f5a623':s==='Win-back'?C.danger:s==='Active-High'?C.good:s==='New/Low'?'#2196f3':C.text;
+                          var ct=s==='ALL'?demoAccounts.length:(statusCounts[s]||0);
+                          return React.createElement('button',{key:s,onClick:function(){setDemoForm(Object.assign({},demoForm,{statusFilter:s,account:'',rep:''}));},style:{background:sel?clr+'22':'transparent',border:'1px solid '+(sel?clr:C.border),borderRadius:4,padding:'6px 12px',fontSize:9,fontWeight:sel?700:400,color:sel?clr:C.dim,cursor:'pointer',letterSpacing:0.5}},s+' ('+ct+')');
+                        })
+                      ),
+                      // Account selector
+                      React.createElement('div',{style:{maxHeight:180,overflowY:'auto',border:'1px solid '+C.border,borderRadius:4,marginBottom:12,background:C.bg}},
+                        filteredDemoAccts.length===0?React.createElement('div',{style:{padding:12,fontSize:10,color:C.dim,textAlign:'center'}},'No accounts match filter'):
+                        filteredDemoAccts.slice(0,50).map(function(a){
+                          var sel=demoForm.account===a.name;
+                          return React.createElement('div',{key:a.name,onClick:function(){setDemoForm(Object.assign({},demoForm,{account:a.name,rep:a.rep}));},style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 10px',cursor:'pointer',borderBottom:'1px solid '+C.border,background:sel?a.statusColor+'15':'transparent'}},
+                            React.createElement('div',null,
+                              React.createElement('span',{style:{fontSize:10,fontWeight:sel?700:400,color:sel?C.text:C.muted}},a.name),
+                              a.rep&&React.createElement('span',{style:{fontSize:8,color:C.dim,marginLeft:6}},a.rep)
+                            ),
+                            React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8}},
+                              React.createElement('span',{style:{fontSize:8,color:C.dim}},a.daysSince<999?a.daysSince+'d ago':'—'),
+                              React.createElement('span',{style:{fontSize:7,padding:'2px 6px',borderRadius:2,fontWeight:700,color:a.statusColor,background:a.statusColor+'15',border:'1px solid '+a.statusColor+'33'}},a.status)
+                            )
+                          );
+                        })
+                      ),
+                      // Date + time block row
+                      React.createElement('div',{style:{display:'flex',gap:10,marginBottom:12,flexWrap:'wrap'}},
+                        React.createElement('input',{type:'date',value:demoForm.date,onChange:function(e){setDemoForm(Object.assign({},demoForm,{date:e.target.value}));},style:{background:C.raised,border:'1px solid '+C.border,borderRadius:4,padding:'8px 12px',fontSize:11,color:C.text,outline:'none',flex:'0 0 160px'}}),
+                        TIME_BLOCKS.map(function(tb){var sel=demoForm.timeBlock===tb;return React.createElement('button',{key:tb,onClick:function(){setDemoForm(Object.assign({},demoForm,{timeBlock:tb}));},style:{background:sel?C.good+'22':'transparent',border:'1px solid '+(sel?C.good:C.border),borderRadius:4,padding:'6px 12px',fontSize:10,fontWeight:sel?700:400,color:sel?C.good:C.dim,cursor:'pointer'}},tb);})
+                      ),
+                      React.createElement('textarea',{placeholder:'Notes (reason, cost, attendees...)',value:demoForm.notes,onChange:function(e){setDemoForm(Object.assign({},demoForm,{notes:e.target.value}));},rows:2,style:{background:C.raised,border:'1px solid '+C.border,borderRadius:4,padding:'8px 12px',fontSize:11,color:C.text,outline:'none',width:'100%',resize:'vertical',fontFamily:'inherit'}}),
+                      React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:12}},
+                        React.createElement('button',{onClick:function(){
+                          if(!demoForm.account||!demoForm.date||!demoForm.timeBlock)return;
+                          var nd=Object.assign({},demoForm,{id:Date.now(),status:'planned',createdAt:new Date().toISOString()});
+                          var next=demos.concat([nd]);saveDemos(next);
+                          setDemoForm({account:'',rep:'',date:'',timeBlock:'',notes:'',statusFilter:demoForm.statusFilter});
+                        },style:{background:demoForm.account&&demoForm.date&&demoForm.timeBlock?C.good:'transparent',border:'1px solid '+(demoForm.account&&demoForm.date&&demoForm.timeBlock?C.good:C.border),borderRadius:4,padding:'8px 20px',fontSize:10,fontWeight:700,color:demoForm.account&&demoForm.date&&demoForm.timeBlock?'#000':C.dim,cursor:'pointer',letterSpacing:1}},'SCHEDULE'),
+                        React.createElement('span',{style:{fontSize:9,color:C.dim}},demos.length+' demos · $'+(demos.length*demoCost))
+                      )
+                    ),
+                    // ── Scheduled Demos List ──
+                    demos.length>0&&React.createElement('div',{style:{marginBottom:24}},
+                      React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:8}},'SCHEDULED DEMOS'),
+                      demos.slice().sort(function(a,b){return(a.date||'').localeCompare(b.date||'');}).map(function(d){
+                        var isPast=d.date&&new Date(d.date)<new Date();
+                        return React.createElement('div',{key:d.id,style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 12px',borderBottom:'1px solid '+C.border,opacity:isPast?0.5:1}},
+                          React.createElement('div',null,
+                            React.createElement('span',{style:{fontSize:11,fontWeight:600}},d.account),
+                            React.createElement('span',{style:{fontSize:9,color:C.dim,marginLeft:8}},d.date+' · '+d.timeBlock),
+                            d.rep&&React.createElement('span',{style:{fontSize:9,color:C.dim,marginLeft:8}},'('+d.rep+')')
+                          ),
+                          React.createElement('div',{style:{display:'flex',gap:6}},
+                            React.createElement('button',{onClick:function(){var next=demos.map(function(x){return x.id===d.id?Object.assign({},x,{status:d.status==='planned'?'follow-up':'completed'}):x;});saveDemos(next);},style:{background:'transparent',border:'1px solid '+C.border,borderRadius:3,padding:'3px 8px',fontSize:8,color:d.status==='planned'?C.warn:C.good,cursor:'pointer'}},d.status==='planned'?'DONE':'COMPLETE'),
+                            React.createElement('button',{onClick:function(){saveDemos(demos.filter(function(x){return x.id!==d.id;}));},style:{background:'transparent',border:'1px solid '+C.border,borderRadius:3,padding:'3px 8px',fontSize:8,color:C.danger,cursor:'pointer'}},'✕')
+                          )
+                        );
+                      })
+                    ),
                     React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'CANNABIS TRADE SHOWS 2026'),
                     React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:12,marginBottom:24}},
                       TRADE_SHOWS.map(function(ts){return React.createElement('div',{key:ts.name,style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'14px 16px'}},
@@ -3575,7 +3788,7 @@ window._STRAIN_DB=[
                     React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'CANNABIS HOLIDAYS & SEASONAL MOMENTS'),
                     React.createElement('div',{style:{overflowX:'auto',marginBottom:24}},React.createElement('table',{style:{width:'100%',minWidth:420,borderCollapse:'collapse'}},
                       React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Holiday','Date','Impact','Planning Notes'].map(function(h){return React.createElement('th',{key:h,style:{padding:'6px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:'left',borderBottom:'1px solid '+C.border}},h);}))),
-                      React.createElement('tbody',null,HOLIDAYS.map(function(h,i){return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#0a0a0a'}},
+                      React.createElement('tbody',null,HOLIDAYS.map(function(h,i){return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#050505'}},
                         React.createElement('td',{style:{padding:'6px 10px',fontSize:11,fontWeight:600}},h.name),
                         React.createElement('td',{style:{padding:'6px 10px',fontSize:10,color:C.muted}},h.date),
                         React.createElement('td',{style:{padding:'6px 10px'}},React.createElement('span',{style:{fontSize:8,fontWeight:700,padding:'2px 6px',borderRadius:2,background:h.impact==='Critical'?C.dangerBg:h.impact==='High'?C.warnBg:C.surface,color:h.impact==='Critical'?C.danger:h.impact==='High'?C.warn:C.muted,border:'1px solid '+(h.impact==='Critical'?C.dangerBdr:h.impact==='High'?C.warnBdr:C.border)}},h.impact)),
@@ -3585,7 +3798,7 @@ window._STRAIN_DB=[
                     React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'MERCH ORDERING GUIDE'),
                     React.createElement('div',{style:{overflowX:'auto'}},React.createElement('table',{style:{width:'100%',minWidth:380,borderCollapse:'collapse'}},
                       React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Item','Unit Cost','MOQ','Lead Time','Notes'].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'6px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=1&&i<=3?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
-                      React.createElement('tbody',null,MERCH.map(function(m,i){return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#0a0a0a'}},
+                      React.createElement('tbody',null,MERCH.map(function(m,i){return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#050505'}},
                         React.createElement('td',{style:{padding:'6px 10px',fontSize:11,fontWeight:600}},m.item),
                         React.createElement('td',{style:{padding:'6px 10px',fontSize:10,textAlign:'right'}},cur(m.cost)),
                         React.createElement('td',{style:{padding:'6px 10px',fontSize:10,textAlign:'right',color:C.muted}},m.moq.toLocaleString()),
@@ -3670,7 +3883,7 @@ window._STRAIN_DB=[
                           React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:8}},'SCHEDULED DEMOS ('+demos.length+')'),
                           React.createElement('div',{style:{overflowX:'auto'}},React.createElement('table',{style:{width:'100%',minWidth:420,borderCollapse:'collapse'}},
                             React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Account','Date','Rep','Status','Cost',''].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'5px 8px',fontSize:8,fontWeight:700,color:C.dim,textAlign:i>=4?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
-                            React.createElement('tbody',null,demos.map(function(d,i){return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#0a0a0a'}},
+                            React.createElement('tbody',null,demos.map(function(d,i){return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#050505'}},
                               React.createElement('td',{style:{padding:'5px 8px',fontSize:11,fontWeight:600,cursor:'pointer'},onClick:function(){window._goAcct&&window._goAcct(d.account);}},d.account),
                               React.createElement('td',{style:{padding:'5px 8px',fontSize:10,color:C.muted}},d.date),
                               React.createElement('td',{style:{padding:'5px 8px',fontSize:10,color:C.muted}},d.rep||'—'),
@@ -3685,7 +3898,7 @@ window._STRAIN_DB=[
                           React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:8}},'SUGGESTED ACCOUNTS FOR DEMOS'),
                           suggestions.length>0?React.createElement('div',{style:{overflowX:'auto'}},React.createElement('table',{style:{width:'100%',minWidth:480,borderCollapse:'collapse'}},
                             React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Account','Status','Reason','Opportunity','',''].map(function(h,i){return React.createElement('th',{key:h+i,style:{padding:'5px 8px',fontSize:8,fontWeight:700,color:C.dim,textAlign:i===3?'right':'left',borderBottom:'1px solid '+C.border}},h);}))),
-                            React.createElement('tbody',null,suggestions.slice(0,15).map(function(s,i){var statusColor=s.status==='Win-back'?C.danger:s.status==='Declining'?C.warn:s.status==='Active-High'?C.good:'#2196f3';return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#0a0a0a'}},
+                            React.createElement('tbody',null,suggestions.slice(0,15).map(function(s,i){var statusColor=s.status==='Win-back'?C.danger:s.status==='Declining'?C.warn:s.status==='Active-High'?C.good:'#2196f3';return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#050505'}},
                               React.createElement('td',{style:{padding:'5px 8px',fontSize:11,fontWeight:600,cursor:'pointer'},onClick:function(){window._goAcct&&window._goAcct(s.name);}},s.name.length>25?s.name.slice(0,23)+'\u2026':s.name),
                               React.createElement('td',{style:{padding:'5px 8px'}},React.createElement('span',{style:{fontSize:8,fontWeight:700,padding:'2px 6px',borderRadius:2,background:statusColor+'22',color:statusColor,border:'1px solid '+statusColor+'44'}},s.status)),
                               React.createElement('td',{style:{padding:'5px 8px',fontSize:9,color:C.muted,maxWidth:200}},s.reason),
@@ -3728,7 +3941,7 @@ window._STRAIN_DB=[
                       React.createElement('div',{style:{fontSize:9,color:C.dim,letterSpacing:2,marginBottom:12}},'USER MANAGEMENT ('+users.length+' USERS)'),
                       React.createElement('div',{style:{overflowX:'auto'}},React.createElement('table',{style:{width:'100%',minWidth:480,borderCollapse:'collapse'}},
                         React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['User','Role','PIN','Active','Uploads','Exports','Scraping',''].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'5px 8px',fontSize:8,fontWeight:700,color:C.dim,textAlign:i>=3?'center':'left',borderBottom:'1px solid '+C.border}},h);}))),
-                        React.createElement('tbody',null,users.map(function(u,i){var uo=userOverrides[u.id]||{};return React.createElement('tr',{key:u.id,style:{background:i%2===0?'transparent':'#0a0a0a',opacity:u.active?1:0.5}},
+                        React.createElement('tbody',null,users.map(function(u,i){var uo=userOverrides[u.id]||{};return React.createElement('tr',{key:u.id,style:{background:i%2===0?'transparent':'#050505',opacity:u.active?1:0.5}},
                           React.createElement('td',{style:{padding:'5px 8px',fontSize:11,fontWeight:600}},u.name),
                           React.createElement('td',{style:{padding:'5px 8px'}},React.createElement('span',{style:{fontSize:8,fontWeight:700,padding:'2px 6px',borderRadius:2,background:u.role==='exec'?C.goodBg:u.role==='mfg'?'#2196f322':C.warnBg,color:u.role==='exec'?C.good:u.role==='mfg'?'#2196f3':C.warn,border:'1px solid '+(u.role==='exec'?C.goodBdr:u.role==='mfg'?'#2196f344':C.warnBdr)}},ROLES[u.role].label)),
                           React.createElement('td',{style:{padding:'5px 8px',fontSize:10,fontFamily:'monospace',color:C.dim}},u.pin),
@@ -3746,7 +3959,7 @@ window._STRAIN_DB=[
                         React.createElement('tbody',null,
                           ['View Financials','Export Data','Edit Margins','Approve Requests','Upload Files','View Accounts','View MFG','View Security'].map(function(perm,i){
                             var checks={exec:true,mfg:i>=4&&i<=6,distro:i>=4&&i<=5};
-                            return React.createElement('tr',{key:perm,style:{background:i%2===0?'transparent':'#0a0a0a'}},
+                            return React.createElement('tr',{key:perm,style:{background:i%2===0?'transparent':'#050505'}},
                               React.createElement('td',{style:{padding:'5px 8px',fontSize:10}},perm),
                               ['exec','mfg','distro'].map(function(r){return React.createElement('td',{key:r,style:{padding:'5px 8px',fontSize:10,color:checks[r]?C.good:C.danger}},checks[r]?'✓':'✗');})
                             );
@@ -4347,7 +4560,7 @@ window._STRAIN_DB=[
               </div>
               <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse'}}>
                 <thead><tr style={{background:C.raised}}>{['Strain','Type','Product','THC','Batch','METRC','Approved',''].map(function(h,i){return<th key={h+i} style={{padding:'6px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:'left',borderBottom:'1px solid '+C.border}}>{h}</th>;})}</tr></thead>
-                <tbody>{batchQueue.map(function(b,i){return<tr key={b.id} style={{background:i%2?'#0a0a0a':'transparent'}}><td style={{padding:'8px 10px',fontSize:12,fontWeight:600}}>{b.strain}</td><td style={{padding:'8px 10px',fontSize:10,color:C.muted}}>{b.type}</td><td style={{padding:'8px 10px',fontSize:10,color:C.dim}}>{b.productType}</td><td style={{padding:'8px 10px',fontSize:11,fontWeight:700}}>{b.thc}%</td><td style={{padding:'8px 10px',fontSize:10,fontFamily:'monospace'}}>{b.batch}</td><td style={{padding:'8px 10px',fontSize:8,fontFamily:'monospace',color:C.dim}}>{b.metrc||'—'}</td><td style={{padding:'8px 10px',fontSize:9,color:C.dim}}>{new Date(b.approved).toLocaleDateString()}</td><td style={{padding:'8px 10px'}}><button onClick={function(){setBatchQueue(function(q){return q.filter(function(x){return x.id!==b.id;});});}} style={{padding:'2px 6px',borderRadius:2,fontSize:8,cursor:'pointer',border:'1px solid '+C.border,background:'transparent',color:C.dim}}>✕</button></td></tr>;})}</tbody>
+                <tbody>{batchQueue.map(function(b,i){return<tr key={b.id} style={{background:i%2?'#050505':'transparent'}}><td style={{padding:'8px 10px',fontSize:12,fontWeight:600}}>{b.strain}</td><td style={{padding:'8px 10px',fontSize:10,color:C.muted}}>{b.type}</td><td style={{padding:'8px 10px',fontSize:10,color:C.dim}}>{b.productType}</td><td style={{padding:'8px 10px',fontSize:11,fontWeight:700}}>{b.thc}%</td><td style={{padding:'8px 10px',fontSize:10,fontFamily:'monospace'}}>{b.batch}</td><td style={{padding:'8px 10px',fontSize:8,fontFamily:'monospace',color:C.dim}}>{b.metrc||'—'}</td><td style={{padding:'8px 10px',fontSize:9,color:C.dim}}>{new Date(b.approved).toLocaleDateString()}</td><td style={{padding:'8px 10px'}}><button onClick={function(){setBatchQueue(function(q){return q.filter(function(x){return x.id!==b.id;});});}} style={{padding:'2px 6px',borderRadius:2,fontSize:8,cursor:'pointer',border:'1px solid '+C.border,background:'transparent',color:C.dim}}>✕</button></td></tr>;})}</tbody>
               </table></div>
             </div>
           )}
@@ -4592,7 +4805,7 @@ const YIELD_KEY = 'gpi-yield-log';
                 <div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:420,borderCollapse:'collapse'}}>
                   <thead><tr style={{background:C.raised}}>{['#','Strain','Type','Batches','Avg Yield','Best Yield','Total Input','Total Output','Avg $/gram','Best $/gram'].map(function(h,i){return<th key={h} style={{padding:'7px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=3?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead>
                   <tbody>{ranked.map(function(s,i){var tc2=s.type==='Indica'?'#7c6aff':s.type==='Sativa'?'#f5a623':'#4a9eff';return(
-                    <tr key={s.strain} style={{background:i%2===0?'transparent':'#0a0a0a',borderLeft:i<3?'3px solid '+C.good:'3px solid transparent'}}>
+                    <tr key={s.strain} style={{background:i%2===0?'transparent':'#050505',borderLeft:i<3?'3px solid '+C.good:'3px solid transparent'}}>
                       <td style={{padding:'9px 10px',fontSize:12,fontWeight:800,color:i<3?C.good:C.dim}}>{i+1}</td>
                       <td style={{padding:'9px 10px',fontSize:12,fontWeight:700}}>{s.strain}</td>
                       <td style={{padding:'9px 10px'}}><span style={{fontSize:9,fontWeight:700,color:tc2,background:tc2+'22',border:'1px solid '+tc2+'44',borderRadius:2,padding:'1px 5px'}}>{s.type}</span></td>
@@ -4621,7 +4834,7 @@ const YIELD_KEY = 'gpi-yield-log';
               <div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:520,borderCollapse:'collapse'}}>
                 <thead><tr style={{background:C.raised}}>{['Date','Strain','Type','Input (lbs)','$/lb','Toll $/lb','Yield %','Output (g)','Total Cost','$/gram','Notes',''].map(function(h,i){return<th key={h+i} style={{padding:'7px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=3?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead>
                 <tbody>{sorted.map(function(e,i){return(
-                  <tr key={e.id} style={{background:i%2===0?'transparent':'#0a0a0a'}}>
+                  <tr key={e.id} style={{background:i%2===0?'transparent':'#050505'}}>
                     <td style={{padding:'8px 10px',fontSize:10,color:C.dim}}>{new Date(e.date).toLocaleDateString()}</td>
                     <td style={{padding:'8px 10px',fontSize:12,fontWeight:600}}>{e.strain}</td>
                     <td style={{padding:'8px 10px',fontSize:9,color:e.type==='Indica'?'#7c6aff':e.type==='Sativa'?'#f5a623':'#4a9eff'}}>{e.type}</td>
