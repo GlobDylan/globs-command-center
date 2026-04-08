@@ -281,7 +281,7 @@
           ctx.fillStyle = '#000000';
           ctx.fillRect(0, 0, 180, 180);
           // Scale logo to fill ~85% of icon, centered
-          var scale = Math.min((180 * 0.85) / img.width, (180 * 0.85) / img.height);
+          var scale = Math.min((180 * 1.0) / img.width, (180 * 1.0) / img.height);
           var w = img.width * scale;
           var h = img.height * scale;
           var x = (180 - w) / 2;
@@ -2075,9 +2075,9 @@ window._STRAIN_DB=[
                   };
                   var glNow=new Date();
                   return(<div>
-                    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:10}}>
+                    <div style={{display:'flex',flexWrap:'wrap',gap:10}}>
                       {/* Margin Calculator */}
-                      <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:12}}>
+                      <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:12,flex:'1 1 280px'}}>
                         <div style={{fontSize:10,fontWeight:800,letterSpacing:3,marginBottom:8}}>MARGIN CALCULATOR</div>
                         <div style={{fontSize:8,color:C.dim,marginBottom:10}}>When someone asks for a price — what do you actually make?</div>
                         {Object.keys(COSTS).map(function(cat){
@@ -2108,7 +2108,7 @@ window._STRAIN_DB=[
                         </div>
                       </div>
                       {/* Demo Scheduler */}
-                      <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:12}}>
+                      <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:12,flex:'1 1 280px'}}>
                         <div style={{fontSize:10,fontWeight:800,letterSpacing:3,marginBottom:8}}>DEMO SCHEDULER</div>
                         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginBottom:10}}>
                           <div style={{background:C.bg,borderRadius:4,padding:'8px 10px',textAlign:'center'}}>
@@ -2170,7 +2170,7 @@ window._STRAIN_DB=[
                         </div>
                       </div>
                       {/* Promo Requests */}
-                      <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:12}}>
+                      <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:12,flex:'1 1 280px'}}>
                         <div style={{fontSize:10,fontWeight:800,letterSpacing:3,marginBottom:8}}>PROMO REQUESTS</div>
                         {(function(){
                           var pending=[];
