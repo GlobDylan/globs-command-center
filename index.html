@@ -2044,15 +2044,22 @@ window._STRAIN_DB=[
                     Badder:{prod:3.08,label:'Badder',floor:3.67,components:[{n:'Extract',c:1.30},{n:'Jar+Cap',c:0.35},{n:'Testing',c:0.40},{n:'Labor',c:1.00},{n:'Other',c:0.03}]},
                     Sauce:{prod:3.00,label:'Sauce',floor:3.58,components:[{n:'Extract (GL)',c:1.25},{n:'Jar+Cap',c:0.35},{n:'Testing',c:0.40},{n:'Labor',c:1.00}]}
                   };
+                  var glDrop5Confirmed=localStorage.getItem('gpi:gl-drop5-confirmed')==='true';
                   var GL={limit:75000,credit:2000,owed:[
                     {label:'Drop #3 labor',amt:5766,due:'Apr 26',dropped:'Feb 10'},
                     {label:'Drop #3B labor',amt:8598,due:'May 17',dropped:'Mar 3'},
                     {label:'Drop #3B sauce',amt:4960,due:'May 17',dropped:'Mar 3'},
                     {label:'Drop #4 labor',amt:5000,due:'Jun 21',dropped:'Apr 7'},
                     {label:'Drop #4 processing',amt:5819.60,due:'Jun 21',dropped:'Apr 7'}
+                  ],pending:[
+                    {label:'Drop #5 extraction',amt:7800,detail:'6,000g × $1.30/g'},
+                    {label:'Drop #5 labor',amt:6000,detail:'6,000 × $1.00/unit'}
                   ]};
                   var glTotal=GL.owed.reduce(function(s,r){return s+r.amt;},0)-GL.credit;
+                  var glPendingTotal=GL.pending.reduce(function(s,r){return s+r.amt;},0);
+                  if(glDrop5Confirmed){glTotal+=glPendingTotal;glPendingTotal=0;}
                   var glPct=Math.round(glTotal/GL.limit*100);
+                  var glPendingPct=Math.round(glPendingTotal/GL.limit*100);
                   var glNow=new Date();
                   return(<div style={{marginTop:24}}>
                     <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:16}}>
@@ -2090,17 +2097,32 @@ window._STRAIN_DB=[
                       {/* GL Credit Tracker */}
                       <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16}}>
                         <div style={{fontSize:11,fontWeight:800,letterSpacing:3,marginBottom:12}}>GREENLINE CREDIT</div>
-                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:8}}>
-                          <span style={{fontSize:24,fontWeight:900,color:glPct>80?C.danger:glPct>60?C.warn:C.good}}>{'$'+Math.round(glTotal).toLocaleString()}</span>
+                        <div style={{display:'flex',alignItems:'baseline',gap:8,marginBottom:4,flexWrap:'wrap'}}>
+                          <span style={{fontSize:24,fontWeight:900,color:(glPct+glPendingPct)>80?C.danger:(glPct+glPendingPct)>60?C.warn:C.good}}>{'$'+Math.round(glTotal).toLocaleString()}</span>
+                          {glPendingTotal>0&&<span style={{fontSize:12,fontWeight:700,color:'#EF9F27'}}>{'+ $'+glPendingTotal.toLocaleString()+' pending'}</span>}
                           <span style={{fontSize:11,color:C.dim}}>{'/ $'+GL.limit.toLocaleString()}</span>
                         </div>
-                        <div style={{height:8,background:'#111',borderRadius:4,marginBottom:12,overflow:'hidden'}}>
-                          <div style={{height:8,borderRadius:4,background:glPct>80?C.danger:glPct>60?C.warn:C.good,width:glPct+'%',transition:'width 0.3s'}}/>
+                        {glPendingTotal>0&&<div style={{fontSize:9,color:C.dim,marginBottom:8}}>{'Drop #5 · 6,000 badder · awaiting pickup confirmation'}</div>}
+                        <div style={{height:10,background:'#111',borderRadius:5,marginBottom:8,overflow:'hidden',position:'relative'}}>
+                          <div style={{position:'absolute',left:0,top:0,height:'100%',width:glPct+'%',background:glPct>80?C.danger:glPct>60?C.warn:C.good,borderRadius:glPendingTotal>0?'5px 0 0 5px':'5px',transition:'width 0.3s'}}/>
+                          {glPendingTotal>0&&<div style={{position:'absolute',left:glPct+'%',top:0,height:'100%',width:glPendingPct+'%',background:'#EF9F27',transition:'width 0.3s'}}/>}
                         </div>
-                        <div style={{display:'flex',justifyContent:'space-between',fontSize:9,color:C.dim,marginBottom:16}}>
-                          <span>{glPct+'% utilized'}</span>
-                          <span>{'$'+(GL.limit-glTotal).toLocaleString()+' available'}</span>
+                        <div style={{display:'flex',gap:12,fontSize:9,color:C.dim,marginBottom:12,flexWrap:'wrap'}}>
+                          <span style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:8,height:8,borderRadius:2,background:C.good,display:'inline-block'}}/>{glPct+'% confirmed'}</span>
+                          {glPendingTotal>0&&<span style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:8,height:8,borderRadius:2,background:'#EF9F27',display:'inline-block'}}/>{glPendingPct+'% pending'}</span>}
+                          <span>{'$'+(GL.limit-glTotal-glPendingTotal).toLocaleString()+' available'}</span>
                         </div>
+                        {glPendingTotal>0&&<div style={{marginBottom:14,padding:'8px 12px',background:C.warnBg,border:'1px solid '+C.warnBdr,borderRadius:4,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:8}}>
+                          <div>
+                            <div style={{fontSize:10,fontWeight:700,color:C.warn}}>Pickup not yet confirmed</div>
+                            <div style={{fontSize:9,color:C.dim,marginTop:2}}>{'$'+glPendingTotal.toLocaleString()+' will move to confirmed once pickup email received'}</div>
+                          </div>
+                          <button onClick={function(){localStorage.setItem('gpi:gl-drop5-confirmed','true');location.reload();}} style={{padding:'5px 12px',fontSize:9,fontWeight:700,border:'1px solid '+C.good,background:C.goodBg,color:C.good,borderRadius:4,cursor:'pointer',fontFamily:'inherit',letterSpacing:1}}>CONFIRM PICKUP</button>
+                        </div>}
+                        {glDrop5Confirmed&&<div style={{marginBottom:14,padding:'8px 12px',background:C.goodBg,border:'1px solid '+C.goodBdr,borderRadius:4,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:8}}>
+                          <div style={{fontSize:10,color:C.good}}>Drop #5 pickup confirmed — moved to payables</div>
+                          <button onClick={function(){localStorage.removeItem('gpi:gl-drop5-confirmed');location.reload();}} style={{padding:'3px 8px',fontSize:8,border:'1px solid '+C.border,background:'transparent',color:C.dim,borderRadius:3,cursor:'pointer',fontFamily:'inherit'}}>undo</button>
+                        </div>}
                         <div style={{fontSize:8,fontWeight:700,letterSpacing:1.5,color:C.dim,marginBottom:6}}>PAYABLES SCHEDULE</div>
                         {GL.owed.map(function(r,i){
                           var isOverdue=new Date(r.due+' 2026')<glNow;
@@ -2109,6 +2131,13 @@ window._STRAIN_DB=[
                             <span style={{color:C.muted,flex:1}}>{r.label}</span>
                             <span style={{fontSize:8,color:daysSinceDrop>60?C.danger:daysSinceDrop>30?C.warn:C.muted,marginRight:8,padding:'1px 5px',borderRadius:2,background:daysSinceDrop>60?C.dangerBg:daysSinceDrop>30?C.warnBg:'transparent'}}>{daysSinceDrop+'d aging'}</span>
                             <span><span style={{color:isOverdue?C.danger:C.muted,marginRight:8,fontSize:9}}>{'due '+r.due}</span><span style={{fontWeight:600}}>{'$'+r.amt.toLocaleString()}</span></span>
+                          </div>;
+                        })}
+                        {glDrop5Confirmed&&GL.pending.map(function(r,i){
+                          return<div key={'p'+i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 0',borderBottom:'1px solid '+C.border,fontSize:10}}>
+                            <span style={{color:C.muted,flex:1}}>{r.label}</span>
+                            <span style={{fontSize:8,color:C.good,marginRight:8,padding:'1px 5px',borderRadius:2,background:C.goodBg}}>confirmed</span>
+                            <span><span style={{color:C.muted,marginRight:8,fontSize:9}}>due TBD</span><span style={{fontWeight:600}}>{'$'+r.amt.toLocaleString()}</span></span>
                           </div>;
                         })}
                         <div style={{display:'flex',justifyContent:'space-between',padding:'6px 0',marginTop:4,fontSize:10}}>
