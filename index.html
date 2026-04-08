@@ -173,6 +173,17 @@
       .gpi-content th,.gpi-content td{padding:3px 3px !important;font-size:7px !important;}
       .gpi-tab-bar button{font-size:6px !important;padding:6px 3px !important;}
     }
+    @media print{
+      *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;color-adjust:exact !important;}
+      body,.gpi-header,.gpi-content{background:#000 !important;color:#e8e6e3 !important;}
+      .gpi-header{position:static !important;}
+      .gpi-header .hdr-actions button,.gpi-tab-bar,.theme-toggle{display:none !important;}
+      .gpi-header .hdr-actions span{display:inline-block !important;}
+      table{border-collapse:collapse !important;}
+      th,td{border:1px solid #333 !important;color:#e8e6e3 !important;}
+      div{color:#e8e6e3 !important;}
+      a{color:#4a9eff !important;}
+    }
 
     /* Missile arc animation */
     @keyframes dash {
@@ -656,7 +667,7 @@ window._STRAIN_DB=[
       Badder:{label:"Badder",wholesale:8,oil:1.30,pkg:0.35,labor:1.00,testing:0.40,cost:3.08,distroRate:0.16},
       Sauce:{label:"Sauce",wholesale:8,oil:1.25,pkg:0.35,labor:1.00,testing:0.40,cost:3.00,distroRate:0.16},
       Shatter:{label:"Shatter",wholesale:7,oil:1.25,pkg:0.35,labor:1.00,testing:0.40,cost:3.00,distroRate:0.16},
-      Battery:{label:"Battery",wholesale:13,oil:0,pkg:0.50,labor:0,testing:0,cost:8.00,distroRate:0.16},
+      Battery:{label:"Battery",wholesale:14,oil:0,pkg:0.50,labor:0,testing:0,cost:6.00,distroRate:0.16},
       Promo:{label:"Sample/Promo",wholesale:0.01,oil:1.30,pkg:0.35,labor:1.00,testing:0.40,cost:3.08,distroRate:0},
       Other:{label:"Other",wholesale:8.50,oil:1.30,pkg:0.70,labor:1.00,testing:0.40,cost:3.40,distroRate:0.16}
     };
@@ -883,7 +894,7 @@ window._STRAIN_DB=[
               )}
               {section==="promotions"&&<PromotionsSection promotions={account.promotions||[]}/>}
               {section==="returns"&&(function(){var acctReturns=(returnsLog||[]).filter(function(r){return r.account===account.name&&!r.preMarket;});var totalCredits=acctReturns.reduce(function(s,r){return s+(r.totalValue||0);},0);return<div style={{padding:'12px 16px'}}>{acctReturns.length>0?<><div style={{display:'flex',justifyContent:'space-between',marginBottom:10}}><span style={{fontSize:9,color:C.dim,letterSpacing:1.5}}>RETURNS & DEFECTS</span><span style={{fontSize:11,fontWeight:700,color:C.danger}}>${totalCredits.toFixed(0)} in credits</span></div><div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:380,borderCollapse:'collapse'}}><thead><tr style={{background:C.raised}}>{['Date','Strain','Cat','Qty','Value','Reason','Status'].map(function(h,i){return<th key={h} style={{padding:'5px 8px',fontSize:8,fontWeight:700,color:C.dim,textAlign:i>=3?'right':'left',borderBottom:'1px solid '+C.border}}>{h}</th>;})}</tr></thead><tbody>{acctReturns.map(function(r,i){return<tr key={i} style={{background:i%2===0?'transparent':'#050505'}}><td style={{padding:'5px 8px',fontSize:10,color:C.muted}}>{r.date}</td><td style={{padding:'5px 8px',fontSize:10}}>{r.strain}</td><td style={{padding:'5px 8px',fontSize:9,color:C.dim}}>{r.category}</td><td style={{padding:'5px 8px',fontSize:10,textAlign:'right'}}>{r.qty}</td><td style={{padding:'5px 8px',fontSize:10,textAlign:'right',color:C.danger}}>${(r.totalValue||0).toFixed(2)}</td><td style={{padding:'5px 8px',fontSize:9,color:C.muted}}>{r.reason||'—'}</td><td style={{padding:'5px 8px',fontSize:9,textAlign:'right'}}><span style={{padding:'1px 6px',borderRadius:2,fontSize:8,fontWeight:700,background:r.status==='CREDIT APPLIED'?C.goodBg:C.warnBg,color:r.status==='CREDIT APPLIED'?C.good:C.warn,border:'1px solid '+(r.status==='CREDIT APPLIED'?C.goodBdr:C.warnBdr)}}>{r.status}</span></td></tr>;})}</tbody></table></div></>:<div style={{padding:'20px 0',textAlign:'center',fontSize:11,color:C.dim}}>No returns recorded for this account</div>}</div>;})()}
-              {section==="margin"&&(function(){var cb2={'Vape Cart - Live Resin':COGS.Cart,'Badder':COGS.Badder,'Sauce':COGS.Sauce,'Diamonds':COGS.Diamonds,'Shatter':COGS.Shatter};var CM2={'Live Resin':'Vape Cart - Live Resin'};var cr=(account.periodCatRevenue&&account.periodCatRevenue[periodDays])?account.periodCatRevenue[periodDays]:(account.catRevenue90||{});var aRev=0,aCogs=0;Object.keys(cr).forEach(function(rc){var rev=cr[rc];if(!rev||rev<=0)return;var label=CM2[rc]||rc;var cogs=cb2[label]||COGS.Other;var units=cogs.wholesale>0?Math.round(rev/cogs.wholesale):0;aCogs+=units*cogs.cost;aRev+=rev*0.84;});var acctRet=(returnsLog||[]).filter(function(r){return r.account===account.name&&!r.preMarket;}).reduce(function(s,r){return s+(r.totalValue||0);},0);var net=aRev-aCogs-acctRet;var margin=aRev>0?net/aRev*100:0;return<div style={{padding:'12px 16px'}}><div style={{fontSize:9,color:C.dim,letterSpacing:1.5,marginBottom:10}}>MARGIN ANALYSIS ({periodDays}d)</div><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(70px,1fr))',gap:10,marginBottom:12}}>{[{l:'Revenue (84%)',v:curK(aRev),c:C.text},{l:'COGS',v:'-'+curK(aCogs),c:C.muted},{l:'Returns',v:acctRet>0?'-'+cur(acctRet):'—',c:acctRet>0?C.danger:C.dim},{l:'Net / Margin',v:curK(net)+' / '+margin.toFixed(1)+'%',c:margin>35?C.good:margin>20?C.warn:C.danger}].map(function(s){return<div key={s.l} style={{background:C.bg,border:'1px solid '+C.border,borderRadius:4,padding:'8px 10px',textAlign:'center'}}><div style={{fontSize:8,color:C.dim,letterSpacing:1,marginBottom:3}}>{s.l}</div><div style={{fontSize:13,fontWeight:700,color:s.c}}>{s.v}</div></div>;})}</div></div>;})()}
+              {section==="margin"&&(function(){var cb2={'Vape Cart - Live Resin':COGS.Cart,'Badder':COGS.Badder,'Sauce':COGS.Sauce,'Diamonds':COGS.Diamonds,'Shatter':COGS.Shatter,'Battery':COGS.Battery,'Sample/Promo':COGS.Promo};var CM2={'Live Resin':'Vape Cart - Live Resin'};var cr=(account.periodCatRevenue&&account.periodCatRevenue[periodDays])?account.periodCatRevenue[periodDays]:(account.catRevenue90||{});var aRev=0,aCogs=0;Object.keys(cr).forEach(function(rc){var rev=cr[rc];if(!rev||rev<=0)return;var label=CM2[rc]||rc;var cogs=cb2[label]||COGS.Other;var units=cogs.wholesale>1?Math.round(rev/cogs.wholesale):0;aCogs+=units*cogs.cost;aRev+=rev*0.84;});var acctRet=(returnsLog||[]).filter(function(r){return r.account===account.name&&!r.preMarket;}).reduce(function(s,r){return s+(r.totalValue||0);},0);var net=aRev-aCogs-acctRet;var margin=aRev>0?net/aRev*100:0;return<div style={{padding:'12px 16px'}}><div style={{fontSize:9,color:C.dim,letterSpacing:1.5,marginBottom:10}}>MARGIN ANALYSIS ({periodDays}d)</div><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(70px,1fr))',gap:10,marginBottom:12}}>{[{l:'Revenue (84%)',v:curK(aRev),c:C.text},{l:'COGS',v:'-'+curK(aCogs),c:C.muted},{l:'Returns',v:acctRet>0?'-'+cur(acctRet):'—',c:acctRet>0?C.danger:C.dim},{l:'Net / Margin',v:curK(net)+' / '+margin.toFixed(1)+'%',c:margin>35?C.good:margin>20?C.warn:C.danger}].map(function(s){return<div key={s.l} style={{background:C.bg,border:'1px solid '+C.border,borderRadius:4,padding:'8px 10px',textAlign:'center'}}><div style={{fontSize:8,color:C.dim,letterSpacing:1,marginBottom:3}}>{s.l}</div><div style={{fontSize:13,fontWeight:700,color:s.c}}>{s.v}</div></div>;})}</div></div>;})()}
             </div>
           )}
         </div>
@@ -1188,6 +1199,8 @@ window._STRAIN_DB=[
       const [strainTypeFilter,setStrainTypeFilter]=useState("All");
       const [showNewStrain,setShowNewStrain]=useState(false);
       const [sopView,setSopView]=useState(null);
+      const [pnlDays,setPnlDays]=useState(90);
+      const [snapExpanded,setSnapExpanded]=useState(null);
       const [mfgSubTab,setMfgSubTab]=useState('orders'); // 'orders' | 'sops'
       const [newStrain,setNewStrain]=useState({name:"",type:"Hybrid",cross:"",desc:""});
       const csvRef=useRef(),jsonRef=useRef();
@@ -1249,6 +1262,7 @@ window._STRAIN_DB=[
       }
       async function persist(k,v){try{await window.storage.set(k,JSON.stringify(v));await window.storage.set("gpi-sync",new Date().toISOString());setLastSync(new Date().toISOString());fbPut(k,v);}catch(e){console.error(e);}}
       function toast(msg){setNotice(msg);setTimeout(function(){setNotice("");},15000);}
+      function pRev(a){return (a.periodRevenue&&a.periodRevenue[periodDays]!=null)?a.periodRevenue[periodDays]:(a.totalSales||0);}
 
       const [csvLoading,setCsvLoading]=useState(false);
 
@@ -1415,7 +1429,7 @@ window._STRAIN_DB=[
       const allZones=useMemo(function(){return["All"].concat(Array.from(new Set(displayAccounts.map(function(a){return a.zone;}).filter(Boolean))));},[displayAccounts]);
       const tierCounts=useMemo(function(){return displayAccounts.reduce(function(acc,a){const t=computeTier(a.orderDayTs);acc[t.label]=(acc[t.label]||0)+1;return acc;},{});},[displayAccounts]);
       const totalOutliers=useMemo(function(){let n=0;displayAccounts.forEach(function(acc){(acc.skus||[]).forEach(function(s){const mu=markupAnalysis(s.retailPrice,cogsFor(s.category).wholesale,getTaxRate(acc.name));if(mu&&!mu.aligned)n++;});});return n;},[displayAccounts]);
-      const filteredAccounts=useMemo(function(){let list=displayAccounts.slice();if(search.trim()){const q=search.toLowerCase();list=list.filter(function(a){return a.name.toLowerCase().includes(q)||(a.rep||"").toLowerCase().includes(q);});}if(zoneFilter!=="All")list=list.filter(function(a){return a.zone===zoneFilter;});if(tierFilter!=="All")list=list.filter(function(a){return computeTier(a.orderDayTs).label===tierFilter;});if(sortBy==="sales")list.sort(function(a,b){return(b.totalSales||0)-(a.totalSales||0);});else if(sortBy==="name")list.sort(function(a,b){return a.name.localeCompare(b.name);});else if(sortBy==="skus")list.sort(function(a,b){return(b.skus&&b.skus.length||0)-(a.skus&&a.skus.length||0);});return list;},[displayAccounts,search,zoneFilter,tierFilter,sortBy]);
+      const filteredAccounts=useMemo(function(){let list=displayAccounts.slice();if(periodDays<365){list=list.filter(function(a){var pr=a.periodRevenue&&a.periodRevenue[periodDays];return pr&&pr>0;});}if(search.trim()){const q=search.toLowerCase();list=list.filter(function(a){return a.name.toLowerCase().includes(q)||(a.rep||"").toLowerCase().includes(q);});}if(zoneFilter!=="All")list=list.filter(function(a){return a.zone===zoneFilter;});if(tierFilter!=="All")list=list.filter(function(a){return computeTier(a.orderDayTs).label===tierFilter;});if(sortBy==="sales")list.sort(function(a,b){var aRev=(a.periodRevenue&&a.periodRevenue[periodDays])||a.totalSales||0;var bRev=(b.periodRevenue&&b.periodRevenue[periodDays])||b.totalSales||0;return bRev-aRev;});else if(sortBy==="name")list.sort(function(a,b){return a.name.localeCompare(b.name);});else if(sortBy==="skus")list.sort(function(a,b){return(b.skus&&b.skus.length||0)-(a.skus&&a.skus.length||0);});return list;},[displayAccounts,search,zoneFilter,tierFilter,sortBy,periodDays]);
 
       const mfgVelocity=useMemo(function(){const map={};displayAccounts.forEach(function(acc){(acc.orderedSkus||[]).forEach(function(s){const u=s.totalQty||s.qty||0;if(u<=0)return;const k=s.sku;if(!map[k])map[k]={sku:s.sku,strain:s.strain,category:s.category,wholesale:s.wholesale||0,units90:0,accountCount:0,firstDate:s.firstDate||"",lastDate:s.lastDate||""};map[k].units90+=u;map[k].accountCount+=1;if(s.firstDate&&(!map[k].firstDate||s.firstDate<map[k].firstDate))map[k].firstDate=s.firstDate;if(s.lastDate&&(!map[k].lastDate||s.lastDate>map[k].lastDate))map[k].lastDate=s.lastDate;});});const pc=['vape','cart','badder','sauce','shatter','diamond','concentrate','live'],nk=function(k){return k.toLowerCase().replace(/[^a-z0-9]/g,"");};return Object.values(map).filter(function(s){const c=s.category.toLowerCase();if(s.sku&&(s.sku.toLowerCase().includes('promo')||s.sku.toLowerCase().includes('sample')))return false;return pc.some(function(p){return c.includes(p);})&&s.units90>5;}).map(function(s){let sd=1;if(s.firstDate&&s.lastDate&&s.firstDate!==s.lastDate){const f=new Date(s.firstDate),l=new Date(s.lastDate);if(!isNaN(f)&&!isNaN(l))sd=Math.max(1,Math.round((l-f)/86400000)+1);}const eff=Math.max(sd,30),rel=sd>=14,wv=+(s.units90/eff*7).toFixed(1),dv=+(s.units90/eff).toFixed(2);const _m=Object.entries(inventoryData).find(function(e){return nk(e[0])===nk(s.sku);});const ie=inventoryData[s.sku]||(_m?_m[1]:null);return Object.assign({},s,{spanDays:sd,reliable:rel,weeklyVel:wv,dailyVel:dv,inInventory:!!ie,invOnHand:ie?(ie.onHand!=null?ie.onHand:null):null,batch:ie?ie.batch:"",thc:ie?ie.thc:"",pkgDate:ie?ie.pkgDate:"",daysOld:ie?ie.daysOld:""});}).sort(function(a,b){return b.weeklyVel-a.weeklyVel;});},[displayAccounts,inventoryData]);
 
@@ -1702,9 +1716,9 @@ window._STRAIN_DB=[
 
                 {/* ══ EXECUTIVE ══ */}
                 {tab==="executive"&&(function(){
-                  const CM={"Vape Cart - Live Resin":"Vape Cart","Badder":"Badder","Sauce":"Sauce","Diamonds":"Diamonds","Shatter":"Shatter"},cb={"Vape Cart":COGS.Cart,"Badder":COGS.Badder,"Sauce":COGS.Sauce,"Diamonds":COGS.Diamonds,"Shatter":COGS.Shatter};
+                  const CM={"Vape Cart - Live Resin":"Vape Cart","Badder":"Badder","Sauce":"Sauce","Diamonds":"Diamonds","Shatter":"Shatter","Battery":"Battery","Sample/Promo":"Sample/Promo"},cb={"Vape Cart":COGS.Cart,"Badder":COGS.Badder,"Sauce":COGS.Sauce,"Diamonds":COGS.Diamonds,"Shatter":COGS.Shatter,"Battery":COGS.Battery,"Sample/Promo":COGS.Promo};
                   const byType={};let tR=0,tC=0,tU=0;
-                  displayAccounts.forEach(function(acc){const cr=(acc.periodCatRevenue&&acc.periodCatRevenue[periodDays])?acc.periodCatRevenue[periodDays]:(acc.catRevenue90||{});Object.keys(cr).forEach(function(rc){const rev=cr[rc];if(!rev||rev<=0)return;const label=CM[rc]||rc,cogs=cb[label]||COGS.Other,units=cogs.wholesale>0?Math.round(rev/cogs.wholesale):0,pc=units*cogs.cost,yourRev=rev*0.84;if(!byType[label])byType[label]={label,units:0,revenue:0,cogs:0};byType[label].units+=units;byType[label].revenue+=yourRev;byType[label].cogs+=pc;tR+=yourRev;tC+=pc;tU+=units;});});
+                  displayAccounts.forEach(function(acc){const cr=(acc.periodCatRevenue&&acc.periodCatRevenue[periodDays])?acc.periodCatRevenue[periodDays]:(acc.catRevenue90||{});Object.keys(cr).forEach(function(rc){const rev=cr[rc];if(!rev||rev<=0)return;const label=CM[rc]||rc,cogs=cb[label]||COGS.Other,units=cogs.wholesale>1?Math.round(rev/cogs.wholesale):0,pc=units*cogs.cost,yourRev=rev*0.84;if(!byType[label])byType[label]={label,units:0,revenue:0,cogs:0};byType[label].units+=units;byType[label].revenue+=yourRev;byType[label].cogs+=pc;tR+=yourRev;tC+=pc;tU+=units;});});
                   const gp=tR-tC,np=gp,mg=tR>0?np/tR*100:0,types=Object.values(byType).sort(function(a,b){return b.revenue-a.revenue;});
                   return(
                     <div>
@@ -1813,6 +1827,14 @@ window._STRAIN_DB=[
                         {label:'Testing',detail:'4 strains × $400 (est)',amt:1600},
                         {label:'Concentrate Boxes',detail:'3,968 × $0.16',amt:634.88},
                         {label:'Labor',detail:'3,968 × $1.00/unit',amt:3968}
+                      ]},
+                      {id:'DROP #5 · Badder',label:'6 Strains · 6,000 units · In Production — SNSD, ICPJ, GC, FG, MC, HB',units:6000,unitsSold:0,onHand:0,ws:8,avgPrice:8,total:48000,revSold:0,distroRate:0.16,stage:'MFG',stageDetail:'Greenline started batch — 6 strains × 1,000u',strains:['Sweet-N-Sour Diesel','Ice Cream Paint Job','Grandmas Cookies','Frozen Grapes','Modified Cherries','Headband'],milestones:{MFG:'Apr 7',LAB:'TBD',COMPLIANCE:'TBD',PKG:'TBD',TRANSFER:'TBD',COLLECT:'TBD',PAYOUT:'TBD'},cashStart:'2025-10-01',salesPeriods:[],costs:[
+                        {label:'Jars + Caps',detail:'Treeform INV36807 · Oct 1 2025 · 6,000 of 15,190 @ $0.35',amt:2100},
+                        {label:'Extract (GL)',detail:'6,000g × $1.30/g · pre-formulated',amt:7800},
+                        {label:'Testing',detail:'6 strains × $400 (est)',amt:2400},
+                        {label:'Concentrate Boxes',detail:'6,000 × $0.16',amt:960},
+                        {label:'TE Lid Labels',detail:'6,000 × $0.04',amt:240},
+                        {label:'Labor',detail:'6,000 × $1.00/unit',amt:6000}
                       ]}
                     ]}
                   ];
@@ -2023,14 +2045,15 @@ window._STRAIN_DB=[
                     Sauce:{prod:3.00,label:'Sauce',floor:3.58,components:[{n:'Extract (GL)',c:1.25},{n:'Jar+Cap',c:0.35},{n:'Testing',c:0.40},{n:'Labor',c:1.00}]}
                   };
                   var GL={limit:75000,credit:2000,owed:[
-                    {label:'Drop #3 labor',amt:5766,due:'Apr 26'},
-                    {label:'Drop #3B labor',amt:8598,due:'May 17'},
-                    {label:'Drop #3B sauce',amt:4960,due:'May 17'},
-                    {label:'Drop #4 labor',amt:5000,due:'Jun 21'},
-                    {label:'Drop #4 processing',amt:5819.60,due:'Jun 21'}
+                    {label:'Drop #3 labor',amt:5766,due:'Apr 26',dropped:'Feb 10'},
+                    {label:'Drop #3B labor',amt:8598,due:'May 17',dropped:'Mar 3'},
+                    {label:'Drop #3B sauce',amt:4960,due:'May 17',dropped:'Mar 3'},
+                    {label:'Drop #4 labor',amt:5000,due:'Jun 21',dropped:'Apr 7'},
+                    {label:'Drop #4 processing',amt:5819.60,due:'Jun 21',dropped:'Apr 7'}
                   ]};
                   var glTotal=GL.owed.reduce(function(s,r){return s+r.amt;},0)-GL.credit;
                   var glPct=Math.round(glTotal/GL.limit*100);
+                  var glNow=new Date();
                   return(<div style={{marginTop:24}}>
                     <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:16}}>
                       {/* Margin Calculator */}
@@ -2080,10 +2103,12 @@ window._STRAIN_DB=[
                         </div>
                         <div style={{fontSize:8,fontWeight:700,letterSpacing:1.5,color:C.dim,marginBottom:6}}>PAYABLES SCHEDULE</div>
                         {GL.owed.map(function(r,i){
-                          var isOverdue=new Date(r.due+' 2026')<new Date();
-                          return<div key={i} style={{display:'flex',justifyContent:'space-between',padding:'5px 0',borderBottom:'1px solid '+C.border,fontSize:10}}>
-                            <span style={{color:C.muted}}>{r.label}</span>
-                            <span><span style={{color:isOverdue?C.danger:C.muted,marginRight:8,fontSize:9}}>{r.due}</span><span style={{fontWeight:600}}>{'$'+r.amt.toLocaleString()}</span></span>
+                          var isOverdue=new Date(r.due+' 2026')<glNow;
+                          var daysSinceDrop=Math.round((glNow-new Date(r.dropped+' 2026'))/86400000);
+                          return<div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 0',borderBottom:'1px solid '+C.border,fontSize:10}}>
+                            <span style={{color:C.muted,flex:1}}>{r.label}</span>
+                            <span style={{fontSize:8,color:daysSinceDrop>60?C.danger:daysSinceDrop>30?C.warn:C.muted,marginRight:8,padding:'1px 5px',borderRadius:2,background:daysSinceDrop>60?C.dangerBg:daysSinceDrop>30?C.warnBg:'transparent'}}>{daysSinceDrop+'d aging'}</span>
+                            <span><span style={{color:isOverdue?C.danger:C.muted,marginRight:8,fontSize:9}}>{'due '+r.due}</span><span style={{fontWeight:600}}>{'$'+r.amt.toLocaleString()}</span></span>
                           </div>;
                         })}
                         <div style={{display:'flex',justifyContent:'space-between',padding:'6px 0',marginTop:4,fontSize:10}}>
@@ -2467,43 +2492,67 @@ window._STRAIN_DB=[
 
                 {/* ══ P&L ══ */}
                 {tab==="pnl"&&(function(){
-                  var CM={"Vape Cart - Live Resin":"Vape Cart","Badder":"Badder","Sauce":"Sauce","Diamonds":"Diamonds","Shatter":"Shatter"};
-                  var cb2={"Vape Cart":COGS.Cart,"Badder":COGS.Badder,"Sauce":COGS.Sauce,"Diamonds":COGS.Diamonds,"Shatter":COGS.Shatter};
-                  var byType={},tR=0,tC=0,tU=0;
-                  displayAccounts.forEach(function(acc){var cr=(acc.periodCatRevenue&&acc.periodCatRevenue[periodDays])?acc.periodCatRevenue[periodDays]:(acc.catRevenue90||{});Object.keys(cr).forEach(function(rc){var rev=cr[rc];if(!rev||rev<=0)return;var label=CM[rc]||rc;var cg=cb2[label]||COGS.Other;var u=cg.wholesale>0?Math.round(rev/cg.wholesale):0;var yourRev=rev*0.84;var pc=u*cg.cost;if(!byType[label])byType[label]={label:label,units:0,revenue:0,cogs:0};byType[label].units+=u;byType[label].revenue+=yourRev;byType[label].cogs+=pc;tR+=yourRev;tC+=pc;tU+=u;});});
-                  var gp=tR-tC;var retTotal=(returnsLog||[]).filter(function(r){return !r.preMarket;}).reduce(function(s,r){return s+(r.totalValue||0);},0);
-                  var net=gp-retTotal;var mg=tR>0?gp/tR*100:0;var nmg=tR>0?net/tR*100:0;
-                  var types=Object.values(byType).sort(function(a,b){return b.revenue-a.revenue;});
+                  var CM={"Vape Cart - Live Resin":"Vape Cart","Badder":"Badder","Sauce":"Sauce","Diamonds":"Diamonds","Shatter":"Shatter","Battery":"Battery","Sample/Promo":"Sample/Promo"};
+                  var cb2={"Vape Cart":COGS.Cart,"Badder":COGS.Badder,"Sauce":COGS.Sauce,"Diamonds":COGS.Diamonds,"Shatter":COGS.Shatter,"Battery":COGS.Battery,"Sample/Promo":COGS.Promo};
+                  var now=new Date();var yr=now.getFullYear();
+                  // Count actual sample units from orderedSkus (can't derive from revenue at $0.01)
+                  var sampleUnits=0;accounts.forEach(function(acc){(acc.orderedSkus||[]).forEach(function(s){var n=(s.name||s.strain||s.sku||'').toLowerCase();if(n.includes('sample')||n.includes('promo')||s.category==='Sample/Promo')sampleUnits+=(s.totalQty||s.qty||0);});});
+                  // Auto-save year-end P&L snapshot
+                  try{var lastSnap=localStorage.getItem('gpi:pnl-snapshot-'+(yr-1));if(!lastSnap&&now.getMonth()===0&&now.getDate()<=15){var prevYrData={year:yr-1,savedAt:now.toISOString(),grossRev:0,distroFee:0,netRev:0,cogs:0,grossProfit:0,returns:0,netIncome:0,byType:{}};accounts.forEach(function(acc){var cr=(acc.periodCatRevenue&&acc.periodCatRevenue[365])?acc.periodCatRevenue[365]:{};Object.keys(cr).forEach(function(rc){var rev=cr[rc];if(!rev||rev<=0)return;var label=CM[rc]||rc;var cg=cb2[label]||COGS.Other;var u=cg.wholesale>1?Math.round(rev/cg.wholesale):0;prevYrData.grossRev+=rev;prevYrData.cogs+=u*cg.cost;});});prevYrData.distroFee=prevYrData.grossRev*0.16;prevYrData.netRev=prevYrData.grossRev-prevYrData.distroFee;prevYrData.grossProfit=prevYrData.netRev-prevYrData.cogs;localStorage.setItem('gpi:pnl-snapshot-'+(yr-1),JSON.stringify(prevYrData));}}catch(e){}
+                  var byType={},grossRev=0,tC=0,tU=0;
+                  accounts.forEach(function(acc){var cr=(acc.periodCatRevenue&&acc.periodCatRevenue[pnlDays])?acc.periodCatRevenue[pnlDays]:(acc.catRevenue90||{});Object.keys(cr).forEach(function(rc){var rev=cr[rc];if(!rev||rev<=0)return;var label=CM[rc]||rc;var cg=cb2[label]||COGS.Other;var u=cg.wholesale>1?Math.round(rev/cg.wholesale):0;if(!byType[label])byType[label]={label:label,units:0,grossRev:0,cogs:0};byType[label].units+=u;byType[label].grossRev+=rev;byType[label].cogs+=u*cg.cost;grossRev+=rev;tC+=u*cg.cost;tU+=u;});});
+                  // Add sample production cost (units from orderedSkus, not revenue)
+                  if(sampleUnits>0){if(!byType['Sample/Promo'])byType['Sample/Promo']={label:'Sample/Promo',units:0,grossRev:0,cogs:0};byType['Sample/Promo'].units=sampleUnits;byType['Sample/Promo'].cogs=sampleUnits*COGS.Promo.cost;tC+=sampleUnits*COGS.Promo.cost;tU+=sampleUnits;}
+                  var distroFee=grossRev*0.16;var netRev=grossRev-distroFee;
+                  var gp=netRev-tC;var gpMg=netRev>0?gp/netRev*100:0;
+                  var retTotal=(returnsLog||[]).filter(function(r){return !r.preMarket;}).reduce(function(s,r){return s+(r.totalValue||0);},0);
+                  var labFail=3210; // Feb 2026: 1000 carts failed testing (extract $1,300 + hardware $1,910)
+                  var netIncome=gp-retTotal-labFail;var niMg=netRev>0?netIncome/netRev*100:0;
+                  var types=Object.values(byType).sort(function(a,b){return b.grossRev-a.grossRev;});
                   function row(label,val,opts){opts=opts||{};return React.createElement('div',{key:label,style:{display:'flex',justifyContent:'space-between',padding:opts.bold?'10px 14px':'6px 14px',borderBottom:opts.border?'2px solid '+C.text+'22':'1px solid '+C.border+'44',background:opts.highlight?C.raised:'transparent'}},React.createElement('span',{style:{fontSize:opts.bold?12:10,fontWeight:opts.bold?800:400,color:opts.dim?C.dim:C.text,letterSpacing:opts.bold?1.5:0.5}},label),React.createElement('span',{style:{fontSize:opts.bold?14:11,fontWeight:opts.bold?800:600,color:opts.color||C.text,fontFamily:'monospace'}},val));}
+                  // Quarterly snapshot logic
+                  var qtr=Math.ceil((now.getMonth()+1)/3);var qtrLabel='Q'+(qtr>1?qtr-1:4)+' '+(qtr>1?yr:yr-1);
+                  var prevQtr=qtr>1?qtr-1:4;var prevQtrYr=qtr>1?yr:yr-1;
+                  var snapKey='gpi:pnl-q'+prevQtr+'-'+prevQtrYr;
+                  var hasSnap=false;try{hasSnap=!!localStorage.getItem(snapKey);}catch(e){}
+                                    function saveQuarterSnap(){var snap={quarter:'Q'+prevQtr,year:prevQtrYr,savedAt:now.toISOString(),grossRev:grossRev,distroFee:distroFee,netRev:netRev,cogs:tC,grossProfit:gp,gpMargin:gpMg,returns:retTotal,netIncome:netIncome,niMargin:niMg,units:tU,byType:types.map(function(t){return{label:t.label,units:t.units,grossRev:t.grossRev,cogs:t.cogs};})};localStorage.setItem(snapKey,JSON.stringify(snap));toast('\u2713 Saved '+qtrLabel+' P&L snapshot');setPnlDays(pnlDays);}
                   return React.createElement('div',null,
-                    React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:14}},React.createElement('span',{style:{fontSize:9,color:C.dim,letterSpacing:1.5}},'PERIOD'),
-                      [7,30,60,90,180,270,365].map(function(d){return React.createElement('button',{key:d,onClick:function(){setPeriodDays(d);},style:{padding:'4px 10px',borderRadius:2,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(periodDays===d?C.text:C.border),background:periodDays===d?C.text:'transparent',color:periodDays===d?C.bg:C.dim,fontWeight:periodDays===d?700:400}},d+'d');})
+                    React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:14,flexWrap:'wrap'}},React.createElement('span',{style:{fontSize:9,color:C.dim,letterSpacing:1.5}},'PERIOD'),
+                      [7,30,60,90,180,270,365].map(function(d){var sel=pnlDays===d;return React.createElement('button',{key:d,onClick:function(){setPnlDays(d);},style:{padding:'4px 10px',borderRadius:2,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(sel?C.text:C.border),background:sel?C.text:'transparent',color:sel?C.bg:C.dim,fontWeight:sel?700:400}},d+'d');}),
+                      React.createElement('button',{key:'snap',onClick:saveQuarterSnap,style:{padding:'4px 12px',borderRadius:2,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(hasSnap?C.good:C.warn),background:hasSnap?C.goodBg:C.warnBg,color:hasSnap?C.good:C.warn,fontWeight:700,marginLeft:4}},hasSnap?'\u2713 '+qtrLabel+' Saved':'\u{1F4F8} Save '+qtrLabel)
                     ),
                     React.createElement('div',{style:{fontSize:14,fontWeight:900,letterSpacing:3,marginBottom:16}},'PROFIT & LOSS'),
                     React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,overflow:'hidden'}},
-                      row('Net Revenue (after 16% distro)',cur(tR),{bold:true,border:true}),
+                      React.createElement('div',{key:'rev-hdr',style:{padding:'8px 14px 2px',fontSize:8,color:C.dim,letterSpacing:1.5}},'REVENUE'),
+                      row('Gross Revenue (Salesforce)',cur(grossRev),{bold:true}),
+                      row('  UpNorth Distribution Fee (16%)','('+cur(distroFee)+')',{dim:true}),
+                      row('Net Revenue (your 84%)',cur(netRev),{bold:true,border:true,highlight:true,color:C.good}),
                       React.createElement('div',{key:'cogs-hdr',style:{padding:'8px 14px 2px',fontSize:8,color:C.dim,letterSpacing:1.5}},'COST OF GOODS SOLD'),
                       types.map(function(t){return row('  '+t.label+' ('+t.units.toLocaleString()+'u \u00d7 $'+(t.units>0?(t.cogs/t.units).toFixed(2):'0')+')','('+cur(t.cogs)+')',{dim:true});}),
                       row('Total COGS','('+cur(tC)+')',{border:true}),
+                      React.createElement('div',{key:'sep1',style:{height:4}}),
                       row('Gross Profit',cur(gp),{bold:true,color:gp>0?C.good:C.danger}),
-                      row('Gross Margin',mg.toFixed(1)+'%',{color:mg>35?C.good:mg>20?C.warn:C.danger}),
-                      React.createElement('div',{key:'sep',style:{height:8}}),
-                      retTotal>0?row('Returns / Credits','('+cur(retTotal)+')',{dim:true,color:C.danger}):null,
-                      retTotal>0?row('Net Income',cur(net),{bold:true,highlight:true,border:true,color:net>0?C.good:C.danger}):null,
-                      retTotal>0?row('Net Margin',nmg.toFixed(1)+'%',{highlight:true,color:nmg>35?C.good:nmg>20?C.warn:C.danger}):null
+                      row('Gross Margin',gpMg.toFixed(1)+'%',{color:gpMg>35?C.good:gpMg>20?C.warn:C.danger,border:true}),
+                      React.createElement('div',{key:'adj-hdr',style:{padding:'8px 14px 2px',fontSize:8,color:C.dim,letterSpacing:1.5}},'ADJUSTMENTS'),
+                      retTotal>0?row('  Returns / Credits','('+cur(retTotal)+')',{dim:true,color:C.danger}):null,
+                      row('  Lab Fail \u2014 1,000 carts (Feb 2026)','('+cur(labFail)+')',{dim:true,color:C.danger}),
+                      React.createElement('div',{key:'sep2',style:{height:4}}),
+                      row('Net Income',cur(netIncome),{bold:true,highlight:true,border:true,color:netIncome>0?C.good:C.danger}),
+                      row('Net Margin',niMg.toFixed(1)+'%',{highlight:true,color:niMg>35?C.good:niMg>20?C.warn:C.danger})
                     ),
                     React.createElement('div',{style:{marginTop:16,background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16}},
                       React.createElement('div',{style:{fontSize:9,color:C.dim,letterSpacing:1.5,marginBottom:10}},'UNIT ECONOMICS'),
                       React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))',gap:8}},
-                        types.map(function(t){var unitNet=t.units>0?(t.revenue-t.cogs)/t.units:0;var unitMg=t.revenue>0?(t.revenue-t.cogs)/t.revenue*100:0;return React.createElement('div',{key:t.label,style:{background:C.bg,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}},
+                        types.map(function(t){var tNetRev=t.grossRev*0.84;var unitNet=t.units>0?(tNetRev-t.cogs)/t.units:0;var unitMg=tNetRev>0?(tNetRev-t.cogs)/tNetRev*100:0;return React.createElement('div',{key:t.label,style:{background:C.bg,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}},
                           React.createElement('div',{style:{fontSize:10,fontWeight:700,marginBottom:6}},t.label),
-                          React.createElement('div',{style:{fontSize:8,color:C.dim}},'Revenue: '+cur(t.revenue)),
-                          React.createElement('div',{style:{fontSize:8,color:C.dim}},'COGS: '+cur(t.cogs)),
-                          React.createElement('div',{style:{fontSize:8,fontWeight:700,color:unitMg>35?C.good:unitMg>20?C.warn:C.danger}},'Margin: '+unitMg.toFixed(1)+'% ($'+unitNet.toFixed(2)+'/unit)')
+                          React.createElement('div',{style:{fontSize:8,color:C.dim}},'Gross: '+cur(t.grossRev)+' \u2192 Net: '+cur(tNetRev)),
+                          React.createElement('div',{style:{fontSize:8,color:C.dim}},'COGS: '+cur(t.cogs)+' ('+t.units.toLocaleString()+' units)'),
+                          React.createElement('div',{style:{fontSize:8,fontWeight:700,color:unitMg>35?C.good:unitMg>20?C.warn:C.danger}},'Margin: '+unitMg.toFixed(1)+'% \u00b7 $'+unitNet.toFixed(2)+'/unit')
                         );})
                       )
                     ),
-                    React.createElement('div',{style:{marginTop:10,fontSize:8,color:C.dim,letterSpacing:0.5}},'Revenue = Salesforce '+periodDays+'d \u00d7 84% (net of UpNorth 16%) \u00b7 COGS = invoice-verified: Cart $5.50, Badder $3.08, Sauce $3.00')
+                    React.createElement('div',{style:{marginTop:10,fontSize:8,color:C.dim,letterSpacing:0.5}},'Gross = Salesforce total \u00b7 Net = 84% (after UpNorth 16%) \u00b7 COGS = invoice-verified \u00b7 Invoice detail in Drop Zone tab'),
+                    (function(){var snaps=[];for(var y=yr;y>=2024;y--){for(var q=4;q>=1;q--){try{var s=localStorage.getItem('gpi:pnl-q'+q+'-'+y);if(s){var d=JSON.parse(s);d._key='Q'+q+' '+y;snaps.push(d);}}catch(e){}}try{var ys=localStorage.getItem('gpi:pnl-snapshot-'+y);if(ys){var yd=JSON.parse(ys);yd._key=y+' Full Year';snaps.push(yd);}}catch(e){}}if(snaps.length===0)return null;return React.createElement('div',{style:{marginTop:16,background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16}},React.createElement('div',{style:{fontSize:9,color:C.dim,letterSpacing:1.5,marginBottom:10}},'SAVED SNAPSHOTS'),snaps.map(function(sn){var mg=sn.netRev>0?((sn.netRev-sn.cogs)/sn.netRev*100).toFixed(1)+'%':'—';var isOpen=snapExpanded===sn._key;return React.createElement('div',{key:sn._key,style:{borderBottom:'1px solid '+C.border+'44',marginBottom:isOpen?12:0}},React.createElement('div',{onClick:function(){setSnapExpanded(isOpen?null:sn._key);},style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',cursor:'pointer',flexWrap:'wrap',gap:4}},React.createElement('span',{style:{fontSize:11,fontWeight:700,minWidth:80}},(isOpen?'▼ ':'▶ ')+sn._key),React.createElement('span',{style:{fontSize:9,color:C.dim}},'Gross: '+cur(sn.grossRev)),React.createElement('span',{style:{fontSize:9,color:C.good}},'Net: '+cur(sn.netRev)),React.createElement('span',{style:{fontSize:9,color:sn.grossProfit>0?C.good:C.danger}},'Profit: '+cur(sn.grossProfit)),React.createElement('span',{style:{fontSize:9,color:C.muted}},'Margin: '+mg)),isOpen&&sn.byType&&sn.byType.length>0?React.createElement('div',{style:{padding:'8px 0 12px',display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))',gap:8}},sn.byType.map(function(t){var tNetRev=t.grossRev*0.84;var unitProfit=t.units>0?(tNetRev-t.cogs)/t.units:0;var unitMg=tNetRev>0?(tNetRev-t.cogs)/tNetRev*100:0;return React.createElement('div',{key:t.label,style:{background:C.bg,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}},React.createElement('div',{style:{fontSize:10,fontWeight:700,marginBottom:6}},t.label),React.createElement('div',{style:{fontSize:8,color:C.dim}},'Units: '+t.units.toLocaleString()),React.createElement('div',{style:{fontSize:8,color:C.dim}},'Gross: '+cur(t.grossRev)+' → Net: '+cur(tNetRev)),React.createElement('div',{style:{fontSize:8,color:C.dim}},'COGS: '+cur(t.cogs)+(t.units>0?' ($'+(t.cogs/t.units).toFixed(2)+'/u)':'')),React.createElement('div',{style:{fontSize:9,fontWeight:700,marginTop:4,color:unitMg>35?C.good:unitMg>20?C.warn:C.danger}},'Margin: '+unitMg.toFixed(1)+'% · $'+unitProfit.toFixed(2)+'/unit'));})):null,null);}));})()
                   );
                 })()}
 
@@ -2544,7 +2593,7 @@ window._STRAIN_DB=[
                     });
                     // Normalize zone string from CSV to dispatch zone key
                     function toZoneKey(z){var s=(z||'').toLowerCase();if(s.includes('upnorth')||s==='rb upnorth'||s==='rb')return'RB';if(s.includes('dnu')||s.includes('yz'))return'DNU';if(s.includes('zasp'))return'ZASP';return'RB';}
-                    DD=displayAccounts.filter(function(a){return a.hasSalesData&&a.totalSales>0;}).map(function(a){
+                    DD=displayAccounts.filter(function(a){return a.hasSalesData&&pRev(a)>0;}).map(function(a){
                       var nk=a.name.toLowerCase().replace(/[^a-z0-9]/g,'');
                       var co=coordMap[nk]||null;
                       if(!co)return null;
@@ -2746,7 +2795,7 @@ window._STRAIN_DB=[
                                 gaps2.sort(function(aa,bb){return aa-bb;});
                                 median=gaps2.length%2===0?Math.round((gaps2[Math.floor(gaps2.length/2)-1]+gaps2[Math.floor(gaps2.length/2)])/2):Math.round(gaps2[Math.floor(gaps2.length/2)]);
                                 if(median<1)median=1;
-                                if(daysSince>90&&(daysSince>median*3||a.rv<1)){status='FALLEN OFF';statusColor=C.danger;}
+                                if(daysSince>90&&(daysSince>median*2.5||a.rv<1)){status='FALLEN OFF';statusColor=C.danger;}
                                 else if(daysSince>Math.max(median*1.5,21)){status='OVERDUE';statusColor='#f5a623';}
                               }else if(acc2&&acc2.orderDayTs&&acc2.orderDayTs.length===1){
                                 daysSince=Math.max(0,Math.round((Date.now()-acc2.orderDayTs[0])/86400000));
@@ -3169,10 +3218,10 @@ window._STRAIN_DB=[
                     var zRaw=(acc.zone||"").trim();
                     var zone=zRaw.toLowerCase().includes("upnorth")||zRaw==="RB UpNorth"?"RB":zRaw.toLowerCase().includes("dnu")||zRaw.toLowerCase().includes("yz")?"DNU":zRaw==="ZASP"||zRaw.toLowerCase().includes("zasp")?"ZASP":zRaw.length>0?zRaw.toUpperCase().slice(0,4):"RB";
                     var status=null;
-                    if(daysSince>90&&(daysSince>median*3||periodRev<1))status="FALLEN OFF";
+                    if(daysSince>90&&(daysSince>median*2.5||periodRev<1))status="FALLEN OFF";
                     else if(daysSince>Math.max(median*1.5,21))status="OVERDUE";
                     if(!status)return;
-                    var rev=acc.totalSales||0;if(rev<1)return;
+                    var rev=pRev(acc);if(rev<1)return;
                     var skus=(acc.orderedSkus||[]).filter(function(s){return s.totalQty>0&&!((s.sku||'').toLowerCase().includes('promo')||(s.sku||'').toLowerCase().includes('sample'));});
                     var cadenceFactor=median>0?Math.min(4,30/median):0.5;
                     var score=rev*cadenceFactor;
@@ -3597,7 +3646,7 @@ window._STRAIN_DB=[
                           <div className='gpi-form-grid' style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(70px,1fr))',gap:10,marginBottom:12}}>
                             <div><div style={{fontSize:8,color:C.dim,marginBottom:3}}>DATE</div><input type="date" value={returnsForm.date} onChange={function(e){setReturnsForm(function(p){return Object.assign({},p,{date:e.target.value});});}} style={rInpSt}/></div>
                             <div><div style={{fontSize:8,color:C.dim,marginBottom:3}}>STRAIN / PRODUCT</div><input value={returnsForm.strain} onChange={function(e){setReturnsForm(function(p){return Object.assign({},p,{strain:e.target.value});});}} placeholder="Grandmas Cookies" style={rInpSt}/></div>
-                            <div><div style={{fontSize:8,color:C.dim,marginBottom:3}}>CATEGORY</div><select value={returnsForm.category} onChange={function(e){var cat=e.target.value;var wMap={Cart:12,Badder:8,Sauce:8,Diamonds:10,Shatter:7,Battery:13};setReturnsForm(function(p){return Object.assign({},p,{category:cat,unitValue:String(wMap[cat]||8)});});}} style={Object.assign({},rInpSt,{cursor:'pointer'})}>{['Cart','Badder','Sauce','Diamonds','Shatter','Battery','Other'].map(function(c){return<option key={c} value={c}>{c}</option>;})}</select></div>
+                            <div><div style={{fontSize:8,color:C.dim,marginBottom:3}}>CATEGORY</div><select value={returnsForm.category} onChange={function(e){var cat=e.target.value;var wMap={Cart:12,Badder:8,Sauce:8,Diamonds:10,Shatter:7,Battery:14};setReturnsForm(function(p){return Object.assign({},p,{category:cat,unitValue:String(wMap[cat]||8)});});}} style={Object.assign({},rInpSt,{cursor:'pointer'})}>{['Cart','Badder','Sauce','Diamonds','Shatter','Battery','Other'].map(function(c){return<option key={c} value={c}>{c}</option>;})}</select></div>
                             <div><div style={{fontSize:8,color:C.dim,marginBottom:3}}>REASON</div><select value={returnsForm.reason} onChange={function(e){setReturnsForm(function(p){return Object.assign({},p,{reason:e.target.value});});}} style={Object.assign({},rInpSt,{cursor:'pointer'})}>{['Faulty','Return','Damaged','Expired','Lab Fail','Other'].map(function(r){return<option key={r} value={r}>{r}</option>;})}</select></div>
                           </div>
                           <div className='gpi-form-row' style={{display:'grid',gridTemplateColumns:'80px 100px 1fr 140px',gap:10,marginBottom:12,alignItems:'end'}}>
@@ -3660,14 +3709,15 @@ window._STRAIN_DB=[
                     {id:'#3',type:'Badder',produced:5766,sold:4173,oh:1593,date:'2026-02-10',avgP:7.34,rev:30648,cost:17755},
                     {id:'#3B-C',type:'Cart',produced:4630,sold:4529,oh:101,date:'2026-03-03',avgP:9.12,rev:41304,cost:19525},
                     {id:'#3B-S',type:'Sauce',produced:3968,sold:1689,oh:2279,date:'2026-03-03',avgP:7.41,rev:12515,cost:11917},
-                    {id:'#4',type:'Cart',produced:5000,sold:0,oh:5000,date:'2026-04-07',avgP:12,rev:0,cost:27481}
+                    {id:'#4',type:'Cart',produced:5000,sold:0,oh:5000,date:'2026-04-07',avgP:12,rev:0,cost:27481},
+                    {id:'#5',type:'Badder',produced:6000,sold:0,oh:0,date:'2026-04-07',avgP:8,rev:0,cost:19500,stage:'MFG',note:'In production at Greenline — SNSD, ICPJ, Grandmas Cookies, Frozen Grapes, Modified Cherries, Headband'}
                   ];
                   var totalOH=DROPS.reduce(function(s,d){return s+d.oh;},0);
                   var totalRev=DROPS.reduce(function(s,d){return s+d.rev;},0);
                   var totalSold=DROPS.reduce(function(s,d){return s+d.sold;},0);
                   var sauceOH=DROPS.filter(function(d){return d.type==='Sauce';}).reduce(function(s,d){return s+d.oh;},0);
                   var overdueAccts=displayAccounts.filter(function(a){if(!a.orderDayTs||a.orderDayTs.length<2)return false;var ts=a.orderDayTs.slice().sort(function(x,y){return x-y;});var ds=Math.round((now-ts[ts.length-1])/86400000);var gaps=[];for(var i=1;i<ts.length;i++)gaps.push((ts[i]-ts[i-1])/86400000);gaps.sort(function(x,y){return x-y;});var med=gaps[Math.floor(gaps.length/2)]||30;return ds>Math.max(med*1.5,21);});
-                  var singleOrd=displayAccounts.filter(function(a){return(a.orderDayTs||[]).length<=1&&(a.totalSales||0)>100;});
+                  var singleOrd=displayAccounts.filter(function(a){return(a.orderDayTs||[]).length<=1&&pRev(a)>100;});
                   var unresolvedRet=returnsLog.filter(function(r){return r.status!=='CREDIT APPLIED'&&r.status!=='RESOLVED'&&!r.preMarket;});
                   // Build headline
                   var headlines=[];
@@ -3681,7 +3731,7 @@ window._STRAIN_DB=[
                   // Priorities
                   var priorities=[];
                   if(payoutDL<=7)priorities.push({num:1,text:'Confirm $38,397 Feb payout with Drew Pavlos (due '+payoutDL+'d)',tab:'Sales'});
-                  if(overdueAccts.length>3){var topOD=overdueAccts.sort(function(a,b){return(b.totalSales||0)-(a.totalSales||0);}).slice(0,3).map(function(a){return a.name;}).join(', ');priorities.push({num:priorities.length+1,text:'Contact top overdue accounts: '+topOD,tab:'Dispatch'});}
+                  if(overdueAccts.length>3){var topOD=overdueAccts.sort(function(a,b){return pRev(b)-pRev(a);}).slice(0,3).map(function(a){return a.name;}).join(', ');priorities.push({num:priorities.length+1,text:'Contact top overdue accounts: '+topOD,tab:'Dispatch'});}
                   if(sauceOH>1500)priorities.push({num:priorities.length+1,text:'Move sauce inventory \u2014 '+sauceOH+' units at $7.41 avg. Break-even at 1,914.',tab:'Drop Zone'});
                   var dfu=demos.filter(function(d){return d.status==='follow-up';});
                   if(dfu.length>0)priorities.push({num:priorities.length+1,text:'Close '+dfu.length+' demo follow-up'+(dfu.length>1?'s':'')+': '+dfu.map(function(d){return d.account;}).join(', '),tab:'Marketing'});
@@ -3750,11 +3800,11 @@ window._STRAIN_DB=[
                     }),
                     overdueAccts.length>0&&React.createElement('div',{style:{marginTop:20,marginBottom:20}},
                       React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},overdueAccts.length+' OVERDUE ACCOUNTS \u2014 REVENUE AT RISK'),
-                      overdueAccts.sort(function(a,b){return(b.totalSales||0)-(a.totalSales||0);}).slice(0,8).map(function(a,i){var ts=(a.orderDayTs||[]).slice().sort(function(x,y){return x-y;});var ds=ts.length>0?Math.round((now-ts[ts.length-1])/86400000):0;return React.createElement('div',{key:i,style:{display:'flex',justifyContent:'space-between',padding:'5px 0',borderBottom:'1px solid '+C.border,cursor:'pointer'},onClick:function(){window._goAcct&&window._goAcct(a.name);}},
+                      overdueAccts.sort(function(a,b){return pRev(b)-pRev(a);}).slice(0,8).map(function(a,i){var ts=(a.orderDayTs||[]).slice().sort(function(x,y){return x-y;});var ds=ts.length>0?Math.round((now-ts[ts.length-1])/86400000):0;return React.createElement('div',{key:i,style:{display:'flex',justifyContent:'space-between',padding:'5px 0',borderBottom:'1px solid '+C.border,cursor:'pointer'},onClick:function(){window._goAcct&&window._goAcct(a.name);}},
                         React.createElement('span',{style:{fontSize:10}},a.name),
                         React.createElement('div',{style:{display:'flex',gap:12}},
                           React.createElement('span',{style:{fontSize:9,color:ds>60?C.danger:C.warn}},ds+'d silent'),
-                          React.createElement('span',{style:{fontSize:9,color:C.muted}},curK(a.totalSales||0))));})
+                          React.createElement('span',{style:{fontSize:9,color:C.muted}},curK(pRev(a)))))})
                     ),
                     (function(){var up=demos.filter(function(d){return d.status==='planned'||d.status==='follow-up';});if(!up.length)return null;return React.createElement('div',{style:{marginBottom:20}},
                       React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:8}},'DEMOS \u00b7 '+demos.length+' scheduled \u00b7 $'+(demos.length*180)+' invested'),
@@ -3810,7 +3860,7 @@ window._STRAIN_DB=[
                       var ts=(a.orderDayTs||[]).slice().sort(function(x,y){return x-y;});
                       if(!ts.length)return null;
                       var ds=Math.max(0,Math.round((now-ts[ts.length-1])/86400000));
-                      var rev=a.totalSales||0;if(rev<100)return null;
+                      var rev=pRev(a);if(rev<100)return null;
                       var gaps=[];for(var gi=1;gi<ts.length;gi++)gaps.push((ts[gi]-ts[gi-1])/86400000);
                       gaps.sort(function(x,y){return x-y;});
                       var med=gaps.length>0?gaps[Math.floor(gaps.length/2)]:30;
@@ -4162,7 +4212,7 @@ window._STRAIN_DB=[
             var q=uniSearch.toLowerCase().trim();
             var results=[];
             if(q.length>=2){
-              displayAccounts.forEach(function(a){if(a.name.toLowerCase().includes(q)||(a.rep||'').toLowerCase().includes(q))results.push({type:'Account',name:a.name,detail:(a.rep||'No rep')+' · '+curK(a.totalSales||0),action:function(){setShowUniSearch(false);window._goAcct&&window._goAcct(a.name);}});});
+              displayAccounts.forEach(function(a){if(a.name.toLowerCase().includes(q)||(a.rep||'').toLowerCase().includes(q))results.push({type:'Account',name:a.name,detail:(a.rep||'No rep')+' · '+curK(pRev(a)),action:function(){setShowUniSearch(false);window._goAcct&&window._goAcct(a.name);}});});
               (STRAIN_DB||[]).forEach(function(s){if(s.n.toLowerCase().includes(q)||(s.d||'').toLowerCase().includes(q))results.push({type:'Strain',name:s.n,detail:s.t+' · '+(s.g||'').split(',')[0]});});
               Object.keys(inventoryData).forEach(function(sku){if(sku.toLowerCase().includes(q)){var inv=inventoryData[sku];results.push({type:'SKU',name:sku.replace(/^Globs - /,''),detail:'On Hand: '+(inv.onHand||0)});}});
               returnsLog.forEach(function(r){if((r.strain||'').toLowerCase().includes(q)||(r.account||'').toLowerCase().includes(q)||(r.notes||'').toLowerCase().includes(q))results.push({type:'Return',name:r.strain+' ('+r.account+')',detail:r.date+' · '+r.status+' · $'+(r.totalValue||0).toFixed(0)});});
