@@ -1202,6 +1202,7 @@ window._STRAIN_DB=[
       const [revenueView,setRevenueView]=useState('sales'); // 'sales' | 'marketing'
       const [demoZoneFilter,setDemoZoneFilter]=useState('ALL');
       const [glExpandedRow,setGlExpandedRow]=useState(null);
+      const [pkgFilter,setPkgFilter]=useState('ALL');
       const [financialsView,setFinancialsView]=useState('pnl'); // 'pnl' | 'cashflow'
       const [pnlDays,setPnlDays]=useState(90);
       const [snapExpanded,setSnapExpanded]=useState(null);
@@ -2059,7 +2060,7 @@ window._STRAIN_DB=[
                   };
                   var glNow=new Date();
                   return(<div>
-                    <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:10}}>
                       {/* Margin Calculator */}
                       <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:12}}>
                         <div style={{fontSize:10,fontWeight:800,letterSpacing:3,marginBottom:8}}>MARGIN CALCULATOR</div>
@@ -2540,7 +2541,27 @@ window._STRAIN_DB=[
                   Object.keys(catVels).forEach(function(cat){const grp={Cart:'Carts',Badder:'Concentrates',Sauce:'Concentrates',Diamonds:'Concentrates'}[cat],b=Math.min(catMax[cat],Math.max(MIN_BATCH,Math.ceil(Math.round(catVels[cat]*mfgTargetWeeks)/BATCH)));mfgDemand[grp]=(mfgDemand[grp]||0)+b*BATCH;});
                   function matsCheck(grp){const demand=mfgDemand[grp]||0;if(demand===0)return{ok:true,shortfalls:[]};const items=PKG[grp]||[],sf=[];items.forEach(function(c){const inv=(pkgComps[grp]&&pkgComps[grp][c.id])||{},oh=parseInt(inv.onHand||0)||0,oo=parseInt(inv.onOrder||0)||0,needed=Math.ceil(demand*c.perUnit),avail=oh+oo;if(avail<needed)sf.push(Object.assign({},c,{needed,avail,short:needed-avail,urgent:c.lead>14}));});return{ok:sf.length===0,shortfalls:sf};}
                   const inpSt={background:C.bg,border:'1px solid '+C.border,borderRadius:2,color:C.text,fontSize:11,fontFamily:'inherit',padding:'3px 7px',outline:'none',textAlign:'right'};
-                  function CompTable(p2){const{grp,label,demand}=p2,items=PKG[grp]||[],check=matsCheck(grp);return(<div style={{marginBottom:24}}><div style={{display:'flex',alignItems:'center',gap:12,marginBottom:10}}><div style={{fontSize:11,fontWeight:800,letterSpacing:2}}>{label.toUpperCase()}</div>{demand>0&&<div style={{fontSize:9,color:C.dim}}>MFG demand: {demand.toLocaleString()} units</div>}<div style={{marginLeft:'auto'}}>{check.ok?<span style={{fontSize:9,fontWeight:700,color:C.good,background:C.goodBg,border:'1px solid '+C.goodBdr,padding:'2px 8px',borderRadius:2}}>✓ ALL MATERIALS OK</span>:<span style={{fontSize:9,fontWeight:700,color:C.danger,background:C.dangerBg,border:'1px solid '+C.dangerBdr,padding:'2px 8px',borderRadius:2}}>▲ {check.shortfalls.length} SHORTFALL{check.shortfalls.length>1?'S':''}</span>}</div></div><div style={{border:'1px solid '+C.border,borderRadius:6,overflowX:'auto'}}><table style={{width:'100%',minWidth:500,borderCollapse:'collapse'}}><thead><tr style={{background:C.raised}}>{["Component","Desc","Lead","$/unit","Per Unit","On Hand","On Order","Needed","Avail","Status"].map(function(h,i){return<th key={h} style={{padding:'7px 10px',fontSize:8,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=4?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead><tbody>{items.map(function(c,i){const inv=(pkgComps[grp]&&pkgComps[grp][c.id])||{},oh=parseInt(inv.onHand||0)||0,oo=parseInt(inv.onOrder||0)||0,needed=demand>0?Math.ceil(demand*c.perUnit):0,avail=oh+oo,short=needed>0?Math.max(0,needed-avail):0,ok=needed===0||avail>=needed,urgent=short>0&&c.lead>14;return(<tr key={c.id} style={{background:short>0?(urgent?C.dangerBg:C.warnBg):i%2===0?'transparent':'#050505'}}><td style={{padding:'7px 10px',fontSize:11,fontWeight:600,color:short>0?(urgent?C.danger:C.warn):C.text,whiteSpace:'nowrap'}}>{c.name}</td><td style={{padding:'7px 10px',fontSize:10,color:C.dim}}>{c.desc}</td><td style={{padding:'7px 10px',fontSize:10,color:c.lead>14?C.warn:C.muted,whiteSpace:'nowrap'}}>{c.lead<7?c.lead+'d':Math.round(c.lead/7)+'wk'}</td><td style={{padding:'7px 10px',fontSize:10,color:C.dim,textAlign:'right'}}>{c.cost>0?cur(c.cost):'—'}</td><td style={{padding:'7px 10px',fontSize:10,color:C.dim,textAlign:'right'}}>{c.perUnit<1?(c.perUnit*1000).toFixed(0)+'/1k':c.perUnit+'x'}</td><td style={{padding:'5px 6px',textAlign:'right'}}><input type="number" min="0" defaultValue={inv.onHand!=null?inv.onHand:c.initOnHand} onBlur={function(e){setPkgComp(grp,c.id,"onHand",e.target.value);persistPkg();}} style={Object.assign({},inpSt,{width:80})}/></td><td style={{padding:'5px 6px',textAlign:'right'}}><select value={parseInt(inv.onOrder!=null?inv.onOrder:c.initOnOrder)||0} onChange={function(e){setPkgComp(grp,c.id,"onOrder",e.target.value);}} onBlur={persistPkg} style={{background:C.bg,border:'1px solid '+C.border,borderRadius:2,color:C.text,fontSize:11,fontFamily:'inherit',padding:'3px 4px',outline:'none',width:90,cursor:'pointer'}}>{[0,250,500,750,1000,1500,2000,2500,3000,4000,5000,7500,10000,15000,20000,25000,30000].map(function(v){return<option key={v} value={v} style={{background:'#111'}}>{v===0?'—':v.toLocaleString()}</option>;})}</select></td><td style={{padding:'7px 10px',fontSize:11,textAlign:'right',fontWeight:needed>0?600:400,color:needed>0?C.text:C.dim}}>{needed>0?needed.toLocaleString():'—'}</td><td style={{padding:'7px 10px',fontSize:11,textAlign:'right',color:ok?C.muted:C.danger}}>{avail.toLocaleString()}</td><td style={{padding:'7px 10px',textAlign:'right'}}>{short>0?<span style={{fontSize:9,fontWeight:700,color:urgent?C.danger:C.warn,background:urgent?C.dangerBg:C.warnBg,border:'1px solid '+(urgent?C.dangerBdr:C.warnBdr),padding:'6px 10px',borderRadius:2,whiteSpace:'nowrap'}}>-{short.toLocaleString()} {urgent?'· ORDER NOW':'· order'}</span>:needed>0?<span style={{fontSize:9,color:C.good}}>✓</span>:<span style={{fontSize:9,color:C.dim}}>—</span>}</td></tr>);})} </tbody></table></div></div>);}
+                  function CompCards(p2){const{grp,demand}=p2,items=PKG[grp]||[],check=matsCheck(grp);return items.map(function(c,i){const inv=(pkgComps[grp]&&pkgComps[grp][c.id])||{},oh=parseInt(inv.onHand!=null?inv.onHand:c.initOnHand)||0,oo=parseInt(inv.onOrder!=null?inv.onOrder:c.initOnOrder)||0,needed=demand>0?Math.ceil(demand*c.perUnit):0,avail=oh+oo,short=needed>0?Math.max(0,needed-avail):0,ok=needed===0||avail>=needed,urgent=short>0&&c.lead>14;return(<div key={grp+'-'+c.id} style={{background:C.surface,border:'1px solid '+(short>0?(urgent?C.dangerBdr:C.warnBdr):C.border),borderRadius:6,padding:'10px 12px',marginBottom:8}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
+                      <div style={{fontSize:10,fontWeight:700,color:short>0?(urgent?C.danger:C.warn):C.text}}>{c.name}</div>
+                      {short>0?<span style={{fontSize:8,fontWeight:700,color:urgent?C.danger:C.warn,background:urgent?C.dangerBg:C.warnBg,border:'1px solid '+(urgent?C.dangerBdr:C.warnBdr),padding:'2px 6px',borderRadius:2}}>{'-'+short.toLocaleString()+' '+(urgent?'ORDER NOW':'order')}</span>:needed>0?<span style={{fontSize:8,color:C.good}}>✓ OK</span>:<span style={{fontSize:8,color:C.dim}}>—</span>}
+                    </div>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6,marginBottom:6}}>
+                      <div style={{background:C.bg,borderRadius:3,padding:'5px 0',textAlign:'center'}}>
+                        <input type="number" min="0" value={oh} onChange={function(e){setPkgComp(grp,c.id,"onHand",e.target.value);}} onBlur={persistPkg} style={{background:'transparent',border:'none',color:short>0?(urgent?C.danger:C.warn):C.text,fontSize:13,fontWeight:800,fontFamily:'inherit',textAlign:'center',width:'100%',outline:'none'}}/>
+                        <div style={{fontSize:7,color:C.dim}}>On hand</div>
+                      </div>
+                      <div style={{background:C.bg,borderRadius:3,padding:'5px 0',textAlign:'center'}}>
+                        <select value={oo} onChange={function(e){setPkgComp(grp,c.id,"onOrder",e.target.value);}} onBlur={persistPkg} style={{background:'transparent',border:'none',color:C.text,fontSize:13,fontWeight:800,fontFamily:'inherit',textAlign:'center',width:'100%',outline:'none',cursor:'pointer'}}>{[0,250,500,1000,2000,3000,5000,7500,10000,15000,20000,25000,30000].map(function(v){return<option key={v} value={v} style={{background:'#111'}}>{v===0?'0':v.toLocaleString()}</option>;})}</select>
+                        <div style={{fontSize:7,color:C.dim}}>On order</div>
+                      </div>
+                      <div style={{background:C.bg,borderRadius:3,padding:'5px 0',textAlign:'center'}}>
+                        <div style={{fontSize:13,fontWeight:800}}>{needed>0?needed.toLocaleString():'—'}</div>
+                        <div style={{fontSize:7,color:C.dim}}>Needed</div>
+                      </div>
+                    </div>
+                    <div style={{fontSize:7,color:C.dim}}>{(c.cost>0?cur(c.cost)+'/unit · ':'')+(c.lead<7?c.lead+'d':Math.round(c.lead/7)+'wk')+' lead'+(c.desc?' · '+c.desc:'')}</div>
+                  </div>);});}
                   const concCheck=matsCheck('Concentrates'),cartCheck=matsCheck('Carts');
                   return(<div>
                   {/* ── PACKING SLIP SCANNER ── */}
@@ -2570,7 +2591,20 @@ window._STRAIN_DB=[
                     {slipImage&&!slipSuggestions&&!slipParsing&&(<div style={{marginTop:8}}><img src={'data:'+slipImage.mime+';base64,'+slipImage.data} alt="Packing slip" style={{maxWidth:'100%',maxHeight:200,borderRadius:4,border:'1px solid '+C.border}}/></div>)}
                   </div>
 
-                  <div style={{display:'flex',alignItems:'center',gap:16,marginBottom:20,padding:'12px 16px',background:C.surface,border:'1px solid '+C.border,borderRadius:6,flexWrap:'wrap'}}><div style={{fontSize:9,color:C.dim,letterSpacing:2,textTransform:'uppercase'}}>Active MFG Plan</div>{[["Concentrates",mfgDemand.Concentrates,concCheck],["Carts",mfgDemand.Carts,cartCheck]].map(function(lc){return<div key={lc[0]} style={{display:'flex',alignItems:'center',gap:8,background:C.raised,border:'1px solid '+(lc[2].ok?C.goodBdr:C.dangerBdr),borderRadius:4,padding:'6px 12px'}}><span style={{fontSize:11,fontWeight:700}}>{lc[0]}</span><span style={{fontSize:10,color:C.dim}}>{lc[1]>0?lc[1].toLocaleString()+' units':'no data'}</span><span style={{fontSize:10,color:lc[2].ok?C.good:C.danger}}>{lc[2].ok?'✓':'▲ '+lc[2].shortfalls.length+' short'}</span></div>;})} <div style={{marginLeft:'auto',fontSize:9,color:C.dim}}>Based on {mfgTargetWeeks}wk target</div></div><CompTable grp="Concentrates" label="Concentrates" demand={mfgDemand.Concentrates}/><CompTable grp="Carts" label="Carts" demand={mfgDemand.Carts}/><CompTable grp="General" label="General Packaging" demand={(mfgDemand.Concentrates||0)+(mfgDemand.Carts||0)}/></div>);
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:16,padding:'10px 12px',background:C.surface,border:'1px solid '+C.border,borderRadius:6,flexWrap:'wrap'}}>
+                    <div style={{fontSize:8,color:C.dim,letterSpacing:2,marginRight:4}}>FILTER</div>
+                    {[['ALL','All'],['Concentrates','Conc'],['Carts','Carts'],['General','General']].map(function(f){var sel=pkgFilter===f[0];var chk=f[0]==='Concentrates'?concCheck:f[0]==='Carts'?cartCheck:{ok:true,shortfalls:[]};var hasIssue=!chk.ok;return<button key={f[0]} onClick={function(){setPkgFilter(f[0]);}} style={{padding:'4px 10px',fontSize:8,fontWeight:sel?700:400,border:'1px solid '+(sel?C.text:hasIssue?C.warnBdr:C.border),background:sel?C.text:'transparent',color:sel?C.bg:hasIssue?C.warn:C.dim,borderRadius:3,cursor:'pointer',fontFamily:'inherit',letterSpacing:1}}>{f[1]}{hasIssue&&!sel?' ▲':''}</button>;})}
+                    <div style={{marginLeft:'auto',fontSize:8,color:C.dim}}>{mfgTargetWeeks}wk target</div>
+                  </div>
+                  {[['Concentrates','Concentrates',mfgDemand.Concentrates],['Carts','Carts',mfgDemand.Carts],['General','General Packaging',(mfgDemand.Concentrates||0)+(mfgDemand.Carts||0)]].filter(function(s){return pkgFilter==='ALL'||pkgFilter===s[0];}).map(function(s){var chk=matsCheck(s[0]);return<div key={s[0]} style={{marginBottom:16}}>
+                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+                      <div style={{fontSize:10,fontWeight:800,letterSpacing:2}}>{s[1].toUpperCase()}</div>
+                      {s[2]>0&&<div style={{fontSize:8,color:C.dim}}>{s[2].toLocaleString()+' units'}</div>}
+                      <div style={{marginLeft:'auto'}}>{chk.ok?<span style={{fontSize:8,color:C.good}}>✓ OK</span>:<span style={{fontSize:8,fontWeight:700,color:C.danger}}>▲ {chk.shortfalls.length} short</span>}</div>
+                    </div>
+                    <CompCards grp={s[0]} demand={s[2]}/>
+                  </div>;})}
+                  </div>);
                 })()}
 
                 {/* velocity tab removed */}
