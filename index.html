@@ -2047,7 +2047,7 @@ window._STRAIN_DB=[
                 {tab==="revenue"&&(function(){
                   return(<div>
                     <div style={{display:'flex',gap:0,marginBottom:20,borderBottom:'1px solid '+C.border}}>
-                      {[['sales','Sales'],['marketing','Demo Recommendations']].map(function(sv){return<button key={sv[0]} onClick={function(){setRevenueView(sv[0]);}} style={{padding:'10px 20px',border:'none',borderBottom:'2px solid '+(revenueView===sv[0]?C.text:'transparent'),background:'transparent',color:revenueView===sv[0]?C.text:C.dim,cursor:'pointer',fontSize:10,fontWeight:revenueView===sv[0]?700:400,letterSpacing:1.5,textTransform:'uppercase',fontFamily:'inherit'}}>{sv[1]}</button>;})}
+                      {[['sales','Sales'],['marketing','Demo Recommendations']].map(function(sv){return<button key={sv[0]} onClick={function(){setRevenueView(sv[0]);}} style={{flex:1,padding:'10px 8px',border:'none',borderBottom:'2px solid '+(revenueView===sv[0]?C.text:'transparent'),background:'transparent',color:revenueView===sv[0]?C.text:C.dim,cursor:'pointer',fontSize:9,fontWeight:revenueView===sv[0]?700:400,letterSpacing:1.5,textTransform:'uppercase',fontFamily:'inherit',textAlign:'center'}}>{sv[1]}</button>;})}
                     </div>
                   </div>);
                 })()}
@@ -2060,26 +2060,26 @@ window._STRAIN_DB=[
                   };
                   var glNow=new Date();
                   return(<div>
-                    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(250px,1fr))',gap:12}}>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(250px,1fr))',gap:10}}>
                       {/* Margin Calculator */}
-                      <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16}}>
-                        <div style={{fontSize:11,fontWeight:800,letterSpacing:3,marginBottom:12}}>MARGIN CALCULATOR</div>
-                        <div style={{fontSize:9,color:C.dim,marginBottom:12}}>When someone asks for a price — what do you actually make?</div>
+                      <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'12px 12px'}}>
+                        <div style={{fontSize:10,fontWeight:800,letterSpacing:3,marginBottom:8}}>MARGIN CALCULATOR</div>
+                        <div style={{fontSize:8,color:C.dim,marginBottom:10}}>When someone asks for a price — what do you actually make?</div>
                         {Object.keys(COSTS).map(function(cat){
                           var c=COSTS[cat];
-                          return<div key={cat} style={{marginBottom:16,padding:'10px 12px',background:C.bg,borderRadius:4,border:'1px solid '+C.border}}>
-                            <div style={{fontSize:10,fontWeight:700,marginBottom:8}}>{c.label}</div>
-                            <div style={{fontSize:9,color:C.dim,marginBottom:4}}>{'Prod: $'+c.prod.toFixed(2)+'/unit · Floor: $'+c.floor.toFixed(2)}</div>
-                            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                          return<div key={cat} style={{marginBottom:10,padding:'8px 10px',background:C.bg,borderRadius:4,border:'1px solid '+C.border}}>
+                            <div style={{fontSize:9,fontWeight:700,marginBottom:6}}>{c.label}</div>
+                            <div style={{fontSize:8,color:C.dim,marginBottom:4}}>{'Prod: $'+c.prod.toFixed(2)+'/unit · Floor: $'+c.floor.toFixed(2)}</div>
+                            <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
                               {(cat==='Cart'?[8,9,10,11,12]:cat==='Diamonds'?[7,8,9,10]:[6,7,7.5,8]).map(function(ws){
                                 var net=ws*0.84;
                                 var margin=net-c.prod;
                                 var pct=Math.round(margin/ws*100);
                                 var clr=margin<=0?C.danger:pct<25?C.warn:C.good;
-                                return<div key={ws} style={{textAlign:'center',padding:'6px 10px',borderRadius:4,border:'1px solid '+(margin<=0?C.danger+'44':C.border),background:margin<=0?C.danger+'11':'transparent',minWidth:50}}>
-                                  <div style={{fontSize:12,fontWeight:800,color:clr}}>{'$'+ws}</div>
-                                  <div style={{fontSize:9,color:clr,fontWeight:600}}>{'$'+margin.toFixed(2)}</div>
-                                  <div style={{fontSize:8,color:C.dim}}>{pct+'%'}</div>
+                                return<div key={ws} style={{textAlign:'center',padding:'5px 8px',borderRadius:4,border:'1px solid '+(margin<=0?C.danger+'44':C.border),background:margin<=0?C.danger+'11':'transparent',minWidth:40}}>
+                                  <div style={{fontSize:11,fontWeight:800,color:clr}}>{'$'+ws}</div>
+                                  <div style={{fontSize:8,color:clr,fontWeight:600}}>{'$'+margin.toFixed(2)}</div>
+                                  <div style={{fontSize:7,color:C.dim}}>{pct+'%'}</div>
                                 </div>;
                               })}
                             </div>
@@ -2093,9 +2093,9 @@ window._STRAIN_DB=[
                         </div>
                       </div>
                       {/* Demo Scheduler */}
-                      <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16}}>
-                        <div style={{fontSize:11,fontWeight:800,letterSpacing:3,marginBottom:12}}>DEMO SCHEDULER</div>
-                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:14}}>
+                      <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'12px 12px'}}>
+                        <div style={{fontSize:10,fontWeight:800,letterSpacing:3,marginBottom:8}}>DEMO SCHEDULER</div>
+                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6,marginBottom:10}}>
                           <div style={{background:C.bg,borderRadius:4,padding:'8px 10px',textAlign:'center'}}>
                             <div style={{fontSize:18,fontWeight:900}}>{demos.length}</div>
                             <div style={{fontSize:8,color:C.dim}}>Scheduled</div>
@@ -2155,8 +2155,8 @@ window._STRAIN_DB=[
                         </div>
                       </div>
                       {/* Promo Requests */}
-                      <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16}}>
-                        <div style={{fontSize:11,fontWeight:800,letterSpacing:3,marginBottom:12}}>PROMO REQUESTS</div>
+                      <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'12px 12px'}}>
+                        <div style={{fontSize:10,fontWeight:800,letterSpacing:3,marginBottom:8}}>PROMO REQUESTS</div>
                         {(function(){
                           var pending=[];
                           displayAccounts.forEach(function(a){
@@ -2586,7 +2586,7 @@ window._STRAIN_DB=[
                 {tab==="financials"&&(function(){
                   return(<div>
                     <div style={{display:'flex',gap:0,marginBottom:20,borderBottom:'1px solid '+C.border}}>
-                      {[['pnl','P&L'],['cashflow','Cash Flow']].map(function(sv){return<button key={sv[0]} onClick={function(){setFinancialsView(sv[0]);}} style={{padding:'10px 20px',border:'none',borderBottom:'2px solid '+(financialsView===sv[0]?C.text:'transparent'),background:'transparent',color:financialsView===sv[0]?C.text:C.dim,cursor:'pointer',fontSize:10,fontWeight:financialsView===sv[0]?700:400,letterSpacing:1.5,textTransform:'uppercase',fontFamily:'inherit'}}>{sv[1]}</button>;})}
+                      {[['pnl','P&L'],['cashflow','Cash Flow']].map(function(sv){return<button key={sv[0]} onClick={function(){setFinancialsView(sv[0]);}} style={{flex:1,padding:'10px 8px',border:'none',borderBottom:'2px solid '+(financialsView===sv[0]?C.text:'transparent'),background:'transparent',color:financialsView===sv[0]?C.text:C.dim,cursor:'pointer',fontSize:9,fontWeight:financialsView===sv[0]?700:400,letterSpacing:1.5,textTransform:'uppercase',fontFamily:'inherit',textAlign:'center'}}>{sv[1]}</button>;})}
                     </div>
                   </div>);
                 })()}
