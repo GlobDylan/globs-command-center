@@ -978,7 +978,7 @@ window._STRAIN_DB=[
       const ROLES={
         exec:{label:'Executive',tabs:['briefing','accounts','opportunities','dispatch','strains','yield','mfg','sop','labels','packaging','executive','financials','returns','revenue','orders','security'],canExport:true,canUpload:true,canEditMargin:true,canApprove:true,seeFinancials:true},
         mfg:{label:'Manufacturing',tabs:['strains','yield','mfg','labels','packaging','briefing'],canExport:false,canUpload:true,canEditMargin:false,canApprove:false,seeFinancials:false},
-        distro:{label:'Distribution',tabs:['accounts','opportunities','dispatch','orders','briefing','returns'],canExport:false,canUpload:true,canEditMargin:false,canApprove:false,seeFinancials:false}
+        distro:{label:'Distribution',tabs:['accounts','opportunities','dispatch','orders','returns'],canExport:false,canUpload:true,canEditMargin:false,canApprove:false,seeFinancials:false}
       };
       const PINS_DEPRECATED=null;// Individual user PINs replace shared PINs
       const DEFAULT_USERS=[
@@ -1791,16 +1791,22 @@ window._STRAIN_DB=[
           {(hasData||tab==="financials"||tab==="labels"||tab==="strains"||tab==="yield"||tab==="returns"||tab==="briefing"||tab==="revenue"||tab==="sop"||tab==="security"||tab==="orders")&&(
             <>
               <div className="gpi-tab-bar" style={{background:C.bg,borderBottom:'1px solid '+C.border,padding:'0 24px',display:'flex',gap:0,overflowX:'auto',WebkitOverflowScrolling:'touch',alignItems:'flex-end'}}>
-                <span style={{fontSize:10,color:C.dim,letterSpacing:2,textTransform:'uppercase',padding:'6px 10px 10px 0',flexShrink:0,opacity:0.6}}>DISTRO</span>
                 {killSwitches.maintenanceMode&&<div style={{position:'fixed',top:58,left:0,right:0,background:'#d4a24c',color:'#000',padding:'4px 20px',fontSize:10,fontWeight:700,textAlign:'center',zIndex:49,letterSpacing:2}}>⚠ MAINTENANCE MODE — DATA CHANGES DISABLED</div>}
                 {killSwitches.readOnly&&!killSwitches.maintenanceMode&&<div style={{position:'fixed',top:58,left:0,right:0,background:'#6fa8d6',color:'#fff',padding:'4px 20px',fontSize:10,fontWeight:700,textAlign:'center',zIndex:49,letterSpacing:2}}>READ-ONLY MODE — EDITS DISABLED BY ADMIN</div>}
-                {[["accounts","Accounts"],["opportunities","Opps"],["dispatch","Dispatch"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
-                <span style={{width:1,alignSelf:'stretch',background:C.border,margin:'6px 10px',flexShrink:0}}></span>
-                <span style={{fontSize:10,color:C.dim,letterSpacing:2,textTransform:'uppercase',padding:'6px 10px 10px 0',flexShrink:0,opacity:0.6}}>MFG</span>
-                {[["strains","Strains"],["yield","Yield"],["mfg","MFG"],["sop","SOPs"],["labels","Labels"],["packaging","Packaging"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
-                <span style={{width:1,alignSelf:'stretch',background:C.border,margin:'6px 10px',flexShrink:0}}></span>
-                <span style={{fontSize:10,color:C.dim,letterSpacing:2,textTransform:'uppercase',padding:'6px 10px 10px 0',flexShrink:0,opacity:0.6}}>EXEC</span>
-                {[["briefing","Briefing"],["executive","Executive"],["financials","Financials"],["returns","Returns"],["revenue","Revenue"],["orders","Orders"],["security","Security"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
+                {authRole==='distro'?(
+                  [["accounts","Accounts"],["opportunities","Opps"],["dispatch","Dispatch"],["orders","Orders"],["returns","Returns"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})
+                ):(
+                  <>
+                  <span style={{fontSize:10,color:C.dim,letterSpacing:2,textTransform:'uppercase',padding:'6px 10px 10px 0',flexShrink:0,opacity:0.6}}>DISTRO</span>
+                  {[["accounts","Accounts"],["opportunities","Opps"],["dispatch","Dispatch"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
+                  <span style={{width:1,alignSelf:'stretch',background:C.border,margin:'6px 10px',flexShrink:0}}></span>
+                  <span style={{fontSize:10,color:C.dim,letterSpacing:2,textTransform:'uppercase',padding:'6px 10px 10px 0',flexShrink:0,opacity:0.6}}>MFG</span>
+                  {[["strains","Strains"],["yield","Yield"],["mfg","MFG"],["sop","SOPs"],["labels","Labels"],["packaging","Packaging"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
+                  <span style={{width:1,alignSelf:'stretch',background:C.border,margin:'6px 10px',flexShrink:0}}></span>
+                  <span style={{fontSize:10,color:C.dim,letterSpacing:2,textTransform:'uppercase',padding:'6px 10px 10px 0',flexShrink:0,opacity:0.6}}>EXEC</span>
+                  {[["briefing","Briefing"],["executive","Executive"],["financials","Financials"],["returns","Returns"],["revenue","Revenue"],["orders","Orders"],["security","Security"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
+                  </>
+                )}
               </div>
               <div className="gpi-content" style={{padding:'22px 24px',maxWidth:1300,margin:'0 auto'}}>
 
@@ -3827,7 +3833,7 @@ window._STRAIN_DB=[
                   async function saveReturns(next){setReturnsLog(next);await persist(RETURNS_KEY,next);logActivity('RETURN','Returns log updated — '+next.length+' entries');}
                   // Rep-scoped: distro users only see their accounts' returns
                   var repAcctNames=isRepScoped?displayAccounts.map(function(a){return a.name.toLowerCase().replace(/ - corporate$/i,'');}):null;
-                  var visibleReturns=isRepScoped?visibleReturns.filter(function(r){var ra=(r.account||'').toLowerCase().replace(/ - corporate$/i,'');return repAcctNames.some(function(n){return ra.includes(n)||n.includes(ra);});}):visibleReturns;
+                  var visibleReturns=isRepScoped?returnsLog.filter(function(r){var ra=(r.account||'').toLowerCase().replace(/ - corporate$/i,'');return repAcctNames.some(function(n){return ra.includes(n)||n.includes(ra);});}):returnsLog;
                   function addReturn(){
                     var qty=parseInt(returnsForm.qty)||0;var uv=parseFloat(returnsForm.unitValue)||0;
                     if(!returnsForm.strain||qty<1||uv<=0)return;
