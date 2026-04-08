@@ -269,9 +269,28 @@
     function setLogoTheme(isDark) {
       var logo = isDark ? LOGO_DARK : LOGO_LIGHT;
       var fav = document.getElementById('gpi-favicon');
-      var ati = document.getElementById('apple-touch-icon');
       if (fav) fav.href = logo;
-      if (ati) ati.href = logo;
+      // Generate proper 180x180 apple-touch-icon with centered logo
+      var ati = document.getElementById('apple-touch-icon');
+      if (ati) {
+        var img = new Image();
+        img.onload = function() {
+          var c = document.createElement('canvas');
+          c.width = 180; c.height = 180;
+          var ctx = c.getContext('2d');
+          ctx.fillStyle = '#000000';
+          ctx.fillRect(0, 0, 180, 180);
+          // Scale logo to fill ~85% of icon, centered
+          var scale = Math.min((180 * 0.85) / img.width, (180 * 0.85) / img.height);
+          var w = img.width * scale;
+          var h = img.height * scale;
+          var x = (180 - w) / 2;
+          var y = (180 - h) / 2;
+          ctx.drawImage(img, x, y, w, h);
+          ati.href = c.toDataURL('image/png');
+        };
+        img.src = logo;
+      }
     }
     setLogoTheme(true); // default dark
   </script>
