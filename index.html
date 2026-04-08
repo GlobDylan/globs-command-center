@@ -305,6 +305,7 @@
   <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone@7.24.0/babel.min.js" onerror="window.__GPI_ERRORS.push('Failed to load: babel');var b=document.getElementById('gpi-error-banner');if(b)b.innerHTML+='<br>Failed: babel';"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
   <div id="root">
@@ -769,7 +770,7 @@ window._STRAIN_DB=[
       Carts:[
         {id:"k1",name:"1ML Quad Hardware",desc:"Fade Co · White (No CC Logo)",lead:21,cost:1.8,perUnit:1,initOnHand:2000,initOnOrder:10000},
         {id:"k2",name:"Poptop Tube 95mm",desc:"Black · PO#106195",lead:14,cost:0.08,perUnit:1,initOnHand:1000,initOnOrder:0},
-        {id:"k3",name:"Cart Box",desc:"TWO (old stock → Treeform)",lead:35,cost:0.21,perUnit:1,initOnHand:3200,initOnOrder:0},
+        {id:"k3",name:"Cart Box",desc:"Treeform PO#34521 · 2200/ctn",lead:35,cost:0.21,perUnit:1,initOnHand:14200,initOnOrder:8000},
         {id:"k4",name:"Tamper Heat-Seal",desc:"Treeform",lead:14,cost:0.01,perUnit:1,initOnHand:0,initOnOrder:0},
         {id:"k5",name:"Case Box (20ct)",desc:"Treeform branded",lead:7,cost:0.04,perUnit:0.05,initOnHand:0,initOnOrder:0},
         {id:"k6",name:"Shipping Box 8x6x5",desc:"Uline S-4515",lead:7,cost:0.01,perUnit:0.005,initOnHand:250,initOnOrder:0},
@@ -904,23 +905,58 @@ window._STRAIN_DB=[
           {open&&(
             <div style={{borderTop:'1px solid '+C.border}}>
               <div style={{display:'flex',borderBottom:'1px solid '+C.border,background:C.raised}}>
-                {(function(){var acctReturns=(returnsLog||[]).filter(function(r){return r.account===account.name&&!r.preMarket;});var retCount=acctReturns.length;var cb2={'Vape Cart - Live Resin':COGS.Cart,'Badder':COGS.Badder,'Sauce':COGS.Sauce,'Diamonds':COGS.Diamonds,'Shatter':COGS.Shatter,'Live Resin':'Cart'};return[["pricing","Pricing"+(rows.length>0?' ('+rows.length+')':'')],["returns","Returns"+(retCount>0?' ('+retCount+')':'')],["margin","Margin"],["promotions","Promotions"+(promoCount>0?' ('+promoCount+')':'')]];})().map(function(kl){return<button key={kl[0]} onClick={function(e){e.stopPropagation();setSection(kl[0]);}} style={{padding:'8px 18px',border:'none',borderBottom:'2px solid '+(section===kl[0]?C.text:'transparent'),background:'transparent',color:section===kl[0]?C.text:C.dim,cursor:'pointer',fontSize:10,fontWeight:section===kl[0]?700:400,letterSpacing:1,textTransform:'uppercase'}}>{kl[1]}</button>;})}
+                {(function(){var acctReturns=(returnsLog||[]).filter(function(r){return r.account===account.name&&!r.preMarket;});var retCount=acctReturns.length;var cb2={'Vape Cart - Live Resin':COGS.Cart,'Badder':COGS.Badder,'Sauce':COGS.Sauce,'Diamonds':COGS.Diamonds,'Shatter':COGS.Shatter,'Live Resin':'Cart'};return[["pricing","Pricing"+(rows.length>0?' ('+rows.length+')':'')],["returns","Returns"+(retCount>0?' ('+retCount+')':'')],["margin","Margin"],["promotions","Promotions"+(promoCount>0?' ('+promoCount+')':'')]];})().map(function(kl){return<button key={kl[0]} onClick={function(e){e.stopPropagation();setSection(kl[0]);}} style={{padding:'10px 14px',border:'none',borderBottom:'2px solid '+(section===kl[0]?C.text:'transparent'),background:'transparent',color:section===kl[0]?C.text:C.dim,cursor:'pointer',fontSize:12,fontWeight:section===kl[0]?700:400,letterSpacing:1,textTransform:'uppercase'}}>{kl[1]}</button>;})}
               </div>
               {section==="pricing"&&(
-                <div style={{overflowX:'auto'}}>
-                  <table style={{width:'100%',minWidth:360,borderCollapse:'collapse'}}>
-                    <thead>
-                      <tr style={{background:C.raised}}>{["SKU","Type","Wholesale","Retail","Markup","Consumer Pays","Target Range","Alignment","Mkt Avg"].map(function(h,i){return<th key={h} style={{padding:'7px 12px',fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:'uppercase',color:C.dim,textAlign:i>=2?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr>
-                      <tr style={{background:'#050505'}}><td colSpan={9} style={{padding:'4px 12px',fontSize:10,color:C.dim}}>Tax: ~{Math.round(tax*100)}% consumer burden · 2×–2.5× markup target</td></tr>
-                    </thead>
-                    <tbody>
-                      {rows.length>0?rows.map(function(r,i){const mu=r.mu,isOut=mu?!mu.aligned:false,mc=!mu?C.dim:mu.aligned?C.good:C.warn;return(<tr key={i} style={{background:isOut?C.dangerBg:i%2===0?'transparent':'#050505'}}><td style={{padding:'8px 12px',fontSize:12,fontWeight:500,color:isOut?C.danger:C.text}}>{r.strain}</td><td style={{padding:'8px 12px'}}><TypeTag label={r.category}/></td><td style={{padding:'8px 12px',textAlign:'right',fontSize:11,fontWeight:600}}>{cur(r.wholesale)}</td><td style={{padding:'8px 12px',textAlign:'right',fontWeight:700,fontSize:13}}>{cur(r.retailPrice)}</td><td style={{padding:'8px 12px',textAlign:'right',fontSize:11,fontWeight:700,color:mc}}>{mu?mu.raw+'x':'—'}</td><td style={{padding:'8px 12px',textAlign:'right',fontSize:11,color:C.muted}}>{mu?cur(mu.consumer):'—'}</td><td style={{padding:'8px 12px',textAlign:'right',fontSize:11,color:C.dim}}>{cur(r.wholesale*2)}–{cur(r.wholesale*2.5)}</td><td style={{padding:'8px 12px',textAlign:'right'}}>{mu?<span style={{background:mu.aligned?C.goodBg:C.dangerBg,border:'1px solid '+(mu.aligned?C.goodBdr:C.dangerBdr),color:mu.aligned?C.good:C.danger,fontSize:10,fontWeight:700,padding:'8px 12px',borderRadius:2,whiteSpace:'nowrap'}}>{mu.label.toUpperCase()}</span>:<span style={{fontSize:11,color:C.dim}}>—</span>}</td><td style={{padding:'8px 12px',textAlign:'right',fontSize:11,color:C.muted}}>{r.avg>0?cur(r.avg):'—'}</td></tr>);}):(account.orderedSkus||[]).length>0?(<><tr><td colSpan={9} style={{padding:'7px 16px',background:C.raised,borderBottom:'1px solid '+C.border,fontSize:11,color:C.muted}}>◎ No live menu data · {periodSkus.length} SKUs in {periodDays}d window</td></tr>{periodSkus.map(function(s,i){return(<tr key={i} style={{background:i%2===0?'transparent':'#050505',opacity:0.85}}><td style={{padding:'9px 16px',fontSize:12,fontWeight:500,color:C.muted}}>{s.strain}{s.soldThrough&&<span style={{marginLeft:8,background:C.goodBg,border:'1px solid '+C.goodBdr,color:C.good,fontSize:10,fontWeight:700,padding:'1px 6px',borderRadius:2}}>↻ SOLD THROUGH</span>}</td><td style={{padding:'9px 16px'}}><TypeTag label={s.category||'—'}/></td><td style={{padding:'9px 16px',textAlign:'right',fontSize:12,color:C.text,fontWeight:600}}>{cur(s.wholesale>0?s.wholesale:cogsFor(s.category).wholesale)}</td><td colSpan={6} style={{padding:'9px 16px',textAlign:'right',fontSize:11,color:C.dim}}>{(s.periodUnits&&s.periodUnits[periodDays]||0)+' units · '+(s.orderCount>1?s.orderCount+'× ordered':'ORDERED')}</td></tr>);})} </>):<tr><td colSpan={9} style={{padding:'14px 16px',textAlign:'center',fontSize:11,color:C.dim,fontStyle:'italic'}}>No data available</td></tr>}
-                    </tbody>
-                  </table>
+                <div style={{padding:'12px 12px'}}>
+                  <div style={{fontSize:10,color:C.dim,marginBottom:10}}>{'Tax: ~'+Math.round(tax*100)+'% consumer burden · 2×–2.5× markup target'}</div>
+                  {rows.length>0?<div style={{display:'flex',flexDirection:'column',gap:6}}>
+                    {rows.map(function(r,i){const mu=r.mu,isOut=mu?!mu.aligned:false;return<div key={i} style={{background:isOut?C.dangerBg:C.surface,border:'1px solid '+(isOut?C.dangerBdr:C.border),borderRadius:6,padding:'10px 12px'}}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
+                        <div style={{display:'flex',alignItems:'center',gap:6}}>
+                          <span style={{fontSize:14,fontWeight:700,color:isOut?C.danger:C.text}}>{r.strain}</span>
+                          <TypeTag label={r.category}/>
+                        </div>
+                        {mu?<span style={{background:mu.aligned?C.goodBg:C.dangerBg,border:'1px solid '+(mu.aligned?C.goodBdr:C.dangerBdr),color:mu.aligned?C.good:C.danger,fontSize:10,fontWeight:700,padding:'3px 8px',borderRadius:3}}>{mu.label.toUpperCase()}</span>:<span style={{fontSize:11,color:C.dim}}>—</span>}
+                      </div>
+                      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6,marginBottom:4}}>
+                        <div style={{background:C.bg,borderRadius:3,padding:'5px 0',textAlign:'center'}}>
+                          <div style={{fontSize:14,fontWeight:800}}>{cur(r.wholesale)}</div>
+                          <div style={{fontSize:9,color:C.dim}}>Wholesale</div>
+                        </div>
+                        <div style={{background:C.bg,borderRadius:3,padding:'5px 0',textAlign:'center'}}>
+                          <div style={{fontSize:14,fontWeight:800}}>{cur(r.retailPrice)}</div>
+                          <div style={{fontSize:9,color:C.dim}}>Retail</div>
+                        </div>
+                        <div style={{background:C.bg,borderRadius:3,padding:'5px 0',textAlign:'center'}}>
+                          <div style={{fontSize:14,fontWeight:800,color:mu?(mu.aligned?C.good:C.warn):C.dim}}>{mu?mu.raw+'x':'—'}</div>
+                          <div style={{fontSize:9,color:C.dim}}>Markup</div>
+                        </div>
+                      </div>
+                      <div style={{display:'flex',gap:8,fontSize:11,color:C.dim}}>
+                        {mu&&<span>Consumer: {cur(mu.consumer)}</span>}
+                        <span>Target: {cur(r.wholesale*2)}–{cur(r.wholesale*2.5)}</span>
+                        {r.avg>0&&<span>Avg: {cur(r.avg)}</span>}
+                      </div>
+                    </div>;})}
+                  </div>:(account.orderedSkus||[]).length>0?<div style={{display:'flex',flexDirection:'column',gap:6}}>
+                    <div style={{fontSize:11,color:C.muted,padding:'6px 0'}}>{'◎ No live menu data · '+periodSkus.length+' SKUs in '+periodDays+'d window'}</div>
+                    {periodSkus.map(function(s,i){return<div key={i} style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'10px 12px',opacity:0.85}}>
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                        <div style={{display:'flex',alignItems:'center',gap:6}}>
+                          <span style={{fontSize:13,fontWeight:600,color:C.muted}}>{s.strain}</span>
+                          <TypeTag label={s.category||'—'}/>
+                          {s.soldThrough&&<span style={{background:C.goodBg,border:'1px solid '+C.goodBdr,color:C.good,fontSize:10,fontWeight:700,padding:'1px 6px',borderRadius:2}}>↻ SOLD THROUGH</span>}
+                        </div>
+                        <span style={{fontSize:12,fontWeight:600}}>{cur(s.wholesale>0?s.wholesale:cogsFor(s.category).wholesale)}</span>
+                      </div>
+                      <div style={{fontSize:11,color:C.dim,marginTop:3}}>{(s.periodUnits&&s.periodUnits[periodDays]||0)+' units · '+(s.orderCount>1?s.orderCount+'× ordered':'ORDERED')}</div>
+                    </div>;})}
+                  </div>:<div style={{padding:'20px 0',textAlign:'center',fontSize:12,color:C.dim}}>No data available</div>}
                 </div>
               )}
               {section==="promotions"&&<PromotionsSection promotions={account.promotions||[]}/>}
-              {section==="returns"&&(function(){var acctReturns=(returnsLog||[]).filter(function(r){return r.account===account.name&&!r.preMarket;});var totalCredits=acctReturns.reduce(function(s,r){return s+(r.totalValue||0);},0);return<div style={{padding:'12px 16px'}}>{acctReturns.length>0?<><div style={{display:'flex',justifyContent:'space-between',marginBottom:10}}><span style={{fontSize:11,color:C.dim,letterSpacing:1.5}}>RETURNS & DEFECTS</span><span style={{fontSize:11,fontWeight:700,color:C.danger}}>${totalCredits.toFixed(0)} in credits</span></div><div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:380,borderCollapse:'collapse'}}><thead><tr style={{background:C.raised}}>{['Date','Strain','Cat','Qty','Value','Reason','Status'].map(function(h,i){return<th key={h} style={{padding:'10px 12px',fontSize:10,fontWeight:700,color:C.dim,textAlign:i>=3?'right':'left',borderBottom:'1px solid '+C.border}}>{h}</th>;})}</tr></thead><tbody>{acctReturns.map(function(r,i){return<tr key={i} style={{background:i%2===0?'transparent':'#050505'}}><td style={{padding:'10px 12px',fontSize:10,color:C.muted}}>{r.date}</td><td style={{padding:'10px 12px',fontSize:10}}>{r.strain}</td><td style={{padding:'10px 12px',fontSize:11,color:C.dim}}>{r.category}</td><td style={{padding:'10px 12px',fontSize:10,textAlign:'right'}}>{r.qty}</td><td style={{padding:'10px 12px',fontSize:10,textAlign:'right',color:C.danger}}>${(r.totalValue||0).toFixed(2)}</td><td style={{padding:'10px 12px',fontSize:11,color:C.muted}}>{r.reason||'—'}</td><td style={{padding:'10px 12px',fontSize:11,textAlign:'right'}}><span style={{padding:'1px 6px',borderRadius:2,fontSize:10,fontWeight:700,background:r.status==='CREDIT APPLIED'?C.goodBg:C.warnBg,color:r.status==='CREDIT APPLIED'?C.good:C.warn,border:'1px solid '+(r.status==='CREDIT APPLIED'?C.goodBdr:C.warnBdr)}}>{r.status}</span></td></tr>;})}</tbody></table></div></>:<div style={{padding:'20px 0',textAlign:'center',fontSize:11,color:C.dim}}>No returns recorded for this account</div>}</div>;})()}
+              {section==="returns"&&(function(){var acctReturns=(returnsLog||[]).filter(function(r){return r.account===account.name&&!r.preMarket;});var totalCredits=acctReturns.reduce(function(s,r){return s+(r.totalValue||0);},0);return<div style={{padding:'12px 12px'}}>{acctReturns.length>0?<><div style={{display:'flex',justifyContent:'space-between',marginBottom:10}}><span style={{fontSize:11,color:C.dim,letterSpacing:1.5}}>RETURNS & DEFECTS</span><span style={{fontSize:11,fontWeight:700,color:C.danger}}>${totalCredits.toFixed(0)} in credits</span></div><div style={{display:'flex',flexDirection:'column',gap:6}}>{acctReturns.map(function(r,i){return<div key={i} style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'10px 12px'}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}><span style={{fontSize:13,fontWeight:700}}>{r.strain}</span><span style={{padding:'2px 6px',borderRadius:3,fontSize:10,fontWeight:700,background:r.status==='CREDIT APPLIED'?C.goodBg:C.warnBg,color:r.status==='CREDIT APPLIED'?C.good:C.warn,border:'1px solid '+(r.status==='CREDIT APPLIED'?C.goodBdr:C.warnBdr)}}>{r.status}</span></div><div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6,marginBottom:4}}><div style={{background:C.bg,borderRadius:3,padding:'4px 0',textAlign:'center'}}><div style={{fontSize:13,fontWeight:800}}>{r.qty}</div><div style={{fontSize:9,color:C.dim}}>Qty</div></div><div style={{background:C.bg,borderRadius:3,padding:'4px 0',textAlign:'center'}}><div style={{fontSize:13,fontWeight:800,color:C.danger}}>${(r.totalValue||0).toFixed(2)}</div><div style={{fontSize:9,color:C.dim}}>Value</div></div><div style={{background:C.bg,borderRadius:3,padding:'4px 0',textAlign:'center'}}><div style={{fontSize:13,fontWeight:800,color:C.muted}}>{r.category}</div><div style={{fontSize:9,color:C.dim}}>Type</div></div></div><div style={{fontSize:11,color:C.dim}}>{r.date+' · '+(r.reason||'—')}</div></div>;})}</div></>:<div style={{padding:'20px 0',textAlign:'center',fontSize:12,color:C.dim}}>No returns recorded for this account</div>}</div>;})()}
               {section==="margin"&&(function(){var cb2={'Vape Cart - Live Resin':COGS.Cart,'Badder':COGS.Badder,'Sauce':COGS.Sauce,'Diamonds':COGS.Diamonds,'Shatter':COGS.Shatter,'Battery':COGS.Battery,'Sample/Promo':COGS.Promo};var CM2={'Live Resin':'Vape Cart - Live Resin'};var cr=(account.periodCatRevenue&&account.periodCatRevenue[periodDays])?account.periodCatRevenue[periodDays]:(account.catRevenue90||{});var aRev=0,aCogs=0;Object.keys(cr).forEach(function(rc){var rev=cr[rc];if(!rev||rev<=0)return;var label=CM2[rc]||rc;var cogs=cb2[label]||COGS.Other;var units=cogs.wholesale>1?Math.round(rev/cogs.wholesale):0;aCogs+=units*cogs.cost;aRev+=rev*0.84;});var acctRet=(returnsLog||[]).filter(function(r){return r.account===account.name&&!r.preMarket;}).reduce(function(s,r){return s+(r.totalValue||0);},0);var net=aRev-aCogs-acctRet;var margin=aRev>0?net/aRev*100:0;return<div style={{padding:'12px 16px'}}><div style={{fontSize:11,color:C.dim,letterSpacing:1.5,marginBottom:10}}>MARGIN ANALYSIS ({periodDays}d)</div><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(70px,1fr))',gap:10,marginBottom:12}}>{[{l:'Revenue (84%)',v:curK(aRev),c:C.text},{l:'COGS',v:'-'+curK(aCogs),c:C.muted},{l:'Returns',v:acctRet>0?'-'+cur(acctRet):'—',c:acctRet>0?C.danger:C.dim},{l:'Net / Margin',v:curK(net)+' / '+margin.toFixed(1)+'%',c:margin>35?C.good:margin>20?C.warn:C.danger}].map(function(s){return<div key={s.l} style={{background:C.bg,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px',textAlign:'center'}}><div style={{fontSize:10,color:C.dim,letterSpacing:1,marginBottom:3}}>{s.l}</div><div style={{fontSize:13,fontWeight:700,color:s.c}}>{s.v}</div></div>;})}</div></div>;})()}
             </div>
           )}
@@ -1589,15 +1625,15 @@ window._STRAIN_DB=[
         <div style={{fontFamily:"'DM Mono','Courier New',monospace",background:C.bg,minHeight:'100vh',color:C.text,transition:'background 0.2s,color 0.2s'}}>
           {/* ═══ LOGIN GATE ═══ */}
           {!authRole?(
-            <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',padding:24}}>
-              <div style={{background:C.surface,border:'1px solid '+C.borderHi,borderRadius:12,padding:'40px 32px',width:'100%',maxWidth:360,textAlign:'center'}}>
+            <div style={{display:'flex',alignItems:'flex-start',justifyContent:'center',minHeight:'100vh',padding:'48px 20px 40px'}}>
+              <div style={{background:C.surface,border:'1px solid '+C.borderHi,borderRadius:12,padding:'24px 24px',width:'100%',maxWidth:340,textAlign:'center'}}>
 
                 {loginStep===1&&(<div>
                   <div style={{fontSize:11,color:C.dim,marginBottom:8,letterSpacing:3}}>GLOBS COMMAND CENTER</div>
-                  <div style={{display:'flex',justifyContent:'center',alignItems:'center',gap:20,marginBottom:24,marginTop:16}}>
+                  <div style={{display:'flex',justifyContent:'center',alignItems:'center',gap:16,marginBottom:20,marginTop:12}}>
                     {[{dept:'mfg',label:'Greenline',sub:'Manufacturing',logo:LOGO_GL,bg:'#fff'},{dept:'exec',label:'Globs',sub:'Executive',logo:LOGO_G,bg:C.bg},{dept:'distro',label:'UpNorth',sub:'Distribution',logo:LOGO_UN,bg:'#000'}].map(function(d){return(
                       <div key={d.dept} onClick={function(){setLoginDept(d.dept);setLoginStep(d.dept==='exec'?3:2);setLoginError('');if(d.dept==='exec'){var eu=users.find(function(u){return u.role==='exec'&&u.active;});if(eu)setLoginUserId(eu.id);}}} style={{cursor:'pointer',textAlign:'center'}}>
-                        <div style={{width:80,height:80,borderRadius:'50%',overflow:'hidden',border:d.dept==='distro'?'2px solid #111':'2px solid '+C.border,margin:'0 auto 8px',display:'flex',alignItems:'center',justifyContent:'center',background:d.bg}}>
+                        <div style={{width:64,height:64,borderRadius:'50%',overflow:'hidden',border:d.dept==='distro'?'2px solid #111':'2px solid '+C.border,margin:'0 auto 6px',display:'flex',alignItems:'center',justifyContent:'center',background:d.bg}}>
                           <img src={d.logo} alt={d.label} style={{width:d.dept==='exec'?'85%':'100%',height:d.dept==='exec'?'85%':'100%',objectFit:d.dept==='exec'?'contain':'cover'}}/>
                         </div>
                         <div style={{fontSize:12,fontWeight:600,color:C.text}}>{d.label}</div>
@@ -1617,17 +1653,21 @@ window._STRAIN_DB=[
                 </div>)}
 
                 {loginStep===3&&(function(){var selectedUser=users.find(function(u){return u.id===loginUserId;});var isSetup=selectedUser&&selectedUser.needsSetup;return(<div>
-                  <button onClick={function(){setLoginStep(loginDept==='exec'?1:2);setLoginInput('');setLoginConfirm('');setLoginError('');}} style={{background:'transparent',border:'none',color:C.dim,fontSize:11,cursor:'pointer',fontFamily:'inherit',marginBottom:16,letterSpacing:1}}>← BACK</button>
-                  <div style={{fontSize:16,fontWeight:800,letterSpacing:2,marginBottom:4}}>{selectedUser?selectedUser.name.toUpperCase():'USER'}</div>
-                  <div style={{fontSize:11,color:isSetup?'#d4a24c':C.dim,marginBottom:isSetup?12:24}}>{isSetup?'Create your PIN to get started':'Enter your PIN'}</div>
+                  <div style={{display:'flex',justifyContent:'center',gap:10,marginBottom:14}}>
+                    {[{bg:'#fff',c:'#2d5a1b',l:'GL'},{bg:'#000',c:C.text,l:'G',it:true},{bg:'#000',c:'#6ab344',l:'UN'}].map(function(r){return<div key={r.l} style={{width:36,height:36,borderRadius:'50%',background:r.bg,border:'1px solid '+C.border,display:'flex',alignItems:'center',justifyContent:'center'}}><span style={{fontSize:12,fontWeight:800,color:r.c,fontStyle:r.it?'italic':'normal'}}>{r.l}</span></div>;})}
+                  </div>
+                  <div style={{fontSize:14,fontWeight:800,letterSpacing:2,marginBottom:4}}>{selectedUser?selectedUser.name.toUpperCase():'USER'}</div>
+                  <div style={{fontSize:11,color:isSetup?'#d4a24c':C.dim,marginBottom:isSetup?12:16}}>{isSetup?'Create your PIN to get started':'Enter your PIN'}</div>
                   {isSetup&&<div style={{fontSize:11,color:C.dim,marginBottom:16}}>Choose a 4–6 digit PIN you'll remember</div>}
-                  <input type="password" inputMode="numeric" pattern="[0-9]*" value={loginInput} onChange={function(e){setLoginInput(e.target.value.replace(/[^0-9]/g,''));setLoginError('');}} onKeyDown={function(e){if(e.key==='Enter'&&!isSetup)handleLogin();}} placeholder={isSetup?"New PIN":"● ● ● ●"} maxLength={6} style={{width:'100%',background:C.bg,border:'1px solid '+C.border,borderRadius:8,padding:'14px',color:C.text,fontSize:22,fontFamily:'inherit',textAlign:'center',letterSpacing:12,outline:'none',boxSizing:'border-box',marginBottom:8}} autoFocus/>
+                  <input type="password" inputMode="numeric" pattern="[0-9]*" value={loginInput} onChange={function(e){setLoginInput(e.target.value.replace(/[^0-9]/g,''));setLoginError('');}} onKeyDown={function(e){if(e.key==='Enter'&&!isSetup)handleLogin();}} placeholder={isSetup?"New PIN":"· · · ·"} maxLength={6} style={{width:'100%',background:C.bg,border:'1px solid '+C.border,borderRadius:8,padding:'14px',color:C.text,fontSize:22,fontFamily:'inherit',textAlign:'center',letterSpacing:12,outline:'none',boxSizing:'border-box',marginBottom:8}} autoFocus/>
                   {isSetup&&<input type="password" inputMode="numeric" pattern="[0-9]*" value={loginConfirm} onChange={function(e){setLoginConfirm(e.target.value.replace(/[^0-9]/g,''));setLoginError('');}} onKeyDown={function(e){if(e.key==='Enter')handleSetupPin();}} placeholder="Confirm PIN" maxLength={6} style={{width:'100%',background:C.bg,border:'1px solid '+C.border,borderRadius:8,padding:'14px',color:C.text,fontSize:22,fontFamily:'inherit',textAlign:'center',letterSpacing:12,outline:'none',boxSizing:'border-box',marginBottom:8}}/>}
                   {loginError&&<div style={{fontSize:10,color:C.danger,marginBottom:8}}>{loginError}</div>}
                   <button onClick={isSetup?handleSetupPin:handleLogin} style={{width:'100%',padding:'12px',borderRadius:8,fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'none',background:isSetup?'#d4a24c':C.text,color:isSetup?'#000':C.bg,letterSpacing:2}}>{isSetup?'CREATE PIN & SIGN IN':'SIGN IN'}</button>
+                  <button onClick={function(){setLoginStep(loginDept==='exec'?1:2);setLoginInput('');setLoginConfirm('');setLoginError('');}} style={{display:'block',margin:'12px auto 0',background:'transparent',border:'none',color:C.dim,fontSize:11,cursor:'pointer',fontFamily:'inherit',letterSpacing:1}}>← Back</button>
                 </div>);})()}
 
               </div>
+              <div style={{textAlign:'center',marginTop:20,fontSize:10,color:C.borderHi,letterSpacing:2}}>CONFIDENTIAL · v6.3</div>
             </div>
           ):(
           <><div style={{background:C.bg,position:'relative'}}>
@@ -3482,25 +3522,25 @@ window._STRAIN_DB=[
 
                   return React.createElement('div',null,
                     inStockCount>0?React.createElement('div',{style:{padding:'8px 14px',marginBottom:12,background:'#1b5e2022',border:'1px solid #1b5e2044',borderRadius:4,fontSize:10,color:'#4caf50',fontWeight:600}},'\u2713 '+inStockCount+' inventory SKUs loaded \u00b7 '+totalInvStart+' total units \u00b7 '+allocCount+' accounts with suggestions'):React.createElement('div',{style:{padding:'16px',marginBottom:12,background:C.dangerBg,border:'1px solid '+C.dangerBdr,borderRadius:6,textAlign:'center'}},React.createElement('div',{style:{fontSize:12,fontWeight:700,color:C.danger,marginBottom:8}},'\u26a0 No inventory loaded'),React.createElement('div',{style:{fontSize:10,color:C.muted,marginBottom:12}},'Upload the Salesforce XLSX to generate order suggestions.'),React.createElement('label',{style:{display:'inline-block',padding:'12px 32px',borderRadius:4,fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.text,background:C.text,color:C.bg}},csvLoading?'\u23f3 Parsing\u2026':'\u21e7 Upload Salesforce XLSX',React.createElement('input',{type:'file',accept:'.csv,.xlsx,.xls',onChange:handleCSVFile,style:{display:'none'}}))),
-                    React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:14}},
-                      React.createElement('span',{style:{fontSize:11,color:C.dim,letterSpacing:1.5}},'REVENUE WINDOW'),
-                      [7,30,60,90,180,270,365].map(function(d){return React.createElement('button',{key:d,onClick:function(){setPeriodDays(d);},style:{padding:'4px 11px',borderRadius:2,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(periodDays===d?C.text:C.border),background:periodDays===d?C.text:'transparent',color:periodDays===d?C.bg:C.dim,fontWeight:periodDays===d?700:400}},d+'d');})
+                    React.createElement('div',{style:{marginBottom:14}},
+                      React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:6}},'PERIOD'),
+                      React.createElement('div',{style:{display:'flex',background:C.surface,borderRadius:8,border:'1px solid '+C.border,overflow:'hidden'}},[7,30,60,90,180,365].map(function(d,i){return React.createElement('button',{key:d,onClick:function(){setPeriodDays(d);},style:{flex:1,padding:'10px 0',fontSize:13,fontWeight:periodDays===d?700:400,border:'none',borderRight:i<5?'1px solid '+C.border:'none',background:periodDays===d?C.text:'transparent',color:periodDays===d?C.bg:C.muted,fontFamily:'inherit',cursor:'pointer'}},d+'d');}))
                     ),
                     React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:12,marginBottom:20}},
                       [{l:"At-Risk",v:OPP.length,c:C.warn},{l:"Fallen Off",v:oFallen.length,c:C.danger},{l:"Overdue",v:oOverdue.length,c:C.warn},{l:"At-Risk Rev",v:curK(oTotRev),c:C.text},{l:"Orders",v:allocCount+' / '+curK(totalAllocRev),c:C.good},{l:"Allocated",v:pctAlloc+'% ('+totalRemaining+' left)',c:pctAlloc>=95?C.good:C.muted}].map(function(s,i){return React.createElement('div',{key:i,style:{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'12px 14px'}},React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:4}},s.l),React.createElement('div',{style:{fontSize:18,fontWeight:800,color:s.c}},s.v));})
                     ),
                     React.createElement('div',{style:{marginBottom:16}},
-                      React.createElement('div',{style:{display:'flex',gap:6,alignItems:'center',marginBottom:8}},
-                        React.createElement('span',{style:{fontSize:10,color:C.dim,letterSpacing:1.5,width:50,flexShrink:0}},'ZONE'),
-                        React.createElement('div',{style:{display:'flex',gap:4,flexWrap:'wrap'}},["ALL","DNU","RB","ZASP"].map(function(z){return React.createElement('button',{key:z,onClick:function(){setOZone(z);},style:{padding:'4px 10px',borderRadius:2,fontSize:11,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(oZone===z?C.text:C.border),background:oZone===z?C.text:'transparent',color:oZone===z?C.bg:C.dim,fontWeight:oZone===z?700:400}},z==="ALL"?"All":DZN2[z]||z);}))
+                      React.createElement('div',{style:{marginBottom:8}},
+                        React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:6}},'ZONE'),
+                        React.createElement('div',{style:{display:'flex',background:C.surface,borderRadius:8,border:'1px solid '+C.border,overflow:'hidden'}},["ALL","DNU","RB","ZASP"].map(function(z,i){return React.createElement('button',{key:z,onClick:function(){setOZone(z);},style:{flex:1,padding:'10px 0',fontSize:12,fontWeight:oZone===z?700:400,border:'none',borderRight:i<3?'1px solid '+C.border:'none',background:oZone===z?C.text:'transparent',color:oZone===z?C.bg:C.muted,fontFamily:'inherit',cursor:'pointer'}},z==="ALL"?"All":z);}))
                       ),
-                      React.createElement('div',{style:{display:'flex',gap:6,alignItems:'center',marginBottom:8}},
-                        React.createElement('span',{style:{fontSize:10,color:C.dim,letterSpacing:1.5,width:50,flexShrink:0}},'STATUS'),
+                      React.createElement('div',{style:{marginBottom:8}},
+                        React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:6}},'STATUS'),
                         React.createElement('div',{style:{display:'flex',background:C.surface,borderRadius:8,border:'1px solid '+C.border,overflow:'hidden'}},["ALL","FALLEN OFF","OVERDUE"].map(function(s,i){return React.createElement('button',{key:s,onClick:function(){setOStatus(s);},style:{flex:1,padding:'10px 0',fontSize:12,fontWeight:oStatus===s?700:400,border:'none',borderRight:i<2?'1px solid '+C.border:'none',background:oStatus===s?C.text:'transparent',color:oStatus===s?C.bg:C.muted,fontFamily:'inherit',cursor:'pointer'}},s==="ALL"?"All":s);}))
                       ),
-                      authRole==='exec'?React.createElement('div',{style:{display:'flex',gap:6,alignItems:'center'}},
-                        React.createElement('span',{style:{fontSize:10,color:C.dim,letterSpacing:1.5,width:50,flexShrink:0}},'REP'),
-                        React.createElement('div',{style:{display:'flex',gap:4,flexWrap:'wrap'}},["ALL"].concat(uniqueReps).map(function(r){return React.createElement('button',{key:r,onClick:function(){setORep(r);},style:{padding:'4px 10px',borderRadius:2,fontSize:11,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(oRep===r?'#6fa8d6':C.border),background:oRep===r?'#6fa8d622':'transparent',color:oRep===r?'#6fa8d6':C.dim,fontWeight:oRep===r?700:400}},r==="ALL"?"All":r.split(' ')[0]);}))
+                      authRole==='exec'?React.createElement('div',{style:{marginBottom:8}},
+                        React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:6}},'REP'),
+                        React.createElement('div',{style:{display:'flex',background:C.surface,borderRadius:8,border:'1px solid '+C.border,overflow:'hidden',overflowX:'auto',WebkitOverflowScrolling:'touch'}},["ALL"].concat(uniqueReps).map(function(r,i,arr){return React.createElement('button',{key:r,onClick:function(){setORep(r);},style:{flex:'0 0 auto',padding:'10px 14px',fontSize:12,fontWeight:oRep===r?700:400,border:'none',borderRight:i<arr.length-1?'1px solid '+C.border:'none',background:oRep===r?C.text:'transparent',color:oRep===r?C.bg:C.muted,fontFamily:'inherit',cursor:'pointer',whiteSpace:'nowrap'}},r==="ALL"?"All":r.split(' ')[0]);}))
                       ):authUser&&authUser.repName?React.createElement('div',{style:{padding:'6px 12px',background:'#6fa8d611',border:'1px solid #6fa8d633',borderRadius:4,fontSize:10,color:'#6fa8d6',fontWeight:600}},'\u{1F464} '+authUser.name+' · '+(authUser.repName||'')):null
                     ),
                     React.createElement('div',{style:{display:'flex',gap:8,marginBottom:16,alignItems:'center',flexWrap:'wrap'}},
@@ -4448,24 +4488,56 @@ window._STRAIN_DB=[
 
                   // Email view
                   if(obShowEmail&&selA){
-                    var lines=cartItems.map(function(e){var item=obInv[parseInt(e[0])];return'  '+item.strain+' ('+item.cat+') × '+e[1]+' = $'+(item.ws*e[1]).toLocaleString();}).join('\n');
-                    var repEmail=selA.rep.toLowerCase().includes('brian')?'brian@upnorthhumboldt.com':selA.rep.toLowerCase().includes('ian')?'ian@upnorthhumboldt.com':selA.rep+'@upnorthhumboldt.com';
+                    var lines=cartItems.map(function(e){var item=obInv[parseInt(e[0])];return{strain:item.strain,cat:item.cat,qty:e[1],ws:item.ws,total:item.ws*e[1]};});
+                    var repName=selA.rep.split(' ')[0]||'Rep';
+                    var repEmail=selA.rep.toLowerCase().includes('brian')?'brian@upnorthhumboldt.com':selA.rep.toLowerCase().includes('ian')?'ian@upnorthhumboldt.com':selA.rep.toLowerCase().replace(/\s+/g,'')+'@upnorthhumboldt.com';
+                    var ccList='jonah@upnorthhumboldt.com,ian@upnorthhumboldt.com';
+                    if(repEmail==='ian@upnorthhumboldt.com')ccList='jonah@upnorthhumboldt.com';
+                    if(repEmail==='jonah@upnorthhumboldt.com')ccList='ian@upnorthhumboldt.com';
                     var subj='Globs Order Suggestion — '+selA.name;
-                    var body='Hey '+selA.rep.split(' ')[0]+',\n\nHere\'s a suggested order for '+selA.name+' based on their purchase history and current inventory:\n\n'+lines+'\n\nTotal: '+totalUnits+' units · $'+totalRev.toLocaleString()+'\n\nThis is based on what they\'ve been buying and what we have in stock. Let me know if you want to adjust anything before sending.\n\n– Dylan / Globs GPI';
+                    var bodyText='Hey '+selA.rep.split(' ')[0]+',\n\nHere\'s a suggested order for '+selA.name+':\n\n'+lines.map(function(l){return'  '+l.strain+' ('+l.cat+') × '+l.qty+' = $'+l.total.toLocaleString();}).join('\n')+'\n\nTotal: '+totalUnits+' units · $'+totalRev.toLocaleString()+'\n\n– Dylan / Globs GPI';
+                    async function shareAsImage(){
+                      try{
+                        var el=document.getElementById('ob-order-card');
+                        if(!el||!window.html2canvas){toast('✗ Screenshot not available');return;}
+                        var canvas=await html2canvas(el,{backgroundColor:'#000000',scale:2});
+                        canvas.toBlob(async function(blob){
+                          if(navigator.share&&navigator.canShare){
+                            var file=new File([blob],'globs-order-'+selA.name.replace(/\s/g,'-')+'.png',{type:'image/png'});
+                            if(navigator.canShare({files:[file]})){
+                              await navigator.share({title:subj,files:[file]});
+                              toast('✓ Shared');return;
+                            }
+                          }
+                          var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='globs-order-'+selA.name.replace(/\s/g,'-')+'.png';a.click();URL.revokeObjectURL(url);toast('✓ Screenshot saved');
+                        },'image/png');
+                      }catch(e){toast('✗ Share failed: '+e.message);}
+                    }
                     return<div>
-                      <div style={{fontSize:14,fontWeight:700,letterSpacing:2,paddingBottom:8,borderBottom:'1px solid '+C.border,marginBottom:14}}>EMAIL PREVIEW</div>
-                      <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:16,marginBottom:12}}>
-                        <div style={{fontSize:11,color:C.dim,marginBottom:4}}>TO</div>
-                        <div style={{fontSize:13,fontWeight:600,marginBottom:12}}>{repEmail}</div>
-                        <div style={{fontSize:11,color:C.dim,marginBottom:4}}>SUBJECT</div>
-                        <div style={{fontSize:13,fontWeight:600,marginBottom:12}}>{subj}</div>
-                        <div style={{fontSize:11,color:C.dim,marginBottom:4}}>BODY</div>
-                        <div style={{fontSize:12,color:C.muted,lineHeight:1.8,whiteSpace:'pre-wrap',background:C.bg,borderRadius:6,padding:12,border:'1px solid '+C.border}}>{body}</div>
+                      <div style={{fontSize:14,fontWeight:700,letterSpacing:2,paddingBottom:8,borderBottom:'1px solid '+C.border,marginBottom:14}}>ORDER PREVIEW</div>
+                      <div id="ob-order-card" style={{background:'#000',border:'1px solid '+C.border,borderRadius:12,padding:'20px 18px',marginBottom:12}}>
+                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+                          <div><div style={{fontSize:18,fontWeight:800,letterSpacing:3}}>GLOBS</div><div style={{fontSize:10,color:C.dim}}>Order Suggestion</div></div>
+                          <div style={{textAlign:'right'}}><div style={{fontSize:10,color:C.dim}}>{'To: '+repName+' · CC: Jonah, Ian'}</div><div style={{fontSize:10,color:C.dim}}>{new Date().toLocaleDateString()}</div></div>
+                        </div>
+                        <div style={{fontSize:16,fontWeight:700,marginBottom:4}}>{selA.name}</div>
+                        <div style={{fontSize:11,color:C.dim,marginBottom:14}}>{selA.zone+' · Avg order $'+(selA.avgOrd>0?selA.avgOrd.toLocaleString():'—')}</div>
+                        <div style={{borderTop:'1px solid '+C.border,paddingTop:12}}>
+                          {lines.map(function(l,i){return<div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:'1px solid '+C.border+'66'}}>
+                            <div><div style={{fontSize:13,fontWeight:600}}>{l.strain}</div><div style={{fontSize:11,color:C.dim}}>{l.cat+' · $'+l.ws+'/unit'}</div></div>
+                            <div style={{textAlign:'right'}}><div style={{fontSize:13,fontWeight:700}}>{'×'+l.qty}</div><div style={{fontSize:12,fontWeight:700,color:C.good}}>{'$'+l.total.toLocaleString()}</div></div>
+                          </div>;})}
+                        </div>
+                        <div style={{borderTop:'2px solid '+C.borderHi,marginTop:8,paddingTop:12,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                          <div style={{fontSize:11,color:C.muted}}>{totalUnits+' units · '+cartItems.length+' SKUs'}</div>
+                          <div style={{fontSize:20,fontWeight:800}}>{'$'+totalRev.toLocaleString()}</div>
+                        </div>
                       </div>
-                      <div style={{display:'flex',gap:8}}>
+                      <div style={{display:'flex',gap:8,marginBottom:8}}>
                         <button onClick={function(){setObShowEmail(false);}} style={{flex:1,padding:12,fontSize:13,background:'transparent',border:'1px solid '+C.border,color:C.muted,borderRadius:8,cursor:'pointer',fontFamily:'inherit'}}>← Back</button>
-                        <button onClick={function(){window.open('mailto:'+repEmail+'?subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(body));toast('✓ Email opened for '+selA.rep);}} style={{flex:2,padding:12,fontSize:13,fontWeight:700,background:C.good+'15',border:'1px solid '+C.good,color:C.good,borderRadius:8,cursor:'pointer',fontFamily:'inherit'}}>{'Send to '+selA.rep.split(' ')[0]}</button>
+                        <button onClick={shareAsImage} style={{flex:2,padding:12,fontSize:13,fontWeight:700,background:C.info+'15',border:'1px solid '+C.info,color:C.info,borderRadius:8,cursor:'pointer',fontFamily:'inherit'}}>📸 Share as Image</button>
                       </div>
+                      <button onClick={function(){window.open('mailto:'+repEmail+'?cc='+encodeURIComponent(ccList)+'&subject='+encodeURIComponent(subj)+'&body='+encodeURIComponent(bodyText));toast('✓ Email opened — CC: Jonah, Ian');}} style={{width:'100%',padding:12,fontSize:13,fontWeight:700,background:C.good+'15',border:'1px solid '+C.good,color:C.good,borderRadius:8,cursor:'pointer',fontFamily:'inherit'}}>{'✉ Email '+repName+' (CC Jonah & Ian)'}</button>
                     </div>;
                   }
 
