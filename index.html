@@ -684,18 +684,26 @@ window._STRAIN_DB=[
       accent:"#111111",accentGlow:"rgba(0,0,0,0.02)"
     };
     const C = DARK_C; // default; GPI component overrides per theme
-    // COGS per unit — from Globs COGS spreadsheet
-    // Components: oil (GL rate) + packaging + labor + testing = total
-    // CP replaces oil with (biomass/g + toll/g based on yield)
+    // COGS per unit — rebuilt Apr 2026
+    // Default extract: $1.25/g (Greenline buy-back rate — GL fronts biomass + processing)
+    // Self-funded extract: UpNorth $0.74/g, CAM $1.02/g (from Greenline MMR yield data)
+    // Cart formula: 50% Liquid Diamonds + 50% HTE
+    // Badder formula: 60% raw THCa + 40% HTE
+    // Sauce formula: 70% raw THCa + 30% HTE
+    // Pkg: Cart = hardware $1.85 + tube $0.08 + box $0.24 + shrink $0.02 + label $0.01 = $2.20
+    // Pkg: Conc = jar $0.35 + TE label $0.04 + conc box $0.16 + case $0.05 + label $0.01 = $0.61
+    const EXTRACT_UN={ld:0.85,thca:0.74,hte:0.74};// UpNorth biomass ($20/lb + $40/lb toll)
+    const EXTRACT_CAM={ld:1.08,thca:0.95,hte:0.95};// CAM biomass ($30/lb + $40/lb toll)
+    const EXTRACT_GL=1.25;// Greenline buy-back rate (they front everything)
     const COGS = {
-      Cart:{label:"Vape Cart",wholesale:12,oil:1.30,pkg:2.25,labor:1.00,testing:0.40,cost:5.50,distroRate:0.16},
-      Diamonds:{label:"Diamonds",wholesale:10,oil:1.75,pkg:0.66,labor:1.00,testing:0.45,cost:3.86,distroRate:0.16},
-      Badder:{label:"Badder",wholesale:8,oil:1.30,pkg:0.35,labor:1.00,testing:0.40,cost:3.08,distroRate:0.16},
-      Sauce:{label:"Sauce",wholesale:8,oil:1.25,pkg:0.35,labor:1.00,testing:0.40,cost:3.00,distroRate:0.16},
-      Shatter:{label:"Shatter",wholesale:7,oil:1.25,pkg:0.35,labor:1.00,testing:0.40,cost:3.00,distroRate:0.16},
+      Cart:{label:"Vape Cart",wholesale:12,oil:1.25,pkg:2.20,labor:1.00,testing:0.40,cost:4.85,distroRate:0.16,formula:'50% LD + 50% HTE',oilUN:0.79,oilCAM:1.02},
+      Diamonds:{label:"Diamonds",wholesale:10,oil:1.25,pkg:0.61,labor:1.00,testing:0.40,cost:3.26,distroRate:0.16,formula:'100% LD',oilUN:0.85,oilCAM:1.08},
+      Badder:{label:"Badder",wholesale:8,oil:1.25,pkg:0.61,labor:1.00,testing:0.40,cost:3.26,distroRate:0.16,formula:'60% THCa + 40% HTE',oilUN:0.74,oilCAM:0.95},
+      Sauce:{label:"Sauce",wholesale:8,oil:1.25,pkg:0.61,labor:1.00,testing:0.40,cost:3.26,distroRate:0.16,formula:'70% THCa + 30% HTE',oilUN:0.74,oilCAM:0.95},
+      Shatter:{label:"Shatter",wholesale:7,oil:1.25,pkg:0.61,labor:1.00,testing:0.40,cost:3.26,distroRate:0.16,formula:'60% THCa + 40% HTE',oilUN:0.74,oilCAM:0.95},
       Battery:{label:"Battery",wholesale:14,oil:0,pkg:0.50,labor:0,testing:0,cost:6.00,distroRate:0.16},
-      Promo:{label:"Sample/Promo",wholesale:0.01,oil:1.30,pkg:0.35,labor:1.00,testing:0.40,cost:3.08,distroRate:0},
-      Other:{label:"Other",wholesale:8.50,oil:1.30,pkg:0.70,labor:1.00,testing:0.40,cost:3.40,distroRate:0.16}
+      Promo:{label:"Sample/Promo",wholesale:0.01,oil:1.25,pkg:0.61,labor:1.00,testing:0.40,cost:3.26,distroRate:0},
+      Other:{label:"Other",wholesale:8.50,oil:1.25,pkg:0.61,labor:1.00,testing:0.40,cost:3.26,distroRate:0.16}
     };
     // CP cost: replace oil with biomass+toll (both per lb of input, converted to per gram of output via yield)
     // biomass $/lb + toll $/lb = total input $/lb → ÷ 453.6 ÷ (yield/100) = material $/g output
@@ -2193,10 +2201,10 @@ window._STRAIN_DB=[
                 })()}
                 {tab==="revenue"&&revenueView==="sales"&&(function(){
                   var COSTS={
-                    Cart:{prod:5.50,label:'Vape Cart',floor:6.54,components:[{n:'Hardware',c:1.91},{n:'Extract',c:1.30},{n:'Tubes+Box+Band',c:0.34},{n:'Testing',c:0.40},{n:'Labor',c:1.00},{n:'Biomass+Processing',c:0.55}]},
-                    Badder:{prod:3.08,label:'Badder',floor:3.67,components:[{n:'Extract',c:1.30},{n:'Jar+Cap',c:0.35},{n:'Testing',c:0.40},{n:'Labor',c:1.00},{n:'Other',c:0.03}]},
-                    Sauce:{prod:3.00,label:'Sauce',floor:3.58,components:[{n:'Extract (GL)',c:1.25},{n:'Jar+Cap',c:0.35},{n:'Testing',c:0.40},{n:'Labor',c:1.00}]},
-                    Diamonds:{prod:3.86,label:'Diamonds',floor:4.60,components:[{n:'Extract',c:1.75},{n:'Jar+Cap',c:0.66},{n:'Testing',c:0.45},{n:'Labor',c:1.00}]}
+                    Cart:{prod:4.85,label:'Vape Cart',floor:5.77,components:[{n:'Extract (GL $1.25/g)',c:1.25},{n:'Hardware',c:1.85},{n:'Tube',c:0.08},{n:'Box',c:0.24},{n:'Shrink',c:0.02},{n:'Label',c:0.01},{n:'Testing',c:0.40},{n:'Labor',c:1.00}]},
+                    Badder:{prod:3.26,label:'Badder',floor:3.88,components:[{n:'Extract (GL $1.25/g)',c:1.25},{n:'Jar+Cap',c:0.35},{n:'TE Label',c:0.04},{n:'Conc Box',c:0.16},{n:'Case',c:0.05},{n:'Label',c:0.01},{n:'Testing',c:0.40},{n:'Labor',c:1.00}]},
+                    Sauce:{prod:3.26,label:'Sauce',floor:3.88,components:[{n:'Extract (GL $1.25/g)',c:1.25},{n:'Jar+Cap',c:0.35},{n:'TE Label',c:0.04},{n:'Conc Box',c:0.16},{n:'Case',c:0.05},{n:'Label',c:0.01},{n:'Testing',c:0.40},{n:'Labor',c:1.00}]},
+                    Diamonds:{prod:3.26,label:'Diamonds',floor:3.88,components:[{n:'Extract (GL $1.25/g)',c:1.25},{n:'Jar+Cap',c:0.35},{n:'TE Label',c:0.04},{n:'Conc Box',c:0.16},{n:'Case',c:0.05},{n:'Label',c:0.01},{n:'Testing',c:0.40},{n:'Labor',c:1.00}]}
                   };
                   var glNow=new Date();
                   return(<div>
@@ -4538,13 +4546,13 @@ window._STRAIN_DB=[
                 {tab==="pipeline"&&(function(){
                   var catColor={Cart:C.info,Badder:C.warn,Sauce:C.good,Diamonds:C.purple,Shatter:C.muted};
                   var PIPELINE=[
-                    {label:'Drop #4',status:'SHIPPING',statusColor:C.good,eta:'Apr 7',
+                    {label:'Drop #4',status:'SHIPPING',statusColor:C.good,eta:'Apr 7',source:'CAM',
                       items:[{strain:'Modified Cherries',cat:'Cart',qty:1000},{strain:'ICPJ',cat:'Cart',qty:1000},{strain:'Sweet n\' Sour Diesel',cat:'Cart',qty:1000},{strain:'Headband',cat:'Cart',qty:1000},{strain:'Grandma\'s Cookies',cat:'Cart',qty:1000}],
                       stages:[{l:'Extract',done:true},{l:'Fill',done:true},{l:'Lab Test',done:true},{l:'Package',done:true},{l:'Ship',done:false,active:true}]},
-                    {label:'Drop #5',status:'IN PRODUCTION',statusColor:C.warn,eta:'~Apr 18',
+                    {label:'Drop #5',status:'IN PRODUCTION',statusColor:C.warn,eta:'~Apr 18',source:'UpNorth',
                       items:[{strain:'SNSD',cat:'Badder',qty:1000},{strain:'ICPJ',cat:'Badder',qty:1000},{strain:'Grandma\'s Cookies',cat:'Badder',qty:1000},{strain:'Frozen Grapes',cat:'Badder',qty:1000},{strain:'Modified Cherries',cat:'Badder',qty:1000},{strain:'Headband',cat:'Badder',qty:1000}],
                       stages:[{l:'Extract',done:true},{l:'Formulate',done:true},{l:'Gram + Pack',done:false,active:true},{l:'Lab Test',done:false},{l:'Ship',done:false}]},
-                    {label:'Drop #6',status:'PLANNED',statusColor:C.dim,eta:'~May 9',
+                    {label:'Drop #6',status:'PLANNED',statusColor:C.dim,eta:'~May 9',source:'TBD',
                       items:[{strain:'Honey Butter',cat:'Cart',qty:1500},{strain:'Pineapple Haze',cat:'Cart',qty:1500},{strain:'Hella Oranges',cat:'Cart',qty:1000},{strain:'OZ Kush',cat:'Cart',qty:1000}],
                       stages:[{l:'Extract',done:false,active:true},{l:'Fill',done:false},{l:'Lab Test',done:false},{l:'Package',done:false},{l:'Ship',done:false}]},
                   ];
@@ -5528,9 +5536,28 @@ const YIELD_KEY = 'gpi-yield-log';
       }
 
       useEffect(function(){
-        async function load(){try{var r=await window.storage.get(YIELD_KEY);if(r)setYieldLog(JSON.parse(r.value));}catch(e){}setYLoading(false);}
+        async function load(){
+          try{var r=await window.storage.get(YIELD_KEY);if(r)setYieldLog(JSON.parse(r.value));}catch(e){}
+          setYLoading(false);
+        }
         load();
       },[]);
+
+      // Seed: Greenline Master Manufacturing Records (Apr 8 2026 — Chere Garcia)
+      var YIELD_SEED=[
+        {id:'gl-un-260225-l1',date:'2026-02-25',strain:'UN-260225-L1',type:'Extraction',weightLbs:151.94,biomassPrice:20,tollFee:40,yieldPct:17.54,inputGrams:68910,outputGrams:12089.8,totalCost:9116.40,costPerGram:0.75,notes:'UpNorth manifest 0010382552 · THCa 7809.6g · HTE 4280.2g',pp:{thca:7809.6,hte:4280.2,output:6788,yieldPct:87.01,consistency:'Liquid Diamonds',ldCpg:0.87,hteCpg:0.75}},
+        {id:'gl-un-260225-l2',date:'2026-02-25',strain:'UN-260225-L2',type:'Extraction',weightLbs:163.10,biomassPrice:20,tollFee:40,yieldPct:18.24,inputGrams:73970,outputGrams:13493.2,totalCost:9786.00,costPerGram:0.73,notes:'UpNorth manifest 0010382552 · THCa 7739g · HTE 5754.2g',pp:{thca:7739,hte:5754.2,output:6727,yieldPct:87.01,consistency:'Liquid Diamonds',ldCpg:0.83,hteCpg:0.73}},
+        {id:'gl-un-260225-l3',date:'2026-02-25',strain:'UN-260225-L3',type:'Extraction',weightLbs:151.90,biomassPrice:20,tollFee:40,yieldPct:18.00,inputGrams:68890,outputGrams:12396.8,totalCost:9114.00,costPerGram:0.74,notes:'UpNorth manifest 0010382552 · THCa 7737g · HTE 4659.8g',pp:{thca:7737,hte:4659.8,output:6726,yieldPct:87.01,consistency:'Liquid Diamonds',ldCpg:0.85,hteCpg:0.74}},
+        {id:'gl-cam-260216-l1',date:'2026-02-16',strain:'CAM/GLO-260216-L1',type:'Extraction',weightLbs:74.55,biomassPrice:30,tollFee:40,yieldPct:15.78,inputGrams:33810,outputGrams:5333.6,totalCost:5218.50,costPerGram:0.98,notes:'CAM manifest 0010328926 · THCa 3019g · HTE 2314.6g',pp:{thca:3019,hte:2314.6,output:2645.2,yieldPct:87.62,consistency:'Liquid Diamonds',ldCpg:1.12,hteCpg:0.98}},
+        {id:'gl-cam-260216-l2',date:'2026-02-16',strain:'CAM/GLO-260216-L2',type:'Extraction',weightLbs:73.60,biomassPrice:30,tollFee:40,yieldPct:16.75,inputGrams:33380,outputGrams:5592.2,totalCost:5152.00,costPerGram:0.92,notes:'CAM manifest 0010328926 · THCa 3123g · HTE 2469.2g',pp:{thca:3123,hte:2469.2,output:2729,yieldPct:87.38,consistency:'Liquid Diamonds',ldCpg:1.05,hteCpg:0.92}},
+        {id:'gl-cam-260302',date:'2026-03-02',strain:'CAM-260302',type:'Extraction',weightLbs:229.69,biomassPrice:30,tollFee:40,yieldPct:12.19,inputGrams:104170,outputGrams:12694.5,totalCost:16078.30,costPerGram:1.27,notes:'CAM manifest 0010406341 · 50/50 split · Badder output'},
+      ];
+      useEffect(function(){
+        if(yLoading||!yieldLog)return;
+        var existIds={};yieldLog.forEach(function(e){existIds[e.id]=true;});
+        var toAdd=YIELD_SEED.filter(function(s){return!existIds[s.id];});
+        if(toAdd.length>0){var merged=yieldLog.concat(toAdd);saveLog(merged);}
+      },[yLoading]);
 
       async function saveLog(next){setYieldLog(next);try{await window.storage.set(YIELD_KEY,JSON.stringify(next));}catch(e){}}
 
@@ -5722,10 +5749,11 @@ const YIELD_KEY = 'gpi-yield-log';
               <div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:520,borderCollapse:'collapse'}}>
                 <thead><tr style={{background:C.raised}}>{['Date','Strain','Type','Input (lbs)','$/lb','Toll $/lb','Yield %','Output (g)','Total Cost','$/gram','Notes',''].map(function(h,i){return<th key={h+i} style={{padding:'8px 12px',fontSize:10,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=3?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead>
                 <tbody>{sorted.map(function(e,i){return(
-                  <tr key={e.id} style={{background:i%2===0?'transparent':'#050505'}}>
+                  React.createElement(React.Fragment,{key:e.id},
+                  <tr style={{background:i%2===0?'transparent':'#050505'}}>
                     <td style={{padding:'10px 12px',fontSize:10,color:C.dim}}>{new Date(e.date).toLocaleDateString()}</td>
                     <td style={{padding:'10px 12px',fontSize:12,fontWeight:600}}>{e.strain}</td>
-                    <td style={{padding:'10px 12px',fontSize:11,color:e.type==='Indica'?'#9b8ec4':e.type==='Sativa'?'#d4a24c':'#6fa8d6'}}>{e.type}</td>
+                    <td style={{padding:'10px 12px',fontSize:11,color:e.type==='Extraction'?C.info:e.type==='Indica'?'#9b8ec4':e.type==='Sativa'?'#d4a24c':'#6fa8d6'}}>{e.type}</td>
                     <td style={{padding:'10px 12px',textAlign:'right',fontSize:11}}>{e.weightLbs}</td>
                     <td style={{padding:'10px 12px',textAlign:'right',fontSize:10,color:C.dim}}>${e.biomassPrice}</td>
                     <td style={{padding:'10px 12px',textAlign:'right',fontSize:10,color:C.dim}}>${e.tollFee}</td>
@@ -5735,7 +5763,18 @@ const YIELD_KEY = 'gpi-yield-log';
                     <td style={{padding:'10px 12px',textAlign:'right',fontSize:12,fontWeight:800,color:e.costPerGram<1.5?C.good:e.costPerGram<2.5?C.warn:C.danger}}>${e.costPerGram.toFixed(2)}</td>
                     <td style={{padding:'10px 12px',fontSize:11,color:C.dim,maxWidth:120,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{e.notes||'—'}</td>
                     <td style={{padding:'10px 12px'}}><button onClick={function(){removeEntry(e.id);}} style={{padding:'8px 12px',borderRadius:2,fontSize:10,cursor:'pointer',border:'1px solid '+C.border,background:'transparent',color:C.dim}}>✕</button></td>
-                  </tr>
+                  </tr>,
+                  e.pp?<tr style={{background:C.raised}}>
+                    <td style={{padding:'6px 12px'}}></td>
+                    <td colSpan={2} style={{padding:'6px 12px',fontSize:10,color:C.purple,fontWeight:600}}>↳ Post-Process → {e.pp.consistency}</td>
+                    <td colSpan={2} style={{padding:'6px 12px',textAlign:'right',fontSize:10,color:C.muted}}>{e.pp.thca.toLocaleString()}g THCa · {e.pp.hte.toLocaleString()}g HTE</td>
+                    <td style={{padding:'6px 12px'}}></td>
+                    <td style={{padding:'6px 12px',textAlign:'right',fontSize:10,fontWeight:700,color:C.purple}}>{e.pp.yieldPct}%</td>
+                    <td style={{padding:'6px 12px',textAlign:'right',fontSize:10,fontWeight:700,color:C.purple}}>{e.pp.output.toLocaleString()}g LD</td>
+                    <td style={{padding:'6px 12px',textAlign:'right',fontSize:10,color:C.muted}}>{'$'+e.pp.hteCpg.toFixed(2)+'/g HTE'}</td>
+                    <td style={{padding:'6px 12px',textAlign:'right',fontSize:10,fontWeight:700,color:C.warn}}>{'$'+e.pp.ldCpg.toFixed(2)+'/g LD'}</td>
+                    <td colSpan={2} style={{padding:'6px 12px',fontSize:10,color:C.dim}}>Cost split by output ratio</td>
+                  </tr>:null)
                 );})}</tbody>
               </table></div>
             </div>
