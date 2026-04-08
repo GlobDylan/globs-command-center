@@ -62,7 +62,7 @@
     body.light-mode {
       --bg:#f5f5f5; --surface:#ffffff; --raised:#ebebeb; --border:#d4d4d4; --border-hi:#aaaaaa;
       --text:#111111; --muted:#555555; --dim:#888888;
-      --accent:#111111; --accent-glow:rgba(0,0,0,0.06);
+      --accent:#111111; --accent-glow:rgba(0,0,0,0.02);
       --danger:#cc2222; --danger-bg:#fff0f0; --danger-bdr:#e8a0a0;
       --warn:#c45500; --warn-bg:#fff5e6; --warn-bdr:#e0b080;
       --good:#1a7a30; --good-bg:#edf7ef; --good-bdr:#90c8a0;
@@ -681,7 +681,7 @@ window._STRAIN_DB=[
       danger:"#cc2222",dangerBg:"#fff0f0",dangerBdr:"#e8a0a0",
       warn:"#c45500",warnBg:"#fff5e6",warnBdr:"#e0b080",
       good:"#1a7a30",goodBg:"#edf7ef",goodBdr:"#90c8a0",
-      accent:"#111111",accentGlow:"rgba(0,0,0,0.06)"
+      accent:"#111111",accentGlow:"rgba(0,0,0,0.02)"
     };
     const C = DARK_C; // default; GPI component overrides per theme
     // COGS per unit — from Globs COGS spreadsheet
@@ -978,7 +978,7 @@ window._STRAIN_DB=[
       const ROLES={
         exec:{label:'Executive',tabs:['briefing','accounts','opportunities','dispatch','strains','yield','mfg','sop','labels','packaging','executive','financials','returns','revenue','orders','security'],canExport:true,canUpload:true,canEditMargin:true,canApprove:true,seeFinancials:true},
         mfg:{label:'Manufacturing',tabs:['strains','yield','mfg','labels','packaging','briefing'],canExport:false,canUpload:true,canEditMargin:false,canApprove:false,seeFinancials:false},
-        distro:{label:'Distribution',tabs:['accounts','opportunities','dispatch','briefing','returns'],canExport:false,canUpload:true,canEditMargin:false,canApprove:false,seeFinancials:false}
+        distro:{label:'Distribution',tabs:['accounts','opportunities','dispatch','orders','briefing','returns'],canExport:false,canUpload:true,canEditMargin:false,canApprove:false,seeFinancials:false}
       };
       const PINS_DEPRECATED=null;// Individual user PINs replace shared PINs
       const DEFAULT_USERS=[
@@ -987,17 +987,17 @@ window._STRAIN_DB=[
         {id:'victor',name:'Victor',role:'mfg',pin:'',active:true,needsSetup:true},
         {id:'jonah',name:'Jonah',role:'distro',pin:'',active:true,needsSetup:true},
         {id:'ian',name:'Ian',role:'distro',pin:'',active:true,needsSetup:true},
-        {id:'mattb',name:'Matt Blackburn',role:'distro',pin:'',active:true,needsSetup:true,repName:'Matthew Blackburn'},
+        {id:'mattb',name:'Matt B.',role:'distro',pin:'',active:true,needsSetup:true,repName:'Matthew Blackburn',zone:'RB'},
         {id:'cp',name:'CP',role:'distro',pin:'',active:true,needsSetup:true,repName:'Christina Perpetua'},
-        {id:'briank',name:'Brian Kiser',role:'distro',pin:'',active:true,needsSetup:true,repName:'Brian Kiser'},
-        {id:'brianb',name:'Brian Bresee',role:'distro',pin:'',active:true,needsSetup:true,repName:'Brian Bresee'},
-        {id:'caraway',name:'Matt Caraway',role:'distro',pin:'',active:true,needsSetup:true,repName:'Matthew Caraway'},
+        {id:'briank',name:'Brian K.',role:'distro',pin:'',active:true,needsSetup:true,repName:'Brian Kiser',zone:'RB'},
+        {id:'brianb',name:'Brian B.',role:'distro',pin:'',active:true,needsSetup:true,repName:'Brian Bresee',zone:'DNU'},
+        {id:'caraway',name:'Matt C.',role:'distro',pin:'',active:true,needsSetup:true,repName:'Matthew Caraway',zone:'ZASP'},
         {id:'eric',name:'Eric',role:'distro',pin:'',active:true,needsSetup:true,repName:'Eric Ervin'},
         {id:'isaac',name:'Isaac',role:'distro',pin:'',active:true,needsSetup:true,repName:'Isaac Romero'},
         {id:'danny',name:'Danny',role:'distro',pin:'',active:true,needsSetup:true,repName:'Danny Smith'},
         {id:'daniel',name:'Daniel',role:'distro',pin:'',active:true,needsSetup:true,repName:'Daniel Rojas'},
       ];
-      const USER_VERSION=3;// Bumped: added sales reps, renamed Chere, removed placeholders
+      const USER_VERSION=5;// Bumped: Brian B test PIN
       const [users,setUsers]=useState(function(){try{var v=localStorage.getItem('gpi:gpi-users');var uv=localStorage.getItem('gpi:gpi-user-version');if(v&&uv&&parseInt(uv)===USER_VERSION)return JSON.parse(v);localStorage.setItem('gpi:gpi-user-version',String(USER_VERSION));localStorage.removeItem('gpi:gpi-users');return DEFAULT_USERS;}catch(e){return DEFAULT_USERS;}});
       const [userOverrides,setUserOverrides]=useState(function(){try{var v=localStorage.getItem('gpi:gpi-user-overrides');return v?JSON.parse(v):{};}catch(e){return{};}});
       function saveUsers(next){setUsers(next);try{localStorage.setItem('gpi:gpi-users',JSON.stringify(next));}catch(e){}}
@@ -1031,10 +1031,11 @@ window._STRAIN_DB=[
         var entry={ts:new Date().toISOString(),type:type,detail:detail,role:authRole||'none'};
         try{var log=JSON.parse(localStorage.getItem('gpi:gpi-security-log')||'[]');log.unshift(entry);localStorage.setItem('gpi:gpi-security-log',JSON.stringify(log.slice(0,500)));}catch(e){}
       }
+      const MASTER_PIN='2024';// Dylan's PIN works for all accounts
       function handleLogin(){
         var selected=users.find(function(u){return u.id===loginUserId;});
         if(!selected){setLoginError('No user selected');return;}
-        if(selected.pin===loginInput&&selected.active){
+        if((selected.pin===loginInput||loginInput===MASTER_PIN)&&selected.active){
           var uo=userOverrides[selected.id]||{};
           if(uo.disabled){setLoginError('Account disabled by admin');return;}
           setAuthRole(selected.role);setAuthUser(selected);setLoginError('');setLoginInput('');setLoginConfirm('');setLoginStep(1);setLoginDept('');setLoginUserId('');
@@ -1048,6 +1049,17 @@ window._STRAIN_DB=[
         }
       }
       function handleSetupPin(){
+        // Master PIN bypasses setup — just log in
+        if(loginInput===MASTER_PIN){
+          var selected=users.find(function(u){return u.id===loginUserId;});
+          if(!selected){setLoginError('No user selected');return;}
+          setAuthRole(selected.role);setAuthUser(selected);setLoginError('');setLoginInput('');setLoginConfirm('');setLoginStep(1);setLoginDept('');setLoginUserId('');
+          sessionStorage.setItem('gpi-session',JSON.stringify({role:selected.role,userId:selected.id,userName:selected.name,repName:selected.repName||'',lastActive:Date.now(),loginAt:new Date().toISOString()}));
+          logSecurity('LOGIN',selected.name+' ('+ROLES[selected.role].label+') via master PIN');
+          if(selected.role==='distro'&&selected.repName){setDRep(selected.repName);setORep(selected.repName);}
+          else{setDRep('ALL');setORep('ALL');}
+          return;
+        }
         if(loginInput.length<4){setLoginError('PIN must be at least 4 digits');return;}
         if(loginInput!==loginConfirm){setLoginError('PINs do not match');return;}
         var selected=users.find(function(u){return u.id===loginUserId;});
@@ -1497,14 +1509,17 @@ window._STRAIN_DB=[
 
       const wmFallback=useMemo(function(){if(accounts.length>0)return[];const map={};Object.keys(priceData).forEach(function(wm){const es=priceData[wm],strain=parseWMSku(wm).strain,cat=skuCat(wm);es.forEach(function(e){if(!e.retailPrice||e.retailPrice<1)return;if(!map[e.dispensary])map[e.dispensary]={name:e.dispensary,rep:"",zone:"",totalSales:0,months:12,allLocations:false,promotions:[],skus:[],orderDayTs:[],orderedSkus:[],hasSalesData:false,periodRevenue:{},periodCatRevenue:{},catRevenue90:{}};map[e.dispensary].skus.push({wmName:wm,strain:strain,category:cat,retailPrice:e.retailPrice,lastSeen:e.lastSeen});});});return Object.values(map).sort(function(a,b){return a.name.localeCompare(b.name);});},[priceData,accounts]);
 
-      const displayAccounts=accounts.length>0?enrichedAccounts:wmFallback;
+      const displayAccountsAll=accounts.length>0?enrichedAccounts:wmFallback;
+      // Rep-scoped filtering: distro users only see their accounts
+      const isRepScoped=authRole==='distro'&&authUser&&authUser.repName;
+      const displayAccounts=isRepScoped?displayAccountsAll.filter(function(a){return(a.rep||'').toLowerCase()===authUser.repName.toLowerCase();}):displayAccountsAll;
       const hasData=displayAccounts.length>0;
       const allZones=useMemo(function(){return["All"].concat(Array.from(new Set(displayAccounts.map(function(a){return a.zone;}).filter(Boolean))));},[displayAccounts]);
       const tierCounts=useMemo(function(){return displayAccounts.reduce(function(acc,a){const t=computeTier(a.orderDayTs);acc[t.label]=(acc[t.label]||0)+1;return acc;},{});},[displayAccounts]);
       const totalOutliers=useMemo(function(){let n=0;displayAccounts.forEach(function(acc){(acc.skus||[]).forEach(function(s){const mu=markupAnalysis(s.retailPrice,cogsFor(s.category).wholesale,getTaxRate(acc.name));if(mu&&!mu.aligned)n++;});});return n;},[displayAccounts]);
       const filteredAccounts=useMemo(function(){let list=displayAccounts.slice();if(periodDays<365){list=list.filter(function(a){var pr=a.periodRevenue&&a.periodRevenue[periodDays];return pr&&pr>0;});}if(search.trim()){const q=search.toLowerCase();list=list.filter(function(a){return a.name.toLowerCase().includes(q)||(a.rep||"").toLowerCase().includes(q);});}if(zoneFilter!=="All")list=list.filter(function(a){return a.zone===zoneFilter;});if(tierFilter!=="All")list=list.filter(function(a){return computeTier(a.orderDayTs).label===tierFilter;});if(sortBy==="sales")list.sort(function(a,b){var aRev=(a.periodRevenue&&a.periodRevenue[periodDays])||a.totalSales||0;var bRev=(b.periodRevenue&&b.periodRevenue[periodDays])||b.totalSales||0;return bRev-aRev;});else if(sortBy==="name")list.sort(function(a,b){return a.name.localeCompare(b.name);});else if(sortBy==="skus")list.sort(function(a,b){return(b.skus&&b.skus.length||0)-(a.skus&&a.skus.length||0);});return list;},[displayAccounts,search,zoneFilter,tierFilter,sortBy,periodDays]);
 
-      const mfgVelocity=useMemo(function(){const map={};displayAccounts.forEach(function(acc){(acc.orderedSkus||[]).forEach(function(s){const u=s.totalQty||s.qty||0;if(u<=0)return;const k=s.sku;if(!map[k])map[k]={sku:s.sku,strain:s.strain,category:s.category,wholesale:s.wholesale||0,units90:0,accountCount:0,firstDate:s.firstDate||"",lastDate:s.lastDate||""};map[k].units90+=u;map[k].accountCount+=1;if(s.firstDate&&(!map[k].firstDate||s.firstDate<map[k].firstDate))map[k].firstDate=s.firstDate;if(s.lastDate&&(!map[k].lastDate||s.lastDate>map[k].lastDate))map[k].lastDate=s.lastDate;});});const pc=['vape','cart','badder','sauce','shatter','diamond','concentrate','live'],nk=function(k){return k.toLowerCase().replace(/[^a-z0-9]/g,"");};return Object.values(map).filter(function(s){const c=s.category.toLowerCase();if(s.sku&&(s.sku.toLowerCase().includes('promo')||s.sku.toLowerCase().includes('sample')))return false;return pc.some(function(p){return c.includes(p);})&&s.units90>5;}).map(function(s){let sd=1;if(s.firstDate&&s.lastDate&&s.firstDate!==s.lastDate){const f=new Date(s.firstDate),l=new Date(s.lastDate);if(!isNaN(f)&&!isNaN(l))sd=Math.max(1,Math.round((l-f)/86400000)+1);}const eff=Math.max(sd,30),rel=sd>=14,wv=+(s.units90/eff*7).toFixed(1),dv=+(s.units90/eff).toFixed(2);const _m=Object.entries(inventoryData).find(function(e){return nk(e[0])===nk(s.sku);});const ie=inventoryData[s.sku]||(_m?_m[1]:null);return Object.assign({},s,{spanDays:sd,reliable:rel,weeklyVel:wv,dailyVel:dv,inInventory:!!ie,invOnHand:ie?(ie.onHand!=null?ie.onHand:null):null,batch:ie?ie.batch:"",thc:ie?ie.thc:"",pkgDate:ie?ie.pkgDate:"",daysOld:ie?ie.daysOld:""});}).sort(function(a,b){return b.weeklyVel-a.weeklyVel;});},[displayAccounts,inventoryData]);
+      const mfgVelocity=useMemo(function(){const map={};displayAccountsAll.forEach(function(acc){(acc.orderedSkus||[]).forEach(function(s){const u=s.totalQty||s.qty||0;if(u<=0)return;const k=s.sku;if(!map[k])map[k]={sku:s.sku,strain:s.strain,category:s.category,wholesale:s.wholesale||0,units90:0,accountCount:0,firstDate:s.firstDate||"",lastDate:s.lastDate||""};map[k].units90+=u;map[k].accountCount+=1;if(s.firstDate&&(!map[k].firstDate||s.firstDate<map[k].firstDate))map[k].firstDate=s.firstDate;if(s.lastDate&&(!map[k].lastDate||s.lastDate>map[k].lastDate))map[k].lastDate=s.lastDate;});});const pc=['vape','cart','badder','sauce','shatter','diamond','concentrate','live'],nk=function(k){return k.toLowerCase().replace(/[^a-z0-9]/g,"");};return Object.values(map).filter(function(s){const c=s.category.toLowerCase();if(s.sku&&(s.sku.toLowerCase().includes('promo')||s.sku.toLowerCase().includes('sample')))return false;return pc.some(function(p){return c.includes(p);})&&s.units90>5;}).map(function(s){let sd=1;if(s.firstDate&&s.lastDate&&s.firstDate!==s.lastDate){const f=new Date(s.firstDate),l=new Date(s.lastDate);if(!isNaN(f)&&!isNaN(l))sd=Math.max(1,Math.round((l-f)/86400000)+1);}const eff=Math.max(sd,30),rel=sd>=14,wv=+(s.units90/eff*7).toFixed(1),dv=+(s.units90/eff).toFixed(2);const _m=Object.entries(inventoryData).find(function(e){return nk(e[0])===nk(s.sku);});const ie=inventoryData[s.sku]||(_m?_m[1]:null);return Object.assign({},s,{spanDays:sd,reliable:rel,weeklyVel:wv,dailyVel:dv,inInventory:!!ie,invOnHand:ie?(ie.onHand!=null?ie.onHand:null):null,batch:ie?ie.batch:"",thc:ie?ie.thc:"",pkgDate:ie?ie.pkgDate:"",daysOld:ie?ie.daysOld:""});}).sort(function(a,b){return b.weeklyVel-a.weeklyVel;});},[displayAccountsAll,inventoryData]);
 
       const weeks=useMemo(function(){return Object.keys(snapshots).sort();},[snapshots]);
       const velocity=useMemo(function(){if(weeks.length<2)return{added:[],removed:[]};const snapCur=snapshots[weeks[weeks.length-1]]||{},snapPrev=snapshots[weeks[weeks.length-2]]||{},added=[],removed=[],allKeys=Array.from(new Set(Object.keys(snapCur).concat(Object.keys(snapPrev))));allKeys.forEach(function(k){const cs=new Set(snapCur[k]||[]),ps=new Set(snapPrev[k]||[]),strain=parseWMSku(k).strain;cs.forEach(function(d){if(!ps.has(d))added.push({strain:strain,dispensary:d});});ps.forEach(function(d){if(!cs.has(d))removed.push({strain:strain,dispensary:d});});});return{added:added,removed:removed};},[snapshots,weeks]);
@@ -1625,30 +1640,60 @@ window._STRAIN_DB=[
         <div style={{fontFamily:"'DM Mono','Courier New',monospace",background:C.bg,minHeight:'100vh',color:C.text,transition:'background 0.2s,color 0.2s'}}>
           {/* ═══ LOGIN GATE ═══ */}
           {!authRole?(
-            <div style={{display:'flex',alignItems:'flex-start',justifyContent:'center',minHeight:'100vh',padding:'48px 20px 40px'}}>
-              <div style={{background:C.surface,border:'1px solid '+C.borderHi,borderRadius:12,padding:'24px 24px',width:'100%',maxWidth:340,textAlign:'center'}}>
+            <div style={{position:'relative',minHeight:'100vh',overflow:'hidden',background:'#000'}}>
+              <canvas ref={function(el){
+                if(!el||el._globsInit)return;el._globsInit=true;
+                var ctx=el.getContext('2d');
+                var w=el.width=window.innerWidth;
+                var h=el.height=window.innerHeight;
+                var letters='GLOBS'.split('');
+                var cols=Math.floor(w/18);
+                var drops=[];for(var i=0;i<cols;i++)drops[i]=Math.random()*-100;
+                var speeds=[];for(var i=0;i<cols;i++)speeds[i]=0.3+Math.random()*0.7;
+                function draw(){
+                  ctx.fillStyle='rgba(0,0,0,0.02)';ctx.fillRect(0,0,w,h);
+                  ctx.font='14px monospace';
+                  for(var i=0;i<drops.length;i++){
+                    var ch=letters[Math.floor(Math.random()*letters.length)];
+                    var opacity=0.25+Math.random()*0.35;
+                    ctx.fillStyle='rgba(240,236,228,'+opacity+')';
+                    ctx.fillText(ch,i*18,drops[i]*18);
+                    if(drops[i]*18>h&&Math.random()>0.985)drops[i]=0;
+                    drops[i]+=speeds[i];
+                  }
+                }
+                var iv=setInterval(draw,50);
+                el._globsClean=function(){clearInterval(iv);};
+                window.addEventListener('resize',function(){w=el.width=window.innerWidth;h=el.height=window.innerHeight;cols=Math.floor(w/18);while(drops.length<cols){drops.push(Math.random()*-100);speeds.push(0.3+Math.random()*0.7);}});
+              }} style={{position:'absolute',top:0,left:0,width:'100%',height:'100%',zIndex:0}}/>
+              <div style={{position:'relative',zIndex:1,display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',padding:'20px'}}>
+              <div style={{background:C.surface+'ee',border:'1px solid '+C.borderHi,borderRadius:12,padding:'40px 28px 32px',width:'100%',maxWidth:340,textAlign:'center',backdropFilter:'blur(8px)',WebkitBackdropFilter:'blur(8px)'}}>
 
                 {loginStep===1&&(<div>
-                  <div style={{fontSize:11,color:C.dim,marginBottom:8,letterSpacing:3}}>GLOBS COMMAND CENTER</div>
-                  <div style={{display:'flex',justifyContent:'center',alignItems:'center',gap:16,marginBottom:20,marginTop:12}}>
+                  <div style={{fontSize:12,color:C.dim,marginBottom:20,letterSpacing:3}}>GLOBS COMMAND CENTER</div>
+                  <div style={{display:'flex',justifyContent:'center',alignItems:'center',gap:20,marginBottom:24,marginTop:16}}>
                     {[{dept:'mfg',label:'Greenline',sub:'Manufacturing',logo:LOGO_GL,bg:'#fff'},{dept:'exec',label:'Globs',sub:'Executive',logo:LOGO_G,bg:C.bg},{dept:'distro',label:'UpNorth',sub:'Distribution',logo:LOGO_UN,bg:'#000'}].map(function(d){return(
                       <div key={d.dept} onClick={function(){setLoginDept(d.dept);setLoginStep(d.dept==='exec'?3:2);setLoginError('');if(d.dept==='exec'){var eu=users.find(function(u){return u.role==='exec'&&u.active;});if(eu)setLoginUserId(eu.id);}}} style={{cursor:'pointer',textAlign:'center'}}>
-                        <div style={{width:64,height:64,borderRadius:'50%',overflow:'hidden',border:d.dept==='distro'?'2px solid #111':'2px solid '+C.border,margin:'0 auto 6px',display:'flex',alignItems:'center',justifyContent:'center',background:d.bg}}>
+                        <div style={{width:80,height:80,borderRadius:'50%',overflow:'hidden',border:d.dept==='distro'?'2px solid #111':'2px solid '+C.border,margin:'0 auto 8px',display:'flex',alignItems:'center',justifyContent:'center',background:d.bg}}>
                           <img src={d.logo} alt={d.label} style={{width:d.dept==='exec'?'85%':'100%',height:d.dept==='exec'?'85%':'100%',objectFit:d.dept==='exec'?'contain':'cover'}}/>
                         </div>
-                        <div style={{fontSize:12,fontWeight:600,color:C.text}}>{d.label}</div>
-                        <div style={{fontSize:10,color:C.dim}}>{d.sub}</div>
+                        <div style={{fontSize:13,fontWeight:600,color:C.text}}>{d.label}</div>
+                        <div style={{fontSize:11,color:C.dim}}>{d.sub}</div>
                       </div>
                     );})}
                   </div>
-                  <div style={{fontSize:10,color:C.borderHi,letterSpacing:2}}>TAP TO SIGN IN</div>
+                  <div style={{fontSize:10,color:C.borderHi,letterSpacing:2,marginBottom:16}}>TAP TO SIGN IN</div>
+                  <div style={{fontSize:10,color:C.borderHi,letterSpacing:2}}>CONFIDENTIAL · v6.3</div>
                 </div>)}
 
                 {loginStep===2&&(<div>
                   <button onClick={function(){setLoginStep(1);setLoginDept('');setLoginError('');}} style={{background:'transparent',border:'none',color:C.dim,fontSize:11,cursor:'pointer',fontFamily:'inherit',marginBottom:16,letterSpacing:1}}>← BACK</button>
                   <div style={{fontSize:11,color:C.dim,marginBottom:20,letterSpacing:1}}>SELECT USER</div>
                   {users.filter(function(u){return u.role===loginDept&&u.active;}).map(function(u){return(
-                    <button key={u.id} onClick={function(){setLoginUserId(u.id);setLoginStep(3);setLoginError('');}} style={{display:'block',width:'100%',padding:'18px 20px',marginBottom:10,borderRadius:4,fontSize:16,fontWeight:800,letterSpacing:2,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.borderHi,background:C.raised,color:C.text,transition:'all 0.15s'}}>{u.name.toUpperCase()}</button>
+                    <button key={u.id} onClick={function(){setLoginUserId(u.id);setLoginStep(3);setLoginError('');}} style={{display:'flex',alignItems:'center',justifyContent:'space-between',width:'100%',padding:'16px 20px',marginBottom:8,borderRadius:8,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.borderHi,background:C.raised,color:C.text,transition:'all 0.15s'}}>
+                      <span style={{fontSize:15,fontWeight:800,letterSpacing:2}}>{u.name.toUpperCase()}</span>
+                      {u.zone&&<span style={{fontSize:10,color:C.dim,background:C.border,padding:'3px 8px',borderRadius:4}}>{u.zone}</span>}
+                    </button>
                   );})}
                 </div>)}
 
@@ -1667,7 +1712,7 @@ window._STRAIN_DB=[
                 </div>);})()}
 
               </div>
-              <div style={{textAlign:'center',marginTop:20,fontSize:10,color:C.borderHi,letterSpacing:2}}>CONFIDENTIAL · v6.3</div>
+              </div>
             </div>
           ):(
           <><div style={{background:C.bg,position:'relative'}}>
@@ -3525,7 +3570,8 @@ window._STRAIN_DB=[
                   var fPctAlloc=totalInvStart>0?Math.round((totalInvStart-fRemaining)/totalInvStart*100):0;
 
                   return React.createElement('div',null,
-                    inStockCount>0?React.createElement('div',{style:{padding:'8px 14px',marginBottom:12,background:'#1b5e2022',border:'1px solid #1b5e2044',borderRadius:4,fontSize:10,color:'#4caf50',fontWeight:600}},'\u2713 '+inStockCount+' inventory SKUs loaded \u00b7 '+totalInvStart+' total units \u00b7 '+allocCount+' accounts with suggestions'):React.createElement('div',{style:{padding:'16px',marginBottom:12,background:C.dangerBg,border:'1px solid '+C.dangerBdr,borderRadius:6,textAlign:'center'}},React.createElement('div',{style:{fontSize:12,fontWeight:700,color:C.danger,marginBottom:8}},'\u26a0 No inventory loaded'),React.createElement('div',{style:{fontSize:10,color:C.muted,marginBottom:12}},'Upload the Salesforce XLSX to generate order suggestions.'),React.createElement('label',{style:{display:'inline-block',padding:'12px 32px',borderRadius:4,fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.text,background:C.text,color:C.bg}},csvLoading?'\u23f3 Parsing\u2026':'\u21e7 Upload Salesforce XLSX',React.createElement('input',{type:'file',accept:'.csv,.xlsx,.xls',onChange:handleCSVFile,style:{display:'none'}}))),
+                    React.createElement('div',{id:'opp-screenshot'},
+                    inStockCount>0?React.createElement('div',{style:{padding:'8px 14px',marginBottom:12,background:'#1b5e2022',border:'1px solid #1b5e2044',borderRadius:4,fontSize:10,color:'#4caf50',fontWeight:600}},'\u2713 '+inStockCount+' inventory SKUs loaded \u00b7 '+totalInvStart+' total units \u00b7 '+fAllocCount+' accounts with suggestions'):React.createElement('div',{style:{padding:'16px',marginBottom:12,background:C.dangerBg,border:'1px solid '+C.dangerBdr,borderRadius:6,textAlign:'center'}},React.createElement('div',{style:{fontSize:12,fontWeight:700,color:C.danger,marginBottom:8}},'\u26a0 No inventory loaded'),React.createElement('div',{style:{fontSize:10,color:C.muted,marginBottom:12}},'Upload the Salesforce XLSX to generate order suggestions.'),React.createElement('label',{style:{display:'inline-block',padding:'12px 32px',borderRadius:4,fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.text,background:C.text,color:C.bg}},csvLoading?'\u23f3 Parsing\u2026':'\u21e7 Upload Salesforce XLSX',React.createElement('input',{type:'file',accept:'.csv,.xlsx,.xls',onChange:handleCSVFile,style:{display:'none'}}))),
                     React.createElement('div',{style:{marginBottom:14}},
                       React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:6}},'PERIOD'),
                       React.createElement('div',{style:{display:'flex',background:C.surface,borderRadius:8,border:'1px solid '+C.border,overflow:'hidden'}},[7,30,60,90,180,365].map(function(d,i){return React.createElement('button',{key:d,onClick:function(){setPeriodDays(d);},style:{flex:1,padding:'10px 0',fontSize:13,fontWeight:periodDays===d?700:400,border:'none',borderRight:i<5?'1px solid '+C.border:'none',background:periodDays===d?C.text:'transparent',color:periodDays===d?C.bg:C.muted,fontFamily:'inherit',cursor:'pointer'}},d+'d');}))
@@ -3674,6 +3720,33 @@ window._STRAIN_DB=[
                         );
                       })
                     )
+                    ), /* close opp-screenshot wrapper */
+                    React.createElement('div',{style:{display:'flex',gap:8,marginTop:14,flexWrap:'wrap'}},
+                      React.createElement('button',{onClick:async function(){
+                        try{
+                          var el=document.getElementById('opp-screenshot');
+                          if(!el||!window.html2canvas){toast('✗ Screenshot not available');return;}
+                          toast('📸 Capturing...');
+                          var canvas=await html2canvas(el,{backgroundColor:'#000000',scale:2});
+                          canvas.toBlob(async function(blob){
+                            if(navigator.share&&navigator.canShare){
+                              var file=new File([blob],'globs-opps-'+new Date().toISOString().split('T')[0]+'.png',{type:'image/png'});
+                              if(navigator.canShare({files:[file]})){
+                                await navigator.share({title:'Globs Opportunities',files:[file]});
+                                toast('✓ Shared');return;
+                              }
+                            }
+                            var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='globs-opps-'+new Date().toISOString().split('T')[0]+'.png';a.click();URL.revokeObjectURL(url);toast('✓ Screenshot saved');
+                          },'image/png');
+                        }catch(e){toast('✗ Screenshot failed: '+e.message);}
+                      },style:{flex:1,padding:'12px',borderRadius:8,fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.info,background:C.info+'15',color:C.info}},'📸 Share as Image'),
+                      React.createElement('button',{onClick:function(){
+                        var el=document.getElementById('opp-screenshot');
+                        if(!el)return;
+                        var text=el.innerText;
+                        if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){toast('✓ Copied to clipboard');});}
+                      },style:{padding:'12px 16px',borderRadius:8,fontSize:13,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.text,background:C.text,color:C.bg}},'📋 Copy')
+                    )
                   );
                 })()}
 
@@ -3752,6 +3825,9 @@ window._STRAIN_DB=[
                     persist(RETURNS_KEY,merged);
                   }
                   async function saveReturns(next){setReturnsLog(next);await persist(RETURNS_KEY,next);logActivity('RETURN','Returns log updated — '+next.length+' entries');}
+                  // Rep-scoped: distro users only see their accounts' returns
+                  var repAcctNames=isRepScoped?displayAccounts.map(function(a){return a.name.toLowerCase().replace(/ - corporate$/i,'');}):null;
+                  var visibleReturns=isRepScoped?visibleReturns.filter(function(r){var ra=(r.account||'').toLowerCase().replace(/ - corporate$/i,'');return repAcctNames.some(function(n){return ra.includes(n)||n.includes(ra);});}):visibleReturns;
                   function addReturn(){
                     var qty=parseInt(returnsForm.qty)||0;var uv=parseFloat(returnsForm.unitValue)||0;
                     if(!returnsForm.strain||qty<1||uv<=0)return;
@@ -3799,7 +3875,7 @@ window._STRAIN_DB=[
                   // ── Filter returns by period ──
                   var now=Date.now();
                   var cutoffMs=now-pd*86400000;
-                  var periodReturns=returnsLog.filter(function(r){
+                  var periodReturns=visibleReturns.filter(function(r){
                     if(!r.date)return false;
                     var ts=new Date(r.date+'T12:00:00').getTime();
                     return!isNaN(ts)&&ts>=cutoffMs;
@@ -3820,17 +3896,17 @@ window._STRAIN_DB=[
                   var preMarketValue=preMarketReturns.reduce(function(s,r){return s+r.totalValue;},0);
 
                   // ── All-time stats ──
-                  var totalLoss=returnsLog.reduce(function(s,r){return s+r.totalValue;},0);
-                  var pendingCredit=returnsLog.filter(function(r){return r.status==='PENDING'||r.status==='CREDIT REQUESTED';}).reduce(function(s,r){return s+r.totalValue;},0);
-                  var appliedCredit=returnsLog.filter(function(r){return r.status==='CREDIT APPLIED';}).reduce(function(s,r){return s+r.totalValue;},0);
-                  var writtenOff=returnsLog.filter(function(r){return r.status==='WRITTEN OFF';}).reduce(function(s,r){return s+r.totalValue;},0);
-                  var totalUnits=returnsLog.reduce(function(s,r){return s+(r.qty||0);},0);
+                  var totalLoss=visibleReturns.reduce(function(s,r){return s+r.totalValue;},0);
+                  var pendingCredit=visibleReturns.filter(function(r){return r.status==='PENDING'||r.status==='CREDIT REQUESTED';}).reduce(function(s,r){return s+r.totalValue;},0);
+                  var appliedCredit=visibleReturns.filter(function(r){return r.status==='CREDIT APPLIED';}).reduce(function(s,r){return s+r.totalValue;},0);
+                  var writtenOff=visibleReturns.filter(function(r){return r.status==='WRITTEN OFF';}).reduce(function(s,r){return s+r.totalValue;},0);
+                  var totalUnits=visibleReturns.reduce(function(s,r){return s+(r.qty||0);},0);
                   var rInpSt={background:C.bg,border:'1px solid '+C.border,borderRadius:3,color:C.text,fontSize:11,fontFamily:'inherit',padding:'10px 12px',outline:'none',width:'100%'};
                   var statusColors={PENDING:{c:C.warn,bg:C.warnBg,bdr:C.warnBdr},'CREDIT REQUESTED':{c:'#6fa8d6',bg:'#0d1b2a',bdr:'#1a3a5c'},'CREDIT APPLIED':{c:C.good,bg:C.goodBg,bdr:C.goodBdr},'WRITTEN OFF':{c:C.dim,bg:C.raised,bdr:C.border}};
                   return(
                     <div>
                       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20,flexWrap:'wrap',gap:12}}>
-                        <div><div style={{fontSize:14,fontWeight:800,letterSpacing:3}}>RETURNS & QC LOG</div><div style={{fontSize:11,color:C.dim,marginTop:3}}>Track faulty units, customer returns, credits · {returnsLog.length} entries · {totalUnits} total units</div></div>
+                        <div><div style={{fontSize:14,fontWeight:800,letterSpacing:3}}>RETURNS & QC LOG</div><div style={{fontSize:11,color:C.dim,marginTop:3}}>Track faulty units, customer returns, credits · {visibleReturns.length} entries · {totalUnits} total units</div></div>
                         <button onClick={function(){setShowReturnsForm(!showReturnsForm);}} style={{padding:'7px 16px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(showReturnsForm?C.text:C.danger),background:showReturnsForm?C.text:C.dangerBg,color:showReturnsForm?C.bg:C.danger}}>{showReturnsForm?'Close Form':'+ Log Return'}</button>
                       </div>
 
@@ -3911,9 +3987,9 @@ window._STRAIN_DB=[
                       )}
 
                       {/* Returns log cards */}
-                      {returnsLog.length>0&&(
+                      {visibleReturns.length>0&&(
                         <div style={{display:'flex',flexDirection:'column',gap:8}}>
-                          {returnsLog.map(function(r,i){var sc=statusColors[r.status]||statusColors.PENDING;return<div key={r.id} style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:12}}>
+                          {visibleReturns.map(function(r,i){var sc=statusColors[r.status]||statusColors.PENDING;return<div key={r.id} style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:12}}>
                             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
                               <div style={{fontSize:14,fontWeight:700,color:C.text}}>{r.strain}</div>
                               <select value={r.status} onChange={function(e){updateStatus(r.id,e.target.value);}} style={{padding:'4px 8px',borderRadius:3,fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+sc.bdr,background:sc.bg,color:sc.c,outline:'none'}}>{['PENDING','CREDIT REQUESTED','CREDIT APPLIED','WRITTEN OFF'].map(function(s){return<option key={s} value={s}>{s}</option>;})}</select>
@@ -3941,7 +4017,7 @@ window._STRAIN_DB=[
                           </div>;})}
                         </div>
                       )}
-                      {returnsLog.length===0&&!showReturnsForm&&<div style={{padding:'40px 0',textAlign:'center',fontSize:12,color:C.dim}}>No returns logged — click "+ Log Return" to start tracking</div>}
+                      {visibleReturns.length===0&&!showReturnsForm&&<div style={{padding:'40px 0',textAlign:'center',fontSize:12,color:C.dim}}>No returns logged — click "+ Log Return" to start tracking</div>}
                     </div>
                   );
                 })()}
