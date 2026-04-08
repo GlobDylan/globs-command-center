@@ -978,7 +978,7 @@ window._STRAIN_DB=[
       const ROLES={
         exec:{label:'Executive',tabs:['briefing','accounts','opportunities','dispatch','strains','yield','mfg','sop','labels','packaging','executive','financials','returns','revenue','orders','security'],canExport:true,canUpload:true,canEditMargin:true,canApprove:true,seeFinancials:true},
         mfg:{label:'Manufacturing',tabs:['strains','yield','mfg','labels','packaging','briefing'],canExport:false,canUpload:true,canEditMargin:false,canApprove:false,seeFinancials:false},
-        distro:{label:'Distribution',tabs:['accounts','opportunities','dispatch','orders','returns'],canExport:false,canUpload:true,canEditMargin:false,canApprove:false,seeFinancials:false}
+        distro:{label:'Distribution',tabs:['accounts','opportunities','dispatch','orders','pipeline','returns'],canExport:false,canUpload:true,canEditMargin:false,canApprove:false,seeFinancials:false}
       };
       const PINS_DEPRECATED=null;// Individual user PINs replace shared PINs
       const DEFAULT_USERS=[
@@ -1280,6 +1280,7 @@ window._STRAIN_DB=[
       const [pkgFilter,setPkgFilter]=useState('ALL');
       const [obAcct,setObAcct]=useState(null);
       const [obCart,setObCart]=useState({});
+      const [obPrices,setObPrices]=useState({});
       const [obCatFilter,setObCatFilter]=useState('All');
       const [obShowEmail,setObShowEmail]=useState(false);
       const [obSearch,setObSearch]=useState('');
@@ -1788,13 +1789,13 @@ window._STRAIN_DB=[
             </div>
           )}
 
-          {(hasData||tab==="financials"||tab==="labels"||tab==="strains"||tab==="yield"||tab==="returns"||tab==="briefing"||tab==="revenue"||tab==="sop"||tab==="security"||tab==="orders")&&(
+          {(hasData||tab==="financials"||tab==="labels"||tab==="strains"||tab==="yield"||tab==="returns"||tab==="briefing"||tab==="revenue"||tab==="sop"||tab==="security"||tab==="orders"||tab==="pipeline")&&(
             <>
               <div className="gpi-tab-bar" style={{background:C.bg,borderBottom:'1px solid '+C.border,padding:'0 24px',display:'flex',gap:0,overflowX:'auto',WebkitOverflowScrolling:'touch',alignItems:'flex-end'}}>
                 {killSwitches.maintenanceMode&&<div style={{position:'fixed',top:58,left:0,right:0,background:'#d4a24c',color:'#000',padding:'4px 20px',fontSize:10,fontWeight:700,textAlign:'center',zIndex:49,letterSpacing:2}}>⚠ MAINTENANCE MODE — DATA CHANGES DISABLED</div>}
                 {killSwitches.readOnly&&!killSwitches.maintenanceMode&&<div style={{position:'fixed',top:58,left:0,right:0,background:'#6fa8d6',color:'#fff',padding:'4px 20px',fontSize:10,fontWeight:700,textAlign:'center',zIndex:49,letterSpacing:2}}>READ-ONLY MODE — EDITS DISABLED BY ADMIN</div>}
                 {authRole==='distro'?(
-                  [["accounts","Accounts"],["opportunities","Opps"],["dispatch","Dispatch"],["orders","Orders"],["returns","Returns"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})
+                  [["accounts","Accounts"],["opportunities","Opps"],["dispatch","Dispatch"],["orders","Orders"],["pipeline","Incoming"],["returns","Returns"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})
                 ):(
                   <>
                   <span style={{fontSize:10,color:C.dim,letterSpacing:2,textTransform:'uppercase',padding:'6px 10px 10px 0',flexShrink:0,opacity:0.6}}>DISTRO</span>
@@ -4533,6 +4534,86 @@ window._STRAIN_DB=[
                 })()}
 
                 {/* ══ SECURITY CENTER ══ */}
+                {/* ══ INCOMING PRODUCT PIPELINE ══ */}
+                {tab==="pipeline"&&(function(){
+                  var catColor={Cart:C.info,Badder:C.warn,Sauce:C.good,Diamonds:C.purple,Shatter:C.muted};
+                  var PIPELINE=[
+                    {label:'Drop #4',status:'SHIPPING',statusColor:C.good,eta:'Apr 7',
+                      items:[{strain:'Modified Cherries',cat:'Cart',qty:1000},{strain:'ICPJ',cat:'Cart',qty:1000},{strain:'Sweet n\' Sour Diesel',cat:'Cart',qty:1000},{strain:'Headband',cat:'Cart',qty:1000},{strain:'Grandma\'s Cookies',cat:'Cart',qty:1000}],
+                      stages:[{l:'Extract',done:true},{l:'Fill',done:true},{l:'Lab Test',done:true},{l:'Package',done:true},{l:'Ship',done:false,active:true}]},
+                    {label:'Drop #5',status:'IN PRODUCTION',statusColor:C.warn,eta:'~Apr 18',
+                      items:[{strain:'SNSD',cat:'Badder',qty:1000},{strain:'ICPJ',cat:'Badder',qty:1000},{strain:'Grandma\'s Cookies',cat:'Badder',qty:1000},{strain:'Frozen Grapes',cat:'Badder',qty:1000},{strain:'Modified Cherries',cat:'Badder',qty:1000},{strain:'Headband',cat:'Badder',qty:1000}],
+                      stages:[{l:'Extract',done:true},{l:'Formulate',done:true},{l:'Gram + Pack',done:false,active:true},{l:'Lab Test',done:false},{l:'Ship',done:false}]},
+                    {label:'Drop #6',status:'PLANNED',statusColor:C.dim,eta:'~May 9',
+                      items:[{strain:'Honey Butter',cat:'Cart',qty:1500},{strain:'Pineapple Haze',cat:'Cart',qty:1500},{strain:'Hella Oranges',cat:'Cart',qty:1000},{strain:'OZ Kush',cat:'Cart',qty:1000}],
+                      stages:[{l:'Extract',done:false,active:true},{l:'Fill',done:false},{l:'Lab Test',done:false},{l:'Package',done:false},{l:'Ship',done:false}]},
+                  ];
+                  var totalIncoming=PIPELINE.reduce(function(s,d){return s+d.items.reduce(function(s2,i){return s2+i.qty;},0);},0);
+                  var byCat={};PIPELINE.forEach(function(d){d.items.forEach(function(i){byCat[i.cat]=(byCat[i.cat]||0)+i.qty;});});
+                  var statusGroups={};PIPELINE.forEach(function(d){var u=d.items.reduce(function(s,i){return s+i.qty;},0);statusGroups[d.status]=(statusGroups[d.status]||0)+u;});
+                  return<div>
+                    <div style={{fontSize:14,fontWeight:700,letterSpacing:2,paddingBottom:8,borderBottom:'1px solid '+C.border,marginBottom:6}}>INCOMING PRODUCT</div>
+                    <div style={{fontSize:12,color:C.dim,marginBottom:16}}>What's dropping and when — tell your accounts</div>
+
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(90px,1fr))',gap:8,marginBottom:16}}>
+                      {Object.entries(statusGroups).map(function(e){var sc=PIPELINE.find(function(p){return p.status===e[0];});return<div key={e[0]} style={{background:(sc?sc.statusColor:C.dim)+'15',border:'1px solid '+(sc?sc.statusColor:C.dim)+'33',borderRadius:8,padding:'12px 10px',textAlign:'center'}}>
+                        <div style={{fontSize:18,fontWeight:800,color:C.text}}>{e[1].toLocaleString()}</div>
+                        <div style={{fontSize:10,color:sc?sc.statusColor:C.dim,fontWeight:600,letterSpacing:1,marginTop:2}}>{e[0]}</div>
+                      </div>;})
+                    }
+                    </div>
+
+                    <div style={{display:'flex',gap:6,marginBottom:16,flexWrap:'wrap'}}>
+                      {Object.entries(byCat).map(function(e){return<div key={e[0]} style={{display:'flex',alignItems:'center',gap:4,padding:'4px 10px',background:C.surface,border:'1px solid '+C.border,borderRadius:6}}>
+                        <div style={{width:8,height:8,borderRadius:4,background:catColor[e[0]]||C.dim}}></div>
+                        <span style={{fontSize:12,fontWeight:600}}>{e[0]}</span>
+                        <span style={{fontSize:12,color:C.muted}}>{e[1].toLocaleString()}</span>
+                      </div>;})}
+                    </div>
+
+                    <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                      {PIPELINE.map(function(drop){
+                        var totalUnits=drop.items.reduce(function(s,i){return s+i.qty;},0);
+                        return<div key={drop.label} style={{background:C.surface,border:'1px solid '+C.border,borderLeft:'3px solid '+drop.statusColor,borderRadius:0}}>
+                          <div style={{padding:'14px 14px'}}>
+                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+                              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                                <span style={{fontSize:16,fontWeight:800}}>{drop.label}</span>
+                                <span style={{fontSize:10,fontWeight:700,padding:'3px 8px',borderRadius:3,background:drop.statusColor+'22',color:drop.statusColor}}>{drop.status}</span>
+                              </div>
+                              <div style={{textAlign:'right'}}>
+                                <div style={{fontSize:14,fontWeight:700}}>{totalUnits.toLocaleString()+' units'}</div>
+                                <div style={{fontSize:11,color:C.dim}}>{'ETA '+drop.eta}</div>
+                              </div>
+                            </div>
+                            <div style={{display:'flex',gap:2,marginBottom:4}}>
+                              {drop.stages.map(function(s,i){return<div key={i} style={{flex:1,height:4,borderRadius:2,background:s.done?C.good:s.active?drop.statusColor:C.border,opacity:s.done?1:s.active?0.8:0.3}}/>;}) }
+                            </div>
+                            <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:C.dim,marginBottom:12}}>
+                              {drop.stages.map(function(s,i){return<span key={i} style={{color:s.active?drop.statusColor:s.done?C.good:C.dim,fontWeight:s.active?700:400}}>{s.l}</span>;})}
+                            </div>
+                            <div style={{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:8,fontWeight:600}}>STRAINS IN THIS DROP</div>
+                            <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                              {drop.items.map(function(item,i){return<div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 10px',background:C.bg,borderRadius:4}}>
+                                <div style={{display:'flex',alignItems:'center',gap:8}}>
+                                  <span style={{fontSize:13,fontWeight:700}}>{item.strain}</span>
+                                  <span style={{fontSize:10,padding:'2px 7px',borderRadius:3,background:(catColor[item.cat]||C.dim)+'22',color:catColor[item.cat]||C.dim,fontWeight:600}}>{item.cat}</span>
+                                </div>
+                                <span style={{fontSize:13,fontWeight:700}}>{item.qty.toLocaleString()}</span>
+                              </div>;})}
+                            </div>
+                          </div>
+                        </div>;
+                      })}
+                    </div>
+
+                    <div style={{marginTop:16,background:C.good+'12',border:'1px solid '+C.good+'33',borderRadius:8,padding:'14px 16px'}}>
+                      <div style={{fontSize:13,fontWeight:700,color:C.text,marginBottom:4}}>{totalIncoming.toLocaleString()+' units incoming over next 4 weeks'}</div>
+                      <div style={{fontSize:12,color:C.muted}}>Let your accounts know what's dropping so they're ready to order when it lands.</div>
+                    </div>
+                  </div>;
+                })()}
+
                 {/* ══ ORDER BUILDER ══ */}
                 {tab==="orders"&&(function(){
                   // Build inventory from real data
@@ -4570,11 +4651,11 @@ window._STRAIN_DB=[
                   // Cart totals
                   var cartItems=Object.entries(obCart).filter(function(e){return e[1]>0;});
                   var totalUnits=cartItems.reduce(function(s,e){return s+e[1];},0);
-                  var totalRev=cartItems.reduce(function(s,e){var item=obInv[parseInt(e[0])];return s+(item?item.ws*e[1]:0);},0);
+                  var totalRev=cartItems.reduce(function(s,e){var item=obInv[parseInt(e[0])];var price=obPrices[e[0]]!=null?parseFloat(obPrices[e[0]]):item.ws;return s+(item?price*e[1]:0);},0);
 
                   // Email view
                   if(obShowEmail&&selA){
-                    var lines=cartItems.map(function(e){var item=obInv[parseInt(e[0])];return{strain:item.strain,cat:item.cat,qty:e[1],ws:item.ws,total:item.ws*e[1]};});
+                    var lines=cartItems.map(function(e){var item=obInv[parseInt(e[0])];var price=obPrices[e[0]]!=null?parseFloat(obPrices[e[0]]):item.ws;return{strain:item.strain,cat:item.cat,qty:e[1],ws:price,total:price*e[1]};});
                     var repName=selA.rep.split(' ')[0]||'Rep';
                     var repEmail=selA.rep.toLowerCase().includes('brian')?'brian@upnorthhumboldt.com':selA.rep.toLowerCase().includes('ian')?'ian@upnorthhumboldt.com':selA.rep.toLowerCase().replace(/\s+/g,'')+'@upnorthhumboldt.com';
                     var ccList='jonah@upnorthhumboldt.com,ian@upnorthhumboldt.com';
@@ -4639,7 +4720,7 @@ window._STRAIN_DB=[
                         <div style={{fontSize:11,color:C.dim,letterSpacing:2,marginBottom:8}}>SELECT ACCOUNT</div>
                         <input value={obSearch} onChange={function(e){setObSearch(e.target.value);}} placeholder="Search accounts..." style={{width:'100%',boxSizing:'border-box',background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:'12px 14px',color:C.text,fontSize:14,fontFamily:'inherit',marginBottom:10,outline:'none'}}/>
                         <div style={{display:'flex',flexDirection:'column',gap:6}}>
-                          {obAcctFiltered.slice(0,20).map(function(a){return<div key={a.name} onClick={function(){setObAcct(a.name);setObCart({});setObCatFilter('All');}} style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'12px 14px',cursor:'pointer'}}>
+                          {obAcctFiltered.slice(0,20).map(function(a){return<div key={a.name} onClick={function(){setObAcct(a.name);setObCart({});setObPrices({});setObCatFilter('All');}} style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'12px 14px',cursor:'pointer'}}>
                             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}>
                               <div style={{fontSize:14,fontWeight:700}}>{a.name}</div>
                               <span style={{fontSize:10,padding:'2px 7px',borderRadius:3,background:C.border,color:C.muted,fontWeight:600}}>{a.zone}</span>
@@ -4661,7 +4742,7 @@ window._STRAIN_DB=[
                             <div style={{fontSize:16,fontWeight:800}}>{selA?selA.name:obAcct}</div>
                             <div style={{fontSize:11,color:C.dim}}>{selA?(selA.rep+' · '+selA.zone+' · avg $'+(selA.avgOrd>0?selA.avgOrd.toLocaleString():'—')):'—'}</div>
                           </div>
-                          <button onClick={function(){setObAcct(null);setObCart({});}} style={{padding:'8px 14px',fontSize:11,background:'transparent',border:'1px solid '+C.border,color:C.dim,borderRadius:6,cursor:'pointer',fontFamily:'inherit'}}>← Change</button>
+                          <button onClick={function(){setObAcct(null);setObCart({});setObPrices({});}} style={{padding:'8px 14px',fontSize:11,background:'transparent',border:'1px solid '+C.border,color:C.dim,borderRadius:6,cursor:'pointer',fontFamily:'inherit'}}>← Change</button>
                         </div>
 
                         {totalUnits>0&&<div style={{background:C.good+'12',border:'1px solid '+C.good+'33',borderRadius:8,padding:'12px 14px',marginBottom:14}}>
@@ -4686,6 +4767,8 @@ window._STRAIN_DB=[
                             var realIdx=obInv.indexOf(item);
                             var qty=obCart[realIdx]||0;
                             var recommended=selA&&selA.cats.includes(item.cat);
+                            var curPrice=obPrices[realIdx]!=null?parseFloat(obPrices[realIdx]):item.ws;
+                            var lineTotal=qty*curPrice;
                             return<div key={realIdx} style={{background:C.surface,border:'1px solid '+(qty>0?C.good+'44':C.border),borderRadius:6,padding:'10px 12px'}}>
                               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}>
                                 <div style={{flex:1,minWidth:0}}>
@@ -4693,9 +4776,8 @@ window._STRAIN_DB=[
                                     <span style={{fontSize:14,fontWeight:700}}>{item.strain}</span>
                                     {recommended&&<span style={{fontSize:10,padding:'1px 5px',borderRadius:2,background:C.info+'22',color:C.info,fontWeight:600}}>MATCH</span>}
                                   </div>
-                                  <div style={{display:'flex',gap:8,fontSize:11,color:C.dim,marginTop:2}}>
+                                  <div style={{display:'flex',gap:8,fontSize:11,color:C.dim,marginTop:2,alignItems:'center'}}>
                                     <span>{item.cat}</span>
-                                    <span>{'$'+item.ws+'/unit'}</span>
                                     <span>{item.oh+' avail'}</span>
                                     {item.vel>0&&<span style={{color:item.vel>100?C.good:item.vel>30?C.muted:C.dim}}>{item.vel+'/wk'}</span>}
                                   </div>
@@ -4706,7 +4788,14 @@ window._STRAIN_DB=[
                                   <button onClick={function(){setObCart(function(p){var n=Object.assign({},p);n[realIdx]=Math.min(item.oh,(n[realIdx]||0)+10);return n;});}} style={{width:36,height:36,border:'1px solid '+C.border,borderRadius:'0 6px 6px 0',background:C.raised,color:C.muted,fontSize:16,cursor:'pointer',fontFamily:'inherit'}}>+</button>
                                 </div>
                               </div>
-                              {qty>0&&<div style={{display:'flex',justifyContent:'flex-end',fontSize:12,fontWeight:700,color:C.good,marginTop:4}}>{'= $'+(qty*item.ws).toLocaleString()}</div>}
+                              {qty>0&&<div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:6}}>
+                                <div style={{display:'flex',alignItems:'center',gap:4}}>
+                                  <span style={{fontSize:11,color:C.dim}}>$</span>
+                                  <input type="number" inputMode="decimal" value={obPrices[realIdx]!=null?obPrices[realIdx]:item.ws} onChange={function(e){setObPrices(function(p){var n=Object.assign({},p);n[realIdx]=e.target.value;return n;});}} style={{width:60,background:C.bg,border:'1px solid '+C.border,borderRadius:6,padding:'6px 8px',color:C.text,fontSize:13,fontWeight:700,fontFamily:'inherit',outline:'none',textAlign:'center'}}/>
+                                  <span style={{fontSize:11,color:C.dim}}>/unit</span>
+                                </div>
+                                <div style={{fontSize:13,fontWeight:700,color:C.good}}>{'= $'+lineTotal.toLocaleString()}</div>
+                              </div>}
                             </div>;
                           })}
                           {obFiltered.length===0&&<div style={{padding:'40px 0',textAlign:'center',fontSize:12,color:C.dim}}>No inventory available for this category</div>}
