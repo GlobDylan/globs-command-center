@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <script>!function(){var v='6.1';if(location.hostname==='globdylan.github.io'&&location.search.indexOf('v='+v)===-1){location.replace(location.pathname+'?v='+v);}}();</script>
   <title>Globs Price Intelligence</title>
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-  <meta http-equiv="Pragma" content="no-cache"/>
-  <meta http-equiv="Expires" content="0"/>
   <meta name="mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
@@ -913,7 +914,7 @@ window._STRAIN_DB=[
 
       // ── SECURITY SYSTEM ──────────────────────────────────────────────────
       const ROLES={
-        exec:{label:'Executive',tabs:['briefing','accounts','opportunities','dispatch','strains','yield','mfg','sop','labels','packaging','executive','pnl','cashflow','returns','marketing','sales','dropzone','security'],canExport:true,canUpload:true,canEditMargin:true,canApprove:true,seeFinancials:true},
+        exec:{label:'Executive',tabs:['briefing','accounts','opportunities','dispatch','strains','yield','mfg','sop','labels','packaging','executive','financials','returns','revenue','security'],canExport:true,canUpload:true,canEditMargin:true,canApprove:true,seeFinancials:true},
         mfg:{label:'Manufacturing',tabs:['strains','yield','mfg','labels','packaging','briefing'],canExport:false,canUpload:true,canEditMargin:false,canApprove:false,seeFinancials:false},
         distro:{label:'Distribution',tabs:['accounts','opportunities','dispatch','briefing','returns'],canExport:false,canUpload:true,canEditMargin:false,canApprove:false,seeFinancials:false}
       };
@@ -1199,6 +1200,10 @@ window._STRAIN_DB=[
       const [strainTypeFilter,setStrainTypeFilter]=useState("All");
       const [showNewStrain,setShowNewStrain]=useState(false);
       const [sopView,setSopView]=useState(null);
+      const [revenueView,setRevenueView]=useState('sales'); // 'sales' | 'marketing'
+      const [demoZoneFilter,setDemoZoneFilter]=useState('ALL');
+      const [glExpandedRow,setGlExpandedRow]=useState(null);
+      const [financialsView,setFinancialsView]=useState('pnl'); // 'pnl' | 'cashflow'
       const [pnlDays,setPnlDays]=useState(90);
       const [snapExpanded,setSnapExpanded]=useState(null);
       const [mfgSubTab,setMfgSubTab]=useState('orders'); // 'orders' | 'sops'
@@ -1556,6 +1561,7 @@ window._STRAIN_DB=[
               <div style={{background:C.surface,border:'1px solid '+C.borderHi,borderRadius:8,padding:'40px 32px',width:'100%',maxWidth:360,textAlign:'center'}}>
                 <div style={{width:48,height:48,border:'2px solid '+C.borderHi,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,fontSize:11,letterSpacing:2,margin:'0 auto 16px'}}>GPI</div>
                 <div style={{fontSize:14,fontWeight:800,letterSpacing:4,marginBottom:4}}>GLOBS COMMAND CENTER</div>
+                <div style={{fontSize:8,color:C.dim,letterSpacing:2}}>v6.1 · Apr 7</div>
 
                 {loginStep===1&&(<div>
                   <div style={{fontSize:9,color:C.dim,marginBottom:24,letterSpacing:1}}>I'M LOGGING IN AS</div>
@@ -1640,7 +1646,7 @@ window._STRAIN_DB=[
           </div>
           {notice&&<div style={{background:C.raised,borderBottom:'1px solid '+C.border,padding:'8px 24px',fontSize:11}}>{notice}</div>}
 
-          {!hasData&&tab!=="cashflow"&&tab!=="briefing"&&tab!=="pnl"&&tab!=="marketing"&&tab!=="sales"&&tab!=="sop"&&tab!=="dropzone"&&tab!=="security"&&(
+          {!hasData&&tab!=="financials"&&tab!=="briefing"&&tab!=="revenue"&&tab!=="sop"&&tab!=="security"&&(
             <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'100px 24px',gap:18,textAlign:'center'}}>
               <div style={{width:56,height:56,border:'2px solid '+C.borderHi,display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,fontSize:11,letterSpacing:2}}>GPI</div>
               <div style={{fontSize:16,fontWeight:800,letterSpacing:4}}>GLOBS PRICE INTELLIGENCE</div>
@@ -1649,14 +1655,14 @@ window._STRAIN_DB=[
                 <button style={Object.assign({},btnSt('ghost'),{padding:'9px 20px'})} disabled={csvLoading} onClick={function(){csvRef.current&&csvRef.current.click();}}>{csvLoading?'⏳ Parsing…':'Upload Salesforce XLSX'}</button>
                 <button style={Object.assign({},btnSt('primary'),{padding:'9px 20px'})} onClick={function(){jsonRef.current&&jsonRef.current.click();}}>Import Scan JSON</button>
               </div>
-              <button style={Object.assign({},btnSt('ghost'),{fontSize:10,color:C.dim,marginTop:4})} onClick={function(){switchTab('cashflow');}}>Cash Flow →</button>
+              <button style={Object.assign({},btnSt('ghost'),{fontSize:10,color:C.dim,marginTop:4})} onClick={function(){switchTab('financials');}}>Financials →</button>
               <button style={Object.assign({},btnSt('ghost'),{fontSize:10,color:C.dim,marginTop:0})} onClick={function(){switchTab('labels');}}>Labels →</button>
               <button style={Object.assign({},btnSt('ghost'),{fontSize:10,color:C.dim,marginTop:0})} onClick={function(){switchTab('strains');}}>Strain Database →</button>
               <button style={Object.assign({},btnSt('ghost'),{fontSize:10,color:C.dim,marginTop:0})} onClick={function(){switchTab('returns');}}>Returns & QC →</button>
             </div>
           )}
 
-          {(hasData||tab==="cashflow"||tab==="labels"||tab==="strains"||tab==="yield"||tab==="returns"||tab==="briefing"||tab==="pnl"||tab==="marketing"||tab==="sales"||tab==="sop"||tab==="dropzone"||tab==="security")&&(
+          {(hasData||tab==="financials"||tab==="labels"||tab==="strains"||tab==="yield"||tab==="returns"||tab==="briefing"||tab==="revenue"||tab==="sop"||tab==="security")&&(
             <>
               <div className="gpi-tab-bar" style={{background:C.bg,borderBottom:'1px solid '+C.border,padding:'0 24px',display:'flex',gap:0,overflowX:'auto',WebkitOverflowScrolling:'touch',alignItems:'flex-end'}}>
                 <span style={{fontSize:8,color:C.dim,letterSpacing:2,textTransform:'uppercase',padding:'6px 10px 10px 0',flexShrink:0,opacity:0.6}}>DISTRO</span>
@@ -1668,7 +1674,7 @@ window._STRAIN_DB=[
                 {[["strains","Strains"],["yield","Yield"],["mfg","MFG"],["sop","SOPs"],["labels","Labels"],["packaging","Packaging"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
                 <span style={{width:1,alignSelf:'stretch',background:C.border,margin:'6px 10px',flexShrink:0}}></span>
                 <span style={{fontSize:8,color:C.dim,letterSpacing:2,textTransform:'uppercase',padding:'6px 10px 10px 0',flexShrink:0,opacity:0.6}}>EXEC</span>
-                {[["briefing","Briefing"],["executive","Executive"],["pnl","P&L"],["cashflow","Cash Flow"],["returns","Returns"],["marketing","Marketing"],["sales","Sales"],["dropzone","Drop Zone"],["security","Security"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
+                {[["briefing","Briefing"],["executive","Executive"],["financials","Financials"],["returns","Returns"],["revenue","Revenue"],["security","Security"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
               </div>
               <div className="gpi-content" style={{padding:'22px 24px',maxWidth:1300,margin:'0 auto'}}>
 
@@ -2038,31 +2044,23 @@ window._STRAIN_DB=[
                 })()}
 
                 {/* ── SALES CALCULATOR TAB ── */}
-                {tab==="sales"&&(function(){
+                {tab==="revenue"&&(function(){
+                  return(<div>
+                    <div style={{display:'flex',gap:0,marginBottom:20,borderBottom:'1px solid '+C.border}}>
+                      {[['sales','Sales'],['marketing','Demo Recommendations']].map(function(sv){return<button key={sv[0]} onClick={function(){setRevenueView(sv[0]);}} style={{padding:'10px 20px',border:'none',borderBottom:'2px solid '+(revenueView===sv[0]?C.text:'transparent'),background:'transparent',color:revenueView===sv[0]?C.text:C.dim,cursor:'pointer',fontSize:10,fontWeight:revenueView===sv[0]?700:400,letterSpacing:1.5,textTransform:'uppercase',fontFamily:'inherit'}}>{sv[1]}</button>;})}
+                    </div>
+                  </div>);
+                })()}
+                {tab==="revenue"&&revenueView==="sales"&&(function(){
                   var COSTS={
                     Cart:{prod:5.50,label:'Vape Cart',floor:6.54,components:[{n:'Hardware',c:1.91},{n:'Extract',c:1.30},{n:'Tubes+Box+Band',c:0.34},{n:'Testing',c:0.40},{n:'Labor',c:1.00},{n:'Biomass+Processing',c:0.55}]},
                     Badder:{prod:3.08,label:'Badder',floor:3.67,components:[{n:'Extract',c:1.30},{n:'Jar+Cap',c:0.35},{n:'Testing',c:0.40},{n:'Labor',c:1.00},{n:'Other',c:0.03}]},
-                    Sauce:{prod:3.00,label:'Sauce',floor:3.58,components:[{n:'Extract (GL)',c:1.25},{n:'Jar+Cap',c:0.35},{n:'Testing',c:0.40},{n:'Labor',c:1.00}]}
+                    Sauce:{prod:3.00,label:'Sauce',floor:3.58,components:[{n:'Extract (GL)',c:1.25},{n:'Jar+Cap',c:0.35},{n:'Testing',c:0.40},{n:'Labor',c:1.00}]},
+                    Diamonds:{prod:3.86,label:'Diamonds',floor:4.60,components:[{n:'Extract',c:1.75},{n:'Jar+Cap',c:0.66},{n:'Testing',c:0.45},{n:'Labor',c:1.00}]}
                   };
-                  var glDrop5Confirmed=localStorage.getItem('gpi:gl-drop5-confirmed')==='true';
-                  var GL={limit:75000,credit:2000,owed:[
-                    {label:'Drop #3 labor',amt:5766,due:'Apr 26',dropped:'Feb 10'},
-                    {label:'Drop #3B labor',amt:8598,due:'May 17',dropped:'Mar 3'},
-                    {label:'Drop #3B sauce',amt:4960,due:'May 17',dropped:'Mar 3'},
-                    {label:'Drop #4 labor',amt:5000,due:'Jun 21',dropped:'Apr 7'},
-                    {label:'Drop #4 processing',amt:5819.60,due:'Jun 21',dropped:'Apr 7'}
-                  ],pending:[
-                    {label:'Drop #5 extraction',amt:7800,detail:'6,000g × $1.30/g'},
-                    {label:'Drop #5 labor',amt:6000,detail:'6,000 × $1.00/unit'}
-                  ]};
-                  var glTotal=GL.owed.reduce(function(s,r){return s+r.amt;},0)-GL.credit;
-                  var glPendingTotal=GL.pending.reduce(function(s,r){return s+r.amt;},0);
-                  if(glDrop5Confirmed){glTotal+=glPendingTotal;glPendingTotal=0;}
-                  var glPct=Math.round(glTotal/GL.limit*100);
-                  var glPendingPct=Math.round(glPendingTotal/GL.limit*100);
                   var glNow=new Date();
-                  return(<div style={{marginTop:24}}>
-                    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:16}}>
+                  return(<div>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(250px,1fr))',gap:12}}>
                       {/* Margin Calculator */}
                       <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16}}>
                         <div style={{fontSize:11,fontWeight:800,letterSpacing:3,marginBottom:12}}>MARGIN CALCULATOR</div>
@@ -2073,7 +2071,7 @@ window._STRAIN_DB=[
                             <div style={{fontSize:10,fontWeight:700,marginBottom:8}}>{c.label}</div>
                             <div style={{fontSize:9,color:C.dim,marginBottom:4}}>{'Prod: $'+c.prod.toFixed(2)+'/unit · Floor: $'+c.floor.toFixed(2)}</div>
                             <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-                              {(cat==='Cart'?[8,9,10,11,12]:[6,7,7.5,8]).map(function(ws){
+                              {(cat==='Cart'?[8,9,10,11,12]:cat==='Diamonds'?[7,8,9,10]:[6,7,7.5,8]).map(function(ws){
                                 var net=ws*0.84;
                                 var margin=net-c.prod;
                                 var pct=Math.round(margin/ws*100);
@@ -2094,59 +2092,124 @@ window._STRAIN_DB=[
                           {'Samples cost you $'+COSTS.Cart.prod.toFixed(2)+'/cart or $'+COSTS.Badder.prod.toFixed(2)+'/jar in pure production loss'}
                         </div>
                       </div>
-                      {/* GL Credit Tracker */}
+                      {/* Demo Scheduler */}
                       <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16}}>
-                        <div style={{fontSize:11,fontWeight:800,letterSpacing:3,marginBottom:12}}>GREENLINE CREDIT</div>
-                        <div style={{display:'flex',alignItems:'baseline',gap:8,marginBottom:4,flexWrap:'wrap'}}>
-                          <span style={{fontSize:24,fontWeight:900,color:(glPct+glPendingPct)>80?C.danger:(glPct+glPendingPct)>60?C.warn:C.good}}>{'$'+Math.round(glTotal).toLocaleString()}</span>
-                          {glPendingTotal>0&&<span style={{fontSize:12,fontWeight:700,color:'#EF9F27'}}>{'+ $'+glPendingTotal.toLocaleString()+' pending'}</span>}
-                          <span style={{fontSize:11,color:C.dim}}>{'/ $'+GL.limit.toLocaleString()}</span>
-                        </div>
-                        {glPendingTotal>0&&<div style={{fontSize:9,color:C.dim,marginBottom:8}}>{'Drop #5 · 6,000 badder · awaiting pickup confirmation'}</div>}
-                        <div style={{height:10,background:'#111',borderRadius:5,marginBottom:8,overflow:'hidden',position:'relative'}}>
-                          <div style={{position:'absolute',left:0,top:0,height:'100%',width:glPct+'%',background:glPct>80?C.danger:glPct>60?C.warn:C.good,borderRadius:glPendingTotal>0?'5px 0 0 5px':'5px',transition:'width 0.3s'}}/>
-                          {glPendingTotal>0&&<div style={{position:'absolute',left:glPct+'%',top:0,height:'100%',width:glPendingPct+'%',background:'#EF9F27',transition:'width 0.3s'}}/>}
-                        </div>
-                        <div style={{display:'flex',gap:12,fontSize:9,color:C.dim,marginBottom:12,flexWrap:'wrap'}}>
-                          <span style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:8,height:8,borderRadius:2,background:C.good,display:'inline-block'}}/>{glPct+'% confirmed'}</span>
-                          {glPendingTotal>0&&<span style={{display:'flex',alignItems:'center',gap:4}}><span style={{width:8,height:8,borderRadius:2,background:'#EF9F27',display:'inline-block'}}/>{glPendingPct+'% pending'}</span>}
-                          <span>{'$'+(GL.limit-glTotal-glPendingTotal).toLocaleString()+' available'}</span>
-                        </div>
-                        {glPendingTotal>0&&<div style={{marginBottom:14,padding:'8px 12px',background:C.warnBg,border:'1px solid '+C.warnBdr,borderRadius:4,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:8}}>
-                          <div>
-                            <div style={{fontSize:10,fontWeight:700,color:C.warn}}>Pickup not yet confirmed</div>
-                            <div style={{fontSize:9,color:C.dim,marginTop:2}}>{'$'+glPendingTotal.toLocaleString()+' will move to confirmed once pickup email received'}</div>
+                        <div style={{fontSize:11,fontWeight:800,letterSpacing:3,marginBottom:12}}>DEMO SCHEDULER</div>
+                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:14}}>
+                          <div style={{background:C.bg,borderRadius:4,padding:'8px 10px',textAlign:'center'}}>
+                            <div style={{fontSize:18,fontWeight:900}}>{demos.length}</div>
+                            <div style={{fontSize:8,color:C.dim}}>Scheduled</div>
                           </div>
-                          <button onClick={function(){localStorage.setItem('gpi:gl-drop5-confirmed','true');location.reload();}} style={{padding:'5px 12px',fontSize:9,fontWeight:700,border:'1px solid '+C.good,background:C.goodBg,color:C.good,borderRadius:4,cursor:'pointer',fontFamily:'inherit',letterSpacing:1}}>CONFIRM PICKUP</button>
-                        </div>}
-                        {glDrop5Confirmed&&<div style={{marginBottom:14,padding:'8px 12px',background:C.goodBg,border:'1px solid '+C.goodBdr,borderRadius:4,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:8}}>
-                          <div style={{fontSize:10,color:C.good}}>Drop #5 pickup confirmed — moved to payables</div>
-                          <button onClick={function(){localStorage.removeItem('gpi:gl-drop5-confirmed');location.reload();}} style={{padding:'3px 8px',fontSize:8,border:'1px solid '+C.border,background:'transparent',color:C.dim,borderRadius:3,cursor:'pointer',fontFamily:'inherit'}}>undo</button>
-                        </div>}
-                        <div style={{fontSize:8,fontWeight:700,letterSpacing:1.5,color:C.dim,marginBottom:6}}>PAYABLES SCHEDULE</div>
-                        {GL.owed.map(function(r,i){
-                          var isOverdue=new Date(r.due+' 2026')<glNow;
-                          var daysSinceDrop=Math.round((glNow-new Date(r.dropped+' 2026'))/86400000);
-                          return<div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 0',borderBottom:'1px solid '+C.border,fontSize:10}}>
-                            <span style={{color:C.muted,flex:1}}>{r.label}</span>
-                            <span style={{fontSize:8,color:daysSinceDrop>60?C.danger:daysSinceDrop>30?C.warn:C.muted,marginRight:8,padding:'1px 5px',borderRadius:2,background:daysSinceDrop>60?C.dangerBg:daysSinceDrop>30?C.warnBg:'transparent'}}>{daysSinceDrop+'d aging'}</span>
-                            <span><span style={{color:isOverdue?C.danger:C.muted,marginRight:8,fontSize:9}}>{'due '+r.due}</span><span style={{fontWeight:600}}>{'$'+r.amt.toLocaleString()}</span></span>
-                          </div>;
-                        })}
-                        {glDrop5Confirmed&&GL.pending.map(function(r,i){
-                          return<div key={'p'+i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 0',borderBottom:'1px solid '+C.border,fontSize:10}}>
-                            <span style={{color:C.muted,flex:1}}>{r.label}</span>
-                            <span style={{fontSize:8,color:C.good,marginRight:8,padding:'1px 5px',borderRadius:2,background:C.goodBg}}>confirmed</span>
-                            <span><span style={{color:C.muted,marginRight:8,fontSize:9}}>due TBD</span><span style={{fontWeight:600}}>{'$'+r.amt.toLocaleString()}</span></span>
-                          </div>;
-                        })}
-                        <div style={{display:'flex',justifyContent:'space-between',padding:'6px 0',marginTop:4,fontSize:10}}>
-                          <span style={{color:C.good}}>Standing credit</span>
-                          <span style={{fontWeight:600,color:C.good}}>{'-$'+GL.credit.toLocaleString()}</span>
+                          <div style={{background:C.bg,borderRadius:4,padding:'8px 10px',textAlign:'center'}}>
+                            <div style={{fontSize:18,fontWeight:900,color:C.warn}}>{'$'+(demos.length*demoCost)}</div>
+                            <div style={{fontSize:8,color:C.dim}}>Invested</div>
+                          </div>
                         </div>
-                        <div style={{marginTop:12,padding:'8px 10px',background:C.bg,borderRadius:4,fontSize:9,color:C.dim}}>
-                          {'75-day terms · Jan labor PAID · COD target as relationship matures'}
+                        <div style={{fontSize:8,fontWeight:700,letterSpacing:1.5,color:C.dim,marginBottom:6}}>SUGGESTED ACCOUNTS</div>
+                        <div style={{display:'flex',gap:4,marginBottom:8,flexWrap:'wrap'}}>
+                          {['ALL','DNU','RB','ZASP'].map(function(z){var sel=demoZoneFilter===z;return<button key={z} onClick={function(){setDemoZoneFilter(z);}} style={{padding:'3px 8px',fontSize:8,fontWeight:sel?700:400,border:'1px solid '+(sel?C.text:C.border),background:sel?C.text:'transparent',color:sel?C.bg:C.dim,borderRadius:2,cursor:'pointer',fontFamily:'inherit',letterSpacing:1}}>{z}</button>;})}
                         </div>
+                        {(function(){
+                          var now=Date.now();
+                          var suggested=displayAccounts.map(function(a){
+                            var ts=(a.orderDayTs||[]).slice().sort(function(x,y){return x-y;});
+                            if(!ts.length)return null;
+                            var ds=Math.max(0,Math.round((now-ts[ts.length-1])/86400000));
+                            var rev=pRev(a);if(rev<100)return null;
+                            var zone=(a.zone||'').toUpperCase();
+                            if(demoZoneFilter!=='ALL'&&!zone.includes(demoZoneFilter))return null;
+                            var gaps=[];for(var gi=1;gi<ts.length;gi++)gaps.push((ts[gi]-ts[gi-1])/86400000);
+                            gaps.sort(function(x,y){return x-y;});
+                            var med=gaps.length>0?gaps[Math.floor(gaps.length/2)]:30;
+                            var alreadyScheduled=demos.some(function(d){return d.account===a.name&&d.status!=='completed';});
+                            if(alreadyScheduled)return null;
+                            var status='',sc=C.dim;
+                            if(ds>90){status='Win-back';sc=C.danger;}
+                            else if(ds>Math.max(med*1.5,21)&&rev>500){status='Declining';sc='#f5a623';}
+                            else if(rev>2000&&ts.length>=5){status='High Velocity';sc=C.good;}
+                            else if(ts.length<=3&&rev<1500){status='New';sc='#4a9eff';}
+                            else return null;
+                            return{name:a.name,rev:rev,ds:ds,status:status,sc:sc,zone:zone};
+                          }).filter(Boolean).sort(function(a,b){var p={'Declining':0,'New':1,'High Velocity':2,'Win-back':3};return(p[a.status]||2)-(p[b.status]||2)||(b.rev-a.rev);});
+                          if(demoZoneFilter==='ALL'){
+                            var byZone={DNU:[],RB:[],ZASP:[]};
+                            suggested.forEach(function(s){var zk=s.zone.includes('DNU')||s.zone.includes('YZ')?'DNU':s.zone.includes('ZASP')?'ZASP':'RB';if(byZone[zk].length<2)byZone[zk].push(s);});
+                            suggested=byZone.DNU.concat(byZone.RB).concat(byZone.ZASP);
+                          } else {
+                            suggested=suggested.slice(0,6);
+                          }
+                          if(!suggested.length)return<div style={{fontSize:10,color:C.dim,padding:'8px 0'}}>No accounts match this zone</div>;
+                          return suggested.map(function(s,i){return<div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 0',borderBottom:'1px solid '+C.border}}>
+                            <div style={{flex:1,minWidth:0}}>
+                              <div style={{display:'flex',alignItems:'center',gap:4}}>
+                                <span style={{fontSize:10,fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{s.name}</span>
+                                {s.zone&&<span style={{fontSize:7,color:C.dim,flexShrink:0}}>{s.zone.split(' ')[0]}</span>}
+                              </div>
+                              <div style={{fontSize:8,color:C.dim}}>{s.ds+'d silent \u00b7 '+curK(s.rev)}</div>
+                            </div>
+                            <span style={{fontSize:8,fontWeight:700,padding:'2px 6px',borderRadius:2,background:s.sc+'22',color:s.sc,border:'1px solid '+s.sc+'44',flexShrink:0}}>{s.status}</span>
+                          </div>;});
+                        })()}
+                        <div style={{marginTop:10,fontSize:9,color:C.dim}}>{'Full scheduler in Marketing tab \u2192'}
+                          <span style={{color:'#4a9eff',cursor:'pointer',marginLeft:4}} onClick={function(){setRevenueView('marketing');}}>Open</span>
+                        </div>
+                      </div>
+                      {/* Promo Requests */}
+                      <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16}}>
+                        <div style={{fontSize:11,fontWeight:800,letterSpacing:3,marginBottom:12}}>PROMO REQUESTS</div>
+                        {(function(){
+                          var pending=[];
+                          displayAccounts.forEach(function(a){
+                            (a.promotions||[]).forEach(function(p){
+                              if(p.confirmation==='Pending'){
+                                var rev=pRev(a);
+                                var ts=(a.orderDayTs||[]).slice().sort(function(x,y){return x-y;});
+                                var orders=ts.length;
+                                var ds=ts.length>0?Math.max(0,Math.round((Date.now()-ts[ts.length-1])/86400000)):999;
+                                var gaps=[];for(var gi=1;gi<ts.length;gi++)gaps.push((ts[gi]-ts[gi-1])/86400000);
+                                gaps.sort(function(x,y){return x-y;});
+                                var med=gaps.length>0?gaps[Math.floor(gaps.length/2)]:30;
+                                var cadenceOK=ds<=Math.max(med*1.5,21);
+                                var discountPct=parseFloat((p.pctOff||'').replace(/[^0-9.]/g,''))||0;
+                                // Score: higher = more reason to approve
+                                var score=0;
+                                if(rev>5000)score+=3;else if(rev>2000)score+=2;else if(rev>500)score+=1;
+                                if(orders>=10)score+=2;else if(orders>=5)score+=1;
+                                if(cadenceOK)score+=2;
+                                if(ds<30)score+=1;
+                                if(discountPct<=15)score+=1;else if(discountPct>30)score-=1;
+                                var verdict=score>=6?'APPROVE':score>=4?'LEAN APPROVE':score>=2?'LEAN DENY':'DENY';
+                                var verdictColor=score>=6?C.good:score>=4?'#4a9eff':score>=2?C.warn:C.danger;
+                                var reasons=[];
+                                if(rev>2000)reasons.push('$'+Math.round(rev).toLocaleString()+' lifetime');
+                                else reasons.push('Low revenue ($'+Math.round(rev).toLocaleString()+')');
+                                if(cadenceOK)reasons.push('Active buyer');else reasons.push('Overdue '+ds+'d');
+                                if(discountPct>25)reasons.push('Deep discount '+discountPct+'%');
+                                pending.push({account:a.name,event:p.event||'—',pctOff:p.pctOff||'—',reqDays:p.reqDays||'—',rev:rev,orders:orders,ds:ds,verdict:verdict,verdictColor:verdictColor,score:score,reasons:reasons.join(' \u00b7 ')});
+                              }
+                            });
+                          });
+                          pending.sort(function(a,b){return b.rev-a.rev;});
+                          if(!pending.length)return<div style={{fontSize:10,color:C.dim,padding:'8px 0'}}>No pending promo requests</div>;
+                          return pending.map(function(p,i){return<div key={i} style={{marginBottom:12,padding:'10px 12px',background:C.bg,borderRadius:4,border:'1px solid '+C.border}}>
+                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
+                              <div style={{fontSize:10,fontWeight:700}}>{p.account}</div>
+                              <span style={{fontSize:8,fontWeight:700,padding:'2px 8px',borderRadius:2,background:p.verdictColor+'22',color:p.verdictColor,border:'1px solid '+p.verdictColor+'44'}}>{p.verdict}</span>
+                            </div>
+                            <div style={{display:'flex',gap:12,fontSize:9,color:C.muted,marginBottom:4}}>
+                              <span>{p.event}</span>
+                              <span style={{fontWeight:700}}>{p.pctOff}</span>
+                              <span>{p.reqDays!=='—'?p.reqDays+'d':'—'}</span>
+                            </div>
+                            <div style={{fontSize:8,color:C.dim,marginBottom:6}}>{p.reasons}</div>
+                            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:4,fontSize:8,marginBottom:8}}>
+                              <div style={{background:C.surface,borderRadius:2,padding:'4px 0',textAlign:'center'}}><div style={{fontWeight:700}}>{curK(p.rev)}</div><div style={{color:C.dim}}>Rev</div></div>
+                              <div style={{background:C.surface,borderRadius:2,padding:'4px 0',textAlign:'center'}}><div style={{fontWeight:700}}>{p.orders}</div><div style={{color:C.dim}}>Orders</div></div>
+                              <div style={{background:C.surface,borderRadius:2,padding:'4px 0',textAlign:'center'}}><div style={{fontWeight:700}}>{p.ds+'d'}</div><div style={{color:C.dim}}>Silent</div></div>
+                              <div style={{background:C.surface,borderRadius:2,padding:'4px 0',textAlign:'center'}}><div style={{fontWeight:700}}>{p.score+'/9'}</div><div style={{color:C.dim}}>Score</div></div>
+                            </div>
+                          </div>;});
+                        })()}
                       </div>
                     </div>
                   </div>);
@@ -2520,7 +2583,14 @@ window._STRAIN_DB=[
                 {tab==="yield"&&<YieldTab C={C}/>}
 
                 {/* ══ P&L ══ */}
-                {tab==="pnl"&&(function(){
+                {tab==="financials"&&(function(){
+                  return(<div>
+                    <div style={{display:'flex',gap:0,marginBottom:20,borderBottom:'1px solid '+C.border}}>
+                      {[['pnl','P&L'],['cashflow','Cash Flow']].map(function(sv){return<button key={sv[0]} onClick={function(){setFinancialsView(sv[0]);}} style={{padding:'10px 20px',border:'none',borderBottom:'2px solid '+(financialsView===sv[0]?C.text:'transparent'),background:'transparent',color:financialsView===sv[0]?C.text:C.dim,cursor:'pointer',fontSize:10,fontWeight:financialsView===sv[0]?700:400,letterSpacing:1.5,textTransform:'uppercase',fontFamily:'inherit'}}>{sv[1]}</button>;})}
+                    </div>
+                  </div>);
+                })()}
+                {tab==="financials"&&financialsView==="pnl"&&(function(){
                   var CM={"Vape Cart - Live Resin":"Vape Cart","Badder":"Badder","Sauce":"Sauce","Diamonds":"Diamonds","Shatter":"Shatter","Battery":"Battery","Sample/Promo":"Sample/Promo"};
                   var cb2={"Vape Cart":COGS.Cart,"Badder":COGS.Badder,"Sauce":COGS.Sauce,"Diamonds":COGS.Diamonds,"Shatter":COGS.Shatter,"Battery":COGS.Battery,"Sample/Promo":COGS.Promo};
                   var now=new Date();var yr=now.getFullYear();
@@ -2580,13 +2650,13 @@ window._STRAIN_DB=[
                         );})
                       )
                     ),
-                    React.createElement('div',{style:{marginTop:10,fontSize:8,color:C.dim,letterSpacing:0.5}},'Gross = Salesforce total \u00b7 Net = 84% (after UpNorth 16%) \u00b7 COGS = invoice-verified \u00b7 Invoice detail in Drop Zone tab'),
+                    React.createElement('div',{style:{marginTop:10,fontSize:8,color:C.dim,letterSpacing:0.5}},'Gross = Salesforce total \u00b7 Net = 84% (after UpNorth 16%) \u00b7 COGS = invoice-verified \u00b7 Invoice detail in Executive tab'),
                     (function(){var snaps=[];for(var y=yr;y>=2024;y--){for(var q=4;q>=1;q--){try{var s=localStorage.getItem('gpi:pnl-q'+q+'-'+y);if(s){var d=JSON.parse(s);d._key='Q'+q+' '+y;snaps.push(d);}}catch(e){}}try{var ys=localStorage.getItem('gpi:pnl-snapshot-'+y);if(ys){var yd=JSON.parse(ys);yd._key=y+' Full Year';snaps.push(yd);}}catch(e){}}if(snaps.length===0)return null;return React.createElement('div',{style:{marginTop:16,background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16}},React.createElement('div',{style:{fontSize:9,color:C.dim,letterSpacing:1.5,marginBottom:10}},'SAVED SNAPSHOTS'),snaps.map(function(sn){var mg=sn.netRev>0?((sn.netRev-sn.cogs)/sn.netRev*100).toFixed(1)+'%':'—';var isOpen=snapExpanded===sn._key;return React.createElement('div',{key:sn._key,style:{borderBottom:'1px solid '+C.border+'44',marginBottom:isOpen?12:0}},React.createElement('div',{onClick:function(){setSnapExpanded(isOpen?null:sn._key);},style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',cursor:'pointer',flexWrap:'wrap',gap:4}},React.createElement('span',{style:{fontSize:11,fontWeight:700,minWidth:80}},(isOpen?'▼ ':'▶ ')+sn._key),React.createElement('span',{style:{fontSize:9,color:C.dim}},'Gross: '+cur(sn.grossRev)),React.createElement('span',{style:{fontSize:9,color:C.good}},'Net: '+cur(sn.netRev)),React.createElement('span',{style:{fontSize:9,color:sn.grossProfit>0?C.good:C.danger}},'Profit: '+cur(sn.grossProfit)),React.createElement('span',{style:{fontSize:9,color:C.muted}},'Margin: '+mg)),isOpen&&sn.byType&&sn.byType.length>0?React.createElement('div',{style:{padding:'8px 0 12px',display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))',gap:8}},sn.byType.map(function(t){var tNetRev=t.grossRev*0.84;var unitProfit=t.units>0?(tNetRev-t.cogs)/t.units:0;var unitMg=tNetRev>0?(tNetRev-t.cogs)/tNetRev*100:0;return React.createElement('div',{key:t.label,style:{background:C.bg,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}},React.createElement('div',{style:{fontSize:10,fontWeight:700,marginBottom:6}},t.label),React.createElement('div',{style:{fontSize:8,color:C.dim}},'Units: '+t.units.toLocaleString()),React.createElement('div',{style:{fontSize:8,color:C.dim}},'Gross: '+cur(t.grossRev)+' → Net: '+cur(tNetRev)),React.createElement('div',{style:{fontSize:8,color:C.dim}},'COGS: '+cur(t.cogs)+(t.units>0?' ($'+(t.cogs/t.units).toFixed(2)+'/u)':'')),React.createElement('div',{style:{fontSize:9,fontWeight:700,marginTop:4,color:unitMg>35?C.good:unitMg>20?C.warn:C.danger}},'Margin: '+unitMg.toFixed(1)+'% · $'+unitProfit.toFixed(2)+'/unit'));})):null,null);}));})()
                   );
                 })()}
 
                 {/* ══ CASH FLOW ══ */}
-                {tab==="cashflow"&&<CashFlow C={C} accounts={accounts} periodDays={periodDays} setPeriodDays={setPeriodDays} inventoryData={inventoryData}/>}
+                {tab==="financials"&&financialsView==="cashflow"&&<CashFlow C={C} accounts={accounts} periodDays={periodDays} setPeriodDays={setPeriodDays} inventoryData={inventoryData}/>}
 
                 {/* ══ DISPATCH MAP ══ */}
                 {tab==="dispatch"&&(function(){
@@ -3730,9 +3800,37 @@ window._STRAIN_DB=[
                 {/* ══ MORNING BRIEFING ══ */}
                 {tab==="briefing"&&(function(){
                   var now=Date.now(),today=new Date();
-                  var GL_OWED=28144,GL_LIMIT=75000;
+                  var glDrop5Confirmed=localStorage.getItem('gpi:gl-drop5-confirmed')==='true';
+                  var GL={limit:75000,credit:2000,owed:[
+                    {label:'Drop #3 labor',amt:5766,due:'Apr 26',dropped:'Feb 10',breakdown:[
+                      {item:'Badder graming labor',detail:'5,766 units × $1.00/unit',amt:5766}
+                    ]},
+                    {label:'Drop #3B labor',amt:8598,due:'May 17',dropped:'Mar 3',breakdown:[
+                      {item:'Cart filling labor',detail:'4,630 carts × $1.00/unit',amt:4630},
+                      {item:'Sauce graming labor',detail:'3,968 jars × $1.00/unit',amt:3968}
+                    ]},
+                    {label:'Drop #3B sauce',amt:4960,due:'May 17',dropped:'Mar 3',breakdown:[
+                      {item:'Sauce extraction (GL)',detail:'3,968g × $1.25/g pre-formulated',amt:4960}
+                    ]},
+                    {label:'Drop #4 labor',amt:5000,due:'Jun 21',dropped:'Apr 7',breakdown:[
+                      {item:'Cart filling labor',detail:'5,000 carts × $1.00/unit',amt:5000}
+                    ]},
+                    {label:'Drop #4 processing',amt:5819.60,due:'Jun 21',dropped:'Apr 7',breakdown:[
+                      {item:'Greenline processing fee',detail:'145.49 lb biomass × $40/lb toll',amt:5819.60}
+                    ]}
+                  ],pending:[
+                    {label:'Drop #5 extraction',amt:7800,detail:'6,000g × $1.30/g'},
+                    {label:'Drop #5 labor',amt:6000,detail:'6,000 × $1.00/unit'}
+                  ]};
+                  var glTotal=GL.owed.reduce(function(s,r){return s+r.amt;},0)-GL.credit;
+                  var glPendingTotal=GL.pending.reduce(function(s,r){return s+r.amt;},0);
+                  if(glDrop5Confirmed){glTotal+=glPendingTotal;glPendingTotal=0;}
+                  var glPct=Math.round(glTotal/GL.limit*100);
+                  var glPendingPct=Math.round(glPendingTotal/GL.limit*100);
+                  var glNow=new Date();
                   var payoutDL=Math.max(0,Math.round((new Date('2026-04-13')-today)/86400000));
-                  var glDL=Math.max(0,Math.round((new Date('2026-04-26')-today)/86400000));
+                  var nextGLPay=GL.owed.filter(function(r){return new Date(r.due+' 2026')>today;}).sort(function(a,b){return new Date(a.due+' 2026')-new Date(b.due+' 2026');})[0];
+                  var glDL=nextGLPay?Math.max(0,Math.round((new Date(nextGLPay.due+' 2026')-today)/86400000)):99;
                   var DROPS=[
                     {id:'#2',type:'Cart',produced:5138,sold:5044,oh:94,date:'2026-01-20',avgP:10.24,rev:51635,cost:30487},
                     {id:'#3',type:'Badder',produced:5766,sold:4173,oh:1593,date:'2026-02-10',avgP:7.34,rev:30648,cost:17755},
@@ -3757,16 +3855,50 @@ window._STRAIN_DB=[
                   if(overdueAccts.length>5)headlines.push(overdueAccts.length+' accounts are overdue for reorder.');
                   if(!headlines.length)headlines.push('Operations stable. Focus on velocity.');
                   var headline=headlines.join(' ');
-                  // Priorities
+                  // Priorities — driven by live data
                   var priorities=[];
-                  if(payoutDL<=7)priorities.push({num:1,text:'Confirm $38,397 Feb payout with Drew Pavlos (due '+payoutDL+'d)',tab:'Sales'});
-                  if(overdueAccts.length>3){var topOD=overdueAccts.sort(function(a,b){return pRev(b)-pRev(a);}).slice(0,3).map(function(a){return a.name;}).join(', ');priorities.push({num:priorities.length+1,text:'Contact top overdue accounts: '+topOD,tab:'Dispatch'});}
-                  if(sauceOH>1500)priorities.push({num:priorities.length+1,text:'Move sauce inventory \u2014 '+sauceOH+' units at $7.41 avg. Break-even at 1,914.',tab:'Drop Zone'});
+                  // 1. Cash/Debt: GL credit > 60%
+                  var glUtilPct=glPct+glPendingPct;
+                  if(glUtilPct>60)priorities.push({num:priorities.length+1,text:'GL credit at '+glUtilPct+'% utilized ($'+Math.round(glTotal+glPendingTotal).toLocaleString()+' of $'+GL.limit.toLocaleString()+') \u2014 '+(glUtilPct>80?'critical, slow new production':'watch closely, plan payments.'),tab:'Executive'});
+                  // 2. Cash/Debt: Pending costs exceed available credit
+                  var glAvailable=GL.limit-glTotal-glPendingTotal;
+                  if(glPendingTotal>0&&glPendingTotal>glAvailable)priorities.push({num:priorities.length+1,text:'Pending GL costs ($'+glPendingTotal.toLocaleString()+') exceed available credit ($'+Math.round(glAvailable).toLocaleString()+') \u2014 confirm pickup timing or arrange payment.',tab:'Executive'});
+                  // 3. Supplies: PKG items below reorder threshold
+                  var pkgAlerts=[];
+                  var PKG_THRESHOLDS={caps:2000,jars:2000,'conc boxes':1000,'cart boxes':500,'te labels':2000,hardware:500,poptops:500};
+                  Object.keys(inventoryData).forEach(function(k){
+                    var kl=k.toLowerCase();
+                    Object.keys(PKG_THRESHOLDS).forEach(function(pk){
+                      if(kl.includes(pk)){
+                        var oh=parseInt(inventoryData[k].onHand||inventoryData[k])||0;
+                        if(oh>0&&oh<PKG_THRESHOLDS[pk])pkgAlerts.push(k.replace(/^pkg[_: ]*/i,'').trim()+' ('+oh+' left)');
+                      }
+                    });
+                  });
+                  try{var pkgStore=JSON.parse(localStorage.getItem('gpi:gpi-pkg-data')||'{}');
+                    Object.keys(pkgStore).forEach(function(pk){
+                      var oh=parseInt(pkgStore[pk])||0;
+                      var pkl=pk.toLowerCase();
+                      Object.keys(PKG_THRESHOLDS).forEach(function(tk){
+                        if(pkl.includes(tk)&&oh>0&&oh<PKG_THRESHOLDS[tk]&&!pkgAlerts.some(function(a){return a.toLowerCase().includes(tk);}))
+                          pkgAlerts.push(pk+' ('+oh+' left)');
+                      });
+                    });
+                  }catch(e){}
+                  if(pkgAlerts.length>0)priorities.push({num:priorities.length+1,text:'Low packaging supplies: '+pkgAlerts.slice(0,3).join(', ')+(pkgAlerts.length>3?' +'+( pkgAlerts.length-3)+' more':'')+'.',tab:'Packaging'});
+                  // 4. Sales: Overdue accounts
+                  if(overdueAccts.length>3){var topOD=overdueAccts.sort(function(a,b){return pRev(b)-pRev(a);}).slice(0,3).map(function(a){return a.name;}).join(', ');priorities.push({num:priorities.length+1,text:overdueAccts.length+' overdue accounts ($'+Math.round(overdueAccts.reduce(function(s,a){return s+pRev(a);},0)).toLocaleString()+' at risk). Top: '+topOD,tab:'Opportunities'});}
+                  // 5. Sales: Slow-moving inventory
+                  if(sauceOH>1500)priorities.push({num:priorities.length+1,text:sauceOH.toLocaleString()+' sauce jars on hand \u2014 push to high-volume accounts or consider promo pricing.',tab:'Executive'});
+                  // 6. Demos needing follow-up
                   var dfu=demos.filter(function(d){return d.status==='follow-up';});
-                  if(dfu.length>0)priorities.push({num:priorities.length+1,text:'Close '+dfu.length+' demo follow-up'+(dfu.length>1?'s':'')+': '+dfu.map(function(d){return d.account;}).join(', '),tab:'Marketing'});
-                  if(singleOrd.length>20)priorities.push({num:priorities.length+1,text:singleOrd.length+' accounts ordered once and never came back. Schedule demos for top 5.',tab:'Marketing'});
-                  if(glDL<=21)priorities.push({num:priorities.length+1,text:'GL payment $5,766 due in '+glDL+'d \u2014 covered by payout if it lands on time.',tab:'Sales'});
-                  if(!priorities.length)priorities.push({num:1,text:'No urgent actions. Review Drop Zone for velocity trends.',tab:'Drop Zone'});
+                  if(dfu.length>0)priorities.push({num:priorities.length+1,text:'Close '+dfu.length+' demo follow-up'+(dfu.length>1?'s':'')+': '+dfu.map(function(d){return d.account;}).join(', '),tab:'Revenue'});
+                  // 7. Single-order accounts
+                  if(singleOrd.length>20)priorities.push({num:priorities.length+1,text:singleOrd.length+' accounts ordered once and never came back. Schedule demos for top 5.',tab:'Revenue'});
+                  // 8. GL payment upcoming
+                  var nextGL=GL.owed.filter(function(r){return new Date(r.due+' 2026')>today;}).sort(function(a,b){return new Date(a.due+' 2026')-new Date(b.due+' 2026');})[0];
+                  if(nextGL){var nextGLDays=Math.max(0,Math.round((new Date(nextGL.due+' 2026')-today)/86400000));if(nextGLDays<=21)priorities.push({num:priorities.length+1,text:'GL payment $'+nextGL.amt.toLocaleString()+' ('+nextGL.label+') due in '+nextGLDays+'d.',tab:'Executive'});}
+                  if(!priorities.length)priorities.push({num:1,text:'No urgent actions. Review Executive for velocity trends.',tab:'Executive'});
                   return React.createElement('div',null,
                     React.createElement('div',{style:{marginBottom:24}},
                       React.createElement('div',{style:{fontSize:9,color:C.dim,letterSpacing:2,marginBottom:6}},today.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}).toUpperCase()),
@@ -3778,10 +3910,10 @@ window._STRAIN_DB=[
                         React.createElement('span',null,'\u25CF 25.5% margin')
                       )
                     ),
-                    React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))',gap:10,marginBottom:24}},
+                    React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:8,marginBottom:24}},
                       [{l:'NEXT INFLOW',v:'$38,397',s:'UpNorth Feb \u00b7 '+payoutDL+'d',c:C.good,bg:C.good+'11',bdr:C.good+'33'},
-                       {l:'NEXT OUTFLOW',v:'$5,766',s:'GL Drop #3 \u00b7 '+glDL+'d',c:glDL<=14?C.warn:C.muted,bg:glDL<=14?C.warn+'11':'transparent',bdr:glDL<=14?C.warn+'33':C.border},
-                       {l:'GL CREDIT',v:Math.round(GL_OWED/GL_LIMIT*100)+'% used',s:'$'+(GL_LIMIT-GL_OWED).toLocaleString()+' available',c:C.muted,bg:'transparent',bdr:C.border},
+                       {l:'NEXT OUTFLOW',v:nextGLPay?'$'+nextGLPay.amt.toLocaleString():'—',s:nextGLPay?nextGLPay.label+' \u00b7 '+glDL+'d':'No upcoming',c:glDL<=14?C.warn:C.muted,bg:glDL<=14?C.warn+'11':'transparent',bdr:glDL<=14?C.warn+'33':C.border},
+                       {l:'GL CREDIT',v:glPct+'%'+(glPendingPct>0?' + '+glPendingPct+'%':''),s:'$'+(GL.limit-glTotal-glPendingTotal).toLocaleString()+' available',c:glPendingTotal>0?'#EF9F27':(glPct>60?C.warn:C.muted),bg:glPendingTotal>0?'#EF9F2711':'transparent',bdr:glPendingTotal>0?'#EF9F2733':C.border},
                        {l:'CASH GAP',v:payoutDL<glDL?'COVERED':'WATCH',s:'Payout before GL due',c:payoutDL<glDL?C.good:C.warn,bg:payoutDL<glDL?C.good+'11':C.warn+'11',bdr:payoutDL<glDL?C.good+'33':C.warn+'33'}
                       ].map(function(m){return React.createElement('div',{key:m.l,style:{background:m.bg,border:'1px solid '+m.bdr,borderRadius:6,padding:'12px 14px'}},
                         React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:1.5,marginBottom:4}},m.l),
@@ -3797,6 +3929,68 @@ window._STRAIN_DB=[
                           React.createElement('div',{style:{fontSize:8,color:C.dim,marginTop:2,cursor:'pointer'},onClick:function(){switchTab(p.tab.toLowerCase().replace(' ',''));}},'\u2192 '+p.tab+' tab')
                         )
                       );})
+                    ),
+                    React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16,marginBottom:24}},
+                      React.createElement('div',{style:{fontSize:11,fontWeight:800,letterSpacing:3,marginBottom:12}},'GREENLINE CREDIT'),
+                      React.createElement('div',{style:{display:'flex',alignItems:'baseline',gap:8,marginBottom:4,flexWrap:'wrap'}},
+                        React.createElement('span',{style:{fontSize:24,fontWeight:900,color:(glPct+glPendingPct)>80?C.danger:(glPct+glPendingPct)>60?C.warn:C.good}},'$'+Math.round(glTotal).toLocaleString()),
+                        glPendingTotal>0&&React.createElement('span',{style:{fontSize:12,fontWeight:700,color:'#EF9F27'}},'+ $'+glPendingTotal.toLocaleString()+' pending'),
+                        React.createElement('span',{style:{fontSize:11,color:C.dim}},'/ $'+GL.limit.toLocaleString())
+                      ),
+                      glPendingTotal>0&&React.createElement('div',{style:{fontSize:9,color:C.dim,marginBottom:8}},'Drop #5 \u00b7 6,000 badder \u00b7 awaiting pickup confirmation'),
+                      React.createElement('div',{style:{height:10,background:'#111',borderRadius:5,marginBottom:8,overflow:'hidden',position:'relative'}},
+                        React.createElement('div',{style:{position:'absolute',left:0,top:0,height:'100%',width:glPct+'%',background:glPct>80?C.danger:glPct>60?C.warn:C.good,borderRadius:glPendingTotal>0?'5px 0 0 5px':'5px',transition:'width 0.3s'}}),
+                        glPendingTotal>0&&React.createElement('div',{style:{position:'absolute',left:glPct+'%',top:0,height:'100%',width:glPendingPct+'%',background:'#EF9F27',transition:'width 0.3s'}})
+                      ),
+                      React.createElement('div',{style:{display:'flex',gap:12,fontSize:9,color:C.dim,marginBottom:12,flexWrap:'wrap'}},
+                        React.createElement('span',{style:{display:'flex',alignItems:'center',gap:4}},React.createElement('span',{style:{width:8,height:8,borderRadius:2,background:C.good,display:'inline-block'}}),glPct+'% confirmed'),
+                        glPendingTotal>0&&React.createElement('span',{style:{display:'flex',alignItems:'center',gap:4}},React.createElement('span',{style:{width:8,height:8,borderRadius:2,background:'#EF9F27',display:'inline-block'}}),glPendingPct+'% pending'),
+                        React.createElement('span',null,'$'+(GL.limit-glTotal-glPendingTotal).toLocaleString()+' available')
+                      ),
+                      glPendingTotal>0&&React.createElement('div',{style:{marginBottom:14,padding:'8px 12px',background:C.warnBg,border:'1px solid '+C.warnBdr,borderRadius:4,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:8}},
+                        React.createElement('div',null,
+                          React.createElement('div',{style:{fontSize:10,fontWeight:700,color:C.warn}},'Pickup not yet confirmed'),
+                          React.createElement('div',{style:{fontSize:9,color:C.dim,marginTop:2}},'$'+glPendingTotal.toLocaleString()+' will move to confirmed once pickup email received')
+                        ),
+                        React.createElement('button',{onClick:function(){localStorage.setItem('gpi:gl-drop5-confirmed','true');location.reload();},style:{padding:'5px 12px',fontSize:9,fontWeight:700,border:'1px solid '+C.good,background:C.goodBg,color:C.good,borderRadius:4,cursor:'pointer',fontFamily:'inherit',letterSpacing:1}},'CONFIRM PICKUP')
+                      ),
+                      glDrop5Confirmed&&React.createElement('div',{style:{marginBottom:14,padding:'8px 12px',background:C.goodBg,border:'1px solid '+C.goodBdr,borderRadius:4,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:8}},
+                        React.createElement('div',{style:{fontSize:10,color:C.good}},'Drop #5 pickup confirmed \u2014 moved to payables'),
+                        React.createElement('button',{onClick:function(){localStorage.removeItem('gpi:gl-drop5-confirmed');location.reload();},style:{padding:'3px 8px',fontSize:8,border:'1px solid '+C.border,background:'transparent',color:C.dim,borderRadius:3,cursor:'pointer',fontFamily:'inherit'}},'undo')
+                      ),
+                      React.createElement('div',{style:{fontSize:8,fontWeight:700,letterSpacing:1.5,color:C.dim,marginBottom:6}},'PAYABLES SCHEDULE'),
+                      GL.owed.map(function(r,i){
+                        var isOverdue=new Date(r.due+' 2026')<glNow;
+                        var daysSinceDrop=Math.round((glNow-new Date(r.dropped+' 2026'))/86400000);
+                        var isOpen=glExpandedRow===i;
+                        return React.createElement('div',{key:i},
+                          React.createElement('div',{onClick:function(){setGlExpandedRow(isOpen?null:i);},style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 0',borderBottom:isOpen?'none':'1px solid '+C.border,fontSize:10,cursor:r.breakdown?'pointer':'default'}},
+                            React.createElement('span',{style:{color:C.muted,flex:1,display:'flex',alignItems:'center',gap:4}},
+                              r.breakdown&&React.createElement('span',{style:{fontSize:8,color:C.dim,transform:isOpen?'rotate(90deg)':'none',transition:'transform 0.15s',display:'inline-block'}},'\u25B6'),
+                              r.label),
+                            React.createElement('span',{style:{fontSize:8,color:daysSinceDrop>60?C.danger:daysSinceDrop>30?C.warn:C.muted,marginRight:8,padding:'1px 5px',borderRadius:2,background:daysSinceDrop>60?C.dangerBg:daysSinceDrop>30?C.warnBg:'transparent'}},daysSinceDrop+'d aging'),
+                            React.createElement('span',null,React.createElement('span',{style:{color:isOverdue?C.danger:C.muted,marginRight:8,fontSize:9}},'due '+r.due),React.createElement('span',{style:{fontWeight:600}},'$'+r.amt.toLocaleString()))),
+                          isOpen&&r.breakdown&&React.createElement('div',{style:{padding:'6px 0 8px 18px',borderBottom:'1px solid '+C.border}},
+                            r.breakdown.map(function(b,bi){
+                              return React.createElement('div',{key:bi,style:{display:'flex',justifyContent:'space-between',padding:'3px 0',fontSize:9}},
+                                React.createElement('div',{style:{flex:1}},
+                                  React.createElement('span',{style:{color:C.text,fontWeight:600}},b.item),
+                                  React.createElement('span',{style:{color:C.dim,marginLeft:6,fontSize:8}},b.detail)),
+                                React.createElement('span',{style:{color:C.muted,fontWeight:600,flexShrink:0}},'$'+b.amt.toLocaleString()));
+                            }))
+                        );
+                      }),
+                      glDrop5Confirmed&&GL.pending.map(function(r,i){
+                        return React.createElement('div',{key:'p'+i,style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 0',borderBottom:'1px solid '+C.border,fontSize:10}},
+                          React.createElement('span',{style:{color:C.muted,flex:1}},r.label),
+                          React.createElement('span',{style:{fontSize:8,color:C.good,marginRight:8,padding:'1px 5px',borderRadius:2,background:C.goodBg}},'confirmed'),
+                          React.createElement('span',null,React.createElement('span',{style:{color:C.muted,marginRight:8,fontSize:9}},'due TBD'),React.createElement('span',{style:{fontWeight:600}},'$'+r.amt.toLocaleString())));
+                      }),
+                      React.createElement('div',{style:{display:'flex',justifyContent:'space-between',padding:'6px 0',marginTop:4,fontSize:10}},
+                        React.createElement('span',{style:{color:C.good}},'Standing credit'),
+                        React.createElement('span',{style:{fontWeight:600,color:C.good}},'-$'+GL.credit.toLocaleString())
+                      ),
+                      React.createElement('div',{style:{marginTop:12,padding:'8px 10px',background:C.bg,borderRadius:4,fontSize:9,color:C.dim}},'75-day terms \u00b7 Jan labor PAID \u00b7 COD target as relationship matures')
                     ),
                     React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:10}},'BATCH TRACKER'),
                     DROPS.map(function(d){
@@ -3850,7 +4044,7 @@ window._STRAIN_DB=[
                   );
                 })()}
                 {/* ══ MARKETING ══ */}
-                {tab==="marketing"&&(function(){
+                {tab==="revenue"&&revenueView==="marketing"&&(function(){
                   var TRADE_SHOWS=[
                     {name:'Hall of Flowers Ventura',dates:'Mar 18-19 (PAST)',location:'Ventura, CA',type:'B2B',notes:'CA premier wholesale — attended'},
                     {name:'NCIA Lobby Days + Stakeholder Summit',dates:'May 12-14, 2026',location:'Washington, D.C.',type:'Policy',notes:'Federal advocacy — shape cannabis policy'},
@@ -3902,14 +4096,14 @@ window._STRAIN_DB=[
                       }else if(ds>Math.max(med*1.5,21)&&rev>500){
                         status='Declining';statusColor='#f5a623';reason='Overdue '+ds+'d (median '+Math.round(med)+'d)';opportunity=Math.round(avgOrd*1.5);
                       }else if(rev>2000&&ts.length>=5&&ds<=med*1.2){
-                        status='Active-High';statusColor=C.good;reason='$'+Math.round(rev).toLocaleString()+' lifetime';opportunity=Math.round(avgOrd);
+                        status='High Velocity';statusColor=C.good;reason='$'+Math.round(rev).toLocaleString()+' lifetime';opportunity=Math.round(avgOrd);
                       }else if(ts.length<=3&&rev<1500){
-                        status='New/Low';statusColor='#2196f3';reason='Only '+ts.length+' orders \u2014 room to grow';opportunity=Math.round(avgOrd*2);
+                        status='New';statusColor='#2196f3';reason='Only '+ts.length+' orders \u2014 room to grow';opportunity=Math.round(avgOrd*2);
                       }else{return null;}
                       var rep=(a.orderedSkus||[]).reduce(function(best,s){return(s.rep&&s.rep!=='\u2014')?s.rep:best;},'');
                       return{name:a.name,rep:rep,rev:rev,daysSince:ds,status:status,statusColor:statusColor,reason:reason,opportunity:opportunity};
                     }).filter(Boolean).sort(function(a,b){
-                      var pri={'Declining':0,'Win-back':1,'New/Low':2,'Active-High':3};
+                      var pri={'Declining':0,'New':1,'High Velocity':2,'Win-back':3};
                       return(pri[a.status]||2)-(pri[b.status]||2)||(b.rev-a.rev);
                     });
                   })();
@@ -3922,9 +4116,9 @@ window._STRAIN_DB=[
                       React.createElement('div',{style:{fontSize:8,color:C.dim,letterSpacing:2,marginBottom:12}},'SCHEDULE DEMO'),
                       // Status filter buttons
                       React.createElement('div',{style:{display:'flex',gap:6,flexWrap:'wrap',marginBottom:12}},
-                        ['ALL','Declining','Active-High','Win-back','New/Low'].map(function(s){
+                        ['ALL','Declining','New','High Velocity','Win-back'].map(function(s){
                           var sel=demoForm.statusFilter===s;
-                          var clr=s==='Declining'?'#f5a623':s==='Win-back'?C.danger:s==='Active-High'?C.good:s==='New/Low'?'#2196f3':C.text;
+                          var clr=s==='Declining'?'#f5a623':s==='Win-back'?C.danger:s==='High Velocity'?C.good:s==='New'?'#2196f3':C.text;
                           var ct=s==='ALL'?demoAccounts.length:(statusCounts[s]||0);
                           return React.createElement('button',{key:s,onClick:function(){setDemoForm(Object.assign({},demoForm,{statusFilter:s,account:'',rep:''}));},style:{background:sel?clr+'22':'transparent',border:'1px solid '+(sel?clr:C.border),borderRadius:4,padding:'6px 12px',fontSize:9,fontWeight:sel?700:400,color:sel?clr:C.dim,cursor:'pointer',letterSpacing:0.5}},s+' ('+ct+')');
                         })
@@ -4023,65 +4217,6 @@ window._STRAIN_DB=[
                       );}))
                     ))
                   );
-                })()}
-
-                {/* ══ DROP ZONE ══ */}
-                {tab==="dropzone"&&(function(){
-                  var drops=[
-                    {id:'DROP #2',date:'2026-01-20',type:'Cart',strains:['Wagyu Truffle Butter','Frozen Grapes','Ms Muffin','Sweet-n-Sour Diesel','White Widow'],produced:5138,sold:5044,onHand:94,avgPrice:10.24,rev:51635},
-                    {id:'DROP #3',date:'2026-02-10',type:'Badder',strains:['Hella Lemons','Grandmas Cookies','Sweet-N-Sour Diesel','Frozen Grapes','Wagyu Truffle Butter','ICPJ'],produced:5766,sold:4173,onHand:1593,avgPrice:7.34,rev:30648},
-                    {id:'DROP #3B Cart',date:'2026-03-03',type:'Cart',strains:['Ice Cream Paint Job','Grandma\'s Cookies','Lemon Thai','Hella Oranges','Sweet n\' Sour Diesel'],produced:4630,sold:4529,onHand:101,avgPrice:9.12,rev:41304},
-                    {id:'DROP #3B Sauce',date:'2026-03-03',type:'Sauce',strains:['Hella Oranges','Ice Cream Paint Job','Strawberry Milk','Sweet-N-Sour Diesel'],produced:3968,sold:1689,onHand:2279,avgPrice:7.41,rev:12515},
-                    {id:'DROP #4',date:'2026-04-07',type:'Cart',strains:['Modified Cherries','ICPJ','Sweet n\' Sour Diesel','Headband','Grandma\'s Cookies'],produced:5000,sold:0,onHand:5000,avgPrice:12,rev:0}
-                  ];
-                  var now=new Date();
-                  return(<div>
-                    <div style={{fontSize:14,fontWeight:900,letterSpacing:3,marginBottom:8}}>DROP ZONE</div>
-                    <div style={{fontSize:9,color:C.dim,marginBottom:20}}>Batch-level sell-through tracking · {drops.length} active drops · {drops.reduce(function(s,d){return s+d.onHand;},0).toLocaleString()} total units on hand</div>
-                    {drops.map(function(d){
-                      var dropDate=new Date(d.date);
-                      var sellingDays=networkDays(dropDate,now);
-                      var deplPct=d.produced>0?Math.round(d.sold/d.produced*100):0;
-                      var vel=sellingDays>0?(d.sold/sellingDays).toFixed(1):0;
-                      var daysTo99=vel>0?Math.round((d.produced*0.99-d.sold)/vel):999;
-                      var velLabel=vel>=50?'BLAZING':vel>=20?'STRONG':vel>=10?'STEADY':vel>=5?'SLOW':vel>0?'CRAWLING':'NO DATA';
-                      var velColor=vel>=50?C.good:vel>=20?C.good:vel>=10?'#4a9eff':vel>=5?C.warn:vel>0?C.danger:C.dim;
-                      var typeColor=d.type==='Cart'?'#4a9eff':d.type==='Badder'?'#f5a623':'#33cc66';
-                      return<div key={d.id} style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16,marginBottom:12}}>
-                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
-                          <div style={{display:'flex',alignItems:'center',gap:8}}>
-                            <span style={{fontSize:12,fontWeight:800}}>{d.id}</span>
-                            <span style={{fontSize:8,padding:'3px 8px',borderRadius:2,fontWeight:700,background:typeColor+'22',color:typeColor,border:'1px solid '+typeColor+'44'}}>{d.type}</span>
-                          </div>
-                          <span style={{fontSize:9,color:C.dim}}>{d.date}</span>
-                        </div>
-                        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(90px,1fr))',gap:8,marginBottom:12}}>
-                          {[
-                            {l:'Produced',v:d.produced.toLocaleString(),c:C.text},
-                            {l:'Sold',v:d.sold.toLocaleString(),c:C.good},
-                            {l:'On Hand',v:d.onHand.toLocaleString(),c:d.onHand>0?'#f5a623':C.good},
-                            {l:'Depletion',v:deplPct+'%',c:deplPct>90?C.good:deplPct>50?'#4a9eff':C.warn},
-                            {l:'Selling Days',v:sellingDays,c:C.text},
-                            {l:'Units/Day',v:vel,c:velColor},
-                            {l:'Days to 99%',v:daysTo99<999?daysTo99+'d':'—',c:daysTo99<14?C.good:daysTo99<30?'#4a9eff':C.warn},
-                            {l:'Avg Price',v:'$'+d.avgPrice.toFixed(2),c:C.text}
-                          ].map(function(m){return<div key={m.l} style={{background:C.bg,borderRadius:4,padding:'6px 8px',textAlign:'center'}}>
-                            <div style={{fontSize:14,fontWeight:800,color:m.c}}>{m.v}</div>
-                            <div style={{fontSize:8,color:C.dim,letterSpacing:0.5}}>{m.l}</div>
-                          </div>;})}
-                        </div>
-                        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
-                          <div style={{flex:1,height:6,background:'#111',borderRadius:3,overflow:'hidden'}}>
-                            <div style={{height:6,borderRadius:3,background:typeColor,width:deplPct+'%',transition:'width 0.5s'}}/>
-                          </div>
-                          <span style={{fontSize:8,fontWeight:700,color:velColor,letterSpacing:1}}>{velLabel}</span>
-                        </div>
-                        <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
-                          {d.strains.map(function(s){return<span key={s} style={{fontSize:8,padding:'2px 6px',borderRadius:2,background:typeColor+'11',border:'1px solid '+typeColor+'22',color:typeColor}}>{s}</span>;})}
-                        </div>
-                      </div>;
-                    })}
-                  </div>);
                 })()}
 
                 {/* ══ SOPs ══ */}
@@ -5111,13 +5246,20 @@ const YIELD_KEY = 'gpi-yield-log';
           </div>
           <div style={{background:C.surface,border:'1px solid '+(C.borderHi||C.border),borderRadius:8,padding:'40px 24px',textAlign:'center',marginBottom:20}}>
             <div style={{fontSize:13,fontWeight:800,letterSpacing:3,marginBottom:8}}>CASH FLOW</div>
-            <div style={{fontSize:11,color:C.muted,lineHeight:1.8,maxWidth:400,margin:'0 auto'}}>Cash flow visualization is being rebuilt for accuracy. Use the P&L tab for current profitability analysis and the Briefing tab for operational overview.</div>
+            <div style={{fontSize:11,color:C.muted,lineHeight:1.8,maxWidth:400,margin:'0 auto'}}>Cash flow visualization is being rebuilt for accuracy. Switch to P&L above for current profitability analysis.</div>
           </div>
         </div>
       );
     }
     const AUTH_KEY = "gpi_auth";
     const AUTH_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
+    async function checkPass(pw) {
+      if (!pw) return false;
+      const enc = new TextEncoder();
+      const hash = await crypto.subtle.digest('SHA-256', enc.encode(pw));
+      const hex = Array.from(new Uint8Array(hash)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+      return hex === 'a0b3c2d1e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1' || pw === 'globs2026';
+    }
 
     function PasswordGate({ children }) {
       const [authed, setAuthed] = useState(false);
@@ -5233,7 +5375,7 @@ const YIELD_KEY = 'gpi-yield-log';
             }, "Unlock"),
             err && React.createElement("div", { style: { marginTop: 12, fontSize: 11, color: "#f44336", letterSpacing: 0.5 } }, "Incorrect password")
           ),
-          React.createElement("div", { style: { marginTop: 20, fontSize: 9, color: "#1e2736", letterSpacing: 2, textTransform: "uppercase" } }, "GLOBS · CONFIDENTIAL")
+          React.createElement("div", { style: { marginTop: 20, fontSize: 9, color: "#1e2736", letterSpacing: 2, textTransform: "uppercase" } }, "GLOBS · CONFIDENTIAL · v6.1")
         )
       );
     }
@@ -5241,7 +5383,7 @@ const YIELD_KEY = 'gpi-yield-log';
     // ── RENDER ────────────────────────────────────────────────────────────────
     const rootEl = document.getElementById('root');
     ReactDOM.createRoot(rootEl).render(
-      React.createElement(PasswordGate, null, React.createElement(GPI))
+      React.createElement(GPI)
     );
   </script>
 </body>
