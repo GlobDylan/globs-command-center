@@ -2439,27 +2439,31 @@ window._STRAIN_DB=[
                                   <div style={{display:'flex',gap:8}}>{[['Indica',ish.Indica],['Sativa',ish.Sativa],['Hybrid',ish.Hybrid]].map(function(tv){return<div key={tv[0]} style={{background:C.bg,border:'1px solid '+typeColor(tv[0])+'44',borderRadius:5,padding:'6px 14px',textAlign:'center',minWidth:60}}><div style={{fontSize:22,fontWeight:900,color:typeColor(tv[0]),lineHeight:1}}>{tv[1]}</div><div style={{fontSize:11,color:C.dim,marginTop:2}}>{tv[0]}</div></div>;})}</div>
                                   <div style={{marginLeft:'auto',textAlign:'right'}}><div style={{fontSize:11,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>Est. Net</div><div style={{fontSize:22,fontWeight:800,color:C.good}}>{curK(batchNet)}</div><div style={{fontSize:11,color:C.dim}}>{curK(batchCost)} cost · {curK(batchRev)} gross</div></div>
                                 </div>
-                                <div style={{overflowX:'auto'}}>
-                                  <table style={{width:'100%',minWidth:460,borderCollapse:'collapse'}}>
-                                    <thead><tr style={{background:C.raised}}>{cols.map(function(h,i){return<th key={h} style={{padding:'7px 14px',fontSize:10,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=2?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead>
-                                    <tbody>
-                                      {strainRows.map(function(s,i){const sf=((mfgBatchData[cat.key]&&mfgBatchData[cat.key].strains)||{})[s.strain]||{};return(
-                                        <tr key={i} style={{background:i%2===0?'transparent':'#050505',borderLeft:'3px solid '+typeColor(s.type)+'66'}}>
-                                          <td style={{padding:'7px 14px',fontSize:10,color:C.dim,width:30}}>{i+1}</td>
-                                          <td style={{padding:'7px 14px'}}><div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:11,fontWeight:700,color:typeColor(s.type),background:typeColor(s.type)+'22',border:'1px solid '+typeColor(s.type)+'44',borderRadius:2,padding:'1px 5px',flexShrink:0}}>{s.type.slice(0,3).toUpperCase()}</span><span style={{fontSize:12}}>{s.strain}</span></div></td>
-                                          <td style={{padding:'8px 12px',textAlign:'right',fontSize:11,color:C.muted}}>{s.vel||s.score}</td>
-                                          <td style={{padding:'10px 12px',textAlign:'right'}}><input placeholder="HTE-XXXX" value={sf.hte||''} onChange={function(e){setBatchField(cat.key,s.strain,'hte',e.target.value);}} style={Object.assign({},inp2,{width:85,textAlign:'left'})}/></td>
-                                          <td style={{padding:'10px 12px',textAlign:'right'}}><input type="number" placeholder="g" value={sf.hteG||''} onChange={function(e){setBatchField(cat.key,s.strain,'hteG',e.target.value);}} style={Object.assign({},inp2,{width:64,textAlign:'right'})}/></td>
-                                          {cat.hasLqd&&<td style={{padding:'10px 12px',textAlign:'right'}}><input placeholder="LQD-XXXX" value={sf.lqd||''} onChange={function(e){setBatchField(cat.key,s.strain,'lqd',e.target.value);}} style={Object.assign({},inp2,{width:85,textAlign:'left'})}/></td>}
-                                          {cat.hasLqd&&<td style={{padding:'10px 12px',textAlign:'right'}}><input type="number" placeholder="g" value={sf.lqdG||''} onChange={function(e){setBatchField(cat.key,s.strain,'lqdG',e.target.value);}} style={Object.assign({},inp2,{width:64,textAlign:'right'})}/></td>}
-                                          {cat.hasThca&&<td style={{padding:'10px 12px',textAlign:'right'}}><input placeholder="THCA-XXXX" value={sf.thca||''} onChange={function(e){setBatchField(cat.key,s.strain,'thca',e.target.value);}} style={Object.assign({},inp2,{width:85,textAlign:'left'})}/></td>}
-                                          {cat.hasThca&&<td style={{padding:'10px 12px',textAlign:'right'}}><input type="number" placeholder="g" value={sf.thcaG||''} onChange={function(e){setBatchField(cat.key,s.strain,'thcaG',e.target.value);}} style={Object.assign({},inp2,{width:64,textAlign:'right'})}/></td>}
-                                        </tr>
-                                      );})}
-                                      {strainRows.length===0&&<tr><td colSpan={cols.length} style={{padding:'12px 14px',color:C.dim,fontSize:11}}>Upload account activity CSV to see strain suggestions</td></tr>}
-                                    </tbody>
-                                    <tfoot><tr style={{background:C.raised,borderTop:'1px solid '+C.borderHi}}><td colSpan={2} style={{padding:'8px 14px'}}><input placeholder={cat.label.slice(0,3).toUpperCase()+'-2026-001'} value={(mfgBatchData[cat.key]&&mfgBatchData[cat.key].batchCode)||''} onChange={function(e){setBatchCode(cat.key,e.target.value);}} style={Object.assign({},inp2,{width:140,fontWeight:700})}/><span style={{fontSize:10,color:C.dim,marginLeft:8}}>batch code</span></td><td colSpan={cols.length-2} style={{padding:'8px 14px',textAlign:'right',fontSize:11,color:C.dim}}>{batches}×1,000 units · {curK(batchNet)} est. net</td></tr></tfoot>
-                                  </table>
+                                <div style={{padding:'0 12px 12px'}}>
+                                  {strainRows.map(function(s,i){const sf=((mfgBatchData[cat.key]&&mfgBatchData[cat.key].strains)||{})[s.strain]||{};return(
+                                    <div key={i} style={{borderLeft:'3px solid '+typeColor(s.type)+'66',background:i%2===0?'transparent':C.raised,padding:'10px 12px',marginBottom:1}}>
+                                      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+                                        <span style={{fontSize:11,color:C.dim,width:18}}>{i+1}</span>
+                                        <span style={{fontSize:10,fontWeight:700,color:typeColor(s.type),background:typeColor(s.type)+'22',border:'1px solid '+typeColor(s.type)+'44',borderRadius:3,padding:'2px 6px'}}>{s.type.slice(0,3).toUpperCase()}</span>
+                                        <span style={{fontSize:13,fontWeight:600,flex:1}}>{s.strain}</span>
+                                        <span style={{fontSize:11,color:C.muted}}>{s.vel||s.score}/wk</span>
+                                      </div>
+                                      <div style={{display:'grid',gridTemplateColumns:'1fr auto',gap:6,marginLeft:26}}>
+                                        <input placeholder="HTE-XXXX" value={sf.hte||''} onChange={function(e){setBatchField(cat.key,s.strain,'hte',e.target.value);}} style={Object.assign({},inp2,{width:'100%',textAlign:'left'})}/>
+                                        <input type="number" placeholder="g" value={sf.hteG||''} onChange={function(e){setBatchField(cat.key,s.strain,'hteG',e.target.value);}} style={Object.assign({},inp2,{width:60,textAlign:'right'})}/>
+                                        {cat.hasLqd&&<input placeholder="LQD-XXXX" value={sf.lqd||''} onChange={function(e){setBatchField(cat.key,s.strain,'lqd',e.target.value);}} style={Object.assign({},inp2,{width:'100%',textAlign:'left'})}/>}
+                                        {cat.hasLqd&&<input type="number" placeholder="g" value={sf.lqdG||''} onChange={function(e){setBatchField(cat.key,s.strain,'lqdG',e.target.value);}} style={Object.assign({},inp2,{width:60,textAlign:'right'})}/>}
+                                        {cat.hasThca&&<input placeholder="THCA-XXXX" value={sf.thca||''} onChange={function(e){setBatchField(cat.key,s.strain,'thca',e.target.value);}} style={Object.assign({},inp2,{width:'100%',textAlign:'left'})}/>}
+                                        {cat.hasThca&&<input type="number" placeholder="g" value={sf.thcaG||''} onChange={function(e){setBatchField(cat.key,s.strain,'thcaG',e.target.value);}} style={Object.assign({},inp2,{width:60,textAlign:'right'})}/>}
+                                      </div>
+                                    </div>
+                                  );})}
+                                  {strainRows.length===0&&<div style={{padding:'12px 14px',color:C.dim,fontSize:11}}>Upload account activity CSV to see strain suggestions</div>}
+                                  <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 12px',background:C.raised,borderTop:'1px solid '+C.borderHi,marginTop:4}}>
+                                    <input placeholder={cat.label.slice(0,3).toUpperCase()+'-2026-001'} value={(mfgBatchData[cat.key]&&mfgBatchData[cat.key].batchCode)||''} onChange={function(e){setBatchCode(cat.key,e.target.value);}} style={Object.assign({},inp2,{width:140,fontWeight:700})}/>
+                                    <span style={{fontSize:10,color:C.dim}}>batch code</span>
+                                    <span style={{fontSize:11,color:C.dim,marginLeft:'auto'}}>{batches}×1,000 · {curK(batchNet)} net</span>
+                                  </div>
                                 </div>
                               </div>
                               </div>
