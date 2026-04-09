@@ -2445,7 +2445,10 @@ window._STRAIN_DB=[
                                       <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
                                         <span style={{fontSize:11,color:C.dim,width:18}}>{i+1}</span>
                                         <span style={{fontSize:10,fontWeight:700,color:typeColor(s.type),background:typeColor(s.type)+'22',border:'1px solid '+typeColor(s.type)+'44',borderRadius:3,padding:'2px 6px'}}>{s.type.slice(0,3).toUpperCase()}</span>
-                                        <span style={{fontSize:13,fontWeight:600,flex:1}}>{s.strain}</span>
+                                        <div style={{flex:1,minWidth:0}}>
+                                          <div style={{fontSize:13,fontWeight:600}}>{s.strain}</div>
+                                          {(function(){var sl=strainLookup(s.strain);var cr='';if(sl&&sl.d){var m=sl.d.match(/[\u2013\u2014–—]\s*(.+?)(?:\s+(?:brings|delivers|blends|combines|creates|gives|hits|offers|serves|pours|produces|mixes|tastes|fuses|layers|unites|is|pairs))/i);if(m)cr=m[1].trim();}if(!cr){var cdb=window._STRAIN_DB||[];var cm=cdb.find(function(cs){return cs.n.toLowerCase().replace(/[^a-z0-9]/g,'')===s.strain.toLowerCase().replace(/[^a-z0-9]/g,'');});if(cm&&cm.c)cr=cm.c.replace(/\s*x\s*/gi,' \u00d7 ');}return cr?React.createElement('div',{style:{fontSize:10,color:C.dim,fontStyle:'italic',marginTop:1}},cr):null;})()}
+                                        </div>
                                         <span style={{fontSize:11,color:C.muted}}>{s.vel||s.score}/wk</span>
                                       </div>
                                       <div style={{display:'grid',gridTemplateColumns:'1fr auto',gap:6,marginLeft:26}}>
@@ -2475,35 +2478,7 @@ window._STRAIN_DB=[
                         </div>
                         </div>
                       )}
-                      {Object.keys(pipelineByCategory).some(function(k){return pipelineByCategory[k]>0;})&&<div style={{background:C.good+'12',border:'1px solid '+C.good+'33',borderRadius:6,padding:'10px 14px',marginBottom:12,display:'flex',alignItems:'center',gap:8}}>
-                        <span style={{fontSize:14}}>{'\u2705'}</span>
-                        <div><div style={{fontSize:12,fontWeight:700,color:C.good}}>In production (deducted from totals below)</div>
-                        <div style={{fontSize:10,color:C.dim}}>{Object.keys(pipelineByCategory).filter(function(k){return pipelineByCategory[k]>0;}).map(function(k){return pipelineByCategory[k].toLocaleString()+' '+k;}).join(' · ')}</div></div>
-                      </div>}
-                      <div style={{border:'1px solid '+C.border,borderRadius:6,overflow:'hidden'}}><div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:680,borderCollapse:'collapse'}}>
-                        <thead><tr style={{background:C.raised}}>{["SKU","Type","GL/CP","Batch","THC%","Age","Active Days","Units","Wk Vel","On-Hand","Days Left","Suggested","Order Qty","Unit COGS","Total Cost","Est. Rev","Status"].map(function(h,i){return<th key={h} style={{padding:'6px 8px',fontSize:10,fontWeight:700,letterSpacing:1,textTransform:'uppercase',color:C.dim,textAlign:i>=3?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead>
-                        <tbody>{catRows.map(function(r,i){const st=sst(r.status);return(
-                          <tr key={r.sku} style={{background:i%2===0?'transparent':'#050505',borderLeft:r.status==='critical'?'3px solid '+C.danger:r.status==='low'?'3px solid '+C.warn:'3px solid transparent'}}>
-                            <td style={{padding:'9px 12px',fontSize:12,fontWeight:500}}>{r.strain}{!r.reliable&&<span style={{marginLeft:6,fontSize:10,color:C.warn,border:'1px solid '+C.warnBdr,padding:'1px 4px',borderRadius:2}}>≈</span>}</td>
-                            <td style={{padding:'9px 12px'}}><TypeTag label={r.cogs.label}/></td>
-                            <td style={{padding:'10px 12px'}}><button onClick={function(){setMfgMethod(function(p){var n=Object.assign({},p);n[r.sku]=r.method==='GL'?'CP':'GL';return n;});}} style={{padding:'3px 8px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',letterSpacing:0.5,border:'1px solid '+(r.method==='CP'?'#6fa8d6':'#d4a24c'),background:(r.method==='CP'?'#6fa8d622':'#d4a24c22'),color:r.method==='CP'?'#6fa8d6':'#d4a24c'}}>{r.method}</button></td>
-                            <td style={{padding:'9px 12px',fontSize:11,color:C.dim,fontFamily:'monospace'}}>{r.batch||'—'}</td>
-                            <td style={{padding:'9px 12px',textAlign:'right',fontSize:10,color:C.muted}}>{r.thc||'—'}</td>
-                            <td style={{padding:'9px 12px',textAlign:'right',fontSize:10,color:parseInt(r.daysOld)>60?C.warn:C.dim}}>{r.daysOld?r.daysOld+'d':'—'}</td>
-                            <td style={{padding:'9px 12px',textAlign:'right',fontSize:10,color:r.reliable?C.muted:C.warn}}>{r.spanDays}d</td>
-                            <td style={{padding:'9px 12px',textAlign:'right',fontSize:11,color:C.muted}}>{r.units90.toLocaleString()}</td>
-                            <td style={{padding:'9px 12px',textAlign:'right',fontSize:12,fontWeight:600}}>{r.weeklyVel}/wk</td>
-                            <td style={{padding:'5px 12px',textAlign:'right'}}><input type="number" min="0" value={mfgInventory[r.sku]!==undefined?mfgInventory[r.sku]:(r.invOnHand!=null?r.invOnHand:'')} placeholder="0" onChange={function(e){setMfgInventory(function(p){const n=Object.assign({},p);n[r.sku]=e.target.value;return n;});}} style={inp}/></td>
-                            <td style={{padding:'9px 12px',textAlign:'right',fontSize:12,fontWeight:700,color:r.daysLeft<14?C.danger:r.daysLeft<30?C.warn:C.muted}}>{r.onHand===0?'—':r.daysLeft>=999?'∞':r.daysLeft+'d'}</td>
-                            <td style={{padding:'9px 12px',textAlign:'right',fontSize:11,color:C.dim}}>{r.suggested>0?r.suggested.toLocaleString():'—'}</td>
-                            <td style={{padding:'5px 12px',textAlign:'right'}}><input type="number" min="0" value={mfgOrderQty[r.sku]!==undefined?mfgOrderQty[r.sku]:r.suggested} onChange={function(e){setMfgOrderQty(function(p){const n=Object.assign({},p);n[r.sku]=e.target.value;return n;});}} style={Object.assign({},inp,{width:80,background:mfgOrderQty[r.sku]!==undefined?'#0a1a0a':C.bg,borderColor:mfgOrderQty[r.sku]!==undefined?C.goodBdr:C.border})}/></td>
-                            <td style={{padding:'9px 12px',textAlign:'right',fontSize:11,color:r.method==='CP'?'#6fa8d6':C.muted}}>{cur(r.unitCost)}{r.method==='CP'&&<div style={{fontSize:10,color:'#6fa8d699',marginTop:1}}>mat ${((cpBiomassLb+cpTollLb)/453.6/((cpYield>0?cpYield:1)/100)).toFixed(2)}+pkg ${r.cogs.pkg.toFixed(2)}+lab ${(r.cogs.labor+r.cogs.testing).toFixed(2)}</div>}</td>
-                            <td style={{padding:'9px 12px',textAlign:'right',fontSize:11,fontWeight:700}}>{r.orderQty>0?curK(r.totalCost):'—'}</td>
-                            <td style={{padding:'9px 12px',textAlign:'right',fontSize:11,color:C.muted}}>{r.orderQty>0?curK(r.estRev):'—'}</td>
-                            <td style={{padding:'9px 12px',textAlign:'right'}}><span style={{background:st.bg,border:'1px solid '+st.bdr,color:st.color,fontSize:10,fontWeight:700,padding:'2px 7px',borderRadius:2,whiteSpace:'nowrap'}}>{st.label}</span></td>
-                          </tr>
-                        );})}</tbody>
-                      </table></div></div>
+                      {/* MFG Orders removed — mobile rebuild pending */}
 
                       {/* ═══ MANUFACTURING SCHEDULE + PRODUCTION CADENCE ═══ */}
                       {(function(){
