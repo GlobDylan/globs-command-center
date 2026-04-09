@@ -2423,7 +2423,8 @@ window._STRAIN_DB=[
                         </div>
                       </div>
                       {activeCats.length>0&&(
-                        <div style={{display:'flex',flexDirection:'column',gap:16,marginBottom:20}}>
+                        <div>
+                        <div id="mfg-order-screenshot" style={{display:'flex',flexDirection:'column',gap:16,marginBottom:12}}>
                           {activeCats.map(function(cat){
                             const built=buildStrainRows(cat),batches=built.batches,batchUnits=built.batchUnits,batchCost=built.batchCost,batchRev=built.batchRev,batchNet=built.batchNet,strainRows=built.strainRows,ish=calcISH(batches,cat.key);
                             const cols=["#","Strain","Vel/wk","HTE Code","HTE (g)",cat.hasLqd?"LQD Code":cat.hasThca?"THCA Code":null,cat.hasLqd?"LQD (g)":cat.hasThca?"THCA (g)":null].filter(Boolean);
@@ -2464,6 +2465,10 @@ window._STRAIN_DB=[
                               </div>
                             );
                           })}
+                        </div>
+                        <div style={{display:'flex',gap:8,marginBottom:12}}>
+                          <button onClick={function(){var el=document.getElementById('mfg-order-screenshot');if(!el||!window.html2canvas){return;}html2canvas(el,{backgroundColor:'#0a0a0a',scale:2}).then(function(canvas){canvas.toBlob(function(blob){if(navigator.share){var file=new File([blob],'globs-order.png',{type:'image/png'});navigator.share({files:[file],title:'Globs MFG Order'}).catch(function(){});}else{var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='globs-order.png';a.click();}});});}} style={{padding:'8px 16px',borderRadius:4,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.info,background:C.info+'22',color:C.info,letterSpacing:0.5}}>{'\uD83D\uDCF2'} Share Order Forms</button>
+                        </div>
                         </div>
                       )}
                       {Object.keys(pipelineByCategory).some(function(k){return pipelineByCategory[k]>0;})&&<div style={{background:C.good+'12',border:'1px solid '+C.good+'33',borderRadius:6,padding:'10px 14px',marginBottom:12,display:'flex',alignItems:'center',gap:8}}>
@@ -4285,32 +4290,25 @@ window._STRAIN_DB=[
                         PIPELINE.reduce(function(s,d){return s+d.items.reduce(function(s2,i){return s2+i.qty;},0);},0).toLocaleString()+' total units in pipeline')
                     ),
                     // ── BEST PERFORMING STRAINS ──
-                    React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:16,marginBottom:20}},
+                    mfgVelocity.length>0?React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:16,marginBottom:20}},
                       React.createElement('div',{style:{fontSize:14,fontWeight:700,letterSpacing:2,paddingBottom:8,borderBottom:'1px solid '+C.border,marginBottom:12}},'TOP STRAINS BY VELOCITY'),
-                      React.createElement('div',{style:{overflowX:'auto'}},
-                        React.createElement('table',{style:{width:'100%',borderCollapse:'collapse'}},
-                          React.createElement('thead',null,
-                            React.createElement('tr',{style:{borderBottom:'1px solid '+C.border}},
-                              React.createElement('th',{style:{padding:'6px 10px',fontSize:10,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:'left'}},'#'),
-                              React.createElement('th',{style:{padding:'6px 10px',fontSize:10,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:'left'}},'STRAIN'),
-                              React.createElement('th',{style:{padding:'6px 10px',fontSize:10,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:'left'}},'TYPE'),
-                              React.createElement('th',{style:{padding:'6px 10px',fontSize:10,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:'right'}},'WK VEL'),
-                              React.createElement('th',{style:{padding:'6px 10px',fontSize:10,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:'right'}},'UNITS'),
-                              React.createElement('th',{style:{padding:'6px 10px',fontSize:10,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:'right'}},'ACCTS'))),
-                          React.createElement('tbody',null,
-                            mfgVelocity.slice(0,15).map(function(s,i){
-                              var cl=cogsFor(s.category).label;
-                              var cc=cl==='Vape Cart'?C.info:cl==='Badder'?C.warn:cl==='Sauce'?C.good:C.purple;
-                              return React.createElement('tr',{key:s.sku,style:{borderBottom:'1px solid '+C.border,background:i%2===0?'transparent':C.raised}},
-                                React.createElement('td',{style:{padding:'8px 10px',fontSize:11,color:C.dim}},i+1),
-                                React.createElement('td',{style:{padding:'8px 10px',fontSize:12,fontWeight:600}},s.strain),
-                                React.createElement('td',{style:{padding:'8px 10px'}},React.createElement('span',{style:{fontSize:9,fontWeight:700,color:cc,background:cc+'22',border:'1px solid '+cc+'44',borderRadius:3,padding:'2px 6px'}},cl==='Vape Cart'?'CART':cl.toUpperCase())),
-                                React.createElement('td',{style:{padding:'8px 10px',fontSize:12,fontWeight:700,textAlign:'right'}},s.weeklyVel+'/wk'),
-                                React.createElement('td',{style:{padding:'8px 10px',fontSize:11,color:C.muted,textAlign:'right'}},s.units90.toLocaleString()),
-                                React.createElement('td',{style:{padding:'8px 10px',fontSize:11,color:C.muted,textAlign:'right'}},s.accountCount));
-                            })))),
+                      React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:6}},
+                        mfgVelocity.slice(0,15).map(function(s,i){
+                          var cl=cogsFor(s.category).label;
+                          var cc=cl==='Vape Cart'?C.info:cl==='Badder'?C.warn:cl==='Sauce'?C.good:C.purple;
+                          return React.createElement('div',{key:s.sku,style:{display:'flex',alignItems:'center',gap:10,padding:'8px 10px',background:i%2===0?'transparent':C.raised,borderRadius:4}},
+                            React.createElement('div',{style:{fontSize:12,fontWeight:800,color:C.dim,width:20,textAlign:'center'}},i+1),
+                            React.createElement('div',{style:{flex:1,minWidth:0}},
+                              React.createElement('div',{style:{fontSize:12,fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},s.strain),
+                              React.createElement('div',{style:{display:'flex',gap:8,marginTop:3,alignItems:'center'}},
+                                React.createElement('span',{style:{fontSize:9,fontWeight:700,color:cc,background:cc+'22',border:'1px solid '+cc+'44',borderRadius:3,padding:'1px 5px'}},cl==='Vape Cart'?'CART':cl.toUpperCase()),
+                                React.createElement('span',{style:{fontSize:10,color:C.dim}},s.units90.toLocaleString()+' sold'),
+                                React.createElement('span',{style:{fontSize:10,color:C.dim}},s.accountCount+' accts'))),
+                            React.createElement('div',{style:{fontSize:13,fontWeight:800,color:C.text,whiteSpace:'nowrap'}},s.weeklyVel+'/wk'));
+                        })
+                      ),
                       mfgVelocity.length>15?React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:8,textAlign:'right'}},mfgVelocity.length+' total active SKUs'):null
-                    ),
+                    ):null,
                     React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16,marginBottom:24}},
                       React.createElement('div',{style:{fontSize:12,color:C.dim,letterSpacing:2,marginBottom:12}},'TODAY\u2019S PRIORITIES'),
                       priorities.map(function(p,i){var sev=p.text.toLowerCase().includes('exceed')||p.text.toLowerCase().includes('>60%')?'CRITICAL':p.text.toLowerCase().includes('overdue')||p.text.toLowerCase().includes('at risk')||p.text.toLowerCase().includes('low packaging')||p.text.toLowerCase().includes('below reorder')?'WARNING':'ACTION';var sc=sev==='CRITICAL'?C.danger:sev==='WARNING'?C.warn:C.muted;return React.createElement('div',{key:i,style:{display:'flex',background:C.raised,border:'1px solid '+C.border,borderRadius:0,borderLeft:'3px solid '+sc,padding:'10px 12px',marginBottom:i<priorities.length-1?6:0}},
