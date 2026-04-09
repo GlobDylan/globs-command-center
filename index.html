@@ -1834,10 +1834,10 @@ window._STRAIN_DB=[
                   {[["accounts","Accounts"],["opportunities","Opps"],["dispatch","Dispatch"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
                   <span style={{width:1,alignSelf:'stretch',background:C.border,margin:'6px 10px',flexShrink:0}}></span>
                   <span style={{fontSize:10,color:C.dim,letterSpacing:2,textTransform:'uppercase',padding:'6px 10px 10px 0',flexShrink:0,opacity:0.6}}>MFG</span>
-                  {[["strains","Strains"],["yield","Yield"],["mfg","MFG"],["sop","SOPs"],["labels","Labels"],["packaging","Packaging"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
+                  {[["strains","Strains"],["yield","Extraction Log"],["mfg","MFG"],["sop","SOPs"],["labels","Labels"],["packaging","Packaging"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
                   <span style={{width:1,alignSelf:'stretch',background:C.border,margin:'6px 10px',flexShrink:0}}></span>
                   <span style={{fontSize:10,color:C.dim,letterSpacing:2,textTransform:'uppercase',padding:'6px 10px 10px 0',flexShrink:0,opacity:0.6}}>EXEC</span>
-                  {[["briefing","Briefing"],["executive","Executive"],["financials","Financials"],["returns","Returns"],["revenue","Revenue"],["orders","Orders"],["pipeline","Incoming"],["security","Security"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
+                  {[["briefing","Briefing"],["executive","Executive"],["financials","Financials"],["returns","Returns"],["revenue","Marketing"],["orders","Orders"],["pipeline","Incoming"],["security","Security"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
                   </>
                 )}
               </div>
@@ -2403,11 +2403,7 @@ window._STRAIN_DB=[
                   function sst(s){return s==='critical'?{color:C.danger,bg:C.dangerBg,bdr:C.dangerBdr,label:'● CRITICAL'}:s==='low'?{color:C.warn,bg:C.warnBg,bdr:C.warnBdr,label:'● ORDER SOON'}:s==='nostock'?{color:'#777',bg:'#111',bdr:'#333',label:'⚫ NOT IN STOCK'}:{color:C.good,bg:C.goodBg,bdr:C.goodBdr,label:'● IN STOCK'};}
                   return(
                     <div>
-                      <div style={{display:'flex',gap:0,marginBottom:20,background:C.raised,borderRadius:6,overflow:'hidden',border:'1px solid '+C.border}}>
-                        <button onClick={function(){setMfgSubTab('orders');}} style={{flex:1,padding:'14px 20px',fontSize:11,fontWeight:mfgSubTab==='orders'?800:400,letterSpacing:2,cursor:'pointer',fontFamily:'inherit',border:'none',background:mfgSubTab==='orders'?C.surface:'transparent',color:mfgSubTab==='orders'?C.text:C.dim}}>MFG ORDERS</button>
-                        <button onClick={function(){setMfgSubTab('sops');}} style={{flex:1,padding:'14px 20px',fontSize:11,fontWeight:mfgSubTab==='sops'?800:400,letterSpacing:2,cursor:'pointer',fontFamily:'inherit',border:'none',borderLeft:'1px solid '+C.border,background:mfgSubTab==='sops'?C.surface:'transparent',color:mfgSubTab==='sops'?C.text:C.dim}}>SOPs</button>
-                      </div>
-                      {mfgSubTab==='orders'&&<div>
+                      <div>
                       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20,flexWrap:'wrap',gap:12}}>
                         <div><div style={{fontSize:14,fontWeight:800,letterSpacing:3}}>MANUFACTURING ORDER</div><div style={{fontSize:11,color:C.dim,marginTop:3}}>{mfgVelocity.length} active SKUs · {mfgTargetWeeks}wk target · 1,000g/batch</div></div>
                         <div style={{display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
@@ -2454,7 +2450,7 @@ window._STRAIN_DB=[
                                     var pickedNk=pickedStrain.toLowerCase().replace(/[^a-z0-9]/g,'');
                                     var pickedBatches=batchCountMap[pickedNk]||0;
                                     var lastSeen='';mfgVelocity.filter(catMatchFn(cat.key)).forEach(function(v){if(v.strain.toLowerCase().replace(/[^a-z0-9]/g,'')===pickedNk&&v.lastDate)lastSeen=v.lastDate;});
-                                    var CROSS_MAP={'Ice Cream Paint Job':'Ice Cream Cake \u00d7 Rainbow Sherbet','Headband':'OG Kush \u00d7 Sour Diesel','Honey Butter':'Honey Banana BX1','Hella Lemons':'Lemonade BX1','Lemon Thai':'Thai \u00d7 Hawaiian Landraces','Pineapple Haze':'Pineapple \u00d7 Haze','Hella Oranges':'Orange Daiquiri \u00d7 TK BX1','Lemon Og':'Lemon Skunk \u00d7 OG Kush','Blueberry Muffin':'Humboldt Seed Co','Gelonade':'Gelato #41 \u00d7 Lemon Tree','G.D.P.':'Mendo Purps \u00d7 Skunk \u00d7 Afghan Kush','Gdp':'Big Bud \u00d7 Purple Urkle','Super Silver Haze':'Skunk \u00d7 Northern Lights \u00d7 Haze','Lambs Bread':'Jamaican Landrace','Oz Kush':'OG Kush \u00d7 Z','Original Gsc':'OG Kush \u00d7 F1 Durban','Rainbow Belts':'Moonbow \u00d7 Z','Sour Durban':'Sour Diesel \u00d7 Durban Poison','White Widow':'Brazilian \u00d7 South Indian','Modified Cherries':'GMO \u00d7 Cherry Pie','Strawberry Milk':'Strawberry Cough \u00d7 Cereal Milk','Frozen Grapes':'Grapes of Wrath \u00d7 Banana Split','Kush Mints':'Animal Mints \u00d7 Bubba Kush','Sweet-N-Sour Diesel':'Mexican Haze \u00d7 Hawaiian Sativa','Chem K':'Chemdawg \u00d7 SFV OG','Cookie Dough':'GSC \u00d7 Dos-i-Dos','Close Encounter':'Cinderella 99 \u00d7 Alien OG','Papaya':'Citral #13 \u00d7 Ice #2','Oreoz':'Secret Weapon \u00d7 Cookies N Cream','Orange Sunshine':'LSD \u00d7 Cali-O','Wagyu Truffle Butter':'Wagyu \u00d7 Truffle Butter','Hella Grapes':'Grape Soda \u00d7 Purple Urkle','Cherry Slush':'Cherry Pie \u00d7 Purple Punch \u00d7 AK-47','Lemon Sour Diesel':'Lemon Skunk \u00d7 OG #18'};
+                                    var CROSS_MAP={'Ice Cream Paint Job':'Ice Cream Cake \u00d7 Rainbow Sherbet','Headband':'OG Kush \u00d7 Sour Diesel','Honey Butter':'Honey Banana BX1','Hella Lemons':'Lemonade BX1','Lemon Thai':'Thai \u00d7 Hawaiian Landraces','Pineapple Haze':'Pineapple \u00d7 Haze','Hella Oranges':'Orange Daiquiri \u00d7 TK BX1','Lemon Og':'Lemon Skunk \u00d7 OG Kush','Blueberry Muffin':'Humboldt Seed Co','Gelonade':'Gelato #41 \u00d7 Lemon Tree','G.D.P.':'Mendo Purps \u00d7 Skunk \u00d7 Afghan Kush','Gdp':'Big Bud \u00d7 Purple Urkle','GDP':'Big Bud \u00d7 Purple Urkle','Super Silver Haze':'Skunk \u00d7 Northern Lights \u00d7 Haze','Lambs Bread':'Jamaican Landrace','Oz Kush':'OG Kush \u00d7 Z','OZ Kush':'OG Kush \u00d7 Z','Original Gsc':'OG Kush \u00d7 F1 Durban','Rainbow Belts':'Moonbow \u00d7 Z','Sour Durban':'Sour Diesel \u00d7 Durban Poison','White Widow':'Brazilian \u00d7 South Indian','Modified Cherries':'GMO \u00d7 Cherry Pie','Strawberry Milk':'Strawberry Cough \u00d7 Cereal Milk','Frozen Grapes':'Grapes of Wrath \u00d7 Banana Split','Kush Mints':'Animal Mints \u00d7 Bubba Kush','Sweet-N-Sour Diesel':'Mexican Haze \u00d7 Hawaiian Sativa','Chem K':'Chemdawg \u00d7 SFV OG','Cookie Dough':'GSC \u00d7 Dos-i-Dos','Close Encounter':'Cinderella 99 \u00d7 Alien OG','Papaya':'Citral #13 \u00d7 Ice #2','Oreoz':'Secret Weapon \u00d7 Cookies N Cream','Orange Sunshine':'LSD \u00d7 Cali-O','Wagyu Truffle Butter':'Wagyu \u00d7 Truffle Butter','Hella Grapes':'Grape Soda \u00d7 Purple Urkle','Cherry Slush':'Cherry Pie \u00d7 Purple Punch \u00d7 AK-47','Lemon Sour Diesel':'Lemon Skunk \u00d7 OG #18','Blue Z':'Blue Diamond \u00d7 Z','Blue Zkittlez':'Blue Diamond \u00d7 Zkittlez','Bluey V':'Blue Z \u00d7 LV OG','Blue Cookies':'GSC \u00d7 Blueberry','Blue Diesel':'NYC Diesel \u00d7 Blueberry','Blue Yerbiez':'Yerbiez \u00d7 Blueberry Muffin','Banana Belts':'Banana Papaya \u00d7 Rainbow Belts','Banana Runtz':'Banana OG \u00d7 Runtz','Banana Zkittlez':'Z3 Banana Pheno \u00d7 Zkittlez','Caked Up':'Ice Cream Cake \u00d7 Wedding Cake','Caramel Apple Gelato':'Apple Cider \u00d7 Jet Fuel Gelato','Cereal Milk':'Y Life \u00d7 Snowman','Chem Cookies':'Chemdawg \u00d7 GSC','Cherry Pie':'GDP \u00d7 Durban Poison','Cherry Zkittlez':'Zkittlez \u00d7 Cherry Pie','Chocolate Cherries':'Chocolate Thai \u00d7 Cherry Pie','Blueberry Pancakes':'DJ Short Blueberry','Bubble Gum':'Indiana Bubblegum','Dolce N Banana':'Golden State Banana','Rainbow Road':'Rainbow Belts BX1','Runtz De Jour':'Runtz BX1','Tomahawk':'Earthy Pine Indica','Lemon Tree':'Lemon Skunk \u00d7 Sour Diesel','Lemon Zkittlez':'Lemon Skunk \u00d7 Zkittlez','Ms. Muffin':'Stargirl \u00d7 Blueberry Muffin','Ms Muffin':'Stargirl \u00d7 Blueberry Muffin','Fluffy Pancakes':'Marshmallow OG \u00d7 Pancakes','Florida Oranges':'Orange Daiquiri \u00d7 TK BX1','Forbidden Fruit':'Cherry Pie \u00d7 Tangie','Fortune Cookies':'GSC \u00d7 OG Kush','Fruit Stripe':'Lemonchello \u00d7 London Pound Cake','Grandma\'s Cookies':'GSC \u00d7 Sugar Berries','Honey Butter':'Honey Banana BX1','Jet Fuel Og':'Aspen OG \u00d7 High Country Diesel','Lemon Haze':'Lemon Skunk \u00d7 Silver Haze','Modified Berries':'GMO \u00d7 Blueberry','Modified Honey':'GMO \u00d7 Honey Banana','Modified Oranges':'GMO \u00d7 Orange Cookies','Obama Runtz':'Afghani \u00d7 OG Kush \u00d7 Runtz','Platinum Papaya':'Platinum Kush \u00d7 Golden Papaya'};
                                     var cr=CROSS_MAP[pickedStrain]||'';
                                     if(!cr&&pickedLookup&&pickedLookup.d){var mx=pickedLookup.d.match(/[–—]\s*([A-Z][\w\s'\.]+?)\s*[x\u00d7]\s*([A-Z][\w\s'\.]+?)(?:\s+(?:brings|delivers|blends|combines|creates|gives|hits|offers|serves|pours|produces|mixes|tastes|fuses|layers|unites|is|pairs|drips|explodes|ignites|fires|erupts|takes|keeps|bursts|radiates|overflows|smells|pops))/);if(mx)cr=mx[1].trim()+' \u00d7 '+mx[2].trim();if(!cr){var mx2=pickedLookup.d.match(/([A-Z][\w\s'\.]+?)\s*[x\u00d7]\s*([A-Z][\w\s'\.]+?)(?:\s+(?:brings|delivers|blends|combines|creates|gives|hits|offers|serves|tastes|fuses|layers|mixes|pours|produces|pairs|explodes|drips))/);if(mx2)cr=mx2[1].trim()+' \u00d7 '+mx2[2].trim();}}
                                     return(
@@ -2464,8 +2460,7 @@ window._STRAIN_DB=[
                                         <span style={{fontSize:10,fontWeight:700,color:typeColor(s.type),background:typeColor(s.type)+'22',border:'1px solid '+typeColor(s.type)+'44',borderRadius:3,padding:'2px 6px'}}>{s.type.slice(0,3).toUpperCase()}</span>
                                         <div style={{flex:1,minWidth:0}}>
                                           <select value={pickedStrain} onChange={function(e){setMfgStrainPick(function(p){var n=Object.assign({},p);n[pickKey]=e.target.value;return n;});}} style={{fontSize:13,fontWeight:600,background:C.surface,color:C.text,border:'1px solid '+C.border,borderRadius:4,padding:'4px 8px',width:'100%',fontFamily:'inherit',cursor:'pointer'}}>
-                                            <option value={s.strain}>{s.strain}{s.strain===pickedStrain?' \u2713':''}</option>
-                                            {typeStrains.filter(function(ts){return ts.n!==s.strain;}).map(function(ts){return<option key={ts.n} value={ts.n}>{ts.n+(ts.vel>0?' — '+ts.vel+'/wk':'')}</option>;})}
+                                            {typeStrains.map(function(ts){var isSel=ts.n===pickedStrain;return<option key={ts.n} value={ts.n}>{ts.n+(isSel?'':ts.vel>0?' — '+ts.vel+'/wk':'')}</option>;})}
                                           </select>
                                           {cr&&<div style={{fontSize:10,color:C.dim,fontStyle:'italic',marginTop:2}}>{cr}</div>}
                                           {pickedBatches>0&&<div className="no-screenshot" style={{fontSize:10,color:C.good,marginTop:2}}>{Array(Math.min(pickedBatches,6)).fill('\u2705').join('')}{' '+pickedBatches+'x'+(lastSeen?' · last '+lastSeen.slice(0,10):'')}</div>}
@@ -2617,110 +2612,12 @@ window._STRAIN_DB=[
                           )
                         );
                       })()}
-                      </div>}
-
-                      {/* ── SOPs ── */}
-                      {mfgSubTab==='sops'&&<div>
-                      <div style={{fontSize:14,fontWeight:900,letterSpacing:3,marginBottom:16}}>STANDARD OPERATING PROCEDURES</div>
-                      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(130px,1fr))',gap:8,marginBottom:20}}>
-                        {[
-                          {l:'Product Photos',url:'https://drive.google.com/drive/folders/1cS7_KMloD8U0ipDfLTTx9ly1QnQaK0jr',c:'#6fa8d6'},
-                          {l:'Live Resin / Carts',url:'https://drive.google.com/drive/folders/180q5S1RsnlMr2ebRtd2pbZ4-5s9z1ZuE',c:'#6fa8d6'},
-                          {l:'Badder Photos',url:'https://drive.google.com/drive/folders/1q8HzheYdKnUlNPmxjO2zwrQP0h3NWB0T',c:'#d4a24c'},
-                          {l:'Sauce Photos',url:'https://drive.google.com/drive/folders/1YhgemQ6N4rV_4Umq6zL3gXPI9A8Ze88i',c:'#7cb87a'},
-                          {l:'Diamonds Photos',url:'https://drive.google.com/drive/folders/1HHhNOnlQmtyDgVdG5OEGTBcXDZTD30wj',c:'#9b8ec4'},
-                          {l:'Packaging Photos',url:'https://drive.google.com/drive/folders/1Qw1_NcvvUDJKyTn36fuTDafxBnjW8W7E',c:C.muted},
-                          {l:'Packaging Design',url:'https://drive.google.com/drive/folders/1IpOZtAFXECwsjI0M9itxVO2QdKtxweBF',c:C.muted},
-                          {l:'HOF 2026 Media',url:'https://drive.google.com/drive/folders/1yBGePo41zN96AtVGhBc8icZAvCt48f9Q',c:'#d4a24c'},
-                          {l:'Labels SOP',url:'https://docs.google.com/document/d/1s4EJelWwZnO_i3Aa7_-u-dNaKCjVvkx4Wa973i06ATg/edit',c:C.good},
-                          {l:'Compliance SOP',url:'https://docs.google.com/document/d/10ECqfQ_82MWikxDdmryOZ5oB1F0m8_8W9z-cOfBBsZ4/edit',c:C.good}
-                        ].map(function(r){return<a key={r.l} href={r.url} target='_blank' rel='noopener' style={{display:'block',background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px',textDecoration:'none',textAlign:'center'}}>
-                          <div style={{fontSize:10,fontWeight:700,color:r.c}}>{r.l}</div>
-                          <div style={{fontSize:10,color:C.dim,marginTop:2}}>Open in Drive \u2197</div>
-                        </a>;})}
                       </div>
-                        <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap'}}>
-                          {[{k:'carts',l:'Vape Carts',c:'#6fa8d6'},{k:'concentrates',l:'Concentrates',c:'#d4a24c'},{k:'extraction',l:'Extraction',c:'#7cb87a'}].map(function(b){var sel=sopView===b.k;return React.createElement('button',{key:b.k,onClick:function(){setSopView(sel?null:b.k);},style:{padding:'8px 16px',borderRadius:4,fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'inherit',letterSpacing:1,border:'1px solid '+(sel?b.c:C.border),background:sel?b.c+'22':'transparent',color:sel?b.c:C.dim}},b.l);})}
-                        </div>
-                        {sopView==='carts'&&<div style={{background:C.surface,border:'1px solid #6fa8d633',borderRadius:6,padding:16}}>
-                          <div style={{fontSize:10,fontWeight:700,color:'#6fa8d6',marginBottom:12}}>VAPE CART ASSEMBLY — 100-UNIT FILLER</div>
-                          <div style={{fontSize:11,color:C.dim,marginBottom:12}}>Greenline fills carts at their facility. Assembly + packaging at GL.</div>
-                          {[
-                            {step:1,title:'Fill Carts',desc:'Load hardware into 100-unit filler. Fill with formulated oil.',comp:'1ML Quad Hardware (Fade Co)',cost:'$1.91'},
-                            {step:2,title:'QC Check — Oil',desc:'Inspect each cart for oil outside the chamber. Reject any with external residue.',comp:null,cost:null},
-                            {step:3,title:'QC Check — Bubbles',desc:'Inspect for air bubbles trapped in oil. Tap or warm to release. Reject persistent bubbles.',comp:null,cost:null},
-                            {step:4,title:'Tube',desc:'Insert cart into poptop tube (95mm black).',comp:'Poptop Tube 95mm',cost:'$0.08'},
-                            {step:5,title:'Heat Seal',desc:'Apply tamper-evident heat seal band over tube closure.',comp:'Tamper Heat-Seal (Treeform)',cost:'$0.01'},
-                            {step:6,title:'Box',desc:'Place sealed tube into branded cart box.',comp:'Cart Box (Treeform)',cost:'$0.21'},
-                            {step:7,title:'Testing Sticker',desc:'Apply Encore Labs testing sticker to box — THC %, batch ID, test date.',comp:'Testing Sticker',cost:'—'},
-                            {step:8,title:'COA Sticker',desc:'Apply final COA label over testing sticker. Greenline prints and applies.',comp:'COA Label (GL prints)',cost:'—'},
-                            {step:9,title:'Case Pack (20ct)',desc:'Pack 20 boxed carts into branded case box.',comp:'Case Box 20ct (Treeform)',cost:'$0.04'},
-                            {step:10,title:'Master Case (200u)',desc:'Pack 10 case boxes (200 units) into master shipping case.',comp:'Master Case (Uline S-4545)',cost:'$0.01'}
-                          ].map(function(s){return<div key={s.step} style={{display:'flex',gap:12,padding:'8px 0',borderBottom:'1px solid '+C.border}}>
-                            <div style={{width:24,height:24,borderRadius:12,background:'#6fa8d622',border:'1px solid #6fa8d644',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:800,color:'#6fa8d6',flexShrink:0}}>{s.step}</div>
-                            <div style={{flex:1}}>
-                              <div style={{fontSize:10,fontWeight:700}}>{s.title}</div>
-                              <div style={{fontSize:11,color:C.muted,marginTop:2}}>{s.desc}</div>
-                              {s.comp&&<div style={{fontSize:10,color:'#6fa8d6',marginTop:3}}>{s.comp}{s.cost&&s.cost!=='—'?' · '+s.cost:''}</div>}
-                            </div>
-                          </div>;})}
-                          <div style={{marginTop:12,padding:'10px 12px',background:C.bg,borderRadius:4,fontSize:11,color:C.dim}}>
-                            Total materials/unit: Hardware $1.91 + Tube $0.08 + Seal $0.01 + Box $0.21 + Case $0.05 = <span style={{fontWeight:700,color:C.text}}>$2.26/unit</span> + Extract $1.30 + Testing $0.40 + Labor $1.00 = <span style={{fontWeight:700,color:'#6fa8d6'}}>$5.50 all-in</span>
-                          </div>
-                        </div>}
-                        {sopView==='concentrates'&&<div style={{background:C.surface,border:'1px solid #d4a24c33',borderRadius:6,padding:16}}>
-                          <div style={{fontSize:10,fontWeight:700,color:'#d4a24c',marginBottom:12}}>CONCENTRATE PACKAGING — BADDER & SAUCE (SAME FLOW)</div>
-                          <div style={{fontSize:11,color:C.dim,marginBottom:12}}>Greenline handles extraction + formulation. Graming + packaging at GL facility.</div>
-                          {[
-                            {step:1,title:'Gram into Jar',desc:'Weigh 1.0g of concentrate into 5ml glass jar. Badder: whipped consistency. Sauce: crystalline + terp layer.',comp:'5ml Glass Jar (PO#30996)',cost:'$0.35'},
-                            {step:2,title:'Cap',desc:'Press-fit 5ml black cap onto jar. Ensure tight seal — no gaps.',comp:'5ml Black Cap (PO#248476)',cost:'incl'},
-                            {step:3,title:'TE Lid Label',desc:'Apply tamper-evident black lid label across cap-to-jar seam.',comp:'TE Lid Label (Treeform PO#3975)',cost:'$0.04'},
-                            {step:4,title:'Box',desc:'Place labeled jar into concentrate box. Lid visible through window.',comp:'Concentrate Box (Treeform)',cost:'$0.16'},
-                            {step:5,title:'Testing Sticker',desc:'Apply Encore Labs testing sticker — THC %, batch #, test date.',comp:'Testing Sticker',cost:'—'},
-                            {step:6,title:'COA Sticker',desc:'Apply final COA over testing sticker. Greenline prints and applies.',comp:'COA Label (GL prints)',cost:'—'},
-                            {step:7,title:'Case Pack (20ct)',desc:'Pack 20 boxed jars into branded case box.',comp:'Case Box 20ct (Treeform)',cost:'$0.05'},
-                            {step:8,title:'Master Case (200u)',desc:'Pack 10 case boxes into master shipping case.',comp:'Master Case (Uline S-4545)',cost:'$0.01'}
-                          ].map(function(s){return<div key={s.step} style={{display:'flex',gap:12,padding:'8px 0',borderBottom:'1px solid '+C.border}}>
-                            <div style={{width:24,height:24,borderRadius:12,background:'#d4a24c22',border:'1px solid #d4a24c44',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:800,color:'#d4a24c',flexShrink:0}}>{s.step}</div>
-                            <div style={{flex:1}}>
-                              <div style={{fontSize:10,fontWeight:700}}>{s.title}</div>
-                              <div style={{fontSize:11,color:C.muted,marginTop:2}}>{s.desc}</div>
-                              {s.comp&&<div style={{fontSize:10,color:'#d4a24c',marginTop:3}}>{s.comp}{s.cost&&s.cost!=='—'&&s.cost!=='incl'?' · '+s.cost:s.cost==='incl'?' (included in jar)':''}</div>}
-                            </div>
-                          </div>;})}
-                          <div style={{marginTop:12,padding:'10px 12px',background:C.bg,borderRadius:4,fontSize:11,color:C.dim}}>
-                            Total materials/unit: Jar+Cap $0.35 + TE Label $0.04 + Box $0.16 + Case $0.06 = <span style={{fontWeight:700,color:C.text}}>$0.61/unit</span> + Extract $1.30 (badder) or $1.25 (sauce/GL) + Testing $0.40 + Labor $1.00 = <span style={{fontWeight:700,color:'#d4a24c'}}>$3.08 badder / $3.00 sauce</span>
-                          </div>
-                        </div>}
-                        {sopView==='extraction'&&<div style={{background:C.surface,border:'1px solid #7cb87a33',borderRadius:6,padding:16}}>
-                          <div style={{fontSize:10,fontWeight:700,color:'#7cb87a',marginBottom:12}}>EXTRACTION — GREENLINE (100% OUTSOURCED)</div>
-                          <div style={{fontSize:11,color:C.dim,marginBottom:12}}>Greenline handles all extraction at their licensed facility. Dylan provides biomass or pre-formulated oil.</div>
-                          {[
-                            {step:1,title:'Biomass Intake',desc:'Greenline receives trim/flower from UpNorth transfer or direct delivery. Manifested in METRC.',comp:'Biomass ($30/lb Tier 1)',cost:'varies'},
-                            {step:2,title:'Hydrocarbon Extraction',desc:'Light hydrocarbon (butane/propane) closed-loop extraction. Pulls cannabinoids + terpenes from biomass.',comp:'GL Processing',cost:'$40/lb toll'},
-                            {step:3,title:'Post-Processing',desc:'CRC (Color Remediation Column) filtration + winterization to remove fats/waxes. Produces clean crude oil.',comp:null,cost:null},
-                            {step:4,title:'Formulation — Carts',desc:'Decarboxylation for cart oil. Blend with strain-specific terpenes for flavor profile. Target viscosity for hardware.',comp:'Pre-formulated @ $1.30/g (owned)',cost:null},
-                            {step:5,title:'Formulation — Badder',desc:'Mechanical whipping of extract under controlled heat. Creates creamy, stable consistency.',comp:'Pre-formulated @ $1.30/g (owned)',cost:null},
-                            {step:6,title:'Formulation — Sauce',desc:'Diamond crystallization process — THCA crystals form in terpene-rich liquid. Longer curing time.',comp:'GL extract @ $1.25/g (owed)',cost:null},
-                            {step:7,title:'Testing',desc:'Send samples to Encore Labs. COA includes: Total THC %, terpene profile, pesticides, residual solvents, heavy metals.',comp:'Encore Labs ($400/strain)',cost:'$400'},
-                            {step:8,title:'COA Review + Compliance',desc:'Review test results. GL prints COA stickers. Prepare METRC tags + compliance docs for UpNorth intake.',comp:null,cost:null}
-                          ].map(function(s){return<div key={s.step} style={{display:'flex',gap:12,padding:'8px 0',borderBottom:'1px solid '+C.border}}>
-                            <div style={{width:24,height:24,borderRadius:12,background:'#7cb87a22',border:'1px solid #7cb87a44',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:800,color:'#7cb87a',flexShrink:0}}>{s.step}</div>
-                            <div style={{flex:1}}>
-                              <div style={{fontSize:10,fontWeight:700}}>{s.title}</div>
-                              <div style={{fontSize:11,color:C.muted,marginTop:2}}>{s.desc}</div>
-                              {s.comp&&<div style={{fontSize:10,color:'#7cb87a',marginTop:3}}>{s.comp}{s.cost?' · '+s.cost:''}</div>}
-                            </div>
-                          </div>;})}
-                          <div style={{marginTop:12,padding:'10px 12px',background:C.bg,borderRadius:4,fontSize:11,color:C.dim}}>
-                            GL Credit: $28,144 / $75,000 (38%) · 75-day terms · Jan labor PAID · Standing $2K credit
-                          </div>
-                        </div>}
-                      </div>}
 
                     </div>
                   );
                 })()}
+
 
                 {/* ══ PACKAGING ══ */}
                 {tab==="packaging"&&(function(){
@@ -4135,16 +4032,25 @@ window._STRAIN_DB=[
                   var nextGLPay=GL.owed.filter(function(r){return new Date(r.due+' 2026')>today;}).sort(function(a,b){return new Date(a.due+' 2026')-new Date(b.due+' 2026');})[0];
                   var glDL=nextGLPay?Math.max(0,Math.round((new Date(nextGLPay.due+' 2026')-today)/86400000)):99;
                   var DROPS=[
-                    {id:'#2',type:'Cart',produced:5138,sold:5044,oh:94,date:'2026-01-20',avgP:10.24,rev:51635,cost:30487},
-                    {id:'#3',type:'Badder',produced:5766,sold:4173,oh:1593,date:'2026-02-10',avgP:7.34,rev:30648,cost:17755},
-                    {id:'#3B-C',type:'Cart',produced:4630,sold:4529,oh:101,date:'2026-03-03',avgP:9.12,rev:41304,cost:19525},
-                    {id:'#3B-S',type:'Sauce',produced:3968,sold:1689,oh:2279,date:'2026-03-03',avgP:7.41,rev:12515,cost:11917},
-                    {id:'#4',type:'Cart',produced:5000,sold:0,oh:5000,date:'2026-04-07',avgP:12,rev:0,cost:27481},
-                    {id:'#5',type:'Badder',produced:6000,sold:0,oh:0,date:'2026-04-07',avgP:8,rev:0,cost:19500,stage:'MFG',note:'In production at Greenline — SNSD, ICPJ, Grandmas Cookies, Frozen Grapes, Modified Cherries, Headband'}
+                    {id:'#2',type:'Cart',produced:5138,sold:5044,oh:94,date:'2026-01-20',avgP:10.24,rev:51635,cost:Math.round(5138*COGS.Cart.cost)},
+                    {id:'#3',type:'Badder',produced:5766,sold:4173,oh:1593,date:'2026-02-10',avgP:7.34,rev:30648,cost:Math.round(5766*COGS.Badder.cost)},
+                    {id:'#3B-C',type:'Cart',produced:4630,sold:4529,oh:101,date:'2026-03-03',avgP:9.12,rev:41304,cost:Math.round(4630*COGS.Cart.cost)},
+                    {id:'#3B-S',type:'Sauce',produced:3968,sold:1689,oh:2279,date:'2026-03-03',avgP:7.41,rev:12515,cost:Math.round(3968*COGS.Sauce.cost)},
+                    {id:'#4',type:'Cart',produced:5116,sold:0,oh:5116,date:'2026-04-07',avgP:12,rev:0,cost:Math.round(5116*COGS.Cart.cost)},
+                    {id:'#5',type:'Badder',produced:6000,sold:0,oh:0,date:'2026-04-07',avgP:8,rev:0,cost:Math.round(6000*COGS.Badder.cost),stage:'MFG',note:'In production at Greenline — SNSD, ICPJ, Grandmas Cookies, Frozen Grapes, Modified Cherries, Headband'}
                   ];
                   var totalOH=DROPS.reduce(function(s,d){return s+d.oh;},0);
                   var totalRev=DROPS.reduce(function(s,d){return s+d.rev;},0);
                   var totalSold=DROPS.reduce(function(s,d){return s+d.sold;},0);
+                  // Compute real blended margin from sold units
+                  var totalNetRev=0,totalCogsSold=0;
+                  DROPS.forEach(function(d){
+                    if(d.sold<=0)return;
+                    var netRev=d.rev*0.84;
+                    var cogsPer=d.type==='Cart'?COGS.Cart.cost:d.type==='Badder'?COGS.Badder.cost:d.type==='Sauce'?COGS.Sauce.cost:COGS.Diamonds.cost;
+                    totalNetRev+=netRev;totalCogsSold+=d.sold*cogsPer;
+                  });
+                  var blendedMargin=totalNetRev>0?((totalNetRev-totalCogsSold)/totalNetRev*100):0;
                   var sauceOH=DROPS.filter(function(d){return d.type==='Sauce';}).reduce(function(s,d){return s+d.oh;},0);
                   var overdueAccts=displayAccounts.filter(function(a){if(!a.orderDayTs||a.orderDayTs.length<2)return false;var ts=a.orderDayTs.slice().sort(function(x,y){return x-y;});var ds=Math.round((now-ts[ts.length-1])/86400000);var gaps=[];for(var i=1;i<ts.length;i++)gaps.push((ts[i]-ts[i-1])/86400000);gaps.sort(function(x,y){return x-y;});var med=gaps[Math.floor(gaps.length/2)]||30;return ds>Math.max(med*1.5,21);});
                   var singleOrd=displayAccounts.filter(function(a){return(a.orderDayTs||[]).length<=1&&pRev(a)>100;});
@@ -4195,9 +4101,9 @@ window._STRAIN_DB=[
                   if(sauceOH>1500)priorities.push({num:priorities.length+1,text:sauceOH.toLocaleString()+' sauce jars on hand \u2014 push to high-volume accounts or consider promo pricing.',tab:'Executive'});
                   // 6. Demos needing follow-up
                   var dfu=demos.filter(function(d){return d.status==='follow-up';});
-                  if(dfu.length>0)priorities.push({num:priorities.length+1,text:'Close '+dfu.length+' demo follow-up'+(dfu.length>1?'s':'')+': '+dfu.map(function(d){return d.account;}).join(', '),tab:'Revenue'});
+                  if(dfu.length>0)priorities.push({num:priorities.length+1,text:'Close '+dfu.length+' demo follow-up'+(dfu.length>1?'s':'')+': '+dfu.map(function(d){return d.account;}).join(', '),tab:'Marketing'});
                   // 7. Single-order accounts
-                  if(singleOrd.length>20)priorities.push({num:priorities.length+1,text:singleOrd.length+' accounts ordered once and never came back. Schedule demos for top 5.',tab:'Revenue'});
+                  if(singleOrd.length>20)priorities.push({num:priorities.length+1,text:singleOrd.length+' accounts ordered once and never came back. Schedule demos for top 5.',tab:'Marketing'});
                   // 8. GL payment upcoming
                   var nextGL=GL.owed.filter(function(r){return new Date(r.due+' 2026')>today;}).sort(function(a,b){return new Date(a.due+' 2026')-new Date(b.due+' 2026');})[0];
                   if(nextGL){var nextGLDays=Math.max(0,Math.round((new Date(nextGL.due+' 2026')-today)/86400000));if(nextGLDays<=21)priorities.push({num:priorities.length+1,text:'GL payment $'+nextGL.amt.toLocaleString()+' ('+nextGL.label+') due in '+nextGLDays+'d.',tab:'Executive'});}
@@ -4209,9 +4115,15 @@ window._STRAIN_DB=[
                       React.createElement('div',{style:{display:'flex',gap:16,fontSize:10,color:C.muted,flexWrap:'wrap'}},
                         React.createElement('span',null,'\u25CF $'+totalRev.toLocaleString()+' revenue'),
                         React.createElement('span',null,'\u25CF '+totalSold.toLocaleString()+' sold'),
-                        React.createElement('span',null,'\u25CF '+totalOH.toLocaleString()+' on hand'),
-                        React.createElement('span',null,'\u25CF 25.5% margin')
+                        React.createElement('span',null,'\u25CF '+totalOH.toLocaleString()+' on hand')
                       )
+                    ),
+                    // ── MARGIN SUMMARY ──
+                    React.createElement('div',{style:{background:blendedMargin>35?C.good+'15':blendedMargin>20?C.warn+'15':C.danger+'15',border:'1px solid '+(blendedMargin>35?C.good:blendedMargin>20?C.warn:C.danger)+'33',borderRadius:8,padding:'14px 16px',marginBottom:20,display:'flex',justifyContent:'space-between',alignItems:'center'}},
+                      React.createElement('div',null,
+                        React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:2,fontWeight:600}},'BLENDED MARGIN (post-distro)'),
+                        React.createElement('div',{style:{fontSize:10,color:C.muted,marginTop:2}},'Net rev $'+Math.round(totalNetRev/1000)+'K \u2212 COGS $'+Math.round(totalCogsSold/1000)+'K = $'+Math.round((totalNetRev-totalCogsSold)/1000)+'K profit')),
+                      React.createElement('div',{style:{fontSize:28,fontWeight:900,color:blendedMargin>35?C.good:blendedMargin>20?C.warn:C.danger}},blendedMargin.toFixed(1)+'%')
                     ),
                     React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:8,marginBottom:24}},
                       [{l:'NEXT INFLOW',v:'$38,397',s:'UpNorth Feb \u00b7 '+payoutDL+'d',c:C.good,bg:C.good+'11',bdr:C.good+'33'},
