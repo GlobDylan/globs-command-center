@@ -776,7 +776,7 @@ window._STRAIN_DB=[
         {id:"c9",name:"Case/Master Sticker",desc:"OL5030WX",lead:7,cost:0.03,perUnit:0.05,initOnHand:0,initOnOrder:0}
       ],
       Carts:[
-        {id:"k1",name:"1ML Quad Hardware",desc:"Fade Co · White (No CC Logo)",lead:21,cost:1.8,perUnit:1,initOnHand:2000,initOnOrder:10000},
+        {id:"k1",name:"1ML Quad Hardware",desc:"Octave · White (No CC Logo)",lead:21,cost:1.8,perUnit:1,initOnHand:2000,initOnOrder:10000},
         {id:"k2",name:"Poptop Tube 95mm",desc:"Black · PO#106195",lead:14,cost:0.08,perUnit:1,initOnHand:1000,initOnOrder:0},
         {id:"k3",name:"Cart Box",desc:"Treeform PO#34521 · 2200/ctn",lead:35,cost:0.21,perUnit:1,initOnHand:14200,initOnOrder:8000},
         {id:"k4",name:"Tamper Heat-Seal",desc:"Treeform",lead:14,cost:0.01,perUnit:1,initOnHand:0,initOnOrder:0},
@@ -836,6 +836,9 @@ window._STRAIN_DB=[
     function PromotionsSection({promotions}){
       const byQ={};(promotions||[]).forEach(function(p){if(!p.quarter)return;if(!byQ[p.quarter])byQ[p.quarter]=[];byQ[p.quarter].push(p);});
       const qs=Object.keys(byQ).sort(function(a,b){return quarterOrder(b)-quarterOrder(a);});
+      var now=new Date(),curQ='Q'+Math.ceil((now.getMonth()+1)/3)+' '+now.getFullYear(),curQO=quarterOrder(curQ);
+      const qsCurrent=qs.filter(function(q){return quarterOrder(q)>=curQO;});
+      const qsPast=qs.filter(function(q){return quarterOrder(q)<curQO;});
       if(!qs.length)return<div style={{padding:'12px 20px',borderTop:'1px solid '+C.border,fontSize:11,color:C.dim}}>No promotion records found</div>;
       function cc(conf){if(conf==="Yes")return{color:C.good,bg:C.goodBg,bdr:C.goodBdr};if(conf==="No")return{color:C.danger,bg:C.dangerBg,bdr:C.dangerBdr};if(conf==="Pending")return{color:C.warn,bg:C.warnBg,bdr:C.warnBdr};return{color:C.muted,bg:C.raised,bdr:C.border};}
       return(
@@ -844,7 +847,7 @@ window._STRAIN_DB=[
           <div style={{overflowX:'auto'}}>
             <table style={{width:'100%',minWidth:560,borderCollapse:'collapse'}}>
               <thead><tr style={{background:C.raised}}>{["Quarter","Event","Dates","Discount","Days","Status"].map(function(h,i){return<th key={h} style={{padding:'6px 16px',fontSize:11,fontWeight:700,letterSpacing:1.2,textTransform:'uppercase',color:C.dim,textAlign:i>=3?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead>
-              <tbody>{qs.map(function(q){return byQ[q].map(function(p,pi){const col=cc(p.confirmation);const dr=p.startDate&&p.endDate&&p.startDate!==p.endDate?(p.startDate+' – '+p.endDate):(p.startDate||p.event||'—');return(<tr key={q+'-'+pi} style={{background:pi%2===0?'transparent':'#050505'}}>{pi===0?<td style={{padding:'8px 16px',fontSize:11,fontWeight:700}}>{q}</td>:<td style={{padding:'8px 16px'}}/>}<td style={{padding:'8px 16px',fontSize:11,color:C.muted}}>{p.event||'—'}</td><td style={{padding:'8px 16px',fontSize:10,color:C.dim}}>{dr}</td><td style={{padding:'8px 16px',textAlign:'right',fontWeight:700,fontSize:12,color:p.pctOff?C.text:C.dim}}>{p.pctOff||'—'}</td><td style={{padding:'8px 16px',textAlign:'right',fontSize:11,color:C.dim}}>{p.reqDays?p.reqDays+'d':'—'}</td><td style={{padding:'8px 16px',textAlign:'right'}}>{p.confirmation?<span style={{background:col.bg,border:'1px solid '+col.bdr,color:col.color,padding:'2px 8px',borderRadius:2,fontSize:11,fontWeight:700}}>{p.confirmation.toUpperCase()}</span>:<span style={{color:C.dim}}>—</span>}</td></tr>);});})}</tbody>
+              <tbody>{qsCurrent.concat(qsPast).map(function(q){var isPast=quarterOrder(q)<curQO;return byQ[q].map(function(p,pi){const col=cc(p.confirmation);const dr=p.startDate&&p.endDate&&p.startDate!==p.endDate?(p.startDate+' – '+p.endDate):(p.startDate||p.event||'—');return(<tr key={q+'-'+pi} style={{background:pi%2===0?'transparent':'#050505',opacity:isPast?0.4:1}}>{pi===0?<td style={{padding:'8px 16px',fontSize:11,fontWeight:700}}>{q}{isPast?' (past)':''}</td>:<td style={{padding:'8px 16px'}}/>}<td style={{padding:'8px 16px',fontSize:11,color:C.muted}}>{p.event||'—'}</td><td style={{padding:'8px 16px',fontSize:10,color:C.dim}}>{dr}</td><td style={{padding:'8px 16px',textAlign:'right',fontWeight:700,fontSize:12,color:p.pctOff?C.text:C.dim}}>{p.pctOff||'—'}</td><td style={{padding:'8px 16px',textAlign:'right',fontSize:11,color:C.dim}}>{p.reqDays?p.reqDays+'d':'—'}</td><td style={{padding:'8px 16px',textAlign:'right'}}>{p.confirmation?<span style={{background:col.bg,border:'1px solid '+col.bdr,color:col.color,padding:'2px 8px',borderRadius:2,fontSize:11,fontWeight:700}}>{p.confirmation.toUpperCase()}</span>:<span style={{color:C.dim}}>—</span>}</td></tr>);});})}</tbody>
             </table>
           </div>
         </div>
@@ -984,8 +987,8 @@ window._STRAIN_DB=[
 
       // ── SECURITY SYSTEM ──────────────────────────────────────────────────
       const ROLES={
-        exec:{label:'Executive',tabs:['briefing','accounts','opportunities','dispatch','strains','yield','mfg','sop','labels','packaging','executive','financials','returns','revenue','orders','pipeline','security'],canExport:true,canUpload:true,canEditMargin:true,canApprove:true,seeFinancials:true},
-        mfg:{label:'Manufacturing',tabs:['strains','yield','mfg','labels','packaging','briefing'],canExport:false,canUpload:true,canEditMargin:false,canApprove:false,seeFinancials:false},
+        exec:{label:'Executive',tabs:['briefing','accounts','opportunities','dispatch','strains','yield','mfg','sop','labels','packaging','executive','financials','returns','revenue','orders','pipeline','brand','investor','security'],canExport:true,canUpload:true,canEditMargin:true,canApprove:true,seeFinancials:true},
+        mfg:{label:'Manufacturing',tabs:['briefing','strains','yield','mfg','sop','labels','packaging'],canExport:false,canUpload:true,canEditMargin:false,canApprove:false,seeFinancials:false},
         distro:{label:'Distribution',tabs:['accounts','opportunities','dispatch','orders','pipeline','returns'],canExport:false,canUpload:true,canEditMargin:false,canApprove:false,seeFinancials:false}
       };
       const PINS_DEPRECATED=null;// Individual user PINs replace shared PINs
@@ -998,9 +1001,10 @@ window._STRAIN_DB=[
         {id:'mattb',name:'Matt B.',role:'distro',pin:'',active:true,needsSetup:true,repName:'Matthew Blackburn',zone:'RB'},
         {id:'cp',name:'CP',role:'distro',pin:'',active:true,needsSetup:true,repName:'Christina Perpetua'},
         {id:'briank',name:'Brian K.',role:'distro',pin:'',active:true,needsSetup:true,repName:'Brian Kiser',zone:'RB'},
-        {id:'brianb',name:'Brian B.',role:'distro',pin:'',active:true,needsSetup:true,repName:'Brian Bresee',zone:'DNU'},
+        {id:'brianb',name:'Brian B.',role:'distro',pin:'5678',active:true,needsSetup:false,repName:'Brian Bresee',zone:'DNU'},
         {id:'caraway',name:'Matt C.',role:'distro',pin:'',active:true,needsSetup:true,repName:'Matthew Caraway',zone:'ZASP'},
         {id:'eric',name:'Eric',role:'distro',pin:'',active:true,needsSetup:true,repName:'Eric Ervin'},
+        {id:'brandyn',name:'Brandyn',role:'distro',pin:'',active:true,needsSetup:true,repName:'Brandyn'},
         {id:'isaac',name:'Isaac',role:'distro',pin:'',active:true,needsSetup:true,repName:'Isaac Romero'},
         {id:'danny',name:'Danny',role:'distro',pin:'',active:true,needsSetup:true,repName:'Danny Smith'},
         {id:'daniel',name:'Daniel',role:'distro',pin:'',active:true,needsSetup:true,repName:'Daniel Rojas'},
@@ -1052,6 +1056,8 @@ window._STRAIN_DB=[
           // Auto-filter to rep's accounts if distro user with repName
           if(selected.role==='distro'&&selected.repName){setDRep(selected.repName);setORep(selected.repName);}
           else{setDRep('ALL');setORep('ALL');}
+          // MFG role: redirect to SOPs on first login
+          if(selected.role==='mfg'&&!localStorage.getItem('gpi:sop-reviewed-'+selected.id)){switchTab('sop');}
         }else{
           setLoginError('Invalid PIN');logSecurity('LOGIN_FAILED','Failed PIN attempt for '+selected.name);
         }
@@ -1289,6 +1295,10 @@ window._STRAIN_DB=[
       const [demoZoneFilter,setDemoZoneFilter]=useState('ALL');
       const [glExpandedRow,setGlExpandedRow]=useState(null);
       const [pkgFilter,setPkgFilter]=useState('ALL');
+      const [prioStatus,setPrioStatus]=useState(function(){try{return JSON.parse(localStorage.getItem('gpi:prio-status'))||{};}catch(e){return{};}});
+      const [mfgCustomItems,setMfgCustomItems]=useState({});
+      const [briefNotes,setBriefNotes]=useState(function(){try{return localStorage.getItem('gpi:brief-notes')||'';}catch(e){return'';}});
+      const [briefStrainCat,setBriefStrainCat]=useState('ALL');
       const [obAcct,setObAcct]=useState(null);
       const [obCart,setObCart]=useState({});
       const [obPrices,setObPrices]=useState({});
@@ -1453,7 +1463,11 @@ window._STRAIN_DB=[
                   var mktR=parseCSV(mktCsv);
                   if(mktR.type==='account'&&mktR.data){setPromoAccounts(mktR.data);persist('gpi-promo-accounts',mktR.data);loaded.push(mktR.data.length+' promo accounts');}
                 }
-                if(loaded.length>0){toast('\u2713 Loaded: '+loaded.join(' \u00b7 '));}
+                if(loaded.length>0){
+                  var parsed=['Account Activity','Inventory','Contacts','Marketing'].filter(function(s){return wb.SheetNames.some(function(n){return n.toLowerCase().includes(s.toLowerCase().split(' ')[0]);});});
+                  var skipped=wb.SheetNames.filter(function(n){return!parsed.some(function(p){return n.toLowerCase().includes(p.toLowerCase().split(' ')[0]);});});
+                  toast('\u2713 Loaded: '+loaded.join(' \u00b7 ')+(skipped.length>0?' \u00b7 Skipped sheets: '+skipped.join(', '):''));
+                }
                 else{toast('\u26a0 XLSX parsed but no recognized data found. Sheets: '+wb.SheetNames.join(', '));}
               }catch(err){toast('\u2717 Parse error: '+err.message);}
               finally{setCsvLoading(false);}
@@ -1537,7 +1551,10 @@ window._STRAIN_DB=[
       const velocity=useMemo(function(){if(weeks.length<2)return{added:[],removed:[]};const snapCur=snapshots[weeks[weeks.length-1]]||{},snapPrev=snapshots[weeks[weeks.length-2]]||{},added=[],removed=[],allKeys=Array.from(new Set(Object.keys(snapCur).concat(Object.keys(snapPrev))));allKeys.forEach(function(k){const cs=new Set(snapCur[k]||[]),ps=new Set(snapPrev[k]||[]),strain=parseWMSku(k).strain;cs.forEach(function(d){if(!ps.has(d))added.push({strain:strain,dispensary:d});});ps.forEach(function(d){if(!cs.has(d))removed.push({strain:strain,dispensary:d});});});return{added:added,removed:removed};},[snapshots,weeks]);
 
       function setBatchField(ck,sn,f,v){setMfgBatchData(function(prev){const next=Object.assign({},prev);if(!next[ck])next[ck]={};if(!next[ck].strains)next[ck].strains={};if(!next[ck].strains[sn])next[ck].strains[sn]={};next[ck].strains[sn]=Object.assign({},next[ck].strains[sn],{[f]:v});return next;});}
+      function cyclePrio(key){setPrioStatus(function(prev){var STATES=[null,'done','progress','blocked','skipped'];var cur=prev[key]||null;var idx=STATES.indexOf(cur);var next=STATES[(idx+1)%STATES.length];var n=Object.assign({},prev);if(next===null)delete n[key];else n[key]=next;try{localStorage.setItem('gpi:prio-status',JSON.stringify(n));}catch(e){}return n;});}
       function setBatchCode(ck,v){setMfgBatchData(function(prev){const next=Object.assign({},prev);if(!next[ck])next[ck]={};next[ck]=Object.assign({},next[ck],{batchCode:v});return next;});}
+      function nextInvoiceNum(ck){var existing=[];try{var all=JSON.parse(localStorage.getItem('gpi:invoices')||'[]');existing=all;}catch(e){}var yr=new Date().getFullYear();var count=existing.filter(function(inv){return inv.startsWith('GLB-'+yr);}).length;return'GLB-'+yr+'-'+String(count+1).padStart(3,'0');}
+      function assignInvoice(ck){var num=nextInvoiceNum(ck);setBatchCode(ck,num);try{var all=JSON.parse(localStorage.getItem('gpi:invoices')||'[]');all.push(num);localStorage.setItem('gpi:invoices',JSON.stringify(all));}catch(e){}}
       function setPkgComp(g,id,f,v){setPkgComps(function(prev){const next=JSON.parse(JSON.stringify(prev));if(next[g]&&next[g][id])next[g][id][f]=v;return next;});}
       function persistPkg(){setPkgComps(function(cur){persist("gpi-pkg-comps",cur);return cur;});}
 
@@ -1620,7 +1637,7 @@ window._STRAIN_DB=[
       // ═══ SHARED PIPELINE — single source of truth for drops in production ═══
       // Both Incoming tab and MFG tab read from this
       const PIPELINE=[
-        {label:'Drop #4',status:'SHIPPING',statusKey:'good',eta:'Apr 7',source:'CAM',
+        {label:'Drop #4',status:'SHIPPING',statusKey:'good',eta:'Apr 9',source:'CAM',
           items:[{strain:'Modified Cherries',cat:'Cart',qty:1000},{strain:'Ice Cream Paint Job',cat:'Cart',qty:1000},{strain:'Sweet-N-Sour Diesel',cat:'Cart',qty:1000},{strain:'Headband',cat:'Cart',qty:1000},{strain:'Grandma\'s Cookies',cat:'Cart',qty:1000}],
           stages:[{l:'Extract',done:true},{l:'Fill',done:true},{l:'Lab Test',done:true},{l:'Package',done:true},{l:'Ship',done:false,active:true}]},
         {label:'Drop #5',status:'FORMULATION',statusKey:'warn',eta:'~Apr 18',source:'UpNorth',
@@ -1716,7 +1733,7 @@ window._STRAIN_DB=[
                     );})}
                   </div>
                   <div style={{fontSize:10,color:C.borderHi,letterSpacing:2,marginBottom:16}}>TAP TO SIGN IN</div>
-                  <div style={{fontSize:10,color:C.borderHi,letterSpacing:2}}>CONFIDENTIAL · v6.3</div>
+                  <div style={{fontSize:10,color:C.borderHi,letterSpacing:2}}>CONFIDENTIAL · v7.0</div>
                 </div>)}
 
                 {loginStep===2&&(<div>
@@ -1821,7 +1838,7 @@ window._STRAIN_DB=[
             </div>
           )}
 
-          {(hasData||tab==="financials"||tab==="labels"||tab==="strains"||tab==="yield"||tab==="returns"||tab==="briefing"||tab==="revenue"||tab==="sop"||tab==="security"||tab==="orders"||tab==="pipeline")&&(
+          {(hasData||tab==="financials"||tab==="labels"||tab==="strains"||tab==="yield"||tab==="returns"||tab==="briefing"||tab==="revenue"||tab==="sop"||tab==="security"||tab==="orders"||tab==="pipeline"||tab==="brand"||tab==="investor")&&(
             <>
               <div className="gpi-tab-bar" style={{background:C.bg,borderBottom:'1px solid '+C.border,padding:'0 24px',display:'flex',gap:0,overflowX:'auto',WebkitOverflowScrolling:'touch',alignItems:'flex-end'}}>
                 {killSwitches.maintenanceMode&&<div style={{position:'fixed',top:58,left:0,right:0,background:'#d4a24c',color:'#000',padding:'4px 20px',fontSize:10,fontWeight:700,textAlign:'center',zIndex:49,letterSpacing:2}}>⚠ MAINTENANCE MODE — DATA CHANGES DISABLED</div>}
@@ -1834,10 +1851,10 @@ window._STRAIN_DB=[
                   {[["accounts","Accounts"],["opportunities","Opps"],["dispatch","Dispatch"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
                   <span style={{width:1,alignSelf:'stretch',background:C.border,margin:'6px 10px',flexShrink:0}}></span>
                   <span style={{fontSize:10,color:C.dim,letterSpacing:2,textTransform:'uppercase',padding:'6px 10px 10px 0',flexShrink:0,opacity:0.6}}>MFG</span>
-                  {[["strains","Strains"],["yield","Extraction Log"],["mfg","MFG"],["sop","SOPs"],["labels","Labels"],["packaging","Packaging"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
+                  {[["strains","Strains"],["yield","Ext. Log"],["mfg","MFG"],["sop","SOPs"],["labels","Labels"],["packaging","Packaging"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
                   <span style={{width:1,alignSelf:'stretch',background:C.border,margin:'6px 10px',flexShrink:0}}></span>
                   <span style={{fontSize:10,color:C.dim,letterSpacing:2,textTransform:'uppercase',padding:'6px 10px 10px 0',flexShrink:0,opacity:0.6}}>EXEC</span>
-                  {[["briefing","Briefing"],["executive","Executive"],["financials","Financials"],["returns","Returns"],["revenue","Marketing"],["orders","Orders"],["pipeline","Incoming"],["security","Security"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
+                  {[["briefing","Briefing"],["executive","Executive"],["financials","Financials"],["returns","Returns"],["revenue","Marketing"],["orders","Orders"],["pipeline","Incoming"],["brand","Brand"],["investor","Investor"],["security","Security"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
                   </>
                 )}
               </div>
@@ -1847,7 +1864,7 @@ window._STRAIN_DB=[
                 {tab==="accounts"&&(
                   <>
                     {(function(){var ddMap={};(window._DD||[]).forEach(function(d){ddMap[d[0].toLowerCase().replace(/[^a-z0-9]/g,'')]=d[4];});var uCities={};var acctCount=0;displayAccounts.forEach(function(a){var rev=(a.periodRevenue&&a.periodRevenue[periodDays])||0;if(rev<=0)return;acctCount++;var nk=a.name.toLowerCase().replace(/[^a-z0-9]/g,'');var city=ddMap[nk];if(city)uCities[city]=true;});var tRev=displayAccounts.reduce(function(s,a){return s+(a.periodRevenue&&a.periodRevenue[periodDays]||0);},0);return(
-                    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:12,marginBottom:18,textAlign:'center'}}>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))',gap:12,marginBottom:18,textAlign:'center'}}>
                       <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'14px 10px'}}>
                         <div style={{fontSize:22,fontWeight:900}}>{acctCount}</div>
                         <div style={{fontSize:11,color:C.dim,letterSpacing:1.5,marginTop:2}}>ACTIVE ({periodDays}D)</div>
@@ -1944,7 +1961,7 @@ window._STRAIN_DB=[
                   }
                   var pipelines=[
                     {name:'VAPE CARTS',color:'#6fa8d6',batches:[
-                      {id:'DROP #4 · GLO-VC-016–020',label:'5 Strains · 5,000 units · Shipping Apr 7',units:5000,unitsSold:0,onHand:5000,ws:12,avgPrice:12,total:60000,revSold:0,distroRate:0.16,stage:'TRANSFER',stageDetail:'UpNorth pickup Apr 7 — 5,000 on hand',strains:['Modified Cherries','ICPJ','Sweet n\' Sour Diesel','Headband','Grandma\'s Cookies'],milestones:{MFG:'Feb 18',LAB:'Apr 1',COMPLIANCE:'Apr 6',PKG:'Apr 6',TRANSFER:'Apr 7',COLLECT:'1 period · Apr (6-wk)',PAYOUT:'Jun 12'},salesPeriods:[
+                      {id:'DROP #4 · GLO-VC-016–020',label:'5 Strains · 5,000 units · Shipping Apr 9',units:5000,unitsSold:0,onHand:5000,ws:12,avgPrice:12,total:60000,revSold:0,distroRate:0.16,stage:'TRANSFER',stageDetail:'UpNorth pickup Apr 9 — 5,000 on hand',strains:['Modified Cherries','ICPJ','Sweet n\' Sour Diesel','Headband','Grandma\'s Cookies'],milestones:{MFG:'Feb 18',LAB:'Apr 1',COMPLIANCE:'Apr 6',PKG:'Apr 6',TRANSFER:'Apr 9',COLLECT:'1 period · Apr (6-wk)',PAYOUT:'Jun 12'},salesPeriods:[
                         {month:'Apr',units:20,rev:240,payoutDate:'Jun 12',status:'PENDING'},
                       ],costs:[
                         {label:'Cart Hardware',detail:'VapeCartsCC D742 · 5K × $1.85 · Feb 18',amt:9527.50},
@@ -1956,7 +1973,7 @@ window._STRAIN_DB=[
                         {label:'Testing',detail:'5 strains × $400 (est — awaiting Encore inv)',amt:2000},
                         {label:'Labor',detail:'5,000 × $1.00/unit',amt:5000}
                       ]},
-                      {id:'DROP #2 · Jan 20 Carts',label:'5 Strains · 5,138 produced · 5,044 sold · 94 on hand',units:5138,unitsSold:5044,onHand:94,ws:10,avgPrice:10.24,total:51635,revSold:51635,distroRate:0.16,stage:'SALE',stageDetail:'$51,635 sold · 94 units on hand · avg $10.24',strains:['Wagyu Truffle Butter','Frozen Grapes','Ms Muffin','Sweet-n-Sour Diesel','White Widow'],milestones:{MFG:'Nov 11',LAB:'Jan 14',COMPLIANCE:'Jan 19',PKG:'Jan 19',TRANSFER:'Jan 20',DISTRO:'Jan 21',SALE:'Jan 27–Apr 7',COLLECT:'4 periods · Jan–Apr',PAYOUT:'Mar 13 · Apr 10 · May 8 · Jun 12'},salesPeriods:[
+                      {id:'DROP #2 · Jan 20 Carts',label:'5 Strains · 5,138 produced · 5,044 sold · 94 on hand',units:5138,unitsSold:5044,onHand:94,ws:10,avgPrice:10.24,total:51635,revSold:51635,distroRate:0.16,stage:'SALE',stageDetail:'$51,635 sold · 94 units on hand · avg $10.24',strains:['Wagyu Truffle Butter','Frozen Grapes','Ms Muffin','Sweet-n-Sour Diesel','White Widow'],milestones:{MFG:'Nov 11',LAB:'Jan 14',COMPLIANCE:'Jan 19',PKG:'Jan 19',TRANSFER:'Jan 20',DISTRO:'Jan 21',SALE:'Jan 27–Apr 9',COLLECT:'4 periods · Jan–Apr',PAYOUT:'Mar 13 · Apr 10 · May 8 · Jun 12'},salesPeriods:[
                         {month:'Jan',units:2018,rev:20090,payoutDate:'Mar 13',status:'PAID'},
                         {month:'Feb',units:2300,rev:26205,payoutDate:'Apr 10',status:'DUE'},
                         {month:'Mar',units:1416,rev:12855,payoutDate:'May 8',status:'PENDING'},
@@ -1971,7 +1988,7 @@ window._STRAIN_DB=[
                         {label:'Shrink Bands',detail:'Treeform INV37161 · 5,138 × $0.0176',amt:90.43},
                         {label:'Labor',detail:'5,138 × $1.00/unit',amt:5138}
                       ]},
-                      {id:'DROP #3B · Mar 3 Carts',label:'5 Strains · 4,630 produced · 4,529 sold · 101 on hand',units:4630,unitsSold:4529,onHand:101,ws:10,avgPrice:9.12,total:41304,revSold:41304,distroRate:0.16,stage:'SALE',stageDetail:'$41,304 sold · 101 units on hand · avg $9.12',strains:['Ice Cream Paint Job','Grandma\'s Cookies','Lemon Thai','Hella Oranges','Sweet n\' Sour Diesel'],milestones:{MFG:'Feb 2026',LAB:'Feb 2026',COMPLIANCE:'Mar 3',PKG:'Mar 2',TRANSFER:'Mar 3',DISTRO:'Mar 4',SALE:'Mar 4–Apr 7',COLLECT:'2 periods · Mar–Apr',PAYOUT:'May 8 · Jun 12'},salesPeriods:[
+                      {id:'DROP #3B · Mar 3 Carts',label:'5 Strains · 4,630 produced · 4,529 sold · 101 on hand',units:4630,unitsSold:4529,onHand:101,ws:10,avgPrice:9.12,total:41304,revSold:41304,distroRate:0.16,stage:'SALE',stageDetail:'$41,304 sold · 101 units on hand · avg $9.12',strains:['Ice Cream Paint Job','Grandma\'s Cookies','Lemon Thai','Hella Oranges','Sweet n\' Sour Diesel'],milestones:{MFG:'Feb 2026',LAB:'Feb 2026',COMPLIANCE:'Mar 3',PKG:'Mar 2',TRANSFER:'Mar 3',DISTRO:'Mar 4',SALE:'Mar 4–Apr 9',COLLECT:'2 periods · Mar–Apr',PAYOUT:'May 8 · Jun 12'},salesPeriods:[
                         {month:'Mar',units:4461,rev:39605,payoutDate:'May 8',status:'PENDING'},
                         {month:'Apr',units:207,rev:1670,payoutDate:'Jun 12',status:'PENDING'},
                       ],costs:[
@@ -1996,7 +2013,7 @@ window._STRAIN_DB=[
                         {label:'Concentrate Boxes',detail:'5,766 × $0.16',amt:922.56},
                         {label:'Labor',detail:'5,766 × $1.00/unit',amt:5766}
                       ]},
-                      {id:'DROP #3B · Mar 3 Sauce',label:'4 Strains · 3,968 produced · 1,689 sold · 2,279 on hand',units:3968,unitsSold:1689,onHand:2279,ws:8,avgPrice:7.41,total:29398,revSold:12515,distroRate:0.16,stage:'SALE',stageDetail:'$12,515 sold · 2,279 units on hand · avg $7.41',strains:['Hella Oranges','Ice Cream Paint Job','Strawberry Milk','Sweet-N-Sour Diesel'],milestones:{MFG:'Feb 2026',LAB:'Feb 2026',COMPLIANCE:'Mar 2',PKG:'Mar 2',TRANSFER:'Mar 3',DISTRO:'Mar 4',SALE:'Mar 10–Apr 7',COLLECT:'2 periods · Mar–Apr',PAYOUT:'May 8 · Jun 12'},salesPeriods:[
+                      {id:'DROP #3B · Mar 3 Sauce',label:'4 Strains · 3,968 produced · 1,689 sold · 2,279 on hand',units:3968,unitsSold:1689,onHand:2279,ws:8,avgPrice:7.41,total:29398,revSold:12515,distroRate:0.16,stage:'SALE',stageDetail:'$12,515 sold · 2,279 units on hand · avg $7.41',strains:['Hella Oranges','Ice Cream Paint Job','Strawberry Milk','Sweet-N-Sour Diesel'],milestones:{MFG:'Feb 2026',LAB:'Feb 2026',COMPLIANCE:'Mar 2',PKG:'Mar 2',TRANSFER:'Mar 3',DISTRO:'Mar 4',SALE:'Mar 10–Apr 9',COLLECT:'2 periods · Mar–Apr',PAYOUT:'May 8 · Jun 12'},salesPeriods:[
                         {month:'Mar',units:903,rev:6785,payoutDate:'May 8',status:'PENDING'},
                         {month:'Apr',units:516,rev:3725,payoutDate:'Jun 12',status:'PENDING'},
                       ],costs:[
@@ -2006,7 +2023,7 @@ window._STRAIN_DB=[
                         {label:'Concentrate Boxes',detail:'3,968 × $0.16',amt:634.88},
                         {label:'Labor',detail:'3,968 × $1.00/unit',amt:3968}
                       ]},
-                      {id:'DROP #5 · Badder',label:'6 Strains · 6,000 units · In Production — SNSD, ICPJ, GC, FG, MC, HB',units:6000,unitsSold:0,onHand:0,ws:8,avgPrice:8,total:48000,revSold:0,distroRate:0.16,stage:'MFG',stageDetail:'Greenline started batch — 6 strains × 1,000u',strains:['Sweet-N-Sour Diesel','Ice Cream Paint Job','Grandmas Cookies','Frozen Grapes','Modified Cherries','Headband'],milestones:{MFG:'Apr 7',LAB:'TBD',COMPLIANCE:'TBD',PKG:'TBD',TRANSFER:'TBD',COLLECT:'TBD',PAYOUT:'TBD'},cashStart:'2025-10-01',salesPeriods:[],costs:[
+                      {id:'DROP #5 · Badder',label:'6 Strains · 6,000 units · In Production — SNSD, ICPJ, GC, FG, MC, HB',units:6000,unitsSold:0,onHand:0,ws:8,avgPrice:8,total:48000,revSold:0,distroRate:0.16,stage:'MFG',stageDetail:'Greenline started batch — 6 strains × 1,000u',strains:['Sweet-N-Sour Diesel','Ice Cream Paint Job','Grandmas Cookies','Frozen Grapes','Modified Cherries','Headband'],milestones:{MFG:'Apr 9',LAB:'TBD',COMPLIANCE:'TBD',PKG:'TBD',TRANSFER:'TBD',COLLECT:'TBD',PAYOUT:'TBD'},cashStart:'2025-10-01',salesPeriods:[],costs:[
                         {label:'Jars + Caps',detail:'Treeform INV36807 · Oct 1 2025 · 6,000 of 15,190 @ $0.35',amt:2100},
                         {label:'Extract (GL)',detail:'6,000g × $1.30/g · pre-formulated',amt:7800},
                         {label:'Testing',detail:'6 strains × $400 (est)',amt:2400},
@@ -2408,7 +2425,7 @@ window._STRAIN_DB=[
                         <div><div style={{fontSize:14,fontWeight:800,letterSpacing:3}}>MANUFACTURING ORDER</div><div style={{fontSize:11,color:C.dim,marginTop:3}}>{mfgVelocity.length} active SKUs · {mfgTargetWeeks}wk target · 1,000g/batch</div></div>
                         <div style={{display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
                           <div style={{display:'flex',alignItems:'center',gap:6}}><span style={{fontSize:11,color:C.dim,letterSpacing:1,textTransform:'uppercase'}}>Target</span>{[2,4,6,8,12].map(function(w){return<button key={w} onClick={function(){setMfgTargetWeeks(w);}} style={{padding:'3px 9px',borderRadius:2,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(mfgTargetWeeks===w?C.text:C.border),background:mfgTargetWeeks===w?C.text:'transparent',color:mfgTargetWeeks===w?C.bg:C.dim}}>{w}wk</button>;})}</div>
-                          <button onClick={function(){var el=document.getElementById('mfg-order-screenshot');if(!el||!window.html2canvas){return;}var hide=el.querySelectorAll('.no-screenshot');hide.forEach(function(h){h.style.display='none';});html2canvas(el,{backgroundColor:'#0a0a0a',scale:2}).then(function(canvas){hide.forEach(function(h){h.style.display='';});canvas.toBlob(function(blob){if(navigator.share){var file=new File([blob],'globs-order.png',{type:'image/png'});navigator.share({files:[file],title:'Globs MFG Order'}).catch(function(){});}else{var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='globs-order.png';a.click();}});}).catch(function(){hide.forEach(function(h){h.style.display='';});});}} style={{padding:'7px 16px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.info,background:C.info+'22',color:C.info,letterSpacing:0.5}}>{'\uD83D\uDCF2'} Share Order Forms</button>
+                          <button onClick={function(){var el=document.getElementById('mfg-order-screenshot');if(!el||!window.html2canvas){return;}var hide=el.querySelectorAll('.no-screenshot');hide.forEach(function(h){h.style.display='none';});var empty=el.querySelectorAll('[data-mfg-qty="0"]');empty.forEach(function(h){h.style.display='none';});el.style.padding='16px';el.style.background='#0a0a0a';html2canvas(el,{backgroundColor:'#0a0a0a',scale:3,useCORS:true}).then(function(canvas){el.style.padding='';el.style.background='';hide.forEach(function(h){h.style.display='';});empty.forEach(function(h){h.style.display='';});canvas.toBlob(function(blob){if(navigator.share){var file=new File([blob],'globs-order.png',{type:'image/png'});navigator.share({files:[file],title:'Globs MFG Order'}).catch(function(){});}else{var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='globs-order.png';a.click();}});}).catch(function(){el.style.padding='';el.style.background='';hide.forEach(function(h){h.style.display='';});empty.forEach(function(h){h.style.display='';});});}} style={{padding:'7px 16px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.info,background:C.info+'22',color:C.info,letterSpacing:0.5}}>{'\uD83D\uDCF2'} Share Order Forms</button>
                         </div>
                       </div>
                       {activeCats.length>0&&(
@@ -2454,7 +2471,7 @@ window._STRAIN_DB=[
                                     var cr=CROSS_MAP[pickedStrain]||'';
                                     if(!cr&&pickedLookup&&pickedLookup.d){var mx=pickedLookup.d.match(/[–—]\s*([A-Z][\w\s'\.]+?)\s*[x\u00d7]\s*([A-Z][\w\s'\.]+?)(?:\s+(?:brings|delivers|blends|combines|creates|gives|hits|offers|serves|pours|produces|mixes|tastes|fuses|layers|unites|is|pairs|drips|explodes|ignites|fires|erupts|takes|keeps|bursts|radiates|overflows|smells|pops))/);if(mx)cr=mx[1].trim()+' \u00d7 '+mx[2].trim();if(!cr){var mx2=pickedLookup.d.match(/([A-Z][\w\s'\.]+?)\s*[x\u00d7]\s*([A-Z][\w\s'\.]+?)(?:\s+(?:brings|delivers|blends|combines|creates|gives|hits|offers|serves|tastes|fuses|layers|mixes|pours|produces|pairs|explodes|drips))/);if(mx2)cr=mx2[1].trim()+' \u00d7 '+mx2[2].trim();}}
                                     return(
-                                    <div key={i} style={{borderLeft:'3px solid '+typeColor(s.type)+'66',background:i%2===0?'transparent':C.raised,padding:'10px 12px',marginBottom:1}}>
+                                    <div key={i} data-mfg-qty={sf.hte&&sf.hteG?'1':'0'} style={{borderLeft:'3px solid '+typeColor(s.type)+'66',background:i%2===0?'transparent':C.raised,padding:'10px 12px',marginBottom:1}}>
                                       <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
                                         <span style={{fontSize:11,color:C.dim,width:18}}>{i+1}</span>
                                         <span style={{fontSize:10,fontWeight:700,color:typeColor(s.type),background:typeColor(s.type)+'22',border:'1px solid '+typeColor(s.type)+'44',borderRadius:3,padding:'2px 6px'}}>{s.type.slice(0,3).toUpperCase()}</span>
@@ -2477,9 +2494,45 @@ window._STRAIN_DB=[
                                     </div>
                                   );})}
                                   {strainRows.length===0&&<div style={{padding:'12px 14px',color:C.dim,fontSize:11}}>Upload account activity CSV to see strain suggestions</div>}
+                                  {/* Custom extra strain slots */}
+                                  {(mfgCustomItems[cat.key]||[]).map(function(ci,ci_idx){
+                                    var extraIdx=strainRows.length+ci_idx;
+                                    var pickKey=cat.key+'_extra_'+ci_idx;
+                                    var pickedStrain=mfgStrainPick[pickKey]||'';
+                                    var pickedLookup=pickedStrain?strainLookup(pickedStrain):null;
+                                    var sf=pickedStrain?((mfgBatchData[cat.key]&&mfgBatchData[cat.key].strains)||{})[pickedStrain]||{}:{};
+                                    var allStrains=STRAIN_DB.map(function(db){var nk=db.n.toLowerCase().replace(/[^a-z0-9]/g,'');var vel=0;mfgVelocity.forEach(function(v){if(v.strain.toLowerCase().replace(/[^a-z0-9]/g,'')===nk)vel+=v.weeklyVel;});return{n:db.n,t:db.t,vel:Math.round(vel*10)/10};}).sort(function(a,b){return b.vel-a.vel||a.n.localeCompare(b.n);});
+                                    var cr='';if(pickedStrain){var cdb=(window._STRAIN_DB||[]);var cMatch=cdb.find(function(cs){return cs.n.toLowerCase().replace(/[^a-z0-9]/g,'')===pickedStrain.toLowerCase().replace(/[^a-z0-9]/g,'');});if(cMatch&&cMatch.c)cr=cMatch.c.replace(/\bx\b/gi,' \u00d7 ');}
+                                    var tc=pickedLookup?typeColor(pickedLookup.t):'#EF9F27';
+                                    return(
+                                    <div key={'extra'+ci_idx} data-mfg-qty={sf.hte&&sf.hteG?'1':'0'} style={{borderLeft:'3px solid '+tc+'66',background:extraIdx%2===0?'transparent':C.raised,padding:'10px 12px',marginBottom:1}}>
+                                      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+                                        <span style={{fontSize:11,color:'#EF9F27',width:18,fontWeight:700}}>+</span>
+                                        <span style={{fontSize:10,fontWeight:700,color:pickedLookup?tc:'#EF9F27',background:(pickedLookup?tc:'#EF9F27')+'22',border:'1px solid '+(pickedLookup?tc:'#EF9F27')+'44',borderRadius:3,padding:'2px 6px'}}>{pickedLookup?pickedLookup.t.slice(0,3).toUpperCase():'EXTRA'}</span>
+                                        <div style={{flex:1,minWidth:0}}>
+                                          <select value={pickedStrain} onChange={function(e){setMfgStrainPick(function(p){var n=Object.assign({},p);n[pickKey]=e.target.value;return n;});}} style={{fontSize:13,fontWeight:600,background:C.surface,color:C.text,border:'1px solid '+C.border,borderRadius:4,padding:'4px 8px',width:'100%',fontFamily:'inherit',cursor:'pointer'}}>
+                                            <option value="">Select strain...</option>
+                                            {allStrains.map(function(ts){return<option key={ts.n} value={ts.n}>{ts.n+(ts.vel>0?' \u2014 '+ts.vel+'/wk':'')}</option>;})}
+                                          </select>
+                                          {cr&&<div style={{fontSize:10,color:C.dim,fontStyle:'italic',marginTop:2}}>{cr}</div>}
+                                        </div>
+                                        <button className="no-screenshot" onClick={function(){setMfgCustomItems(function(p){var n=Object.assign({},p);var arr=(n[cat.key]||[]).slice();arr.splice(ci_idx,1);n[cat.key]=arr;return n;});}} style={{fontSize:12,color:C.danger,background:'transparent',border:'none',cursor:'pointer',padding:'2px 6px'}}>✕</button>
+                                      </div>
+                                      {pickedStrain&&<div style={{display:'grid',gridTemplateColumns:'1fr auto',gap:6,marginLeft:26}}>
+                                        <input placeholder="HTE-XXXX" value={sf.hte||''} onChange={function(e){setBatchField(cat.key,pickedStrain,'hte',e.target.value);}} style={Object.assign({},inp2,{width:'100%',textAlign:'left'})}/>
+                                        <input type="number" placeholder="g" value={sf.hteG||''} onChange={function(e){setBatchField(cat.key,pickedStrain,'hteG',e.target.value);}} style={Object.assign({},inp2,{width:60,textAlign:'right'})}/>
+                                        {cat.hasLqd&&<input placeholder="LQD-XXXX" value={sf.lqd||''} onChange={function(e){setBatchField(cat.key,pickedStrain,'lqd',e.target.value);}} style={Object.assign({},inp2,{width:'100%',textAlign:'left'})}/>}
+                                        {cat.hasLqd&&<input type="number" placeholder="g" value={sf.lqdG||''} onChange={function(e){setBatchField(cat.key,pickedStrain,'lqdG',e.target.value);}} style={Object.assign({},inp2,{width:60,textAlign:'right'})}/>}
+                                        {cat.hasThca&&<input placeholder="THCA-XXXX" value={sf.thca||''} onChange={function(e){setBatchField(cat.key,pickedStrain,'thca',e.target.value);}} style={Object.assign({},inp2,{width:'100%',textAlign:'left'})}/>}
+                                        {cat.hasThca&&<input type="number" placeholder="g" value={sf.thcaG||''} onChange={function(e){setBatchField(cat.key,pickedStrain,'thcaG',e.target.value);}} style={Object.assign({},inp2,{width:60,textAlign:'right'})}/>}
+                                      </div>}
+                                    </div>);
+                                  })}
+                                  <button onClick={function(){setMfgCustomItems(function(p){var n=Object.assign({},p);if(!n[cat.key])n[cat.key]=[];n[cat.key]=n[cat.key].concat([{strain:'',qty:'',price:''}]);return n;});}} style={{width:'100%',padding:'8px 0',fontSize:11,fontWeight:700,color:'#f5a623',background:'#f5a62311',border:'1px dashed #f5a62344',borderRadius:3,cursor:'pointer',fontFamily:'inherit',marginTop:4,marginBottom:4}}>+ Add Custom Line Item</button>
                                   <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 12px',background:C.raised,borderTop:'1px solid '+C.borderHi,marginTop:4}}>
-                                    <input placeholder={cat.label.slice(0,3).toUpperCase()+'-2026-001'} value={(mfgBatchData[cat.key]&&mfgBatchData[cat.key].batchCode)||''} onChange={function(e){setBatchCode(cat.key,e.target.value);}} style={Object.assign({},inp2,{width:140,fontWeight:700})}/>
-                                    <span style={{fontSize:10,color:C.dim}}>batch code</span>
+                                    <input placeholder={'GLB-2026-'+String(activeCats.indexOf(cat)+1).padStart(3,'0')} value={(mfgBatchData[cat.key]&&mfgBatchData[cat.key].batchCode)||''} onChange={function(e){setBatchCode(cat.key,e.target.value);}} style={Object.assign({},inp2,{width:130,fontWeight:700})}/>
+                                    <button className="no-screenshot" onClick={function(){assignInvoice(cat.key);}} style={{fontSize:9,padding:'3px 8px',borderRadius:2,border:'1px solid '+C.info,background:C.info+'22',color:C.info,cursor:'pointer',fontFamily:'inherit',fontWeight:700}}>Auto #</button>
+                                    <span style={{fontSize:10,color:C.dim}}>invoice #</span>
                                     <span style={{fontSize:11,color:C.dim,marginLeft:'auto'}}>{batches}×1,000 units · ${batchUnits.toLocaleString()} labor</span>
                                   </div>
                                 </div>
@@ -2841,7 +2894,7 @@ window._STRAIN_DB=[
                   window._dRepMap={};displayAccounts.forEach(function(da){window._dRepMap[da.name.replace(/ - Corporate$/i,'')]=da.rep||'';});
                   window._goAcct=function(nm){if(window._setTab)window._setTab('accounts');setTimeout(function(){var sb=document.querySelector('input[placeholder*="Search"]');if(sb){var ns=Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set;ns.call(sb,nm.split(' ').slice(0,2).join(' '));sb.dispatchEvent(new Event('input',{bubbles:true}));}},300);};
                   window._dClick=function(ct){var det=document.getElementById('gpi-ddet');if(!det)return;var city=window._dCities.find(function(c){return c.ct===ct;});if(!city){det.style.display='none';return;}var zc=window._dZC;var tc=window._dTC;var tn=window._dTN;var zn=window._dZN;var ck=window._curK;var rep=window._dRep||'ALL';var filtAccts=rep!=='ALL'?city.accts.filter(function(a){return(window._dRepMap[a.nm]||'')===rep;}):city.accts;var filtRev=filtAccts.reduce(function(s,a){return s+a.rv;},0);var h='<div style="display:flex;justify-content:space-between;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #222"><b style="font-size:14px">'+city.ct+'</b><b style="color:'+zc[city.z]+'">'+ck(filtRev)+' · '+filtAccts.length+' accts</b></div>';filtAccts.forEach(function(a){h+='<div style="margin-bottom:6px;padding:8px;background:#111;border-radius:4px;border-left:3px solid '+tc[a.tr]+';cursor:pointer" onclick="window._goAcct(\''+a.nm.replace(/'/g,'').replace(/"/g,'')+'\')">';h+='<div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-weight:700;color:'+tc[a.tr]+';font-size:11px">'+a.nm+'</span><span style="font-weight:800;color:#fff">'+ck(a.rv)+'</span></div>';h+='<div style="display:flex;gap:8px;font-size:8px;color:#666"><span style="border:1px solid '+tc[a.tr]+'33;padding:0 4px;border-radius:2px;color:'+tc[a.tr]+'">'+tn[a.tr]+'</span><span>'+zn[city.z]+'</span></div></div>';});if(filtAccts.length===0)h+='<div style="text-align:center;color:#555;font-size:10px;padding:12px">No accounts for this rep in '+city.ct+'</div>';h+='<div style="margin-top:6px;text-align:center;font-size:8px;color:#555;cursor:pointer" onclick="document.getElementById(\'gpi-ddet\').style.display=\'none\'">dismiss</div>';det.innerHTML=h;det.style.display='block';det.style.border='1px solid '+zc[city.z]+'44';};
-                  var ZONES=[{key:"DNU",name:"NorCal",color:"#ffeb3b",vb:'-15 25 160 155',hub:AR2,star:"14,48 16,53 22,53 17,57 19,62 14,58 9,62 11,57 6,53 12,53",ss:"#000"},{key:"RB",name:"Central CA",color:"#6fa8d6",vb:'-25 115 190 165',hub:RV,star:"99,176 101,181 107,181 102,185 104,190 99,186 94,190 96,185 91,181 97,181",ss:"#fff"},{key:"ZASP",name:"SoCal",color:"#f44336",vb:'50 230 230 195',hub:LA2,star:"172,327 174,332 180,332 175,336 177,341 172,337 167,341 169,336 164,332 170,332",ss:"#fff"}];
+                  var ZONES=[{key:"DNU",name:"NorCal",color:"#ffeb3b",mgr:'Eric Ervin',vb:'-15 25 160 155',hub:AR2,star:"14,48 16,53 22,53 17,57 19,62 14,58 9,62 11,57 6,53 12,53",ss:"#000"},{key:"RB",name:"Central CA",color:"#6fa8d6",mgr:'Eric Ervin',vb:'-25 115 190 165',hub:RV,star:"99,176 101,181 107,181 102,185 104,190 99,186 94,190 96,185 91,181 97,181",ss:"#fff"},{key:"ZASP",name:"SoCal",color:"#f44336",mgr:'Brandyn',vb:'50 230 230 195',hub:LA2,star:"172,327 174,332 180,332 175,336 177,341 172,337 167,341 169,336 164,332 170,332",ss:"#fff"}];
                   function buildZone(zone){
                     var zCities=cities.filter(function(c){return c.z===zone.key;}).sort(function(a,b){return b.tot-a.tot;});
                     var zAccts=accts.filter(function(a){return a.z===zone.key;});
@@ -2990,7 +3043,7 @@ window._STRAIN_DB=[
                     var drawRev=isRepFiltered?drawCities.reduce(function(s,c2){return s+c2.accts.filter(function(a2){var acc2=displayAccounts.find(function(da){return da.name.replace(/ - Corporate$/i,'')===a2.nm;});return acc2&&acc2.rep===filteredRep;}).reduce(function(s2,a2){return s2+a2.rv;},0);},0):zRev;
                     return React.createElement('div',{key:zone.key,style:{flex:'1 1 30%',minWidth:260}},
                       React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6,padding:'8px 12px',background:zone.color+'11',borderRadius:4,border:'1px solid '+zone.color+'33'}},
-                        React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6}},React.createElement('span',{style:{width:10,height:10,borderRadius:'50%',background:zone.color,display:'inline-block'}}),React.createElement('span',{style:{fontSize:13,fontWeight:700}},zone.name),isRepFiltered&&React.createElement('span',{style:{fontSize:11,color:zone.color,marginLeft:4}},'· '+(repObj2?repObj2.name:filteredRep.split(' ')[0]))),
+                        React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6}},React.createElement('span',{style:{width:10,height:10,borderRadius:'50%',background:zone.color,display:'inline-block'}}),React.createElement('span',{style:{fontSize:13,fontWeight:700}},zone.name),zone.mgr&&!isRepFiltered&&React.createElement('span',{style:{fontSize:10,color:C.dim,marginLeft:2}},'\u00b7 '+zone.mgr),isRepFiltered&&React.createElement('span',{style:{fontSize:11,color:zone.color,marginLeft:4}},'· '+(repObj2?repObj2.name:filteredRep.split(' ')[0]))),
                         React.createElement('div',{style:{textAlign:'right'}},React.createElement('div',{style:{fontSize:14,fontWeight:800}},curK(drawRev)),React.createElement('div',{style:{fontSize:11,color:C.dim}},drawCities.length+' cities · '+(isRepFiltered?drawCities.reduce(function(s,c2){return s+c2.accts.filter(function(a2){var acc2=displayAccounts.find(function(da){return da.name.replace(/ - Corporate$/i,'')===a2.nm;});return acc2&&acc2.rep===filteredRep;}).length;},0):zAccts.length)+' accts'))),
                       React.createElement('div',{className:'zone-flip-container'},
                         React.createElement('div',{className:'zone-flip-inner'+(isFlipped?' flipped':''),style:{minHeight:310}},
@@ -3385,7 +3438,7 @@ window._STRAIN_DB=[
                       {showNewStrain&&(
                         <div style={{background:C.surface,border:'1px solid '+C.borderHi,borderRadius:6,padding:20,marginBottom:16}}>
                           <div style={{fontSize:10,fontWeight:700,letterSpacing:1.5,textTransform:'uppercase',color:C.muted,marginBottom:14}}>New Strain Intake</div>
-                          <div className='gpi-zone-grid' style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:12,marginBottom:12}}>
+                          <div className='gpi-zone-grid' style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))',gap:12,marginBottom:12}}>
                             <div><div style={{fontSize:11,color:C.dim,letterSpacing:1,marginBottom:4}}>STRAIN NAME *</div><input value={newStrain.name} onChange={function(e){setNewStrain(Object.assign({},newStrain,{name:e.target.value}));}} placeholder="e.g. Purple Thunder" style={Object.assign({},inp2,{width:'100%'})}/></div>
                             <div><div style={{fontSize:11,color:C.dim,letterSpacing:1,marginBottom:4}}>GENETICS</div><select value={newStrain.type} onChange={function(e){setNewStrain(Object.assign({},newStrain,{type:e.target.value}));}} style={Object.assign({},inp2,{width:'100%',cursor:'pointer'})}><option value="Indica">Indica</option><option value="Sativa">Sativa</option><option value="Hybrid">Hybrid</option></select></div>
                             <div><div style={{fontSize:11,color:C.dim,letterSpacing:1,marginBottom:4}}>CROSS (LINEAGE)</div><input value={newStrain.cross} onChange={function(e){setNewStrain(Object.assign({},newStrain,{cross:e.target.value}));}} placeholder="e.g. GDP x Kush Mints" style={Object.assign({},inp2,{width:'100%'})}/></div>
@@ -3460,10 +3513,12 @@ window._STRAIN_DB=[
 
                   if(!displayAccounts.length)return React.createElement('div',{style:{padding:'60px 24px',textAlign:'center'}},React.createElement('div',{style:{fontSize:14,fontWeight:700,marginBottom:8,color:C.text}},'No account data loaded'),React.createElement('div',{style:{fontSize:12,color:C.muted,lineHeight:2}},'Upload Salesforce XLSX to populate opportunities.'));
 
-                  // ── Inventory + Allocation (category-based, no zone dependency) ──
+                  // ── Inventory + Allocation (zone-aware) ──
                   var invPool={};
+                  var zoneInvKey=oZone==='RB'?'bayArea':oZone==='ZASP'?'socal':oZone==='DNU'?'farNorth':null;
                   Object.keys(inventoryData).forEach(function(sku){
-                    var inv=inventoryData[sku];var oh=parseInt(inv.onHand)||0;
+                    var inv=inventoryData[sku];
+                    var oh=zoneInvKey?parseInt(inv[zoneInvKey])||0:parseInt(inv.onHand)||0;
                     if(oh>0)invPool[nk(sku)]={sku:sku,onHand:oh,rem:oh};
                   });
                   var inStockCount=Object.keys(invPool).length;
@@ -3475,17 +3530,32 @@ window._STRAIN_DB=[
                   var alloc={};var allocCount=0;
                   OPP.forEach(function(o){
                     var budget=o.budget;var spent=0;var lineArr=[];
+                    // Build category mix from historical orders
+                    var catMix={};var totalHistQty=0;
+                    o.skus.forEach(function(s){
+                      var cl=(s.category||'').toLowerCase();
+                      var cat=cl.includes('cart')||cl.includes('vape')?'cart':cl.includes('badder')?'badder':cl.includes('sauce')?'sauce':cl.includes('diamond')?'diamonds':cl.includes('batter')?'battery':'other';
+                      if(cat==='other')return;
+                      var q=s.totalQty||0;
+                      if(!catMix[cat])catMix[cat]={qty:0,count:0};
+                      catMix[cat].qty+=q;catMix[cat].count++;totalHistQty+=q;
+                    });
+                    // Compute avg qty per order per category
+                    var orderCount=Math.max(1,o.orders);
+                    Object.keys(catMix).forEach(function(c){catMix[c].avgPerOrder=Math.round(catMix[c].qty/orderCount);catMix[c].ratio=totalHistQty>0?catMix[c].qty/totalHistQty:0;});
                     Object.keys(invPool).forEach(function(k){
                       if(spent>=budget)return;
                       var p=invPool[k];if(p.rem<=0)return;
                       var cat=skuCat(p.sku);if(cat==='other')return;
                       if(!buysCat(o,cat))return;
                       var ws=catWs(cat);
-                      var maxU=Math.floor((budget-spent)/ws);
-                      var qty=Math.min(20,p.rem,maxU);
-                      qty=Math.floor(qty/5)*5;
-                      if(qty<5&&p.rem>=2&&(budget-spent)>=ws*2)qty=Math.min(p.rem,Math.ceil((budget-spent)/ws));
-                      if(qty<1)return;
+                      // Use historical avg or fallback to budget-based
+                      var catBudget=catMix[cat]?Math.round(budget*catMix[cat].ratio):Math.floor(budget/3);
+                      var targetQty=catMix[cat]&&catMix[cat].avgPerOrder>0?Math.min(catMix[cat].avgPerOrder,Math.floor(catBudget/ws)):Math.floor(catBudget/ws);
+                      var qty=Math.min(targetQty,p.rem,Math.floor((budget-spent)/ws));
+                      qty=Math.max(0,Math.floor(qty/5)*5);
+                      if(qty<5&&p.rem>=5&&(budget-spent)>=ws*5)qty=5;
+                      if(qty<5)return;
                       p.rem-=qty;spent+=qty*ws;
                       var strain=p.sku.replace(/^Globs\s*-\s*/i,'').split(' - ')[0].trim();
                       var catLabel=cat==='cart'?'Vape Cart - Live Resin':cat.charAt(0).toUpperCase()+cat.slice(1);
@@ -3498,8 +3568,11 @@ window._STRAIN_DB=[
                   var pctAlloc=totalInvStart>0?Math.round((totalInvStart-totalRemaining)/totalInvStart*100):0;
 
                   // Filters
-                  var repSet={};OPP.forEach(function(o){if(o.rep)repSet[o.rep]=true;});
+                  var repSet={};var repZoneMap={};OPP.forEach(function(o){if(o.rep){repSet[o.rep]=true;if(!repZoneMap[o.rep])repZoneMap[o.rep]={};repZoneMap[o.rep][o.zone]=(repZoneMap[o.rep][o.zone]||0)+1;}});
+                  // Include ALL reps from displayAccounts so filter shows everyone
+                  displayAccounts.forEach(function(a){if(a.rep){repSet[a.rep]=true;var zRaw=(a.zone||'').trim();var z=zRaw.toLowerCase().includes('upnorth')||zRaw==='RB UpNorth'?'RB':zRaw.toLowerCase().includes('dnu')||zRaw.toLowerCase().includes('yz')?'DNU':zRaw==='ZASP'||zRaw.toLowerCase().includes('zasp')?'ZASP':'RB';if(!repZoneMap[a.rep])repZoneMap[a.rep]={};repZoneMap[a.rep][z]=(repZoneMap[a.rep][z]||0)+1;}});
                   var uniqueReps=Object.keys(repSet).sort();
+                  function repToZone(rep){var zm=repZoneMap[rep];if(!zm)return'ALL';var best='ALL',max=0;Object.keys(zm).forEach(function(z){if(zm[z]>max){max=zm[z];best=z;}});return best;}
                   var oFilt=OPP.filter(function(o){
                     if(oZone!=="ALL"){var z=o.zone==="DNU"||o.zone==="YZ"?"DNU":o.zone;if(z!==oZone)return false;}
                     if(oStatus!=="ALL"&&o.status!==oStatus)return false;
@@ -3534,7 +3607,7 @@ window._STRAIN_DB=[
                       ),
                       authRole==='exec'?React.createElement('div',{style:{marginBottom:8}},
                         React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:6}},'REP'),
-                        React.createElement('div',{style:{display:'flex',background:C.surface,borderRadius:8,border:'1px solid '+C.border,overflow:'hidden',overflowX:'auto',WebkitOverflowScrolling:'touch'}},["ALL"].concat(uniqueReps).map(function(r,i,arr){return React.createElement('button',{key:r,onClick:function(){setORep(r);},style:{flex:'0 0 auto',padding:'10px 14px',fontSize:12,fontWeight:oRep===r?700:400,border:'none',borderRight:i<arr.length-1?'1px solid '+C.border:'none',background:oRep===r?C.text:'transparent',color:oRep===r?C.bg:C.muted,fontFamily:'inherit',cursor:'pointer',whiteSpace:'nowrap'}},r==="ALL"?"All":r.split(' ')[0]);}))
+                        React.createElement('div',{style:{display:'flex',background:C.surface,borderRadius:8,border:'1px solid '+C.border,overflow:'hidden',overflowX:'auto',WebkitOverflowScrolling:'touch'}},["ALL"].concat(uniqueReps).map(function(r,i,arr){return React.createElement('button',{key:r,onClick:function(){setORep(r);if(r==='ALL')setOZone('ALL');else setOZone(repToZone(r));},style:{flex:'0 0 auto',padding:'10px 14px',fontSize:12,fontWeight:oRep===r?700:400,border:'none',borderRight:i<arr.length-1?'1px solid '+C.border:'none',background:oRep===r?C.text:'transparent',color:oRep===r?C.bg:C.muted,fontFamily:'inherit',cursor:'pointer',whiteSpace:'nowrap'}},r==="ALL"?"All":r.split(' ')[0]);}))
                       ):authUser&&authUser.repName?React.createElement('div',{style:{padding:'6px 12px',background:'#6fa8d611',border:'1px solid #6fa8d633',borderRadius:4,fontSize:10,color:'#6fa8d6',fontWeight:600}},'\u{1F464} '+authUser.name+' · '+(authUser.repName||'')):null
                     ),
                     React.createElement('div',{style:{display:'flex',gap:8,marginBottom:16,alignItems:'center',flexWrap:'wrap'}},
@@ -4115,8 +4188,10 @@ window._STRAIN_DB=[
                       React.createElement('div',{style:{display:'flex',gap:16,fontSize:10,color:C.muted,flexWrap:'wrap'}},
                         React.createElement('span',null,'\u25CF $'+totalRev.toLocaleString()+' revenue'),
                         React.createElement('span',null,'\u25CF '+totalSold.toLocaleString()+' sold'),
-                        React.createElement('span',null,'\u25CF '+totalOH.toLocaleString()+' on hand')
-                      )
+                        React.createElement('span',null,'\u25CF '+totalOH.toLocaleString()+' on hand'),
+                        React.createElement('span',{style:{color:C.warn}},'\u25CF ~7d lag pickup \u2192 menu')
+                      ),
+                      (function(){var totalProduced=DROPS.reduce(function(s,d){return s+d.produced;},0);var gap=totalProduced-totalSold-totalOH;return gap>0?React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:6}},totalProduced.toLocaleString()+' produced \u2212 '+totalSold.toLocaleString()+' sold \u2212 '+totalOH.toLocaleString()+' OH = '+gap.toLocaleString()+' in production'):null;})()
                     ),
                     // ── MARGIN SUMMARY ──
                     React.createElement('div',{style:{background:blendedMargin>35?C.good+'15':blendedMargin>20?C.warn+'15':C.danger+'15',border:'1px solid '+(blendedMargin>35?C.good:blendedMargin>20?C.warn:C.danger)+'33',borderRadius:8,padding:'14px 16px',marginBottom:20,display:'flex',justifyContent:'space-between',alignItems:'center'}},
@@ -4207,42 +4282,85 @@ window._STRAIN_DB=[
                       React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:10,textAlign:'right'}},
                         PIPELINE.reduce(function(s,d){return s+d.items.reduce(function(s2,i){return s2+i.qty;},0);},0).toLocaleString()+' total units in pipeline')
                     ),
+                    // ── INVENTORY DEPLETION TRACKER ──
+                    mfgVelocity.length>0?(function(){
+                      var depRows=mfgVelocity.filter(function(s){return s.invOnHand!=null&&s.invOnHand>0&&s.dailyVel>0;}).map(function(s){
+                        var oh=s.invOnHand||0,dl=Math.floor(oh/s.dailyVel),pct=Math.min(100,Math.round(dl/60*100));
+                        var cl=cogsFor(s.category).label;var cc=cl==='Vape Cart'?C.info:cl==='Badder'?C.warn:cl==='Sauce'?C.good:C.purple;
+                        return{strain:s.strain.replace(/^Globs\s*-\s*/i,'').split(' - ')[0],cat:cl==='Vape Cart'?'Cart':cl,cc:cc,oh:oh,dl:dl,pct:pct,vel:s.weeklyVel};
+                      }).sort(function(a,b){return a.dl-b.dl;});
+                      var critical=depRows.filter(function(r){return r.dl<14;}),low=depRows.filter(function(r){return r.dl>=14&&r.dl<30;});
+                      if(depRows.length===0)return null;
+                      return React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:16,marginBottom:20}},
+                        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',paddingBottom:8,borderBottom:'1px solid '+C.border,marginBottom:10}},
+                          React.createElement('div',{style:{fontSize:14,fontWeight:700,letterSpacing:2}},'INVENTORY DEPLETION'),
+                          React.createElement('div',{style:{display:'flex',gap:8,fontSize:10}},
+                            critical.length>0?React.createElement('span',{style:{color:C.danger,fontWeight:700}},critical.length+' critical'):null,
+                            low.length>0?React.createElement('span',{style:{color:C.warn,fontWeight:700}},low.length+' low'):null,
+                            React.createElement('span',{style:{color:C.dim}},depRows.length+' tracked'))),
+                        depRows.slice(0,10).map(function(r,i){var bc=r.dl<14?C.danger:r.dl<30?C.warn:C.good;return React.createElement('div',{key:i,style:{marginBottom:6}},
+                          React.createElement('div',{style:{display:'flex',justifyContent:'space-between',fontSize:10,marginBottom:2}},
+                            React.createElement('span',{style:{fontWeight:600,color:r.dl<14?C.danger:C.text}},r.strain),
+                            React.createElement('span',{style:{color:bc,fontWeight:700}},r.dl+'d · '+r.oh+' left')),
+                          React.createElement('div',{style:{height:4,background:'#111',borderRadius:2,overflow:'hidden'}},
+                            React.createElement('div',{style:{width:r.pct+'%',height:'100%',background:bc,borderRadius:2}})));})
+                      );
+                    })():null,
                     // ── BEST PERFORMING STRAINS ──
                     mfgVelocity.length>0?React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:16,marginBottom:20}},
-                      React.createElement('div',{style:{fontSize:14,fontWeight:700,letterSpacing:2,paddingBottom:8,borderBottom:'1px solid '+C.border,marginBottom:12}},'TOP STRAINS BY VELOCITY'),
-                      React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:6}},
-                        mfgVelocity.slice(0,15).map(function(s,i){
+                      React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',paddingBottom:8,borderBottom:'1px solid '+C.border,marginBottom:10}},
+                        React.createElement('div',{style:{fontSize:14,fontWeight:700,letterSpacing:2}},'TOP STRAINS BY VELOCITY'),
+                        React.createElement('div',{style:{display:'flex',gap:4}},['ALL','Cart','Badder','Sauce','Diamonds'].map(function(f){var sel=briefStrainCat===f;return React.createElement('button',{key:f,onClick:function(){setBriefStrainCat(f);},style:{padding:'3px 8px',fontSize:9,fontWeight:sel?700:400,border:'1px solid '+(sel?C.text:C.border),background:sel?C.text:'transparent',color:sel?C.bg:C.dim,borderRadius:2,cursor:'pointer',fontFamily:'inherit'}},f==='ALL'?'All':f);}))
+                      ),
+                      React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:6}},(function(){
+                        var catMatchStr=function(cat){var c=(cat||'').toLowerCase();return c.includes('cart')||c.includes('vape')?'Cart':c.includes('badder')?'Badder':c.includes('sauce')?'Sauce':c.includes('diamond')?'Diamonds':'Other';};
+                        var filtered=briefStrainCat==='ALL'?mfgVelocity:mfgVelocity.filter(function(s){return catMatchStr(s.category)===briefStrainCat;});
+                        var strainCats={};mfgVelocity.forEach(function(s){var sn=s.strain;if(!strainCats[sn])strainCats[sn]=new Set();strainCats[sn].add(catMatchStr(s.category));});
+                        return filtered.slice(0,15).map(function(s,i){
                           var cl=cogsFor(s.category).label;
                           var cc=cl==='Vape Cart'?C.info:cl==='Badder'?C.warn:cl==='Sauce'?C.good:C.purple;
                           var slu=strainLookup(s.strain);
                           var CROSS_MAP={'Ice Cream Paint Job':'Ice Cream Cake \u00d7 Rainbow Sherbet','Headband':'OG Kush \u00d7 Sour Diesel','Sweet-N-Sour Diesel':'Mexican Haze \u00d7 Hawaiian Sativa','Frozen Grapes':'Grapes of Wrath \u00d7 Banana Split','Modified Cherries':'GMO \u00d7 Cherry Pie','Grandma\'s Cookies':'GSC \u00d7 Sugar Berries','Kush Mints':'Animal Mints \u00d7 Bubba Kush','Blue Z':'Blue Diamond \u00d7 Z','Hella Oranges':'Orange Daiquiri \u00d7 TK BX1','Honey Butter':'Honey Banana BX1','Pineapple Haze':'Pineapple \u00d7 Haze','White Widow':'Brazilian \u00d7 South Indian','Wagyu Truffle Butter':'Wagyu \u00d7 Truffle Butter','Strawberry Milk':'Strawberry Cough \u00d7 Cereal Milk','Gelonade':'Gelato #41 \u00d7 Lemon Tree','Lemon Thai':'Thai \u00d7 Hawaiian Landraces'};
                           var gen=CROSS_MAP[s.strain]||'';
                           if(!gen&&slu&&slu.d){var gm=slu.d.match(/[–—]\s*([A-Z][\w\s'\.]+?)\s*[x\u00d7]\s*([A-Z][\w\s'\.]+?)(?:\s+(?:brings|delivers|blends|combines|creates|gives|hits|offers|serves|pours|produces|mixes|tastes|fuses|layers))/);if(gm)gen=gm[1].trim()+' \u00d7 '+gm[2].trim();}
+                          var cats=strainCats[s.strain]||new Set();
                           return React.createElement('div',{key:s.sku,style:{display:'flex',alignItems:'center',gap:10,padding:'8px 10px',background:i%2===0?'transparent':C.raised,borderRadius:4}},
                             React.createElement('div',{style:{fontSize:12,fontWeight:800,color:C.dim,width:20,textAlign:'center'}},i+1),
                             React.createElement('div',{style:{flex:1,minWidth:0}},
                               React.createElement('div',{style:{fontSize:12,fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},s.strain),
                               gen?React.createElement('div',{style:{fontSize:9,color:C.dim,fontStyle:'italic'}},gen):null,
-                              React.createElement('div',{style:{display:'flex',gap:8,marginTop:3,alignItems:'center'}},
+                              React.createElement('div',{style:{display:'flex',gap:6,marginTop:3,alignItems:'center',flexWrap:'wrap'}},
                                 React.createElement('span',{style:{fontSize:9,fontWeight:700,color:cc,background:cc+'22',border:'1px solid '+cc+'44',borderRadius:3,padding:'1px 5px'}},cl==='Vape Cart'?'CART':cl.toUpperCase()),
+                                ['Cart','Badder','Sauce','Diamonds'].map(function(pc){var has=cats.has(pc);var pcC=pc==='Cart'?C.info:pc==='Badder'?C.warn:pc==='Sauce'?C.good:C.purple;return React.createElement('span',{key:pc,style:{fontSize:8,color:has?pcC:C.dim+'44'}},has?'\u2705':'');}),
                                 React.createElement('span',{style:{fontSize:10,color:C.dim}},s.units90.toLocaleString()+' sold'),
                                 React.createElement('span',{style:{fontSize:10,color:C.dim}},s.accountCount+' accts'))),
                             React.createElement('div',{style:{fontSize:13,fontWeight:800,color:C.text,whiteSpace:'nowrap'}},s.weeklyVel+'/wk'));
-                        })
+                        });})()
                       ),
                       mfgVelocity.length>15?React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:8,textAlign:'right'}},mfgVelocity.length+' total active SKUs'):null
                     ):null,
                     React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16,marginBottom:24}},
-                      React.createElement('div',{style:{fontSize:12,color:C.dim,letterSpacing:2,marginBottom:12}},'TODAY\u2019S PRIORITIES'),
-                      priorities.map(function(p,i){var sev=p.text.toLowerCase().includes('exceed')||p.text.toLowerCase().includes('>60%')?'CRITICAL':p.text.toLowerCase().includes('overdue')||p.text.toLowerCase().includes('at risk')||p.text.toLowerCase().includes('low packaging')||p.text.toLowerCase().includes('below reorder')?'WARNING':'ACTION';var sc=sev==='CRITICAL'?C.danger:sev==='WARNING'?C.warn:C.muted;return React.createElement('div',{key:i,style:{display:'flex',background:C.raised,border:'1px solid '+C.border,borderRadius:0,borderLeft:'3px solid '+sc,padding:'10px 12px',marginBottom:i<priorities.length-1?6:0}},
-                        React.createElement('div',{style:{flex:1}},
+                      React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}},
+                        React.createElement('div',{style:{fontSize:12,color:C.dim,letterSpacing:2}},'TODAY\u2019S PRIORITIES'),
+                        React.createElement('div',{style:{display:'flex',gap:6,fontSize:9,color:C.dim}},
+                          React.createElement('span',null,'\u2714 '+priorities.filter(function(_,i){return prioStatus['p'+i]==='done';}).length+' done'),
+                          React.createElement('span',null,'\u25CF '+priorities.filter(function(_,i){return prioStatus['p'+i]==='progress';}).length+' active'),
+                          React.createElement('span',null,'\u2718 '+priorities.filter(function(_,i){return prioStatus['p'+i]==='blocked';}).length+' blocked'))),
+                      priorities.map(function(p,i){var sev=p.text.toLowerCase().includes('exceed')||p.text.toLowerCase().includes('>60%')?'CRITICAL':p.text.toLowerCase().includes('overdue')||p.text.toLowerCase().includes('at risk')||p.text.toLowerCase().includes('low packaging')||p.text.toLowerCase().includes('below reorder')?'WARNING':'ACTION';var sc=sev==='CRITICAL'?C.danger:sev==='WARNING'?C.warn:C.muted;var ps=prioStatus['p'+i]||null;var psc=ps==='done'?C.good:ps==='progress'?C.info:ps==='blocked'?C.danger:ps==='skipped'?C.dim:null;var psl=ps==='done'?'\u2714 Done':ps==='progress'?'\u25CF Active':ps==='blocked'?'\u2718 Blocked':ps==='skipped'?'\u2014 Skip':null;return React.createElement('div',{key:i,style:{display:'flex',gap:10,alignItems:'flex-start',background:ps==='done'?C.good+'08':C.raised,border:'1px solid '+(ps==='done'?C.good+'33':C.border),borderRadius:0,borderLeft:'3px solid '+(ps==='done'?C.good:sc),padding:'10px 12px',marginBottom:i<priorities.length-1?6:0,opacity:ps==='skipped'?0.5:1}},
+                        React.createElement('button',{onClick:function(){cyclePrio('p'+i);},style:{flexShrink:0,width:60,padding:'4px 0',borderRadius:3,fontSize:9,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(psc||C.border),background:(psc||C.dim)+'22',color:psc||C.dim,letterSpacing:0.5,textAlign:'center'}},psl||'Pending'),
+                        React.createElement('div',{style:{flex:1,minWidth:0}},
                           React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:2}},
-                            React.createElement('span',{style:{fontSize:13,fontWeight:600,color:C.text}},p.text.split('.')[0]),
+                            React.createElement('span',{style:{fontSize:13,fontWeight:600,color:ps==='done'?C.dim:C.text,textDecoration:ps==='done'?'line-through':'none'}},p.text.split('.')[0]),
                             React.createElement('span',{style:{fontSize:10,fontWeight:700,color:sc,letterSpacing:1}},sev)
                           ),
                           React.createElement('div',{style:{fontSize:11,color:C.dim,marginTop:2,cursor:'pointer'},onClick:function(){switchTab(p.tab.toLowerCase().replace(' ',''));}},'\u2192 '+p.tab+' tab')
                         )
                       );})
+                    ),
+                    React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16,marginBottom:24}},
+                      React.createElement('div',{style:{fontSize:11,fontWeight:800,letterSpacing:3,marginBottom:8}},'NOTES & RESOLUTION LOG'),
+                      React.createElement('textarea',{value:briefNotes,onChange:function(e){setBriefNotes(e.target.value);try{localStorage.setItem('gpi:brief-notes',e.target.value);}catch(ex){}},placeholder:'Personal notes, blockers, resolutions...',rows:4,style:{width:'100%',boxSizing:'border-box',background:C.bg,border:'1px solid '+C.border,borderRadius:4,color:C.text,fontSize:12,fontFamily:'inherit',padding:'8px 10px',resize:'vertical',outline:'none'}}),
+                      React.createElement('div',{style:{fontSize:9,color:C.dim,marginTop:4}},'Saved locally \u00b7 only visible to you')
                     ),
                     React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16,marginBottom:24}},
                       React.createElement('div',{style:{fontSize:11,fontWeight:800,letterSpacing:3,marginBottom:12}},'GREENLINE CREDIT'),
@@ -4516,10 +4634,11 @@ window._STRAIN_DB=[
                     ),
                     React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:10}},'CANNABIS HOLIDAYS & SEASONAL MOMENTS'),
                     React.createElement('div',{style:{overflowX:'auto',marginBottom:24}},React.createElement('table',{style:{width:'100%',minWidth:420,borderCollapse:'collapse'}},
-                      React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Holiday','Date','Impact','Planning Notes'].map(function(h){return React.createElement('th',{key:h,style:{padding:'8px 12px',fontSize:10,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:'left',borderBottom:'1px solid '+C.border}},h);}))),
-                      React.createElement('tbody',null,HOLIDAYS.map(function(h,i){return React.createElement('tr',{key:i,style:{background:i%2===0?'transparent':'#050505'}},
+                      React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['Holiday','Date','Countdown','Impact','Planning Notes'].map(function(h){return React.createElement('th',{key:h,style:{padding:'8px 12px',fontSize:10,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:'left',borderBottom:'1px solid '+C.border}},h);}))),
+                      React.createElement('tbody',null,(function(){var now=new Date();var yr=now.getFullYear();return HOLIDAYS.map(function(h){var dp=new Date(h.date+' '+yr);if(dp<now)dp=new Date(h.date+' '+(yr+1));var days=Math.round((dp-now)/86400000);return Object.assign({},h,{dp:dp,days:days});}).sort(function(a,b){return a.days-b.days;});})().map(function(h,i){var past=h.days<0;var soon=h.days<=21;return React.createElement('tr',{key:i,style:{background:soon?C.warn+'11':i%2===0?'transparent':'#050505',opacity:past?0.4:1}},
                         React.createElement('td',{style:{padding:'8px 12px',fontSize:11,fontWeight:600}},h.name),
                         React.createElement('td',{style:{padding:'8px 12px',fontSize:10,color:C.muted}},h.date),
+                        React.createElement('td',{style:{padding:'8px 12px',fontSize:10,fontWeight:700,color:soon?C.warn:C.dim}},h.days<=0?'PASSED':h.days+'d'),
                         React.createElement('td',{style:{padding:'8px 12px'}},React.createElement('span',{style:{fontSize:10,fontWeight:700,padding:'8px 12px',borderRadius:2,background:h.impact==='Critical'?C.dangerBg:h.impact==='High'?C.warnBg:C.surface,color:h.impact==='Critical'?C.danger:h.impact==='High'?C.warn:C.muted,border:'1px solid '+(h.impact==='Critical'?C.dangerBdr:h.impact==='High'?C.warnBdr:C.border)}},h.impact)),
                         React.createElement('td',{style:{padding:'8px 12px',fontSize:10,color:C.dim}},h.notes)
                       );}))
@@ -4553,7 +4672,7 @@ window._STRAIN_DB=[
                     {l:'Compliance SOP',url:'https://docs.google.com/document/d/10ECqfQ_82MWikxDdmryOZ5oB1F0m8_8W9z-cOfBBsZ4/edit',c:'#4caf50'}
                   ];
                   var CART_STEPS=[
-                    {s:1,t:'Fill Carts',d:'Load hardware into 100-unit filler. Fill with formulated oil.',p:'1ML Quad Hardware (Fade Co)',c:'$1.91'},
+                    {s:1,t:'Fill Carts',d:'Load hardware into 100-unit filler. Fill with formulated oil.',p:'1ML Quad Hardware (Octave)',c:'$1.91'},
                     {s:2,t:'QC \u2014 Oil',d:'Inspect each cart for oil outside the chamber. Reject any with external residue.',p:null,c:null},
                     {s:3,t:'QC \u2014 Bubbles',d:'Inspect for air bubbles trapped in oil. Tap or warm to release.',p:null,c:null},
                     {s:4,t:'Tube',d:'Insert cart into poptop tube (95mm black).',p:'Poptop Tube 95mm',c:'$0.08'},
@@ -4584,18 +4703,26 @@ window._STRAIN_DB=[
                     {s:7,t:'Testing',d:'Samples to Encore Labs. THC %, terpenes, pesticides, solvents, metals.',p:'Encore Labs',c:'$400/strain'},
                     {s:8,t:'Compliance',d:'Review results. GL prints COA stickers. Prepare METRC tags.',p:null,c:null}
                   ];
+                  var COMP_STEPS=[
+                    {s:1,t:'Gather COA + METRC',d:'Collect Encore Labs COA PDF and METRC batch tag for each strain in the drop.',p:'Encore Labs COA',c:null},
+                    {s:2,t:'Verify THC + Terpenes',d:'Cross-check THC %, CBD %, total terpenes on COA against label data. Flag discrepancies > 0.5%.',p:null,c:null},
+                    {s:3,t:'Generate Labels',d:'Use GPI Label Generator: upload COA → auto-fill strain, THC, terps, batch, METRC. Generate front circle + back rectangle stickers.',p:'OL5275 + OL285WX',c:null},
+                    {s:4,t:'Print + Apply Labels',d:'Print sheets on correct label stock. Apply front sticker (circle) to product face, back sticker (rectangle) to rear. Verify no overlap or misalignment.',p:null,c:null},
+                    {s:5,t:'METRC Package Creation',d:'In METRC: create package from source batch. Assign tag. Enter weight, item category, and unit count.',p:'METRC Portal',c:null},
+                    {s:6,t:'Transfer Manifest',d:'Create METRC transfer manifest for UpNorth distribution. Include all packages, destinations, and driver info.',p:'METRC Transfer',c:null},
+                    {s:7,t:'Packing Slip',d:'Generate packing slip with strain, qty, batch #, METRC tag. Include in shipment box.',p:null,c:null},
+                    {s:8,t:'Photo Documentation',d:'Photograph: (1) labeled product, (2) packing slip, (3) sealed cases. Upload to Drive.',p:'Google Drive',c:null},
+                    {s:9,t:'Final QC Sign-off',d:'Second person verifies: label accuracy, METRC match, unit count, seal integrity. Sign packing slip.',p:null,c:null},
+                    {s:10,t:'Release to Distribution',d:'Confirm transfer in METRC. Notify UpNorth (Ian) with manifest details and ETA.',p:null,c:null}
+                  ];
                   var SOPS=[
                     {k:'carts',l:'Vape Carts',c:'#6fa8d6',steps:CART_STEPS,cost:'$5.50 all-in'},
                     {k:'concentrates',l:'Concentrates',c:'#d4a24c',steps:CONC_STEPS,cost:'$3.08 badder / $3.00 sauce'},
-                    {k:'extraction',l:'Extraction',c:'#7cb87a',steps:EXT_STEPS,cost:'GL handles 100%'}
+                    {k:'extraction',l:'Extraction',c:'#7cb87a',steps:EXT_STEPS,cost:'GL handles 100%'},
+                    {k:'compliance',l:'Compliance Submission',c:'#f44336',steps:COMP_STEPS,cost:'COA + METRC + Labels → Transfer'}
                   ];
                   return React.createElement('div',null,
                     React.createElement('div',{style:{fontSize:14,fontWeight:900,letterSpacing:3,marginBottom:16}},'STANDARD OPERATING PROCEDURES'),
-                    React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(120px,1fr))',gap:8,marginBottom:20}},
-                      PHOTOS.map(function(r){return React.createElement('a',{key:r.l,href:r.url,target:'_blank',rel:'noopener',style:{display:'block',background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px',textDecoration:'none',textAlign:'center'}},
-                        React.createElement('div',{style:{fontSize:10,fontWeight:700,color:r.c}},r.l),
-                        React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:2}},'Open in Drive \u2197'));})
-                    ),
                     React.createElement('div',{style:{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap'}},
                       SOPS.map(function(b){var sel=sopSel===b.k;return React.createElement('button',{key:b.k,onClick:function(){setSop(b.k);},style:{padding:'8px 16px',borderRadius:4,fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'inherit',letterSpacing:1,border:'1px solid '+(sel?b.c:C.border),background:sel?b.c+'22':'transparent',color:sel?b.c:C.dim}},b.l);})
                     ),
@@ -4609,11 +4736,403 @@ window._STRAIN_DB=[
                           st.p?React.createElement('div',{style:{fontSize:10,color:b.c,marginTop:3}},st.p+(st.c&&st.c!=='incl'&&st.c!=='varies'?' \u00b7 '+st.c:'')):null
                         ));}),
                       React.createElement('div',{style:{marginTop:12,padding:'10px 12px',background:C.bg,borderRadius:4,fontSize:11,color:C.dim}},b.cost)
-                    );})
+                    );}),
+                    authRole==='mfg'&&!localStorage.getItem('gpi:sop-reviewed-'+(authUser?authUser.id:''))?React.createElement('div',{style:{background:C.warn+'15',border:'1px solid '+C.warn+'33',borderRadius:8,padding:16,marginTop:20,marginBottom:8,textAlign:'center'}},
+                      React.createElement('div',{style:{fontSize:12,fontWeight:700,color:C.warn,marginBottom:6}},'SOP REVIEW REQUIRED'),
+                      React.createElement('div',{style:{fontSize:11,color:C.dim,marginBottom:12}},'Please review all SOPs above before proceeding to MFG operations.'),
+                      React.createElement('button',{onClick:function(){if(authUser)localStorage.setItem('gpi:sop-reviewed-'+authUser.id,'1');switchTab('mfg');},style:{padding:'8px 24px',borderRadius:4,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.good,background:C.good+'22',color:C.good,letterSpacing:1}},'\u2714 I\u2019ve Reviewed All SOPs')
+                    ):null,
+                    React.createElement('div',{style:{fontSize:11,color:C.dim,letterSpacing:2,marginTop:24,marginBottom:8}},'REFERENCE MATERIALS'),
+                    React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(120px,1fr))',gap:8}},
+                      PHOTOS.map(function(r){return React.createElement('a',{key:r.l,href:r.url,target:'_blank',rel:'noopener',style:{display:'block',background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px',textDecoration:'none',textAlign:'center'}},
+                        React.createElement('div',{style:{fontSize:10,fontWeight:700,color:r.c}},r.l),
+                        React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:2}},'Open in Drive \u2197'));})
+                    )
                   );
                 })()}
 
-                {/* ══ SECURITY CENTER ══ */}
+                {/* ══ BRAND ASSETS ══ */}
+                {tab==="brand"&&(function(){
+                  var DRIVE_LINKS=[
+                    {l:'Product Photos',url:'https://drive.google.com/drive/folders/1cS7_KMloD8U0ipDfLTTx9ly1QnQaK0jr',c:'#6fa8d6'},
+                    {l:'Live Resin / Carts',url:'https://drive.google.com/drive/folders/180q5S1RsnlMr2ebRtd2pbZ4-5s9z1ZuE',c:'#6fa8d6'},
+                    {l:'Badder Photos',url:'https://drive.google.com/drive/folders/1q8HzheYdKnUlNPmxjO2zwrQP0h3NWB0T',c:'#d4a24c'},
+                    {l:'Sauce Photos',url:'https://drive.google.com/drive/folders/1YhgemQ6N4rV_4Umq6zL3gXPI9A8Ze88i',c:'#7cb87a'},
+                    {l:'Diamonds Photos',url:'https://drive.google.com/drive/folders/1HHhNOnlQmtyDgVdG5OEGTBcXDZTD30wj',c:'#9b8ec4'},
+                    {l:'Packaging Photos',url:'https://drive.google.com/drive/folders/1Qw1_NcvvUDJKyTn36fuTDafxBnjW8W7E',c:'#999'}
+                  ];
+                  var MERCH2=[
+                    {item:'Dab Mats',cost:3.50,moq:500,lead:'3 wk',notes:'Best brand visibility item'},
+                    {item:'Stickers (die-cut)',cost:0.15,moq:5000,lead:'2 wk',notes:'Include in every order'},
+                    {item:'Hats (snapback)',cost:8.00,moq:144,lead:'4 wk',notes:'Rep gifts + events'},
+                    {item:'T-Shirts',cost:7.50,moq:72,lead:'3 wk',notes:'Event giveaways'},
+                    {item:'Lighters',cost:1.25,moq:1000,lead:'2 wk',notes:'High retention rate'},
+                    {item:'Rolling Trays',cost:5.00,moq:250,lead:'4 wk',notes:'Premium account gifts'}
+                  ];
+                  return React.createElement('div',null,
+                    React.createElement('div',{style:{fontSize:14,fontWeight:900,letterSpacing:3,marginBottom:20}},'BRAND ASSETS'),
+                    React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:10}},'LOGOS'),
+                    React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))',gap:10,marginBottom:24}},
+                      React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16,textAlign:'center'}},
+                        React.createElement('div',{style:{width:80,height:80,background:'#000',borderRadius:12,margin:'0 auto 8px',display:'flex',alignItems:'center',justifyContent:'center'}},
+                          React.createElement('img',{src:typeof LOGO_DARK!=='undefined'?LOGO_DARK:'',alt:'Globs',style:{height:60,width:'auto',objectFit:'contain'}})),
+                        React.createElement('div',{style:{fontSize:10,fontWeight:700,marginBottom:4}},'Logo (Dark BG)'),
+                        React.createElement('button',{onClick:function(){var a=document.createElement('a');a.href=typeof LOGO_DARK!=='undefined'?LOGO_DARK:'';a.download='globs-logo-dark.png';a.click();},style:{fontSize:9,padding:'4px 12px',borderRadius:3,border:'1px solid '+C.border,background:'transparent',color:C.dim,cursor:'pointer',fontFamily:'inherit'}},'\u2B73 Download PNG')),
+                      React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16,textAlign:'center'}},
+                        React.createElement('div',{style:{width:80,height:80,background:'#fff',borderRadius:12,margin:'0 auto 8px',display:'flex',alignItems:'center',justifyContent:'center'}},
+                          React.createElement('img',{src:typeof LOGO_LIGHT!=='undefined'?LOGO_LIGHT:'',alt:'Globs',style:{height:60,width:'auto',objectFit:'contain'}})),
+                        React.createElement('div',{style:{fontSize:10,fontWeight:700,marginBottom:4}},'Logo (Light BG)'),
+                        React.createElement('button',{onClick:function(){var a=document.createElement('a');a.href=typeof LOGO_LIGHT!=='undefined'?LOGO_LIGHT:'';a.download='globs-logo-light.png';a.click();},style:{fontSize:9,padding:'4px 12px',borderRadius:3,border:'1px solid '+C.border,background:'transparent',color:C.dim,cursor:'pointer',fontFamily:'inherit'}},'\u2B73 Download PNG'))
+                    ),
+                    React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:10}},'PHOTO LIBRARY'),
+                    React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(120px,1fr))',gap:8,marginBottom:24}},
+                      DRIVE_LINKS.map(function(r){return React.createElement('a',{key:r.l,href:r.url,target:'_blank',rel:'noopener',style:{display:'block',background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px',textDecoration:'none',textAlign:'center'}},
+                        React.createElement('div',{style:{fontSize:10,fontWeight:700,color:r.c}},r.l),
+                        React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:2}},'Open in Drive \u2197'));})
+                    ),
+                    React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:10}},'MERCH ORDERING GUIDE'),
+                    React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:6}},
+                      MERCH2.map(function(m,i){return React.createElement('div',{key:i,style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'10px 12px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
+                        React.createElement('div',null,
+                          React.createElement('div',{style:{fontSize:11,fontWeight:700}},m.item),
+                          React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:2}},m.notes)),
+                        React.createElement('div',{style:{textAlign:'right'}},
+                          React.createElement('div',{style:{fontSize:11,fontWeight:700}},cur(m.cost)+'/ea'),
+                          React.createElement('div',{style:{fontSize:9,color:C.dim}},m.moq+' MOQ \u00b7 '+m.lead))
+                      );})
+                    )
+                  );
+                })()}
+
+                {/* ══ INVESTOR DECK ══ */}
+                {tab==="investor"&&(function(){
+                  var investorView=window._investorView||'org';
+                  function setInvestorView(v){window._investorView=v;setTab('investor');}
+                  // ── Aggregate ALL metrics from SF Account Activity ──
+                  var rev={7:0,30:0,60:0,90:0,180:0,365:0};
+                  var units={7:0,30:0,60:0,90:0,180:0,365:0};
+                  var active={7:0,30:0,60:0,90:0,180:0,365:0};
+                  var totalAccounts=0,totalOrders=0,uniqueSkus={};
+                  var totalSalesAll=0,totalQtyAll=0,activeAll=0;// true SF totals (no date filter)
+                  var zoneCounts={DNU:0,RB:0,ZASP:0};var zoneRev={DNU:0,RB:0,ZASP:0};var zoneActive={DNU:0,RB:0,ZASP:0};
+                  var periods=[7,30,60,90,180,365];
+                  (accounts||[]).forEach(function(a){
+                    totalAccounts++;
+                    if(a.zone)zoneCounts[a.zone]=(zoneCounts[a.zone]||0)+1;
+                    // totalSales = true total from SF (all rows, no date filter)
+                    var ts=a.totalSales||0;
+                    totalSalesAll+=ts;
+                    if(ts>0){activeAll++;if(a.zone){zoneRev[a.zone]=(zoneRev[a.zone]||0)+ts;zoneActive[a.zone]=(zoneActive[a.zone]||0)+1;}}
+                    var tq=a.totalQty||0;
+                    totalQtyAll+=tq;
+                    periods.forEach(function(d){
+                      var r=(a.periodRevenue&&a.periodRevenue[d])||0;
+                      rev[d]+=r;
+                      if(r>0)active[d]++;
+                    });
+                    (a.orderedSkus||[]).forEach(function(s){
+                      uniqueSkus[s.sku||s.wmName]=true;
+                      totalOrders+=(s.orderCount||0);
+                      periods.forEach(function(d){
+                        var u=(s.periodUnits&&s.periodUnits[d])||0;
+                        units[d]+=u;
+                      });
+                    });
+                  });
+                  // Use totalSalesAll as headline (true SF total), period data for trends
+                  var headlineRev=totalSalesAll>0?totalSalesAll:rev[365];
+                  var headlineUnits=totalQtyAll>0?totalQtyAll:units[365];
+                  var monthlyGross=Math.round(headlineRev/12);
+                  var monthlyNet=Math.round(monthlyGross*0.84);
+                  var avgPrice365=headlineUnits>0?Math.round(headlineRev/headlineUnits*100)/100:0;
+                  var avgPrice90=units[90]>0?Math.round(rev[90]/units[90]*100)/100:0;
+                  var run30=Math.round(rev[30]*12);// annualized from 30d
+                  var run90=Math.round(rev[90]*4);// annualized from 90d
+                  var skuCount=Object.keys(uniqueSkus).length;
+                  var COGS_CART=5.50,COGS_BADDER=3.08,COGS_SAUCE=3.00;
+                  var blendedCOGS=3.86;
+                  var grossMargin=avgPrice365>0?Math.round((1-blendedCOGS/(avgPrice365*(1-0.16)))*10000)/100:0;
+
+                  // ── Sub-nav ──
+                  var subTabs=[['org','Org Map'],['tasks','Task Map'],['deck','Pitch Deck']];
+                  var subNav=React.createElement('div',{style:{display:'flex',marginBottom:16,borderBottom:'1px solid '+C.border}},
+                    subTabs.map(function(st){return React.createElement('button',{key:st[0],onClick:function(){setInvestorView(st[0]);},style:{flex:1,padding:'10px 0',fontSize:12,fontWeight:investorView===st[0]?700:400,color:investorView===st[0]?C.text:C.dim,background:'transparent',border:'none',borderBottom:investorView===st[0]?'2px solid '+C.text:'2px solid transparent',cursor:'pointer',fontFamily:'inherit'}},st[1]);})
+                  );
+
+                  // ═══ ORG MAP ═══
+                  if(investorView==='org'){
+                    var FOUNDER_ROLES=['Manufacturing','Distribution','Sourcing','Accounting','Sales','Brand + Events','Compliance','Technology'];
+                    var SUPPORT=[
+                      {name:'Jonah',title:'Sales Director',scope:'Account mgmt, pricing, demos',color:C.good},
+                      {name:'Eric Ervin',title:'Field Rep',scope:'NorCal + Central CA',color:C.info},
+                      {name:'Brandyn',title:'Field Rep',scope:'SoCal',color:C.danger}
+                    ];
+                    var VENDORS=[
+                      {name:'Greenline Labs',role:'Extraction + Filling',color:C.good},
+                      {name:'Encore Labs',role:'Testing + COAs',color:C.purple},
+                      {name:'UpNorth',role:'Statewide Distribution',color:C.info},
+                      {name:'Treeform',role:'Custom Packaging',color:'#795548'},
+                      {name:'CA Farms',role:'Biomass Sourcing',color:C.warn}
+                    ];
+                    return React.createElement('div',null,subNav,
+                      React.createElement('div',{style:{fontSize:14,fontWeight:700,letterSpacing:2,marginBottom:16}},'ORGANIZATION'),
+                      // Dylan center
+                      React.createElement('div',{style:{textAlign:'center',marginBottom:12}},
+                        React.createElement('div',{style:{display:'inline-block',background:'#fff',color:'#000',padding:'14px 28px',borderRadius:8,fontWeight:800,fontSize:16}},
+                          React.createElement('div',null,'Dylan'),
+                          React.createElement('div',{style:{fontSize:10,fontWeight:400,color:'#666'}},'Founder / Sole Operator')
+                        )
+                      ),
+                      // What Dylan personally runs
+                      React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:4,marginBottom:16}},
+                        FOUNDER_ROLES.map(function(r){return React.createElement('div',{key:r,style:{fontSize:9,fontWeight:600,color:C.dim,background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'6px 8px',textAlign:'center'}},r);})
+                      ),
+                      React.createElement('div',{style:{fontSize:9,color:C.dim,textAlign:'center',marginBottom:16,lineHeight:1.5,fontStyle:'italic'}},'One person manages all 8 functional areas.\nThis is the leverage point for investor capital.'),
+                      // Sales team
+                      React.createElement('div',{style:{fontSize:10,fontWeight:600,letterSpacing:2,color:C.dim,marginBottom:8}},'SALES TEAM'),
+                      SUPPORT.map(function(s){return React.createElement('div',{key:s.name,style:{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',background:C.surface,border:'1px solid '+C.border,borderLeft:'3px solid '+s.color,borderRadius:6,marginBottom:4}},
+                        React.createElement('div',{style:{width:32,height:32,borderRadius:'50%',background:s.color+'22',border:'2px solid '+s.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:13,fontWeight:700,color:s.color}},s.name[0]),
+                        React.createElement('div',{style:{flex:1}},
+                          React.createElement('div',{style:{fontSize:12,fontWeight:600}},s.name),
+                          React.createElement('div',{style:{fontSize:10,color:C.dim}},s.title+' \u2014 '+s.scope)
+                        )
+                      );}),
+                      // Vendors
+                      React.createElement('div',{style:{fontSize:10,fontWeight:600,letterSpacing:2,color:C.dim,marginTop:16,marginBottom:8}},'VENDORS + PARTNERS'),
+                      VENDORS.map(function(v){return React.createElement('div',{key:v.name,style:{display:'flex',alignItems:'center',gap:10,padding:'8px 12px',background:C.surface,border:'1px solid '+C.border,borderLeft:'3px solid '+v.color,borderRadius:6,marginBottom:4}},
+                        React.createElement('div',{style:{width:28,height:28,borderRadius:'50%',background:v.color+'22',border:'1px solid '+v.color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:v.color}},v.name[0]),
+                        React.createElement('div',null,
+                          React.createElement('div',{style:{fontSize:11,fontWeight:600}},v.name),
+                          React.createElement('div',{style:{fontSize:9,color:C.dim}},v.role)
+                        )
+                      );}),
+                      // GROWTH HIRES — what investor capital unlocks
+                      React.createElement('div',{style:{fontSize:10,fontWeight:600,letterSpacing:2,color:C.warn,marginTop:16,marginBottom:8}},'\uD83D\uDE80 GROWTH HIRES \u2014 USE OF CAPITAL'),
+                      React.createElement('div',{style:{fontSize:9,color:C.dim,marginBottom:10,lineHeight:1.4}},'Key hires that unlock the next stage of scale. Currently 1 person manages all 8 functional areas \u2014 each hire removes a bottleneck.'),
+                      [{title:'Operations Manager',cost:'$75\u2013100K',unlock:'Takes over manufacturing + compliance + vendor management. Frees founder for sales + strategy.',color:C.warn,priority:'HIRE #1'},
+                       {title:'Sales Manager',cost:'$60\u201380K + commission',unlock:'Scales account penetration from 40% to 70%+. Manages rep team. Drives reorder cadence.',color:C.good,priority:'HIRE #2'},
+                       {title:'Bookkeeper / Controller',cost:'$50\u201365K',unlock:'Takes over all AP/AR, invoicing, reconciliation, P&L. Enables real-time financial visibility.',color:'#e91e63',priority:'HIRE #3'},
+                       {title:'Marketing Coordinator',cost:'$45\u201360K',unlock:'Trade shows, photography, digital presence, retailer materials. Brand building at scale.',color:C.purple,priority:'HIRE #4'}
+                      ].map(function(h){return React.createElement('div',{key:h.title,style:{background:C.surface,border:'1px solid '+C.border,borderLeft:'3px solid '+h.color,borderRadius:6,padding:'10px 12px',marginBottom:4}},
+                        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}},
+                          React.createElement('span',{style:{fontSize:12,fontWeight:700}},h.title),
+                          React.createElement('span',{style:{fontSize:8,fontWeight:700,color:h.color,background:h.color+'22',padding:'2px 6px',borderRadius:2}},h.priority)
+                        ),
+                        React.createElement('div',{style:{fontSize:10,color:C.dim,marginBottom:3}},h.cost),
+                        React.createElement('div',{style:{fontSize:10,color:C.muted,lineHeight:1.4}},h.unlock)
+                      );}),
+                      React.createElement('div',{style:{background:C.warn+'11',border:'1px solid '+C.warn+'33',borderRadius:6,padding:10,marginTop:8,textAlign:'center'}},
+                        React.createElement('div',{style:{fontSize:11,fontWeight:700,color:C.warn}},'$230\u2013305K total headcount investment'),
+                        React.createElement('div',{style:{fontSize:9,color:C.dim,marginTop:4,lineHeight:1.4}},'4 hires eliminate all single-point-of-failure risk and unlock 3\u20135\u00d7 revenue capacity without changing the business model')
+                      )
+                    );
+                  }
+
+                  // ═══ TASK MAP ═══
+                  if(investorView==='tasks'){
+                    var TASKS=[
+                      {area:'Manufacturing',icon:'\u2699',color:C.warn,items:['Manage extraction runs at Greenline Labs','Oversee vape cart filling (hardware, oil, assembly)','Coordinate concentrate production (badder, sauce, diamonds)','Post-processing decisions (decarb, liquid diamond conversion)','Batch tracking, yield analysis, quality control','Production scheduling + drop cadence planning']},
+                      {area:'Sourcing',icon:'\uD83C\uDF31',color:'#8bc34a',items:['Source ALL input biomass directly from California farms','Negotiate biomass pricing ($0.74\u20131.02/g self-funded)','Source ALL hardware (Octave 1ML Quad carts, jars, caps)','Source packaging (Treeform custom boxes, labels, poptops)','Manage vendor relationships + reorder cadence','Inbound shipment tracking (air + ground)']},
+                      {area:'Distribution',icon:'\uD83D\uDE9A',color:C.info,items:['Manage UpNorth relationship (Ian, Drew Pavlos)','Zone allocation strategy (NorCal/Central/SoCal)','Inventory balancing across 3 distribution hubs','Transfer logistics + compliance documentation','Payout reconciliation (45-day terms after month close)','Monitor sell-through velocity by zone + account']},
+                      {area:'Sales + Store Visits',icon:'\uD83D\uDCB0',color:C.good,items:['Personal store visits for demos + relationship building','Pricing strategy + wholesale menu management','Coordinate reps: Jonah (Director), Eric (NorCal), Brandyn (SoCal)','Opportunity pipeline monitoring + follow-up','Suggested order generation for each account','Monday zone email campaigns to drive reorders']},
+                      {area:'Accounting + Finance',icon:'\uD83D\uDCC8',color:'#e91e63',items:['ALL bookkeeping — AP/AR, invoicing, reconciliation','Cash flow projection + 6-month outlook','COGS tracking per unit across all product categories','Greenline invoice verification ($70K+ across 10 invoices)','Amex float management ($26K revolving on $30K limit)','Revenue reporting, P&L, margin analysis','COD transition planning + vendor term negotiation']},
+                      {area:'Brand + Events',icon:'\u2B50',color:C.purple,items:['ALL strain naming + genetics documentation','ALL product photography + brand asset management','Trade show attendance + planning (HOF, MJBiz, Emerald Cup, NCIA)','Merch ordering (dab mats, stickers, branded materials)','Digital presence + retailer-facing marketing materials','Label design (front circle sticker, back compliance sticker)']},
+                      {area:'Compliance',icon:'\uD83D\uDCCB',color:'#f44336',items:['METRC batch tracking + tag management','COA management (Encore Labs PDF parsing)','California packaging compliance (THC warnings, symbols)','Label generation (OL5275 front, OL285WX back, RL926TT thermal)','License maintenance + regulatory monitoring','SOP documentation + team training']},
+                      {area:'Technology',icon:'\uD83D\uDCBB',color:'#00bcd4',items:['Built GPI Command Center (proprietary analytics platform)','Salesforce data integration + automated reporting','Demand forecasting + opportunity engine','Production management + MFG work order system','COA-to-label generation pipeline','Investor deck auto-generation from live data']}
+                    ];
+                    var totalTasks=TASKS.reduce(function(s,t){return s+t.items.length;},0);
+                    return React.createElement('div',null,subNav,
+                      React.createElement('div',{style:{fontSize:14,fontWeight:700,letterSpacing:2,marginBottom:4}},'TASK MAP'),
+                      React.createElement('div',{style:{fontSize:10,color:C.dim,marginBottom:4}},'Everything the founder personally manages'),
+                      React.createElement('div',{style:{fontSize:11,color:C.warn,fontWeight:700,marginBottom:16}},TASKS.length+' functional areas \u00b7 '+totalTasks+' tasks \u00b7 1 person'),
+                      TASKS.map(function(t){return React.createElement('div',{key:t.area,style:{background:C.surface,border:'1px solid '+C.border,borderLeft:'3px solid '+t.color,borderRadius:6,padding:'12px 14px',marginBottom:8}},
+                        React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8,marginBottom:8}},
+                          React.createElement('span',{style:{fontSize:18}},t.icon),
+                          React.createElement('span',{style:{fontSize:13,fontWeight:700,color:t.color}},t.area),
+                          React.createElement('span',{style:{fontSize:10,color:C.dim,marginLeft:'auto'}},t.items.length+' tasks')
+                        ),
+                        t.items.map(function(item,i){return React.createElement('div',{key:i,style:{fontSize:11,color:C.muted,padding:'3px 0',paddingLeft:26,borderTop:i>0?'1px solid '+C.border:'none'}},'\u2022 '+item);})
+                      );})
+                    );
+                  }
+
+                  // ═══ PITCH DECK ═══
+                  if(investorView==='deck'){
+                    function generateDeck(){
+                      var w=window.open('','_blank');
+                      var slides=[];
+                      // Slide 1: Cover
+                      slides.push('<div class="slide cover"><div class="logo">GLOBS</div><div class="sub">California Cannabis \u00b7 Live Resin Vapes + Concentrates</div><div class="date">Investor Overview \u00b7 '+new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'})+'</div></div>');
+                      // Slide 2: Revenue (ALL from SF 365d)
+                      slides.push('<div class="slide"><h2>Revenue \u2014 Salesforce 365-Day Account Activity</h2><div class="grid2"><div class="stat hl"><div class="big green">$'+headlineRev.toLocaleString()+'</div><div class="label">365-Day Gross Revenue</div></div><div class="stat"><div class="big">$'+monthlyGross.toLocaleString()+'</div><div class="label">Monthly Avg (Gross)</div></div><div class="stat"><div class="big">$'+monthlyNet.toLocaleString()+'</div><div class="label">Monthly Avg (Net \u00d7 0.84)</div></div><div class="stat"><div class="big">'+headlineUnits.toLocaleString()+'</div><div class="label">Total Units Sold</div></div><div class="stat"><div class="big">$'+avgPrice365.toFixed(2)+'</div><div class="label">Avg Wholesale $/Unit</div></div><div class="stat"><div class="big">'+totalOrders.toLocaleString()+'</div><div class="label">Total Sales Orders</div></div></div><h3 style="margin-top:20px">Growth Trajectory</h3><div class="grid3" style="margin-top:8px"><div class="stat"><div class="big">$'+rev[30].toLocaleString()+'</div><div class="label">Last 30 Days</div></div><div class="stat"><div class="big">$'+rev[90].toLocaleString()+'</div><div class="label">Last 90 Days</div></div><div class="stat"><div class="big">$'+rev[180].toLocaleString()+'</div><div class="label">Last 180 Days</div></div></div><p class="note">Source: Salesforce Account Activity export. 16% distribution fee through UpNorth. Net payout 45 days after sales month close. '+(run30>rev[365]?'30-day run rate ($'+Math.round(run30/1000)+'K annualized) exceeds trailing 365d \u2014 accelerating growth.':'')+'</p></div>');
+                      // Slide 3: Growth Drivers
+                      var penetration=totalAccounts>0?Math.round(activeAll/totalAccounts*100):0;
+                      var whitespace=100-penetration;
+                      slides.push('<div class="slide"><h2>Growth Drivers</h2>'+
+                        '<div style="font-size:11px;color:#999;margin-bottom:16px;line-height:1.5">Month-over-month revenue acceleration is driven by four structural factors \u2014 not one-time events.</div>'+
+                        '<div style="border-left:3px solid #33cc66;padding:12px 14px;margin-bottom:8px;background:#33cc6608">'+
+                        '<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:700">\u2776 SKU Expansion</span><span style="font-size:11px;color:#33cc66;font-weight:700">'+skuCount+' active SKUs</span></div>'+
+                        '<div style="font-size:11px;color:#ccc;margin-top:4px;line-height:1.5">Each production drop adds 4\u20136 new strains to the menu. More shelf presence = more revenue. Feb had 2 product lines in market; by Mar, 4 product lines (carts + badder + carts + sauce). 100% increase in shelf footprint drove 55% revenue growth.</div>'+
+                        '</div>'+
+                        '<div style="border-left:3px solid #6fa8d6;padding:12px 14px;margin-bottom:8px;background:#6fa8d608">'+
+                        '<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:700">\u2777 Category Diversification</span><span style="font-size:11px;color:#6fa8d6;font-weight:700">Carts + Badder + Sauce</span></div>'+
+                        '<div style="font-size:11px;color:#ccc;margin-top:4px;line-height:1.5">Expanding from carts into concentrates (badder, sauce, diamonds) opens new price points and consumer segments. Retailers that carry multiple categories order more frequently and at higher volume.</div>'+
+                        '</div>'+
+                        '<div style="border-left:3px solid #EF9F27;padding:12px 14px;margin-bottom:8px;background:#EF9F2708">'+
+                        '<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:700">\u2778 Account Penetration</span><span style="font-size:11px;color:#EF9F27;font-weight:700">'+whitespace+'% whitespace</span></div>'+
+                        '<div style="font-size:11px;color:#ccc;margin-top:4px;line-height:1.5">Only '+penetration+'% of '+totalAccounts+' distribution accounts are currently active. Each new drop triggers reorder cycles at existing accounts and first orders at dormant ones. 3 field reps (Jonah, Eric, Brandyn) are actively demoing into untapped accounts.</div>'+
+                        '</div>'+
+                        '<div style="border-left:3px solid #e91e63;padding:12px 14px;margin-bottom:8px;background:#e91e6308">'+
+                        '<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:700">\u2779 Production Cadence</span><span style="font-size:11px;color:#e91e63;font-weight:700">5,000\u20136,000 units/drop</span></div>'+
+                        '<div style="font-size:11px;color:#ccc;margin-top:4px;line-height:1.5">Vertically integrated supply chain enables consistent drops every 4\u20136 weeks. Drop 4 (5,116 carts) just shipped. Drop 5 (6,000 badder) in production. Revenue scales with production capacity, which is currently the constraint \u2014 not demand.</div>'+
+                        '</div>'+
+                        '<p class="note">Early-stage MoM growth rates will moderate as the base grows, but the underlying drivers are structural and repeatable. The ceiling is determined by production capacity and capital, not market demand \u2014 a capital-efficient growth story.</p></div>');
+                      // Slide 4: Unit Economics (SF-derived + COGS)
+                      slides.push('<div class="slide"><h2>Unit Economics</h2><div class="grid2"><div class="stat"><div class="big">$'+avgPrice365.toFixed(2)+'</div><div class="label">Avg Wholesale (365d Salesforce)</div></div><div class="stat"><div class="big">$'+avgPrice90.toFixed(2)+'</div><div class="label">Avg Wholesale (90d Salesforce)</div></div></div><div class="grid3" style="margin-top:12px"><div class="stat"><div class="big">$5.50</div><div class="label">Cart COGS/unit</div></div><div class="stat"><div class="big">$3.08</div><div class="label">Badder COGS/unit</div></div><div class="stat"><div class="big">$3.00</div><div class="label">Sauce COGS/unit</div></div></div><div class="grid2" style="margin-top:12px"><div class="stat hl"><div class="big green">~'+grossMargin+'%</div><div class="label">Blended Gross Margin</div></div><div class="stat"><div class="big">'+skuCount+'</div><div class="label">Active SKUs</div></div></div><p class="note">COGS includes extraction ($1.25/g GL rate), hardware, packaging, labels, filling labor ($1/unit). Self-funded biomass at $0.74\u20131.02/g. Margin calculated net of 16% distro fee.</p></div>');
+                      // Slide 5: Distribution (SF-sourced)
+                      slides.push('<div class="slide"><h2>Distribution Footprint</h2><div class="grid3"><div class="stat"><div class="big">'+totalAccounts+'</div><div class="label">Total Accounts</div></div><div class="stat"><div class="big green">'+activeAll+'</div><div class="label">Active (365d)</div></div><div class="stat"><div class="big">'+active[90]+'</div><div class="label">Active (90d)</div></div></div><div class="zones"><div class="zone"><span class="dot" style="background:#ffeb3b"></span>NorCal (DNU) \u00b7 '+zoneActive.DNU+' active / '+zoneCounts.DNU+' total \u00b7 $'+Math.round(zoneRev.DNU/1000)+'K</div><div class="zone"><span class="dot" style="background:#6fa8d6"></span>Central CA (RB) \u00b7 '+zoneActive.RB+' active / '+zoneCounts.RB+' total \u00b7 $'+Math.round(zoneRev.RB/1000)+'K</div><div class="zone"><span class="dot" style="background:#f44336"></span>SoCal (ZASP) \u00b7 '+zoneActive.ZASP+' active / '+zoneCounts.ZASP+' total \u00b7 $'+Math.round(zoneRev.ZASP/1000)+'K</div></div><p class="note">Distributed by UpNorth across 3 California zone hubs: Arcata/Humboldt, Riverbank, Los Angeles. Account data from Salesforce.</p></div>');
+                      // Slide 6: Product + Pipeline
+                      slides.push('<div class="slide"><h2>Product + Pipeline</h2><div class="grid2"><div class="big" style="text-align:center;padding:12px">Live Resin Vape Carts (1g)</div><div class="big" style="text-align:center;padding:12px">Badder \u00b7 Sauce \u00b7 Diamonds</div></div><h3 style="margin-top:16px">Velocity (from Salesforce)</h3><div class="grid3" style="margin-top:8px"><div class="stat"><div class="big">'+units[30]+'</div><div class="label">Units (30d)</div></div><div class="stat"><div class="big">'+units[90]+'</div><div class="label">Units (90d)</div></div><div class="stat"><div class="big">'+units[365]+'</div><div class="label">Units (365d)</div></div></div><p class="note">Vertically integrated: biomass sourcing \u2192 extraction (Greenline Labs, Moss Landing) \u2192 filling \u2192 testing (Encore Labs) \u2192 packaging \u2192 distribution (UpNorth).</p></div>');
+                      // Slide 7: Competitive Landscape + Supply Chain
+                      slides.push('<div class="slide"><h2>Competitive Landscape</h2>'+
+                        '<div style="font-size:10px;color:#888;letter-spacing:1px;margin-bottom:6px">LIVE RESIN CARTS (1g) \u2014 CA RETAIL</div>'+
+                        '<div style="border-bottom:1px solid #1a1a1a;padding:6px 0;display:flex;justify-content:space-between;font-size:11px"><span style="font-weight:700">Raw Garden</span><span style="color:#888">$25\u201335</span></div>'+
+                        '<div style="border-bottom:1px solid #1a1a1a;padding:6px 0;display:flex;justify-content:space-between;font-size:11px"><span style="font-weight:700">Stiiizy</span><span style="color:#888">$30\u201340</span></div>'+
+                        '<div style="border-bottom:1px solid #1a1a1a;padding:6px 0;display:flex;justify-content:space-between;font-size:11px"><span style="font-weight:700">Friendly Farms</span><span style="color:#888">$35\u201350</span></div>'+
+                        '<div style="border-bottom:1px solid #1a1a1a;padding:6px 0;display:flex;justify-content:space-between;font-size:11px"><span style="font-weight:700">Cold Fire</span><span style="color:#888">$30\u201345</span></div>'+
+                        '<div style="background:#33cc6611;border:1px solid #33cc6622;border-radius:4px;padding:8px;margin:4px 0;display:flex;justify-content:space-between;font-size:11px"><span style="font-weight:800;color:#33cc66">GLOBS</span><span style="font-weight:800;color:#33cc66">$20\u201330</span></div>'+
+                        '<h3 style="margin-top:14px;margin-bottom:6px;font-size:10px;color:#888;letter-spacing:1px">SUPPLY CHAIN MOAT</h3>'+
+                        '<div style="border-left:3px solid #33cc66;padding:8px 12px;margin-bottom:4px;background:#33cc6608"><div style="display:flex;justify-content:space-between"><span style="font-weight:700;color:#33cc66;font-size:11px">Distribution: 16%</span><span style="font-size:9px;color:#33cc66;font-weight:700">4\u201310% UNDER MARKET</span></div><div style="font-size:9px;color:#ccc;margin-top:3px">Industry standard 20\u201326%. Our 16% includes sales team (8 reps) + collections. Competitors pay more AND hire separately.</div></div>'+
+                        '<div style="border-left:3px solid #8bc34a;padding:8px 12px;margin-bottom:4px;background:#8bc34a08"><div style="display:flex;justify-content:space-between"><span style="font-weight:700;color:#8bc34a;font-size:11px">Biomass: $0.74\u20131.02/g</span><span style="font-size:9px;color:#8bc34a;font-weight:700">BELOW MARKET</span></div><div style="font-size:9px;color:#ccc;margin-top:3px">Market rate $1.50\u20132.50/g. Legacy farm relationships (CAM, UpNorth network) \u2014 not replicable by new entrants.</div></div>'+
+                        '<div style="border-left:3px solid #EF9F27;padding:8px 12px;margin-bottom:4px;background:#EF9F2708"><div style="display:flex;justify-content:space-between"><span style="font-weight:700;color:#EF9F27;font-size:11px">Extraction: $1.25/g</span><span style="font-size:9px;color:#EF9F27;font-weight:700">GL TERMS</span></div><div style="font-size:9px;color:#ccc;margin-top:3px">Greenline partnership includes $75K credit terms. Competitors pay $2\u20134/g third-party without terms.</div></div>'+
+                        '<p class="note">Combined supply chain advantages create ~30% cost structure benefit vs. competitors. Legacy relationships built over years \u2014 not replicable by funded startups.</p></div>');
+                      // Slide 8: Lean Operations + Headcount Substitution
+                      slides.push('<div class="slide"><h2>Lean Operations Model</h2>'+
+                        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'+
+                        '<div style="background:#33cc6611;border:1px solid #33cc6633;border-radius:6px;padding:10px;text-align:center"><div style="font-size:11px;font-weight:800;color:#33cc66;margin-bottom:6px">GLOBS</div><div style="font-size:8px;color:#ccc;text-align:left;line-height:1.7">\u2713 1 founder/operator<br>\u2713 0 W2 employees<br>\u2713 White-label extraction<br>\u2713 White-label distribution<br>\u2713 Proprietary analytics (GPI)<br>\u2713 $0 rent / $0 warehouse<br><span style="color:#33cc66;font-weight:700">~$5K/mo overhead</span></div></div>'+
+                        '<div style="background:#f4433611;border:1px solid #f4433633;border-radius:6px;padding:10px;text-align:center"><div style="font-size:11px;font-weight:800;color:#f44336;margin-bottom:6px">TYPICAL BRAND</div><div style="font-size:8px;color:#ccc;text-align:left;line-height:1.7">\u2717 CEO + COO + ops team<br>\u2717 5\u201315 W2 employees<br>\u2717 In-house extraction lab<br>\u2717 Separate distro contract<br>\u2717 Manual Excel tracking<br>\u2717 Warehouse lease<br><span style="color:#f44336;font-weight:700">~$80\u2013150K/mo overhead</span></div></div></div>'+
+                        '<h3 style="font-size:10px;color:#888;letter-spacing:1px;margin-bottom:6px">HEADCOUNT SUBSTITUTION</h3>'+
+                        '<div style="border-left:3px solid #00bcd4;padding:6px 12px;margin-bottom:3px;background:#00bcd408;display:flex;justify-content:space-between;font-size:10px"><span style="font-weight:700;color:#00bcd4">\uD83D\uDCBB GPI Command Center</span><span>3\u20134 FTEs \u00b7 $210\u2013270K/yr</span></div>'+
+                        '<div style="border-left:3px solid #33cc66;padding:6px 12px;margin-bottom:3px;background:#33cc6608;display:flex;justify-content:space-between;font-size:10px"><span style="font-weight:700;color:#33cc66">\u2697 White-Label Extraction</span><span>4\u20135 FTEs \u00b7 $325\u2013520K/yr</span></div>'+
+                        '<div style="border-left:3px solid #6fa8d6;padding:6px 12px;margin-bottom:3px;background:#6fa8d608;display:flex;justify-content:space-between;font-size:10px"><span style="font-weight:700;color:#6fa8d6">\uD83D\uDE9A White-Label Distribution</span><span>8\u20139 FTEs \u00b7 $360\u2013530K/yr</span></div>'+
+                        '<div style="background:#111;border:2px solid #fff;border-radius:8px;padding:12px;text-align:center;margin-top:10px"><div style="display:flex;justify-content:center;gap:20px"><div><div style="font-size:24px;font-weight:900">15\u201318</div><div style="font-size:8px;color:#888">employees replaced</div></div><div style="width:1px;background:#333"></div><div><div style="font-size:24px;font-weight:900">$895K\u2013$1.3M</div><div style="font-size:8px;color:#888">annual cost avoided</div></div></div><div style="font-size:10px;color:#33cc66;font-weight:700;margin-top:6px">GLOBS actual overhead: ~$60K/yr</div></div>'+
+                        '<p class="note">Technology + white-label infrastructure replaces what other brands need 15\u201318 employees for. This is the model investors scale: inject capital into production + 4 key hires and this becomes a $3\u20135M operation.</p></div>');
+                      // Slide 9: Technology IP
+                      slides.push('<div class="slide"><h2>Technology IP \u2014 GPI Platform</h2>'+
+                        '<div style="font-size:11px;color:#999;margin-bottom:12px">GPI Command Center is proprietary software built by the founder. It currently runs GLOBS \u2014 but it\u2019s designed to be sold to other cannabis brands.</div>'+
+                        '<h3 style="font-size:10px;color:#888;letter-spacing:1px;margin-bottom:6px">CURRENT CAPABILITIES</h3>'+
+                        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:12px">'+
+                        '<div style="font-size:8px;padding:5px 6px;background:#00bcd411;border:1px solid #00bcd422;border-radius:3px;color:#00bcd4;text-align:center">Salesforce Integration</div>'+
+                        '<div style="font-size:8px;padding:5px 6px;background:#00bcd411;border:1px solid #00bcd422;border-radius:3px;color:#00bcd4;text-align:center">Demand Forecasting</div>'+
+                        '<div style="font-size:8px;padding:5px 6px;background:#00bcd411;border:1px solid #00bcd422;border-radius:3px;color:#00bcd4;text-align:center">Production Scheduling</div>'+
+                        '<div style="font-size:8px;padding:5px 6px;background:#00bcd411;border:1px solid #00bcd422;border-radius:3px;color:#00bcd4;text-align:center">Order Generation</div>'+
+                        '<div style="font-size:8px;padding:5px 6px;background:#00bcd411;border:1px solid #00bcd422;border-radius:3px;color:#00bcd4;text-align:center">COA \u2192 Label Automation</div>'+
+                        '<div style="font-size:8px;padding:5px 6px;background:#00bcd411;border:1px solid #00bcd422;border-radius:3px;color:#00bcd4;text-align:center">Financial Reporting</div>'+
+                        '<div style="font-size:8px;padding:5px 6px;background:#00bcd411;border:1px solid #00bcd422;border-radius:3px;color:#00bcd4;text-align:center">Investor Deck Generator</div>'+
+                        '<div style="font-size:8px;padding:5px 6px;background:#00bcd411;border:1px solid #00bcd422;border-radius:3px;color:#00bcd4;text-align:center">Dispatch + Zone Mapping</div>'+
+                        '</div>'+
+                        '<h3 style="font-size:10px;color:#888;letter-spacing:1px;margin-bottom:6px">SAAS REVENUE OPPORTUNITY</h3>'+
+                        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px">'+
+                        '<div style="background:#111;border:1px solid #222;border-radius:6px;padding:10px 6px;text-align:center"><div style="font-size:18px;font-weight:800;color:#00bcd4">1,000+</div><div style="font-size:8px;color:#888">CA Licensed Brands</div></div>'+
+                        '<div style="background:#111;border:1px solid #222;border-radius:6px;padding:10px 6px;text-align:center"><div style="font-size:18px;font-weight:800;color:#00bcd4">$1K</div><div style="font-size:8px;color:#888">/mo per brand</div></div>'+
+                        '<div style="background:#111;border:1px solid #222;border-radius:6px;padding:10px 6px;text-align:center"><div style="font-size:18px;font-weight:800;color:#00bcd4">5\u201310\u00d7</div><div style="font-size:8px;color:#888">SaaS ARR Multiple</div></div>'+
+                        '</div>'+
+                        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px">'+
+                        '<div style="background:#111;border:1px solid #00bcd444;border-radius:6px;padding:10px;text-align:center"><div style="font-size:10px;color:#888;margin-bottom:4px">50 brands @ $1K/mo</div><div style="font-size:20px;font-weight:900;color:#00bcd4">$600K ARR</div><div style="font-size:9px;color:#888;margin-top:2px">Valued at $3\u20136M</div></div>'+
+                        '<div style="background:#111;border:1px solid #00bcd444;border-radius:6px;padding:10px;text-align:center"><div style="font-size:10px;color:#888;margin-bottom:4px">200 brands @ $1K/mo</div><div style="font-size:20px;font-weight:900;color:#00bcd4">$2.4M ARR</div><div style="font-size:9px;color:#888;margin-top:2px">Valued at $12\u201324M</div></div>'+
+                        '</div>'+
+                        '<div style="background:#111;border:2px solid #00bcd4;border-radius:8px;padding:12px;text-align:center">'+
+                        '<div style="font-size:9px;color:#999;letter-spacing:2px;margin-bottom:4px">COMBINED COMPANY VALUE</div>'+
+                        '<div style="display:flex;justify-content:center;gap:12px;align-items:center;flex-wrap:wrap">'+
+                        '<div><div style="font-size:13px;font-weight:800">$1.65M</div><div style="font-size:8px;color:#888">Cannabis Brand</div></div>'+
+                        '<div style="font-size:16px;color:#333">+</div>'+
+                        '<div><div style="font-size:13px;font-weight:800;color:#00bcd4">$3\u20136M</div><div style="font-size:8px;color:#888">GPI SaaS (50 brands)</div></div>'+
+                        '<div style="font-size:16px;color:#333">=</div>'+
+                        '<div><div style="font-size:16px;font-weight:900;color:#33cc66">$4.65\u20137.65M</div><div style="font-size:8px;color:#888">Total Opportunity</div></div>'+
+                        '</div></div>'+
+                        '<p class="note">Every cannabis brand in California has the same operational problems GPI solves: manual forecasting, disconnected Salesforce data, no production scheduling, no compliance automation. The platform is already built and battle-tested on live operations. Investor capital accelerates the go-to-market.</p></div>');
+                      // Slide 10: Projections
+                      slides.push('<div class="slide"><h2>Financial Projections</h2><div class="grid2"><div class="stat hl"><div class="big green">$'+Math.round(monthlyNet*6/1000)+'K</div><div class="label">6-Month Net Revenue (est)</div></div><div class="stat"><div class="big">$'+Math.round(run30/1000)+'K</div><div class="label">30d Annualized Run Rate</div></div></div><div class="grid2" style="margin-top:12px"><div class="stat"><div class="big">COD</div><div class="label">Target: May\u2013Jun 2026</div></div><div class="stat"><div class="big">$26K</div><div class="label">Amex Production Float</div></div></div><p class="note">Path to cash-on-delivery eliminates 45-day payout float. Amex $26K revolving production float at $30K limit. Greenline payment terms starting Apr 2026. All projections sourced from Salesforce 365-day trailing data.</p></div>');
+                      // Slide 11: Valuation
+                      var annualized=monthlyGross*12;
+                      var valRev=Math.round(annualized*2.5);
+                      var valGP=Math.round(annualized*(grossMargin/100)*5);
+                      var valGrowth=Math.round(run30*3);
+                      var askPrice=Math.round((valRev+valGP)/2/50000)*50000;// avg of methods, round to $50K
+                      var askMult=annualized>0?(askPrice/annualized).toFixed(1):'?';
+                      var askGPMult=annualized*(grossMargin/100)>0?(askPrice/(annualized*(grossMargin/100))).toFixed(1):'?';
+                      slides.push('<div class="slide"><h2>Valuation &amp; Acquisition Price</h2>'+
+                        '<div style="background:#111;border:1px solid #222;border-radius:6px;padding:14px;margin-bottom:14px">'+
+                        '<div style="font-size:10px;color:#888;letter-spacing:1px;margin-bottom:8px">ANNUALIZED RUN RATE</div>'+
+                        '<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px"><span>Monthly Avg (from Salesforce)</span><span style="font-weight:700">$'+monthlyGross.toLocaleString()+'</span></div>'+
+                        '<div style="display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid #333;font-size:14px"><span style="font-weight:700">Annualized Revenue</span><span style="font-weight:800;color:#33cc66;font-size:16px">$'+annualized.toLocaleString()+'</span></div>'+
+                        '</div>'+
+                        '<div style="font-size:10px;color:#888;letter-spacing:1px;margin-bottom:8px">VALUATION METHODS</div>'+
+                        '<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #1a1a1a;font-size:12px"><span><strong>Revenue Multiple</strong><br><span style="color:#888;font-size:11px">2.5\u00d7 annualized revenue</span></span><span style="font-weight:700">$'+valRev.toLocaleString()+'</span></div>'+
+                        '<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #1a1a1a;font-size:12px"><span><strong>Gross Profit Multiple</strong><br><span style="color:#888;font-size:11px">5.0\u00d7 annual gross profit ('+grossMargin+'%)</span></span><span style="font-weight:700">$'+valGP.toLocaleString()+'</span></div>'+
+                        '<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #1a1a1a;font-size:12px"><span><strong>Growth-Adjusted</strong><br><span style="color:#888;font-size:11px">3.0\u00d7 30d annualized ($'+Math.round(run30/1000)+'K)</span></span><span style="font-weight:700">$'+valGrowth.toLocaleString()+'</span></div>'+
+                        '<div style="margin-top:16px;padding:20px;background:#111;border:2px solid #fff;border-radius:8px;text-align:center">'+
+                        '<div style="font-size:10px;color:#999;letter-spacing:2px;margin-bottom:6px">ACQUISITION PRICE (100%)</div>'+
+                        '<div style="font-size:36px;font-weight:900;letter-spacing:2px">$'+askPrice.toLocaleString()+'</div>'+
+                        '<div style="font-size:11px;color:#888;margin-top:6px">'+askMult+'\u00d7 annualized revenue \u00b7 '+askGPMult+'\u00d7 gross profit</div>'+
+                        '</div>'+
+                        '<div style="margin-top:16px"><div style="font-size:10px;color:#888;letter-spacing:1px;margin-bottom:8px">EQUITY PRICING</div>'+
+                        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">'+
+                        [1,2,5,8,10,15,20,25,49].map(function(p){return'<div style="background:#111;border:1px solid #222;border-radius:4px;padding:8px;text-align:center"><div style="font-size:14px;font-weight:800">$'+Math.round(askPrice*p/100).toLocaleString()+'</div><div style="font-size:9px;color:#888">'+p+'% equity</div></div>';}).join('')+
+                        '</div></div>'+
+                        '<p class="note">Valuation premiums: vertically integrated supply chain, '+Math.round(grossMargin)+'% gross margins, '+totalAccounts+' retail accounts across 3 CA zones, established vendor relationships, proprietary strain library ('+skuCount+' SKUs), and operational analytics platform (GPI).</p></div>');
+                      // Slide 12: Team
+                      slides.push('<div class="slide"><h2>Team &amp; Operations</h2><div class="team"><div class="person"><strong>Dylan</strong> \u00b7 Founder/CEO \u2014 Operations, finance, production, strategy</div><div class="person"><strong>Jonah</strong> \u00b7 Sales Director \u2014 Account management, pricing, demos</div><div class="person"><strong>Eric Ervin</strong> \u00b7 NorCal + Central CA field rep</div><div class="person"><strong>Brandyn</strong> \u00b7 SoCal field rep</div></div><h3 style="margin-top:20px">Key Partners</h3><div class="team"><div class="person"><strong>Greenline Labs</strong> \u2014 Extraction + filling (Moss Landing, CA)</div><div class="person"><strong>Encore Labs</strong> \u2014 Testing + COAs</div><div class="person"><strong>UpNorth</strong> \u2014 Statewide distribution (3 zones)</div><div class="person"><strong>Treeform</strong> \u2014 Custom packaging</div></div></div>');
+
+                      var css='*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,system-ui,sans-serif;background:#000;color:#fff}'+
+                        '.slide{width:100%;max-width:800px;margin:0 auto 40px;padding:48px 40px;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:12px;min-height:500px;page-break-after:always}'+
+                        '.cover{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.cover .logo{font-size:64px;font-weight:900;letter-spacing:12px;margin-bottom:16px}.cover .sub{font-size:16px;color:#999;margin-bottom:40px}.cover .date{font-size:13px;color:#666}'+
+                        'h2{font-size:22px;font-weight:700;letter-spacing:3px;margin-bottom:24px;padding-bottom:12px;border-bottom:1px solid #1a1a1a}h3{font-size:14px;font-weight:600;letter-spacing:2px;color:#999}'+
+                        '.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}'+
+                        '.stat{background:#111;border:1px solid #222;border-radius:8px;padding:20px;text-align:center}.stat.hl{border-color:#33cc66}.big{font-size:28px;font-weight:800;margin-bottom:4px}.big.green{color:#33cc66}.label{font-size:11px;color:#888;letter-spacing:1px}'+
+                        '.note{font-size:12px;color:#666;margin-top:20px;line-height:1.6;border-top:1px solid #1a1a1a;padding-top:12px}'+
+                        '.zones{margin-top:20px}.zone{padding:10px 14px;border-bottom:1px solid #1a1a1a;font-size:13px;display:flex;align-items:center;gap:8px}.dot{width:10px;height:10px;border-radius:50%;display:inline-block}'+
+                        'table{width:100%;border-collapse:collapse;margin-top:16px;font-size:12px}th{text-align:left;padding:8px;border-bottom:2px solid #333;color:#999;font-weight:600}td{padding:8px;border-bottom:1px solid #1a1a1a}'+
+                        '.team{margin-top:12px}.person{padding:10px 14px;border-bottom:1px solid #1a1a1a;font-size:13px;line-height:1.5}'+
+                        '@media print{body{background:#000}.slide{border:none;margin:0;page-break-after:always;max-width:100%}}';
+                      w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>GLOBS Investor Deck</title><style>'+css+'</style></head><body>'+slides.join('')+'<div style="text-align:center;padding:40px;font-size:10px;color:#666">CONFIDENTIAL \u00b7 GLOBS \u00b7 v7.0</div></body></html>');
+                      w.document.close();
+                    }
+
+                    return React.createElement('div',null,subNav,
+                      React.createElement('div',{style:{fontSize:14,fontWeight:700,letterSpacing:2,marginBottom:4}},'PITCH DECK GENERATOR'),
+                      React.createElement('div',{style:{fontSize:10,color:C.dim,marginBottom:16}},'Auto-generates from live 365-day Salesforce data'),
+                      React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:16}},
+                        React.createElement('div',{style:{background:C.good+'15',border:'1px solid '+C.good+'33',borderRadius:6,padding:12,textAlign:'center'}},
+                          React.createElement('div',{style:{fontSize:20,fontWeight:800,color:C.good}},'$'+headlineRev.toLocaleString()),
+                          React.createElement('div',{style:{fontSize:9,color:C.dim}},'Total Gross Revenue (Salesforce)')
+                        ),
+                        React.createElement('div',{style:{background:C.info+'15',border:'1px solid '+C.info+'33',borderRadius:6,padding:12,textAlign:'center'}},
+                          React.createElement('div',{style:{fontSize:20,fontWeight:800,color:C.info}},activeAll+' / '+totalAccounts),
+                          React.createElement('div',{style:{fontSize:9,color:C.dim}},'Active / Total Accounts')
+                        ),
+                        React.createElement('div',{style:{background:C.warn+'15',border:'1px solid '+C.warn+'33',borderRadius:6,padding:12,textAlign:'center'}},
+                          React.createElement('div',{style:{fontSize:20,fontWeight:800,color:C.warn}},headlineUnits.toLocaleString()),
+                          React.createElement('div',{style:{fontSize:9,color:C.dim}},'Total Units Sold (Salesforce)')
+                        ),
+                        React.createElement('div',{style:{background:C.purple+'15',border:'1px solid '+C.purple+'33',borderRadius:6,padding:12,textAlign:'center'}},
+                          React.createElement('div',{style:{fontSize:20,fontWeight:800,color:C.purple}},'~'+grossMargin+'%'),
+                          React.createElement('div',{style:{fontSize:9,color:C.dim}},'Blended Margin')
+                        )
+                      ),
+                      React.createElement('div',{style:{fontSize:10,color:C.dim,marginBottom:8}},'Deck includes 12 slides:'),
+                      ['Cover','Revenue','Growth Drivers','Unit Economics','Distribution','Product','Competitive','Lean Ops','GPI SaaS IP','Projections','Valuation','Team'].map(function(s,i){
+                        return React.createElement('div',{key:i,style:{padding:'6px 12px',fontSize:11,color:C.muted,borderLeft:'2px solid '+C.border}},
+                          React.createElement('span',{style:{color:C.dim,marginRight:8}},(i+1)+'.'),s
+                        );
+                      }),
+                      React.createElement('button',{onClick:generateDeck,style:{width:'100%',marginTop:16,padding:'14px 0',fontSize:13,fontWeight:700,color:'#fff',background:'linear-gradient(135deg,'+C.good+','+C.info+')',border:'none',borderRadius:8,cursor:'pointer',fontFamily:'inherit',letterSpacing:1}},'\uD83D\uDCC4 Generate Pitch Deck'),
+                      React.createElement('div',{style:{fontSize:10,color:C.dim,textAlign:'center',marginTop:8}},'Opens in new tab \u00b7 Use browser Print \u2192 Save as PDF')
+                    );
+                  }
+
+                  return React.createElement('div',null,subNav,React.createElement('div',{style:{color:C.dim}},'Select a view above'));
+                })()}
                 {/* ══ INCOMING PRODUCT PIPELINE ══ */}
                 {tab==="pipeline"&&(function(){
                   var catColor={Cart:C.info,Badder:C.warn,Sauce:C.good,Diamonds:C.purple,Shatter:C.muted};
@@ -4892,7 +5411,7 @@ window._STRAIN_DB=[
                     // Kill Switches
                     React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.dangerBdr,borderRadius:8,padding:'20px 24px',marginBottom:24}},
                       React.createElement('div',{style:{fontSize:11,color:C.danger,letterSpacing:2,marginBottom:12,fontWeight:700}},'KILL SWITCHES — EXECUTIVE ONLY'),
-                      React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(100px,1fr))',gap:12}},
+                      React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))',gap:12}},
                         [{key:'readOnly',label:'Read-Only Mode',desc:'Disable all edits and uploads'},{key:'disableUploads',label:'Disable Uploads',desc:'Block all file uploads'},{key:'disableScraping',label:'Disable Scraping',desc:'Block scraping tools'},{key:'freezeAccounts',label:'Freeze Accounts',desc:'Prevent account data changes'},{key:'disableExports',label:'Disable Exports',desc:'Block all data exports'},{key:'maintenanceMode',label:'Maintenance Mode',desc:'Show maintenance banner'}].map(function(ks){return React.createElement('div',{key:ks.key,style:{background:C.bg,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
                           React.createElement('div',null,
                             React.createElement('div',{style:{fontSize:10,fontWeight:700}},ks.label),
@@ -4903,19 +5422,22 @@ window._STRAIN_DB=[
                       )
                     ),
                     // User Management
-                    React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:'20px 24px',marginBottom:24}},
+                    React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:'16px',marginBottom:24}},
                       React.createElement('div',{style:{fontSize:11,color:C.dim,letterSpacing:2,marginBottom:12}},'USER MANAGEMENT ('+users.length+' USERS)'),
-                      React.createElement('div',{style:{overflowX:'auto'}},React.createElement('table',{style:{width:'100%',minWidth:360,borderCollapse:'collapse'}},
-                        React.createElement('thead',null,React.createElement('tr',{style:{background:C.raised}},['User','Role','PIN','Active','Uploads','Exports','Scraping',''].map(function(h,i){return React.createElement('th',{key:h,style:{padding:'10px 12px',fontSize:10,fontWeight:700,color:C.dim,textAlign:i>=3?'center':'left',borderBottom:'1px solid '+C.border}},h);}))),
-                        React.createElement('tbody',null,users.map(function(u,i){var uo=userOverrides[u.id]||{};return React.createElement('tr',{key:u.id,style:{background:i%2===0?'transparent':'#050505',opacity:u.active?1:0.5}},
-                          React.createElement('td',{style:{padding:'10px 12px',fontSize:11,fontWeight:600}},u.name),
-                          React.createElement('td',{style:{padding:'10px 12px'}},React.createElement('span',{style:{fontSize:10,fontWeight:700,padding:'8px 12px',borderRadius:2,background:u.role==='exec'?C.goodBg:u.role==='mfg'?'#6fa8d622':C.warnBg,color:u.role==='exec'?C.good:u.role==='mfg'?'#6fa8d6':C.warn,border:'1px solid '+(u.role==='exec'?C.goodBdr:u.role==='mfg'?'#6fa8d644':C.warnBdr)}},ROLES[u.role].label)),
-                          React.createElement('td',{style:{padding:'10px 12px',fontSize:10,fontFamily:'monospace',color:C.dim}},u.pin),
-                          React.createElement('td',{style:{padding:'10px 12px',textAlign:'center'}},React.createElement('button',{onClick:function(){var next=users.slice();next[i]=Object.assign({},u,{active:!u.active});saveUsers(next);logSecurity('USER_TOGGLE',u.name+' '+(u.active?'disabled':'enabled'));},style:{fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(u.active?C.goodBdr:C.dangerBdr),background:u.active?C.goodBg:C.dangerBg,color:u.active?C.good:C.danger,borderRadius:2,padding:'2px 8px'}},u.active?'ON':'OFF')),
-                          ['noUpload','noExport','noScraping'].map(function(perm){return React.createElement('td',{key:perm,style:{padding:'10px 12px',textAlign:'center'}},React.createElement('button',{onClick:function(){var next=Object.assign({},userOverrides);if(!next[u.id])next[u.id]={};next[u.id][perm]=!uo[perm];saveOverrides(next);logSecurity('USER_PERM',u.name+' '+perm+'='+(uo[perm]?'allowed':'blocked'));},style:{fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(uo[perm]?C.dangerBdr:C.goodBdr),background:uo[perm]?C.dangerBg:C.goodBg,color:uo[perm]?C.danger:C.good,borderRadius:2,padding:'2px 6px'}},uo[perm]?'✗':'✓'));})
-                        );}))
-                      )),
-                      React.createElement('div',{style:{marginTop:12,fontSize:10,color:C.dim}},'Toggle per-user permissions. Changes logged to security audit. Add users by updating the user registry.')
+                      React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:8}},
+                        users.map(function(u,i){var uo=userOverrides[u.id]||{};var rc=u.role==='exec'?C.good:u.role==='mfg'?'#6fa8d6':C.warn;return React.createElement('div',{key:u.id,style:{background:C.bg,border:'1px solid '+C.border,borderRadius:6,padding:'10px 12px',opacity:u.active?1:0.5}},
+                          React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}},
+                            React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8}},
+                              React.createElement('span',{style:{fontSize:12,fontWeight:700}},u.name),
+                              React.createElement('span',{style:{fontSize:9,fontWeight:700,padding:'2px 6px',borderRadius:2,background:rc+'22',color:rc,border:'1px solid '+rc+'44'}},ROLES[u.role].label)),
+                            React.createElement('div',{style:{display:'flex',alignItems:'center',gap:4}},
+                              React.createElement('span',{style:{fontSize:9,color:C.dim,fontFamily:'monospace'}},u.pin),
+                              React.createElement('button',{onClick:function(){var next=users.slice();next[i]=Object.assign({},u,{active:!u.active});saveUsers(next);logSecurity('USER_TOGGLE',u.name+' '+(u.active?'disabled':'enabled'));},style:{fontSize:9,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(u.active?C.goodBdr:C.dangerBdr),background:u.active?C.goodBg:C.dangerBg,color:u.active?C.good:C.danger,borderRadius:2,padding:'2px 8px',fontWeight:700}},u.active?'ON':'OFF'))),
+                          React.createElement('div',{style:{display:'flex',gap:6}},
+                            ['noUpload','noExport','noScraping'].map(function(perm){var label=perm==='noUpload'?'Upload':perm==='noExport'?'Export':'Scrape';return React.createElement('button',{key:perm,onClick:function(){var next=Object.assign({},userOverrides);if(!next[u.id])next[u.id]={};next[u.id][perm]=!uo[perm];saveOverrides(next);logSecurity('USER_PERM',u.name+' '+perm+'='+(uo[perm]?'allowed':'blocked'));},style:{flex:1,fontSize:9,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(uo[perm]?C.dangerBdr:C.goodBdr),background:uo[perm]?C.dangerBg:C.goodBg,color:uo[perm]?C.danger:C.good,borderRadius:3,padding:'4px 0',fontWeight:600}},label+': '+(uo[perm]?'OFF':'ON'));}))
+                        );})
+                      ),
+                      React.createElement('div',{style:{marginTop:12,fontSize:9,color:C.dim}},'Tap toggles to change permissions. All changes logged.')
                     ),
                     // Role Access Matrix
                     React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:'20px 24px',marginBottom:24}},
@@ -4998,7 +5520,7 @@ window._STRAIN_DB=[
                   <div style={{background:'#f5f5f5',padding:'10px 28px',display:'flex',gap:28,borderBottom:'1px solid #ddd',flexWrap:'wrap'}}>{[['Total Units',wo.totalUnits.toLocaleString()],['Prod. Cost',curK(wo.totalCost)],['Gross Rev.',curK(wo.totalRev)],['Est. Net',curK(wo.totalNet)],['Batch Size','1,000g']].map(function(lv){return<div key={lv[0]}><div style={{fontSize:10,color:'#888',letterSpacing:1}}>{lv[0].toUpperCase()}</div><div style={{fontSize:14,fontWeight:700}}>{lv[1]}</div></div>;})}</div>
                   {wo.categories.map(function(cat,ci){const sd=(cat.batchData&&cat.batchData.strains)||{},cols=["#","STRAIN","GENETICS","HTE CODE","HTE (g)",cat.hasLqd?"LQD CODE":cat.hasThca?"THCA CODE":null,cat.hasLqd?"LQD (g)":cat.hasThca?"THCA (g)":null,"UNITS","QA"].filter(Boolean);return(
                     <div key={cat.key} style={{borderTop:ci>0?'2px solid #e0e0e0':'none'}}>
-                      <div style={{background:'#1a1a1a',color:'#fff',padding:'10px 28px',display:'flex',justifyContent:'space-between',alignItems:'center'}}><div><span style={{fontSize:12,fontWeight:800,letterSpacing:2}}>{cat.label.toUpperCase()}</span><span style={{fontSize:10,color:'#888',marginLeft:16}}>{cat.batches} batches · {cat.batchUnits.toLocaleString()} units</span></div><div><span style={{fontSize:11,color:'#666',marginRight:8}}>Batch:</span><span style={{fontSize:12,fontWeight:700}}>{(cat.batchData&&cat.batchData.batchCode)||'___________'}</span></div></div>
+                      <div style={{background:'#1a1a1a',color:'#fff',padding:'10px 28px',display:'flex',justifyContent:'space-between',alignItems:'center'}}><div><span style={{fontSize:12,fontWeight:800,letterSpacing:2}}>{cat.label.toUpperCase()}</span><span style={{fontSize:10,color:'#888',marginLeft:16}}>{cat.batches} batches · {cat.batchUnits.toLocaleString()} units</span></div><div><span style={{fontSize:11,color:'#666',marginRight:8}}>Invoice #:</span><span style={{fontSize:12,fontWeight:700}}>{(cat.batchData&&cat.batchData.batchCode)||'___________'}</span></div></div>
                       <div style={{background:'#f9f9f9',padding:'6px 28px',display:'flex',gap:20,borderBottom:'1px solid #e0e0e0',flexWrap:'wrap'}}>{[['Cost',curK(cat.batchCost)],['Rev.',curK(cat.batchRev)],['Net',curK(cat.batchNet)]].map(function(lv){return<div key={lv[0]} style={{display:'flex',gap:6,alignItems:'center'}}><span style={{fontSize:10,color:'#999'}}>{lv[0]}</span><span style={{fontSize:12,fontWeight:700}}>{lv[1]}</span></div>;})}</div>
                       <div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:440,borderCollapse:'collapse'}}><thead><tr style={{background:'#2a2a2a',color:'#fff'}}>{cols.map(function(h){return<th key={h} style={{padding:'8px 12px',fontSize:10,fontWeight:700,letterSpacing:1,textAlign:'left',whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead>
                       <tbody>{cat.strainRows.map(function(s,i){const sf=sd[s.strain]||{};return(<tr key={i} style={{background:i%2===0?'#fff':'#f9f9f9',borderBottom:'1px solid #eee'}}><td style={{padding:'9px 12px',fontSize:11,color:'#888',width:30}}>{i+1}</td><td style={{padding:'9px 12px',fontSize:12,fontWeight:700}}>{s.strain}</td><td style={{padding:'9px 12px'}}><span style={{fontSize:11,fontWeight:700,color:tc(s.type),background:tc(s.type)+'22',border:'1px solid '+tc(s.type)+'44',borderRadius:2,padding:'2px 6px'}}>{s.type.toUpperCase()}</span></td><td style={{padding:'9px 12px',fontSize:11,fontFamily:'monospace'}}>{sf.hte||<span style={{color:'#ccc'}}>—</span>}</td><td style={{padding:'9px 12px',fontSize:11,textAlign:'right',fontWeight:600}}>{sf.hteG?sf.hteG+'g':<span style={{color:'#ccc'}}>—</span>}</td>{cat.hasLqd&&<td style={{padding:'9px 12px',fontSize:11,fontFamily:'monospace'}}>{sf.lqd||<span style={{color:'#ccc'}}>—</span>}</td>}{cat.hasLqd&&<td style={{padding:'9px 12px',fontSize:11,textAlign:'right',fontWeight:600}}>{sf.lqdG?sf.lqdG+'g':<span style={{color:'#ccc'}}>—</span>}</td>}{cat.hasThca&&<td style={{padding:'9px 12px',fontSize:11,fontFamily:'monospace'}}>{sf.thca||<span style={{color:'#ccc'}}>—</span>}</td>}{cat.hasThca&&<td style={{padding:'9px 12px',fontSize:11,textAlign:'right',fontWeight:600}}>{sf.thcaG?sf.thcaG+'g':<span style={{color:'#ccc'}}>—</span>}</td>}<td style={{padding:'9px 12px',fontSize:11,color:'#444',textAlign:'right'}}>1,000</td><td style={{padding:'9px 12px'}}><div style={{borderBottom:'1px solid #ccc',width:90,marginTop:8}}></div></td></tr>);})} </tbody>
@@ -5015,7 +5537,7 @@ window._STRAIN_DB=[
                       body+="Estimated Revenue: $"+wo.totalRev.toFixed(0)+"\n\n";
                       wo.categories.forEach(function(cat){
                         body+=cat.label.toUpperCase()+" ("+cat.batches+" batches · "+cat.batchUnits.toLocaleString()+" units)\n";
-                        body+="Batch Code: "+(cat.batchData&&cat.batchData.batchCode||"___________")+"\n";
+                        body+="Invoice #: "+(cat.batchData&&cat.batchData.batchCode||"___________")+"\n";
                         cat.strainRows.forEach(function(s,i){body+="  "+(i+1)+". "+s.strain+" ("+s.type+")\n";});
                         body+="\n";
                       });
@@ -5902,15 +6424,74 @@ const YIELD_KEY = 'gpi-yield-log';
     // ── CASH FLOW TAB ─────────────────────────────────────────────────────────
     function CashFlow({C,accounts,periodDays,setPeriodDays,inventoryData}) {
       if (!C) C = DARK_C;
+      // ── UpNorth terms: 45 days after month close (sales month → payout ~45d after last day) ──
+      // Confirmed Ian payouts (primary source)
+      var confirmedPayouts=[
+        {salesMonth:'Feb',payoutMonth:'Apr',gross:45711,net:38397,due:'Apr 13',status:'pending'},
+        {salesMonth:'Mar',payoutMonth:'May',gross:70954,net:59602,due:'May 13',status:'pending'}
+      ];
+      // GL outflows (from owed schedule)
+      var glOutflows=[
+        {label:'S17104 Drop 1/2/3',amt:22098,due:'Apr 8'},
+        {label:'S17158 Drop 2',amt:5118,due:'Apr 22'},
+        {label:'S17200 Drop 3',amt:5766,due:'May 6'},
+        {label:'S17221 Drop 4',amt:5000,due:'May 20'},
+        {label:'S17242 Drop 5 (est)',amt:13800,due:'Jun 3'}
+      ];
+      // SF fallback: monthly revenue estimate from 365d activity
+      var totalRev365=0;
+      (accounts||[]).forEach(function(a){if(a.periodRevenue&&a.periodRevenue[365])totalRev365+=a.periodRevenue[365];});
+      var monthlyGross=Math.round(totalRev365/12);
+      var monthlyNet=Math.round(monthlyGross*0.84);
+      // Build 6-month forward projection with 45-day-after-close terms
+      var payoutMonths=['Apr','May','Jun','Jul','Aug','Sep'];
+      var salesMonths=['Feb','Mar','Apr','May','Jun','Jul'];// sales month that pays out 2 months later
+      var year=2026;
+      var cashBal=5000;
+      var rows=payoutMonths.map(function(m,i){
+        var salesMo=salesMonths[i];
+        var confirmed=confirmedPayouts.find(function(p){return p.payoutMonth===m;});
+        var inflow=confirmed?confirmed.net:monthlyNet;
+        var src=confirmed?'Confirmed ('+confirmed.salesMonth+' sales \u2192 '+m+' payout)':salesMo+' sales est \u00d7 0.84 \u2192 '+m+' payout (45d after close)';
+        var outflow=0;var outLabels=[];
+        glOutflows.forEach(function(g){if(g.due.startsWith(m)){outflow+=g.amt;outLabels.push(g.label+' $'+g.amt.toLocaleString());}});
+        cashBal=cashBal+inflow-outflow;
+        return{month:m+' '+year,inflow:inflow,outflow:outflow,src:src,outLabels:outLabels,balance:cashBal,confirmed:!!confirmed};
+      });
       return (
         <div>
-          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14,flexWrap:'wrap'}}>
-            <span style={{fontSize:11,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>Revenue window</span>
-            {[7,30,60,90,180,270,365].map(function(d){return<button key={d} onClick={function(){setPeriodDays(d);}} style={{padding:'3px 8px',borderRadius:2,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+(periodDays===d?C.text:C.border),background:periodDays===d?C.text:'transparent',color:periodDays===d?C.bg:C.dim,fontWeight:periodDays===d?700:400}}>{d}d</button>;})}
-          </div>
-          <div style={{background:C.surface,border:'1px solid '+(C.borderHi||C.border),borderRadius:8,padding:'40px 24px',textAlign:'center',marginBottom:20}}>
-            <div style={{fontSize:14,fontWeight:700,letterSpacing:2,paddingBottom:8,borderBottom:'1px solid '+C.border,marginBottom:8}}>CASH FLOW</div>
-            <div style={{fontSize:11,color:C.muted,lineHeight:1.8,maxWidth:400,margin:'0 auto'}}>Cash flow visualization is being rebuilt for accuracy. Switch to P&L above for current profitability analysis.</div>
+          <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:16,marginBottom:16}}>
+            <div style={{fontSize:14,fontWeight:700,letterSpacing:2,paddingBottom:8,borderBottom:'1px solid '+C.border,marginBottom:12}}>CASH FLOW — 6 MONTH OUTLOOK</div>
+            <div style={{fontSize:10,color:C.dim,marginBottom:14}}>UpNorth terms: payout 45 days after sales month close. Confirmed Ian payouts first, SF 365d avg as fallback.</div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,marginBottom:16}}>
+              <div style={{background:C.good+'15',border:'1px solid '+C.good+'33',borderRadius:6,padding:'10px 12px',textAlign:'center'}}>
+                <div style={{fontSize:18,fontWeight:800,color:C.good}}>{'$'+confirmedPayouts.reduce(function(s,p){return s+p.net;},0).toLocaleString()}</div>
+                <div style={{fontSize:9,color:C.dim}}>Confirmed inflows</div>
+              </div>
+              <div style={{background:C.warn+'15',border:'1px solid '+C.warn+'33',borderRadius:6,padding:'10px 12px',textAlign:'center'}}>
+                <div style={{fontSize:18,fontWeight:800,color:C.warn}}>{'$'+glOutflows.reduce(function(s,g){return s+g.amt;},0).toLocaleString()}</div>
+                <div style={{fontSize:9,color:C.dim}}>GL payables</div>
+              </div>
+              <div style={{background:C.info+'15',border:'1px solid '+C.info+'33',borderRadius:6,padding:'10px 12px',textAlign:'center'}}>
+                <div style={{fontSize:18,fontWeight:800,color:C.info}}>{'$'+monthlyNet.toLocaleString()}</div>
+                <div style={{fontSize:9,color:C.dim}}>SF mo. est (×0.84)</div>
+              </div>
+            </div>
+            {rows.map(function(r,i){var net=r.inflow-r.outflow;var nc=net>=0?C.good:C.danger;return(
+              <div key={r.month} style={{background:i%2===0?'transparent':C.raised,borderLeft:'3px solid '+(r.confirmed?C.good:C.info),padding:'10px 12px',marginBottom:4}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}>
+                  <span style={{fontSize:12,fontWeight:700}}>{r.month}</span>
+                  <span style={{fontSize:12,fontWeight:800,color:nc}}>{(net>=0?'+':'')+net.toLocaleString()}</span>
+                </div>
+                <div style={{display:'flex',justifyContent:'space-between',fontSize:10,color:C.dim,marginBottom:2}}>
+                  <span style={{color:C.good}}>{'IN $'+r.inflow.toLocaleString()}</span>
+                  <span style={{color:r.outflow>0?C.warn:C.dim}}>{'OUT $'+r.outflow.toLocaleString()}</span>
+                  <span>{'Bal $'+r.balance.toLocaleString()}</span>
+                </div>
+                <div style={{fontSize:9,color:r.confirmed?C.good:C.info,fontStyle:'italic'}}>{r.src}</div>
+                {r.outLabels.length>0&&<div style={{fontSize:9,color:C.warn,marginTop:2}}>{r.outLabels.join(' \u00b7 ')}</div>}
+              </div>
+            );})}
           </div>
         </div>
       );
@@ -6039,7 +6620,7 @@ const YIELD_KEY = 'gpi-yield-log';
             }, "Unlock"),
             err && React.createElement("div", { style: { marginTop: 12, fontSize: 11, color: "#f44336", letterSpacing: 0.5 } }, "Incorrect password")
           ),
-          React.createElement("div", { style: { marginTop: 20, fontSize: 9, color: "#1e2736", letterSpacing: 2, textTransform: "uppercase" } }, "GLOBS · CONFIDENTIAL · v6.2")
+          React.createElement("div", { style: { marginTop: 20, fontSize: 9, color: "#1e2736", letterSpacing: 2, textTransform: "uppercase" } }, "GLOBS · CONFIDENTIAL · v7.0")
         )
       );
     }
