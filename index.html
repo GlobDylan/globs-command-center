@@ -3508,10 +3508,10 @@ window._STRAIN_DB=[
                   });
                   var oFallen=oFilt.filter(function(o){return o.status==="FALLEN OFF";}),oOverdue=oFilt.filter(function(o){return o.status==="OVERDUE";});
                   var oTotRev=oFilt.reduce(function(s,o){return s+o.rev;},0);
-                  var fAllocCount=0,fAllocRev=0,fRemaining=0;
-                  oFilt.forEach(function(o){var ls=(alloc[o.name]||[]);if(ls.length>0){fAllocCount++;fAllocRev+=ls.reduce(function(s,l){return s+l.lineRev;},0);}});
-                  oFilt.forEach(function(o){var ls=(alloc[o.name]||[]);ls.forEach(function(l){fRemaining+=l.remQty;});});
-                  var fPctAlloc=totalInvStart>0?Math.round((totalInvStart-fRemaining)/totalInvStart*100):0;
+                  var fAllocCount=0,fAllocRev=0,fAllocUnits=0;
+                  oFilt.forEach(function(o){var ls=(alloc[o.name]||[]);if(ls.length>0){fAllocCount++;fAllocRev+=ls.reduce(function(s,l){return s+l.lineRev;},0);fAllocUnits+=ls.reduce(function(s,l){return s+l.qty;},0);}});
+                  var fPctAlloc=totalInvStart>0?Math.round(fAllocUnits/totalInvStart*100):0;
+                  var fRemaining=Math.max(0,totalInvStart-fAllocUnits);
 
                   return React.createElement('div',null,
                     React.createElement('div',{id:'opp-screenshot'},
