@@ -984,7 +984,7 @@ window._STRAIN_DB=[
 
       // ── SECURITY SYSTEM ──────────────────────────────────────────────────
       const ROLES={
-        exec:{label:'Executive',tabs:['briefing','accounts','opportunities','dispatch','strains','yield','mfg','sop','labels','packaging','executive','financials','returns','revenue','orders','security'],canExport:true,canUpload:true,canEditMargin:true,canApprove:true,seeFinancials:true},
+        exec:{label:'Executive',tabs:['briefing','accounts','opportunities','dispatch','strains','yield','mfg','sop','labels','packaging','executive','financials','returns','revenue','orders','pipeline','security'],canExport:true,canUpload:true,canEditMargin:true,canApprove:true,seeFinancials:true},
         mfg:{label:'Manufacturing',tabs:['strains','yield','mfg','labels','packaging','briefing'],canExport:false,canUpload:true,canEditMargin:false,canApprove:false,seeFinancials:false},
         distro:{label:'Distribution',tabs:['accounts','opportunities','dispatch','orders','pipeline','returns'],canExport:false,canUpload:true,canEditMargin:false,canApprove:false,seeFinancials:false}
       };
@@ -1614,9 +1614,30 @@ window._STRAIN_DB=[
 
       const ALL_CATS=[{key:'Cart',label:'Carts',cogsPerUnit:COGS.Cart.cost,wsPerUnit:COGS.Cart.wholesale,hasLqd:true,hasThca:false,maxBatch:scaledMax(10)},{key:'Badder',label:'Badder',cogsPerUnit:COGS.Badder.cost,wsPerUnit:COGS.Badder.wholesale,hasLqd:false,hasThca:true,maxBatch:scaledMax(6)},{key:'Sauce',label:'Sauce',cogsPerUnit:COGS.Sauce.cost,wsPerUnit:COGS.Sauce.wholesale,hasLqd:false,hasThca:true,maxBatch:scaledMax(6)},{key:'Diamonds',label:'Diamonds',cogsPerUnit:COGS.Diamonds.cost,wsPerUnit:COGS.Diamonds.wholesale,hasLqd:false,hasThca:true,maxBatch:scaledMax(6)}];
 
+      // ═══ SHARED PIPELINE — single source of truth for drops in production ═══
+      // Both Incoming tab and MFG tab read from this
+      const PIPELINE=[
+        {label:'Drop #4',status:'SHIPPING',statusKey:'good',eta:'Apr 7',source:'CAM',
+          items:[{strain:'Modified Cherries',cat:'Cart',qty:1000},{strain:'Ice Cream Paint Job',cat:'Cart',qty:1000},{strain:'Sweet-N-Sour Diesel',cat:'Cart',qty:1000},{strain:'Headband',cat:'Cart',qty:1000},{strain:'Grandma\'s Cookies',cat:'Cart',qty:1000}],
+          stages:[{l:'Extract',done:true},{l:'Fill',done:true},{l:'Lab Test',done:true},{l:'Package',done:true},{l:'Ship',done:false,active:true}]},
+        {label:'Drop #5',status:'FORMULATION',statusKey:'warn',eta:'~Apr 18',source:'UpNorth',
+          items:[{strain:'Sweet-N-Sour Diesel',cat:'Badder',qty:1000},{strain:'Ice Cream Paint Job',cat:'Badder',qty:1000},{strain:'Grandma\'s Cookies',cat:'Badder',qty:1000},{strain:'Frozen Grapes',cat:'Badder',qty:1000},{strain:'Modified Cherries',cat:'Badder',qty:1000},{strain:'Headband',cat:'Badder',qty:1000}],
+          stages:[{l:'Extract',done:true},{l:'Formulate',done:false,active:true},{l:'Gram + Pack',done:false},{l:'Lab Test',done:false},{l:'Ship',done:false}]},
+      ];
+
+      // Pipeline totals by category (excludes SHIPPING — already in inventory)
+      const pipelineByCategory=useMemo(function(){
+        var byCat={Cart:0,Badder:0,Sauce:0,Diamonds:0};
+        PIPELINE.forEach(function(drop){
+          if(drop.status==='SHIPPING')return;
+          drop.items.forEach(function(it){byCat[it.cat]=(byCat[it.cat]||0)+it.qty;});
+        });
+        return byCat;
+      },[]);
+
       const catGroups=useMemo(function(){const cg={Cart:0,Badder:0,Sauce:0,Diamonds:0};mfgVelocity.forEach(function(s){const oh=mfgInventory[s.sku]!==undefined?parseInt(mfgInventory[s.sku])||0:(s.invOnHand!=null?s.invOnHand:0),suggested=Math.max(0,Math.round(s.weeklyVel*mfgTargetWeeks)-oh),oq=mfgOrderQty[s.sku]!==undefined?parseInt(mfgOrderQty[s.sku])||0:suggested;if(oq<=0)return;const l=cogsFor(s.category).label;if(l==='Vape Cart')cg.Cart+=oq;else if(l==='Badder')cg.Badder+=oq;else if(l==='Sauce')cg.Sauce+=oq;else if(l==='Diamonds')cg.Diamonds+=oq;});return cg;},[mfgVelocity,mfgInventory,mfgOrderQty,mfgTargetWeeks]);
 
-      const activeCats=useMemo(function(){return ALL_CATS.filter(function(c){return catGroups[c.key]>0;});},[catGroups,mfgTargetWeeks]); // eslint-disable-line
+      const activeCats=useMemo(function(){return ALL_CATS.filter(function(c){return catGroups[c.key]>0;});},[catGroups]); // eslint-disable-line
 
       function buildStrainRows(cat){const batches=Math.min(cat.maxBatch,Math.max(MIN_BATCH,Math.ceil((catGroups[cat.key]||0)/BATCH))),ish=calcISH(batches,cat.key),live=mfgVelocity.filter(catMatchFn(cat.key)).filter(function(s){return s.reliable;}).map(function(s){return{strain:s.strain,vel:s.weeklyVel,score:+s.weeklyVel.toFixed(1),type:typeFromAV(cat.key,s.strain)};}).sort(function(a,b){return b.score-a.score;}),allSugs=live.length>0?live:(AV[cat.key]||[]).map(function(s){return Object.assign({},s,{score:s.vel});});const strainRows=[['Indica',ish.Indica],['Sativa',ish.Sativa],['Hybrid',ish.Hybrid]].reduce(function(acc,tv){return acc.concat(allSugs.filter(function(s){return s.type===tv[0];}).slice(0,tv[1]));},{} instanceof Array?[]:[]/* workaround */).constructor===Array?[['Indica',ish.Indica],['Sativa',ish.Sativa],['Hybrid',ish.Hybrid]].flatMap(function(tv){return allSugs.filter(function(s){return s.type===tv[0];}).slice(0,tv[1]);}):[];const batchUnits=batches*BATCH,batchRev=batchUnits*cat.wsPerUnit,batchCost=batchUnits*cat.cogsPerUnit,batchNet=batchRev-batchCost-batchRev*0.16;return{batches,batchUnits,batchCost,batchRev,batchNet,strainRows};}
 
@@ -1655,7 +1676,7 @@ window._STRAIN_DB=[
                 var ctx=el.getContext('2d');
                 var w=el.width=window.innerWidth;
                 var h=el.height=window.innerHeight;
-                var letters='GLOBS'.split('');
+                var letters='GLOBSGREENLINEUPNORTH'.split('');
                 var cols=Math.floor(w/18);
                 var drops=[];for(var i=0;i<cols;i++)drops[i]=Math.random()*-100;
                 var speeds=[];for(var i=0;i<cols;i++)speeds[i]=0.3+Math.random()*0.7;
@@ -1813,7 +1834,7 @@ window._STRAIN_DB=[
                   {[["strains","Strains"],["yield","Yield"],["mfg","MFG"],["sop","SOPs"],["labels","Labels"],["packaging","Packaging"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
                   <span style={{width:1,alignSelf:'stretch',background:C.border,margin:'6px 10px',flexShrink:0}}></span>
                   <span style={{fontSize:10,color:C.dim,letterSpacing:2,textTransform:'uppercase',padding:'6px 10px 10px 0',flexShrink:0,opacity:0.6}}>EXEC</span>
-                  {[["briefing","Briefing"],["executive","Executive"],["financials","Financials"],["returns","Returns"],["revenue","Revenue"],["orders","Orders"],["security","Security"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
+                  {[["briefing","Briefing"],["executive","Executive"],["financials","Financials"],["returns","Returns"],["revenue","Revenue"],["orders","Orders"],["pipeline","Incoming"],["security","Security"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
                   </>
                 )}
               </div>
@@ -2406,7 +2427,11 @@ window._STRAIN_DB=[
                           {activeCats.map(function(cat){
                             const built=buildStrainRows(cat),batches=built.batches,batchUnits=built.batchUnits,batchCost=built.batchCost,batchRev=built.batchRev,batchNet=built.batchNet,strainRows=built.strainRows,ish=calcISH(batches,cat.key);
                             const cols=["#","Strain","Vel/wk","HTE Code","HTE (g)",cat.hasLqd?"LQD Code":cat.hasThca?"THCA Code":null,cat.hasLqd?"LQD (g)":cat.hasThca?"THCA (g)":null].filter(Boolean);
+                            var pipUnits=pipelineByCategory[cat.key]||0;
+                            var pipStrains=[];PIPELINE.forEach(function(d){if(d.status==='SHIPPING')return;d.items.forEach(function(it){if(it.cat===cat.key)pipStrains.push(it.strain+' ('+it.qty+')');});});
                             return(
+                              <div key={cat.key}>
+                              {pipUnits>0&&<div style={{background:'#7cb87a15',border:'1px solid #7cb87a33',borderRadius:8,padding:'10px 14px',marginBottom:8,display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:14}}>{'\u2705'}</span><div><div style={{fontSize:12,fontWeight:700,color:'#7cb87a'}}>{pipUnits.toLocaleString()+' '+cat.label+' in production \u2014 do not reorder'}</div><div style={{fontSize:10,color:'#8a8478'}}>{pipStrains.join(' \u00b7 ')}</div></div></div>}
                               <div key={cat.key} style={{background:C.surface,border:'1px solid '+C.borderHi,borderRadius:8}}>
                                 <div style={{padding:'14px 20px',borderBottom:'1px solid '+C.border,display:'flex',alignItems:'center',gap:20,flexWrap:'wrap'}}>
                                   <div><div style={{fontSize:13,fontWeight:800,letterSpacing:2}}>{cat.label.toUpperCase()}</div><div style={{fontSize:11,color:C.dim,marginTop:2}}>{batches} batches · {batchUnits.toLocaleString()} units</div></div>
@@ -2436,10 +2461,16 @@ window._STRAIN_DB=[
                                   </table>
                                 </div>
                               </div>
+                              </div>
                             );
                           })}
                         </div>
                       )}
+                      {Object.keys(pipelineByCategory).some(function(k){return pipelineByCategory[k]>0;})&&<div style={{background:C.good+'12',border:'1px solid '+C.good+'33',borderRadius:6,padding:'10px 14px',marginBottom:12,display:'flex',alignItems:'center',gap:8}}>
+                        <span style={{fontSize:14}}>{'\u2705'}</span>
+                        <div><div style={{fontSize:12,fontWeight:700,color:C.good}}>In production (deducted from totals below)</div>
+                        <div style={{fontSize:10,color:C.dim}}>{Object.keys(pipelineByCategory).filter(function(k){return pipelineByCategory[k]>0;}).map(function(k){return pipelineByCategory[k].toLocaleString()+' '+k;}).join(' · ')}</div></div>
+                      </div>}
                       <div style={{border:'1px solid '+C.border,borderRadius:6,overflow:'hidden'}}><div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:680,borderCollapse:'collapse'}}>
                         <thead><tr style={{background:C.raised}}>{["SKU","Type","GL/CP","Batch","THC%","Age","Active Days","Units","Wk Vel","On-Hand","Days Left","Suggested","Order Qty","Unit COGS","Total Cost","Est. Rev","Status"].map(function(h,i){return<th key={h} style={{padding:'6px 8px',fontSize:10,fontWeight:700,letterSpacing:1,textTransform:'uppercase',color:C.dim,textAlign:i>=3?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead>
                         <tbody>{catRows.map(function(r,i){const st=sst(r.status);return(
@@ -4041,26 +4072,57 @@ window._STRAIN_DB=[
                 {tab==="briefing"&&(function(){
                   var now=Date.now(),today=new Date();
                   var glDrop5Confirmed=localStorage.getItem('gpi:gl-drop5-confirmed')==='true';
-                  var GL={limit:75000,credit:2000,owed:[
-                    {label:'Drop #3 labor',amt:5766,due:'Apr 26',dropped:'Feb 10',breakdown:[
-                      {item:'Badder graming labor',detail:'5,766 units × $1.00/unit',amt:5766}
+                  var GL={limit:75000,credit:3346,owed:[
+                    // S17104: Drop #1/2/3 labor — Dylan's own oil, GL did filling/graming
+                    {label:'S17104 · Drop 1/2/3 labor',amt:15893,due:'Feb 15',dropped:'Jan 20',breakdown:[
+                      {item:'Badder graming',detail:'5,814 × $1.00',amt:5814},
+                      {item:'Cart filling',detail:'6,079 × $1.00',amt:6079},
+                      {item:'Sauce graming',detail:'4,000 × $1.00',amt:4000}
                     ]},
-                    {label:'Drop #3B labor',amt:8598,due:'May 17',dropped:'Mar 3',breakdown:[
-                      {item:'Cart filling labor',detail:'4,630 carts × $1.00/unit',amt:4630},
-                      {item:'Sauce graming labor',detail:'3,968 jars × $1.00/unit',amt:3968}
+                    // S17721: Toll processing GLO-260209
+                    {label:'S17721 · GLO-260209 toll',amt:2083.81,due:'Mar 14',dropped:'Feb 20',breakdown:[
+                      {item:'Toll processing',detail:'52.1 lb × $40/lb',amt:2083.81}
                     ]},
-                    {label:'Drop #3B sauce',amt:4960,due:'May 17',dropped:'Mar 3',breakdown:[
-                      {item:'Sauce extraction (GL)',detail:'3,968g × $1.25/g pre-formulated',amt:4960}
+                    // S17797: CAM-260216 toll + decarb
+                    {label:'S17797 · CAM-260216 toll+decarb',amt:6188.12,due:'Mar 21',dropped:'Mar 27',breakdown:[
+                      {item:'Toll processing',detail:'145.49 lb × $40/lb',amt:5819.60},
+                      {item:'Decarb THCa→LD',detail:'6,142g × $0.06/g',amt:368.52}
                     ]},
-                    {label:'Drop #4 labor',amt:5000,due:'Jun 21',dropped:'Apr 7',breakdown:[
-                      {item:'Cart filling labor',detail:'5,000 carts × $1.00/unit',amt:5000}
+                    // S17859: UN-260224 toll + decarb
+                    {label:'S17859 · UN-260224 toll+decarb',amt:19915.14,due:'Mar 27',dropped:'Apr 10',breakdown:[
+                      {item:'Toll processing',detail:'462.95 lb × $40/lb',amt:18518},
+                      {item:'Decarb THCa→LD',detail:'23,285.6g × $0.06/g',amt:1397.14}
                     ]},
-                    {label:'Drop #4 processing',amt:5819.60,due:'Jun 21',dropped:'Apr 7',breakdown:[
-                      {item:'Greenline processing fee',detail:'145.49 lb biomass × $40/lb toll',amt:5819.60}
+                    // S17860: Decarb Globs-owned extract
+                    {label:'S17860 · Decarb (own extract)',amt:457.62,due:'Mar 27',dropped:'Feb 27',breakdown:[
+                      {item:'Decarb via Euphoric',detail:'7,627g × $0.06/g',amt:457.62}
+                    ]},
+                    // S17795: Sauce purchase at mixed rates
+                    {label:'S17795 · Sauce purchase',amt:4525.09,due:'Apr 4',dropped:'Feb 20',breakdown:[
+                      {item:'Hella Oranges',detail:'918g × $1.05/g',amt:963.81},
+                      {item:'ICPJ',detail:'995.8g × $0.92/g',amt:916.14},
+                      {item:'Strawberry Milk',detail:'1,057.6g × $1.25/g',amt:1322},
+                      {item:'SNSD',detail:'1,058.5g × $1.25/g',amt:1323.14}
+                    ]},
+                    // S17918: CAM-260303 toll
+                    {label:'S17918 · CAM-260303 toll',amt:9186.40,due:'Apr 2',dropped:'Mar 4',breakdown:[
+                      {item:'Toll processing',detail:'229.66 lb × $40/lb',amt:9186.40}
+                    ]},
+                    // S18283: Drop #4 cart filling
+                    {label:'S18283 · Drop #4 cart filling',amt:5116,due:'Apr 25',dropped:'Apr 3',breakdown:[
+                      {item:'Cart filling',detail:'5,116 × $1.00',amt:5116}
+                    ]},
+                    // S18422: Drop #5 cart filling
+                    {label:'S18422 · Drop #5 cart filling',amt:4388,due:'May 6',dropped:'Apr 8',breakdown:[
+                      {item:'Cart filling',detail:'4,388 × $1.00',amt:4388}
+                    ]},
+                    // P00754: CAM biomass purchase (on GL credit)
+                    {label:'P00754 · CAM biomass',amt:5639.40,due:'Apr 4',dropped:'Mar 2',breakdown:[
+                      {item:'Biomass (Trim)',detail:'208,340g × $0.027/g · half of $11,279 CAM invoice',amt:5639.40}
                     ]}
                   ],pending:[
-                    {label:'Drop #5 extraction',amt:7800,detail:'6,000g × $1.30/g'},
-                    {label:'Drop #5 labor',amt:6000,detail:'6,000 × $1.00/unit'}
+                    // Drop #5 badder (in production at GL — UpNorth biomass)
+                    {label:'Drop #5 badder labor (est)',amt:6000,detail:'~6,000 × $1.00/unit'}
                   ]};
                   var glTotal=GL.owed.reduce(function(s,r){return s+r.amt;},0)-GL.credit;
                   var glPendingTotal=GL.pending.reduce(function(s,r){return s+r.amt;},0);
@@ -4159,6 +4221,95 @@ window._STRAIN_DB=[
                         React.createElement('div',{style:{fontSize:10,color:m.c,letterSpacing:1.5,marginBottom:4,fontWeight:600}},m.l),
                         React.createElement('div',{style:{fontSize:22,fontWeight:800,color:C.text,marginBottom:m.s?2:0}},m.v),
                         React.createElement('div',{style:{fontSize:10,color:C.muted}},m.s));})
+                    ),
+                    // ── PATH TO COD TRACKER ──
+                    (function(){
+                      var amexBal=26000;
+                      var glNet=GL.owed.reduce(function(s,r){return s+r.amt;},0)-GL.credit;// confirmed balance, excludes pending estimates
+                      var febPayout=38397,marPayout=59602;
+                      var febToAmex=11000,febToGL=febPayout-febToAmex;
+                      var glAfterFeb=glNet-febToGL;
+                      var marToGL=Math.min(glAfterFeb,marPayout-18000);
+                      var glAfterMar=glAfterFeb-marToGL;
+                      return React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:16,marginBottom:20}},
+                        React.createElement('div',{style:{fontSize:14,fontWeight:700,letterSpacing:2,paddingBottom:8,borderBottom:'1px solid '+C.border,marginBottom:14}},'PATH TO COD'),
+                        React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:16}},
+                          React.createElement('div',{style:{background:C.warn+'15',border:'1px solid '+C.warn+'33',borderRadius:8,padding:'14px 12px'}},
+                            React.createElement('div',{style:{fontSize:22,fontWeight:800}},'$'+Math.round(glNet/1000)+'K'),
+                            React.createElement('div',{style:{fontSize:10,color:C.warn,fontWeight:600}},'GL balance'),
+                            React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:2}},Math.round(glNet/750)+'% of $75K limit')),
+                          React.createElement('div',{style:{background:C.muted+'15',border:'1px solid '+C.muted+'33',borderRadius:8,padding:'14px 12px'}},
+                            React.createElement('div',{style:{fontSize:22,fontWeight:800}},'$'+Math.round(amexBal/1000)+'K'),
+                            React.createElement('div',{style:{fontSize:10,color:C.muted,fontWeight:600}},'Amex prod float'),
+                            React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:2}},'Rolling \u2264$30K'))
+                        ),
+                        React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:6}},
+                          React.createElement('div',{style:{background:C.raised,borderLeft:'3px solid '+C.good,padding:'10px 12px'}},
+                            React.createElement('div',{style:{display:'flex',justifyContent:'space-between',fontSize:12}},
+                              React.createElement('span',{style:{fontWeight:700}},'Apr 13 \u00b7 Feb payout'),
+                              React.createElement('span',{style:{fontWeight:800,color:C.good}},'+$38K')),
+                            React.createElement('div',{style:{fontSize:11,color:C.muted,marginTop:4}},'$11K Amex \u00b7 $27K GL \u2192 GL drops to ~$'+Math.round(glAfterFeb/1000)+'K')),
+                          React.createElement('div',{style:{background:C.raised,borderLeft:'3px solid '+(glAfterMar<=0?C.good:C.info),padding:'10px 12px'}},
+                            React.createElement('div',{style:{display:'flex',justifyContent:'space-between',fontSize:12}},
+                              React.createElement('span',{style:{fontWeight:700}},'~May 13 \u00b7 Mar payout'),
+                              React.createElement('span',{style:{fontWeight:800,color:C.good}},'+$60K')),
+                            React.createElement('div',{style:{fontSize:11,color:C.muted,marginTop:4}},'$18K COGS \u00b7 $'+Math.round(marToGL/1000)+'K GL \u2192 '+(glAfterMar<=0?'GL at $0 \u2014 COD':'GL ~$'+Math.round(glAfterMar/1000)+'K'))),
+                          glAfterMar>0?React.createElement('div',{style:{background:C.raised,borderLeft:'3px solid '+C.good,padding:'10px 12px'}},
+                            React.createElement('div',{style:{fontSize:12,fontWeight:700}},'~Jun \u00b7 Apr payout clears remaining GL \u2192 COD')):null
+                        ),
+                        React.createElement('div',{style:{marginTop:12,padding:'12px 14px',background:C.good+'15',borderRadius:8,textAlign:'center'}},
+                          React.createElement('div',{style:{fontSize:16,fontWeight:800,color:C.good}},glAfterMar<=0?'COD BY MAY':'COD BY JUNE'),
+                          React.createElement('div',{style:{fontSize:11,color:C.dim,marginTop:2}},'GL zeroed \u00b7 Amex stays as production line'))
+                      );
+                    })(),
+                    // ── INCOMING PRODUCT SUMMARY ──
+                    React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:16,marginBottom:20}},
+                      React.createElement('div',{style:{fontSize:14,fontWeight:700,letterSpacing:2,paddingBottom:8,borderBottom:'1px solid '+C.border,marginBottom:14}},'INCOMING PRODUCT'),
+                      React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:6}},
+                        PIPELINE.map(function(drop){
+                          var sc={good:C.good,warn:C.warn,dim:C.dim,info:C.info,danger:C.danger}[drop.statusKey]||C.dim;
+                          var totalUnits=drop.items.reduce(function(s,i){return s+i.qty;},0);
+                          var cats={};drop.items.forEach(function(i){cats[i.cat]=(cats[i.cat]||0)+i.qty;});
+                          var catText=Object.keys(cats).map(function(c){return cats[c].toLocaleString()+' '+c;}).join(' \u00b7 ');
+                          return React.createElement('div',{key:drop.label,style:{background:C.raised,borderLeft:'3px solid '+sc,padding:'10px 12px'}},
+                            React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+                              React.createElement('div',null,
+                                React.createElement('span',{style:{fontSize:12,fontWeight:700}},drop.label),
+                                React.createElement('span',{style:{fontSize:10,color:sc,marginLeft:8,fontWeight:600}},drop.status)),
+                              React.createElement('div',{style:{fontSize:12,fontWeight:700}},totalUnits.toLocaleString()+' units')),
+                            React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:4}},catText+' \u00b7 ETA '+drop.eta+(drop.source?' \u00b7 '+drop.source:''))
+                          );
+                        })
+                      ),
+                      React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:10,textAlign:'right'}},
+                        PIPELINE.reduce(function(s,d){return s+d.items.reduce(function(s2,i){return s2+i.qty;},0);},0).toLocaleString()+' total units in pipeline')
+                    ),
+                    // ── BEST PERFORMING STRAINS ──
+                    React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:16,marginBottom:20}},
+                      React.createElement('div',{style:{fontSize:14,fontWeight:700,letterSpacing:2,paddingBottom:8,borderBottom:'1px solid '+C.border,marginBottom:12}},'TOP STRAINS BY VELOCITY'),
+                      React.createElement('div',{style:{overflowX:'auto'}},
+                        React.createElement('table',{style:{width:'100%',borderCollapse:'collapse'}},
+                          React.createElement('thead',null,
+                            React.createElement('tr',{style:{borderBottom:'1px solid '+C.border}},
+                              React.createElement('th',{style:{padding:'6px 10px',fontSize:10,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:'left'}},'#'),
+                              React.createElement('th',{style:{padding:'6px 10px',fontSize:10,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:'left'}},'STRAIN'),
+                              React.createElement('th',{style:{padding:'6px 10px',fontSize:10,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:'left'}},'TYPE'),
+                              React.createElement('th',{style:{padding:'6px 10px',fontSize:10,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:'right'}},'WK VEL'),
+                              React.createElement('th',{style:{padding:'6px 10px',fontSize:10,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:'right'}},'UNITS'),
+                              React.createElement('th',{style:{padding:'6px 10px',fontSize:10,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:'right'}},'ACCTS'))),
+                          React.createElement('tbody',null,
+                            mfgVelocity.slice(0,15).map(function(s,i){
+                              var cl=cogsFor(s.category).label;
+                              var cc=cl==='Vape Cart'?C.info:cl==='Badder'?C.warn:cl==='Sauce'?C.good:C.purple;
+                              return React.createElement('tr',{key:s.sku,style:{borderBottom:'1px solid '+C.border,background:i%2===0?'transparent':C.raised}},
+                                React.createElement('td',{style:{padding:'8px 10px',fontSize:11,color:C.dim}},i+1),
+                                React.createElement('td',{style:{padding:'8px 10px',fontSize:12,fontWeight:600}},s.strain),
+                                React.createElement('td',{style:{padding:'8px 10px'}},React.createElement('span',{style:{fontSize:9,fontWeight:700,color:cc,background:cc+'22',border:'1px solid '+cc+'44',borderRadius:3,padding:'2px 6px'}},cl==='Vape Cart'?'CART':cl.toUpperCase())),
+                                React.createElement('td',{style:{padding:'8px 10px',fontSize:12,fontWeight:700,textAlign:'right'}},s.weeklyVel+'/wk'),
+                                React.createElement('td',{style:{padding:'8px 10px',fontSize:11,color:C.muted,textAlign:'right'}},s.units90.toLocaleString()),
+                                React.createElement('td',{style:{padding:'8px 10px',fontSize:11,color:C.muted,textAlign:'right'}},s.accountCount));
+                            })))),
+                      mfgVelocity.length>15?React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:8,textAlign:'right'}},mfgVelocity.length+' total active SKUs'):null
                     ),
                     React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16,marginBottom:24}},
                       React.createElement('div',{style:{fontSize:12,color:C.dim,letterSpacing:2,marginBottom:12}},'TODAY\u2019S PRIORITIES'),
@@ -4545,17 +4696,9 @@ window._STRAIN_DB=[
                 {/* ══ INCOMING PRODUCT PIPELINE ══ */}
                 {tab==="pipeline"&&(function(){
                   var catColor={Cart:C.info,Badder:C.warn,Sauce:C.good,Diamonds:C.purple,Shatter:C.muted};
-                  var PIPELINE=[
-                    {label:'Drop #4',status:'SHIPPING',statusColor:C.good,eta:'Apr 7',source:'CAM',
-                      items:[{strain:'Modified Cherries',cat:'Cart',qty:1000},{strain:'ICPJ',cat:'Cart',qty:1000},{strain:'Sweet n\' Sour Diesel',cat:'Cart',qty:1000},{strain:'Headband',cat:'Cart',qty:1000},{strain:'Grandma\'s Cookies',cat:'Cart',qty:1000}],
-                      stages:[{l:'Extract',done:true},{l:'Fill',done:true},{l:'Lab Test',done:true},{l:'Package',done:true},{l:'Ship',done:false,active:true}]},
-                    {label:'Drop #5',status:'IN PRODUCTION',statusColor:C.warn,eta:'~Apr 18',source:'UpNorth',
-                      items:[{strain:'SNSD',cat:'Badder',qty:1000},{strain:'ICPJ',cat:'Badder',qty:1000},{strain:'Grandma\'s Cookies',cat:'Badder',qty:1000},{strain:'Frozen Grapes',cat:'Badder',qty:1000},{strain:'Modified Cherries',cat:'Badder',qty:1000},{strain:'Headband',cat:'Badder',qty:1000}],
-                      stages:[{l:'Extract',done:true},{l:'Formulate',done:true},{l:'Gram + Pack',done:false,active:true},{l:'Lab Test',done:false},{l:'Ship',done:false}]},
-                    {label:'Drop #6',status:'PLANNED',statusColor:C.dim,eta:'~May 9',source:'TBD',
-                      items:[{strain:'Honey Butter',cat:'Cart',qty:1500},{strain:'Pineapple Haze',cat:'Cart',qty:1500},{strain:'Hella Oranges',cat:'Cart',qty:1000},{strain:'OZ Kush',cat:'Cart',qty:1000}],
-                      stages:[{l:'Extract',done:false,active:true},{l:'Fill',done:false},{l:'Lab Test',done:false},{l:'Package',done:false},{l:'Ship',done:false}]},
-                  ];
+                  var statusColors={good:C.good,warn:C.warn,dim:C.dim,info:C.info,danger:C.danger};
+                  // Use shared PIPELINE — add statusColor from statusKey
+                  var drops=PIPELINE.map(function(d){return Object.assign({},d,{statusColor:statusColors[d.statusKey]||C.dim});});
                   var totalIncoming=PIPELINE.reduce(function(s,d){return s+d.items.reduce(function(s2,i){return s2+i.qty;},0);},0);
                   var byCat={};PIPELINE.forEach(function(d){d.items.forEach(function(i){byCat[i.cat]=(byCat[i.cat]||0)+i.qty;});});
                   var statusGroups={};PIPELINE.forEach(function(d){var u=d.items.reduce(function(s,i){return s+i.qty;},0);statusGroups[d.status]=(statusGroups[d.status]||0)+u;});
@@ -4580,7 +4723,7 @@ window._STRAIN_DB=[
                     </div>
 
                     <div style={{display:'flex',flexDirection:'column',gap:10}}>
-                      {PIPELINE.map(function(drop){
+                      {drops.map(function(drop){
                         var totalUnits=drop.items.reduce(function(s,i){return s+i.qty;},0);
                         return<div key={drop.label} style={{background:C.surface,border:'1px solid '+C.border,borderLeft:'3px solid '+drop.statusColor,borderRadius:0}}>
                           <div style={{padding:'14px 14px'}}>
@@ -5467,7 +5610,7 @@ window._STRAIN_DB=[
     // ── YIELD TAB ──────────────────────────────────────────────────────────────
     function YieldTab({C}) {
       if (!C) C = DARK_C;
-      var inpSt2 = {background:C.bg,border:'1px solid '+C.border,borderRadius:3,color:C.text,fontSize:12,fontFamily:'inherit',padding:'8px 12px',outline:'none',width:'100%'};
+      var inpSt2 = {background:C.bg,border:'1px solid '+C.border,borderRadius:8,color:C.text,fontSize:14,fontFamily:'inherit',padding:'12px 14px',outline:'none',width:'100%',boxSizing:'border-box'};
 
       function yLookupStrain(name) {
         if (!name) return null;
@@ -5640,14 +5783,14 @@ const YIELD_KEY = 'gpi-yield-log';
 
           {/* Summary cards */}
           {yieldLog.length>0&&(
-            <div style={{display:'flex',gap:10,marginBottom:20,flexWrap:'wrap'}}>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(90px,1fr))',gap:8,marginBottom:20}}>
               {[
                 {l:'Avg Yield',v:avgYield.toFixed(1)+'%',c:avgYield>=15?C.good:avgYield>=10?C.warn:C.danger},
-                {l:'Avg Cost/Gram',v:'$'+avgCpg.toFixed(2),c:avgCpg<1.5?C.good:avgCpg<2.5?C.warn:C.danger},
-                {l:'Total Output',v:(totalOutput/1000).toFixed(1)+'kg',c:C.text},
-                {l:'Total Spent',v:'$'+totalSpent.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}),c:C.muted},
+                {l:'Avg $/Gram',v:'$'+avgCpg.toFixed(2),c:avgCpg<1.5?C.good:avgCpg<2.5?C.warn:C.danger},
+                {l:'Total Output',v:(totalOutput/1000).toFixed(1)+'kg',c:C.info},
+                {l:'Total Spent',v:'$'+(totalSpent/1000).toFixed(1)+'k',c:C.muted},
                 {l:'Batches',v:yieldLog.length,c:C.text}
-              ].map(function(s){return<div key={s.l} style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'12px 16px',flex:1,minWidth:100}}><div style={{fontSize:10,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:4}}>{s.l}</div><div style={{fontSize:18,fontWeight:800,color:s.c}}>{s.v}</div></div>;})}
+              ].map(function(s){return<div key={s.l} style={{background:s.c+'15',border:'1px solid '+s.c+'33',borderRadius:8,padding:'14px 10px',textAlign:'center'}}><div style={{fontSize:18,fontWeight:800,color:C.text}}>{s.v}</div><div style={{fontSize:10,color:s.c,fontWeight:600,letterSpacing:1,marginTop:2}}>{s.l.toUpperCase()}</div></div>;})}
             </div>
           )}
 
@@ -5712,28 +5855,40 @@ const YIELD_KEY = 'gpi-yield-log';
             }).sort(function(a,b){ return b.avgYield - a.avgYield; });
 
             return(
-              <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,overflow:'hidden',marginBottom:16}}>
-                <div style={{padding:'12px 16px',borderBottom:'1px solid '+C.border}}>
-                  <div style={{fontSize:11,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>Strain Performance — sorted by yield</div>
-                  <div style={{fontSize:10,color:C.dim,marginTop:2}}>Use as a guide for biomass purchasing — higher yield = lower cost per gram</div>
-                </div>
-                <div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:420,borderCollapse:'collapse'}}>
-                  <thead><tr style={{background:C.raised}}>{['#','Strain','Type','Batches','Avg Yield','Best Yield','Total Input','Total Output','Avg $/gram','Best $/gram'].map(function(h,i){return<th key={h} style={{padding:'8px 12px',fontSize:10,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=3?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead>
-                  <tbody>{ranked.map(function(s,i){var tc2=s.type==='Indica'?'#9b8ec4':s.type==='Sativa'?'#d4a24c':'#6fa8d6';return(
-                    <tr key={s.strain} style={{background:i%2===0?'transparent':'#050505',borderLeft:i<3?'3px solid '+C.good:'3px solid transparent'}}>
-                      <td style={{padding:'9px 10px',fontSize:12,fontWeight:800,color:i<3?C.good:C.dim}}>{i+1}</td>
-                      <td style={{padding:'9px 10px',fontSize:12,fontWeight:700}}>{s.strain}</td>
-                      <td style={{padding:'9px 10px'}}><span style={{fontSize:11,fontWeight:700,color:tc2,background:tc2+'22',border:'1px solid '+tc2+'44',borderRadius:2,padding:'1px 5px'}}>{s.type}</span></td>
-                      <td style={{padding:'9px 10px',textAlign:'right',fontSize:10,color:C.dim}}>{s.entries}×</td>
-                      <td style={{padding:'9px 10px',textAlign:'right',fontSize:13,fontWeight:900,color:s.avgYield>=15?C.good:s.avgYield>=10?C.warn:C.danger}}>{s.avgYield.toFixed(1)}%</td>
-                      <td style={{padding:'9px 10px',textAlign:'right',fontSize:11,color:C.muted}}>{s.bestYield.toFixed(1)}%</td>
-                      <td style={{padding:'9px 10px',textAlign:'right',fontSize:10,color:C.dim}}>{s.totalInput.toFixed(1)} lbs</td>
-                      <td style={{padding:'9px 10px',textAlign:'right',fontSize:11}}>{s.totalOutput.toLocaleString()}g</td>
-                      <td style={{padding:'9px 10px',textAlign:'right',fontSize:12,fontWeight:700,color:s.avgCpg<1.5?C.good:s.avgCpg<2.5?C.warn:C.danger}}>${s.avgCpg.toFixed(2)}</td>
-                      <td style={{padding:'9px 10px',textAlign:'right',fontSize:10,color:C.good}}>${s.bestCpg.toFixed(2)}</td>
-                    </tr>
-                  );})}</tbody>
-                </table></div>
+              <div style={{marginBottom:16}}>
+                <div style={{fontSize:14,fontWeight:700,letterSpacing:2,paddingBottom:8,borderBottom:'1px solid '+C.border,marginBottom:6}}>STRAIN PERFORMANCE</div>
+                <div style={{fontSize:10,color:C.dim,marginBottom:12}}>Sorted by yield — higher yield = lower cost per gram</div>
+                <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                {ranked.map(function(s,i){var tc2=s.type==='Extraction'?C.info:s.type==='Indica'?'#9b8ec4':s.type==='Sativa'?'#d4a24c':'#6fa8d6';var yc=s.avgYield>=15?C.good:s.avgYield>=10?C.warn:C.danger;return(
+                  <div key={s.strain} style={{background:C.surface,border:'1px solid '+C.border,borderLeft:'3px solid '+yc,borderRadius:0,padding:'12px 14px'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+                      <div style={{display:'flex',alignItems:'center',gap:8}}>
+                        <span style={{fontSize:14,fontWeight:700,color:i<3?C.good:C.text}}>#{i+1}</span>
+                        <span style={{fontSize:14,fontWeight:700}}>{s.strain}</span>
+                        <span style={{fontSize:10,fontWeight:700,color:tc2,background:tc2+'22',border:'1px solid '+tc2+'44',borderRadius:3,padding:'2px 6px'}}>{s.type}</span>
+                      </div>
+                      <span style={{fontSize:10,color:C.dim}}>{s.entries}×</span>
+                    </div>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6}}>
+                      <div style={{background:C.bg,borderRadius:4,padding:'6px 0',textAlign:'center'}}>
+                        <div style={{fontSize:16,fontWeight:800,color:yc}}>{s.avgYield.toFixed(1)}%</div>
+                        <div style={{fontSize:9,color:C.dim}}>Avg Yield</div>
+                      </div>
+                      <div style={{background:C.bg,borderRadius:4,padding:'6px 0',textAlign:'center'}}>
+                        <div style={{fontSize:14,fontWeight:700}}>{(s.totalOutput/1000).toFixed(1)}kg</div>
+                        <div style={{fontSize:9,color:C.dim}}>Output</div>
+                      </div>
+                      <div style={{background:C.bg,borderRadius:4,padding:'6px 0',textAlign:'center'}}>
+                        <div style={{fontSize:14,fontWeight:700,color:s.avgCpg<1.5?C.good:s.avgCpg<2.5?C.warn:C.danger}}>${s.avgCpg.toFixed(2)}</div>
+                        <div style={{fontSize:9,color:C.dim}}>Avg $/g</div>
+                      </div>
+                      <div style={{background:C.bg,borderRadius:4,padding:'6px 0',textAlign:'center'}}>
+                        <div style={{fontSize:14,fontWeight:700}}>{s.totalInput.toFixed(0)} lbs</div>
+                        <div style={{fontSize:9,color:C.dim}}>Input</div>
+                      </div>
+                    </div>
+                  </div>
+                );})}</div>
               </div>
             );
           })()}
@@ -5742,41 +5897,74 @@ const YIELD_KEY = 'gpi-yield-log';
           {yieldLog.length>0&&(function(){
             var sorted = yieldLog.slice().sort(function(a,b){ return b.yieldPct - a.yieldPct; });
             return(
-            <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,overflow:'hidden'}}>
-              <div style={{padding:'12px 16px',borderBottom:'1px solid '+C.border}}>
-                <div style={{fontSize:11,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>All Entries ({yieldLog.length}) — sorted by yield</div>
-              </div>
-              <div style={{overflowX:'auto'}}><table style={{width:'100%',minWidth:520,borderCollapse:'collapse'}}>
-                <thead><tr style={{background:C.raised}}>{['Date','Strain','Type','Input (lbs)','$/lb','Toll $/lb','Yield %','Output (g)','Total Cost','$/gram','Notes',''].map(function(h,i){return<th key={h+i} style={{padding:'8px 12px',fontSize:10,fontWeight:700,letterSpacing:1,color:C.dim,textAlign:i>=3?'right':'left',borderBottom:'1px solid '+C.border,whiteSpace:'nowrap'}}>{h}</th>;})}</tr></thead>
-                <tbody>{sorted.map(function(e,i){return(
-                  React.createElement(React.Fragment,{key:e.id},
-                  <tr style={{background:i%2===0?'transparent':'#050505'}}>
-                    <td style={{padding:'10px 12px',fontSize:10,color:C.dim}}>{new Date(e.date).toLocaleDateString()}</td>
-                    <td style={{padding:'10px 12px',fontSize:12,fontWeight:600}}>{e.strain}</td>
-                    <td style={{padding:'10px 12px',fontSize:11,color:e.type==='Extraction'?C.info:e.type==='Indica'?'#9b8ec4':e.type==='Sativa'?'#d4a24c':'#6fa8d6'}}>{e.type}</td>
-                    <td style={{padding:'10px 12px',textAlign:'right',fontSize:11}}>{e.weightLbs}</td>
-                    <td style={{padding:'10px 12px',textAlign:'right',fontSize:10,color:C.dim}}>${e.biomassPrice}</td>
-                    <td style={{padding:'10px 12px',textAlign:'right',fontSize:10,color:C.dim}}>${e.tollFee}</td>
-                    <td style={{padding:'10px 12px',textAlign:'right',fontSize:11,fontWeight:700,color:e.yieldPct>=15?C.good:e.yieldPct>=10?C.warn:C.danger}}>{e.yieldPct}%</td>
-                    <td style={{padding:'10px 12px',textAlign:'right',fontSize:11}}>{e.outputGrams.toLocaleString()}g</td>
-                    <td style={{padding:'10px 12px',textAlign:'right',fontSize:11}}>${e.totalCost.toLocaleString()}</td>
-                    <td style={{padding:'10px 12px',textAlign:'right',fontSize:12,fontWeight:800,color:e.costPerGram<1.5?C.good:e.costPerGram<2.5?C.warn:C.danger}}>${e.costPerGram.toFixed(2)}</td>
-                    <td style={{padding:'10px 12px',fontSize:11,color:C.dim,maxWidth:120,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{e.notes||'—'}</td>
-                    <td style={{padding:'10px 12px'}}><button onClick={function(){removeEntry(e.id);}} style={{padding:'8px 12px',borderRadius:2,fontSize:10,cursor:'pointer',border:'1px solid '+C.border,background:'transparent',color:C.dim}}>✕</button></td>
-                  </tr>,
-                  e.pp?<tr style={{background:C.raised}}>
-                    <td style={{padding:'6px 12px'}}></td>
-                    <td colSpan={2} style={{padding:'6px 12px',fontSize:10,color:C.purple,fontWeight:600}}>↳ Post-Process → {e.pp.consistency}</td>
-                    <td colSpan={2} style={{padding:'6px 12px',textAlign:'right',fontSize:10,color:C.muted}}>{e.pp.thca.toLocaleString()}g THCa · {e.pp.hte.toLocaleString()}g HTE</td>
-                    <td style={{padding:'6px 12px'}}></td>
-                    <td style={{padding:'6px 12px',textAlign:'right',fontSize:10,fontWeight:700,color:C.purple}}>{e.pp.yieldPct}%</td>
-                    <td style={{padding:'6px 12px',textAlign:'right',fontSize:10,fontWeight:700,color:C.purple}}>{e.pp.output.toLocaleString()}g LD</td>
-                    <td style={{padding:'6px 12px',textAlign:'right',fontSize:10,color:C.muted}}>{'$'+e.pp.hteCpg.toFixed(2)+'/g HTE'}</td>
-                    <td style={{padding:'6px 12px',textAlign:'right',fontSize:10,fontWeight:700,color:C.warn}}>{'$'+e.pp.ldCpg.toFixed(2)+'/g LD'}</td>
-                    <td colSpan={2} style={{padding:'6px 12px',fontSize:10,color:C.dim}}>Cost split by output ratio</td>
-                  </tr>:null)
-                );})}</tbody>
-              </table></div>
+            <div style={{marginBottom:16}}>
+              <div style={{fontSize:14,fontWeight:700,letterSpacing:2,paddingBottom:8,borderBottom:'1px solid '+C.border,marginBottom:6}}>ALL ENTRIES ({yieldLog.length})</div>
+              <div style={{fontSize:10,color:C.dim,marginBottom:12}}>Sorted by yield</div>
+              <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              {sorted.map(function(e,i){var yc=e.yieldPct>=15?C.good:e.yieldPct>=10?C.warn:C.danger;var tc2=e.type==='Extraction'?C.info:e.type==='Post-Processing'?C.purple:e.type==='Indica'?'#9b8ec4':e.type==='Sativa'?'#d4a24c':'#6fa8d6';return(
+                <div key={e.id} style={{background:C.surface,border:'1px solid '+C.border,borderLeft:'3px solid '+yc,borderRadius:0}}>
+                  <div style={{padding:'12px 14px'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
+                      <div style={{display:'flex',alignItems:'center',gap:8,flex:1,minWidth:0}}>
+                        <span style={{fontSize:14,fontWeight:700}}>{e.strain}</span>
+                        <span style={{fontSize:10,fontWeight:700,color:tc2,background:tc2+'22',borderRadius:3,padding:'2px 6px'}}>{e.type}</span>
+                      </div>
+                      <div style={{display:'flex',alignItems:'center',gap:8}}>
+                        <span style={{fontSize:10,color:C.dim}}>{new Date(e.date).toLocaleDateString()}</span>
+                        <button onClick={function(){removeEntry(e.id);}} style={{padding:'4px 8px',borderRadius:4,fontSize:10,cursor:'pointer',border:'1px solid '+C.border,background:'transparent',color:C.dim}}>✕</button>
+                      </div>
+                    </div>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6,marginBottom:6}}>
+                      <div style={{background:C.bg,borderRadius:4,padding:'6px 0',textAlign:'center'}}>
+                        <div style={{fontSize:16,fontWeight:800,color:yc}}>{e.yieldPct}%</div>
+                        <div style={{fontSize:9,color:C.dim}}>Yield</div>
+                      </div>
+                      <div style={{background:C.bg,borderRadius:4,padding:'6px 0',textAlign:'center'}}>
+                        <div style={{fontSize:14,fontWeight:700}}>{e.outputGrams.toLocaleString()}g</div>
+                        <div style={{fontSize:9,color:C.dim}}>Output</div>
+                      </div>
+                      <div style={{background:C.bg,borderRadius:4,padding:'6px 0',textAlign:'center'}}>
+                        <div style={{fontSize:14,fontWeight:700,color:e.costPerGram<1.5?C.good:e.costPerGram<2.5?C.warn:C.danger}}>${e.costPerGram.toFixed(2)}</div>
+                        <div style={{fontSize:9,color:C.dim}}>$/gram</div>
+                      </div>
+                    </div>
+                    <div style={{display:'flex',gap:10,fontSize:11,color:C.dim,flexWrap:'wrap'}}>
+                      {e.weightLbs>0&&<span>{e.weightLbs} lbs</span>}
+                      {e.biomassPrice>0&&<span>${e.biomassPrice}/lb bio</span>}
+                      {e.tollFee>0&&<span>${e.tollFee}/lb toll</span>}
+                      {e.totalCost>0&&<span>${e.totalCost.toLocaleString()} total</span>}
+                    </div>
+                    {e.notes&&<div style={{fontSize:10,color:C.dim,marginTop:4,lineHeight:1.5}}>{e.notes}</div>}
+                  </div>
+                  {e.pp&&<div style={{borderTop:'1px solid '+C.border,padding:'10px 14px',background:C.raised}}>
+                    <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:8}}>
+                      <span style={{fontSize:11,fontWeight:700,color:C.purple}}>↳ Post-Process → {e.pp.consistency}</span>
+                    </div>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6}}>
+                      <div style={{background:C.bg,borderRadius:4,padding:'5px 0',textAlign:'center'}}>
+                        <div style={{fontSize:12,fontWeight:700}}>{e.pp.thca.toLocaleString()}g</div>
+                        <div style={{fontSize:9,color:C.dim}}>THCa in</div>
+                      </div>
+                      <div style={{background:C.bg,borderRadius:4,padding:'5px 0',textAlign:'center'}}>
+                        <div style={{fontSize:12,fontWeight:700,color:C.purple}}>{e.pp.yieldPct}%</div>
+                        <div style={{fontSize:9,color:C.dim}}>Conversion</div>
+                      </div>
+                      <div style={{background:C.bg,borderRadius:4,padding:'5px 0',textAlign:'center'}}>
+                        <div style={{fontSize:12,fontWeight:700}}>{e.pp.output.toLocaleString()}g</div>
+                        <div style={{fontSize:9,color:C.dim}}>LD out</div>
+                      </div>
+                      <div style={{background:C.bg,borderRadius:4,padding:'5px 0',textAlign:'center'}}>
+                        <div style={{fontSize:12,fontWeight:700,color:C.warn}}>${e.pp.ldCpg.toFixed(2)}</div>
+                        <div style={{fontSize:9,color:C.dim}}>$/g LD</div>
+                      </div>
+                    </div>
+                    <div style={{display:'flex',gap:10,fontSize:10,color:C.dim,marginTop:6}}>
+                      <span>{e.pp.hte.toLocaleString()}g HTE · ${e.pp.hteCpg.toFixed(2)}/g</span>
+                      <span>Cost split by output ratio</span>
+                    </div>
+                  </div>}
+                </div>
+              );})}</div>
             </div>
             );
           })()}
