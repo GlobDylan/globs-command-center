@@ -4190,7 +4190,17 @@ window._STRAIN_DB=[
                                 React.createElement('span',{style:{fontSize:12,fontWeight:700}},drop.label),
                                 React.createElement('span',{style:{fontSize:10,color:sc,marginLeft:8,fontWeight:600}},drop.status)),
                               React.createElement('div',{style:{fontSize:12,fontWeight:700}},totalUnits.toLocaleString()+' units')),
-                            React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:4}},catText+' \u00b7 ETA '+drop.eta+(drop.source?' \u00b7 '+drop.source:''))
+                            React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:4}},catText+' \u00b7 ETA '+drop.eta+(drop.source?' \u00b7 '+drop.source:'')),
+                            React.createElement('div',{style:{display:'flex',flexWrap:'wrap',gap:4,marginTop:6}},
+                              drop.items.map(function(it){
+                                var CROSS_MAP={'Ice Cream Paint Job':'ICCake\u00d7RSherbet','Headband':'OGK\u00d7SD','Sweet-N-Sour Diesel':'MexHaze\u00d7HISat','Frozen Grapes':'GoW\u00d7BSplit','Modified Cherries':'GMO\u00d7CherryPie','Grandma\'s Cookies':'GSC\u00d7SBerries','Pineapple Haze':'Pineapple\u00d7Haze','Hella Oranges':'ODaiquiri\u00d7TK','Honey Butter':'HBananaBX1','Strawberry Milk':'SCough\u00d7CMilk','Lemon Thai':'Thai\u00d7Hawaiian','White Widow':'Brazilian\u00d7SIndian','Kush Mints':'AMints\u00d7BKush','Blue Z':'BDiamond\u00d7Z'};
+                                var gen=CROSS_MAP[it.strain]||'';
+                                var catC=it.cat==='Cart'?C.info:it.cat==='Badder'?C.warn:it.cat==='Sauce'?C.good:C.purple;
+                                return React.createElement('div',{key:it.strain+it.cat,style:{background:catC+'11',border:'1px solid '+catC+'33',borderRadius:4,padding:'3px 6px'}},
+                                  React.createElement('div',{style:{fontSize:10,fontWeight:600,color:C.text}},it.strain+' \u00d7'+it.qty),
+                                  gen?React.createElement('div',{style:{fontSize:8,color:C.dim,fontStyle:'italic'}},gen):null);
+                              })
+                            )
                           );
                         })
                       ),
@@ -4204,10 +4214,15 @@ window._STRAIN_DB=[
                         mfgVelocity.slice(0,15).map(function(s,i){
                           var cl=cogsFor(s.category).label;
                           var cc=cl==='Vape Cart'?C.info:cl==='Badder'?C.warn:cl==='Sauce'?C.good:C.purple;
+                          var slu=strainLookup(s.strain);
+                          var CROSS_MAP={'Ice Cream Paint Job':'Ice Cream Cake \u00d7 Rainbow Sherbet','Headband':'OG Kush \u00d7 Sour Diesel','Sweet-N-Sour Diesel':'Mexican Haze \u00d7 Hawaiian Sativa','Frozen Grapes':'Grapes of Wrath \u00d7 Banana Split','Modified Cherries':'GMO \u00d7 Cherry Pie','Grandma\'s Cookies':'GSC \u00d7 Sugar Berries','Kush Mints':'Animal Mints \u00d7 Bubba Kush','Blue Z':'Blue Diamond \u00d7 Z','Hella Oranges':'Orange Daiquiri \u00d7 TK BX1','Honey Butter':'Honey Banana BX1','Pineapple Haze':'Pineapple \u00d7 Haze','White Widow':'Brazilian \u00d7 South Indian','Wagyu Truffle Butter':'Wagyu \u00d7 Truffle Butter','Strawberry Milk':'Strawberry Cough \u00d7 Cereal Milk','Gelonade':'Gelato #41 \u00d7 Lemon Tree','Lemon Thai':'Thai \u00d7 Hawaiian Landraces'};
+                          var gen=CROSS_MAP[s.strain]||'';
+                          if(!gen&&slu&&slu.d){var gm=slu.d.match(/[–—]\s*([A-Z][\w\s'\.]+?)\s*[x\u00d7]\s*([A-Z][\w\s'\.]+?)(?:\s+(?:brings|delivers|blends|combines|creates|gives|hits|offers|serves|pours|produces|mixes|tastes|fuses|layers))/);if(gm)gen=gm[1].trim()+' \u00d7 '+gm[2].trim();}
                           return React.createElement('div',{key:s.sku,style:{display:'flex',alignItems:'center',gap:10,padding:'8px 10px',background:i%2===0?'transparent':C.raised,borderRadius:4}},
                             React.createElement('div',{style:{fontSize:12,fontWeight:800,color:C.dim,width:20,textAlign:'center'}},i+1),
                             React.createElement('div',{style:{flex:1,minWidth:0}},
                               React.createElement('div',{style:{fontSize:12,fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},s.strain),
+                              gen?React.createElement('div',{style:{fontSize:9,color:C.dim,fontStyle:'italic'}},gen):null,
                               React.createElement('div',{style:{display:'flex',gap:8,marginTop:3,alignItems:'center'}},
                                 React.createElement('span',{style:{fontSize:9,fontWeight:700,color:cc,background:cc+'22',border:'1px solid '+cc+'44',borderRadius:3,padding:'1px 5px'}},cl==='Vape Cart'?'CART':cl.toUpperCase()),
                                 React.createElement('span',{style:{fontSize:10,color:C.dim}},s.units90.toLocaleString()+' sold'),
@@ -4826,6 +4841,10 @@ window._STRAIN_DB=[
                             var recommended=selA&&selA.cats.includes(item.cat);
                             var curPrice=obPrices[realIdx]!=null?parseFloat(obPrices[realIdx]):item.ws;
                             var lineTotal=qty*curPrice;
+                            var sl=strainLookup(item.strain);
+                            var CROSS_MAP={'Ice Cream Paint Job':'Ice Cream Cake \u00d7 Rainbow Sherbet','Headband':'OG Kush \u00d7 Sour Diesel','Honey Butter':'Honey Banana BX1','Hella Lemons':'Lemonade BX1','Lemon Thai':'Thai \u00d7 Hawaiian Landraces','Pineapple Haze':'Pineapple \u00d7 Haze','Hella Oranges':'Orange Daiquiri \u00d7 TK BX1','Blue Z':'Blue Diamond \u00d7 Z','Gelonade':'Gelato #41 \u00d7 Lemon Tree','Kush Mints':'Animal Mints \u00d7 Bubba Kush','Sweet-N-Sour Diesel':'Mexican Haze \u00d7 Hawaiian Sativa','Frozen Grapes':'Grapes of Wrath \u00d7 Banana Split','Modified Cherries':'GMO \u00d7 Cherry Pie','Strawberry Milk':'Strawberry Cough \u00d7 Cereal Milk','Wagyu Truffle Butter':'Wagyu \u00d7 Truffle Butter','White Widow':'Brazilian \u00d7 South Indian','Grandma\'s Cookies':'GSC \u00d7 Sugar Berries'};
+                            var genetics=CROSS_MAP[item.strain]||'';
+                            if(!genetics&&sl&&sl.d){var gm=sl.d.match(/[–—]\s*([A-Z][\w\s'\.]+?)\s*[x\u00d7]\s*([A-Z][\w\s'\.]+?)(?:\s+(?:brings|delivers|blends|combines|creates|gives|hits|offers|serves|pours|produces|mixes|tastes|fuses|layers|unites|is|pairs|drips|explodes))/);if(gm)genetics=gm[1].trim()+' \u00d7 '+gm[2].trim();}
                             return<div key={realIdx} style={{background:C.surface,border:'1px solid '+(qty>0?C.good+'44':C.border),borderRadius:6,padding:'10px 12px'}}>
                               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}>
                                 <div style={{flex:1,minWidth:0}}>
@@ -4833,10 +4852,12 @@ window._STRAIN_DB=[
                                     <span style={{fontSize:14,fontWeight:700}}>{item.strain}</span>
                                     {recommended&&<span style={{fontSize:10,padding:'1px 5px',borderRadius:2,background:C.info+'22',color:C.info,fontWeight:600}}>MATCH</span>}
                                   </div>
+                                  {genetics&&<div style={{fontSize:10,color:C.dim,fontStyle:'italic',marginTop:1}}>{genetics}</div>}
                                   <div style={{display:'flex',gap:8,fontSize:11,color:C.dim,marginTop:2,alignItems:'center'}}>
-                                    <span>{item.cat}</span>
+                                    <span style={{fontSize:9,fontWeight:700,color:item.cat==='Cart'?C.info:item.cat==='Badder'?C.warn:item.cat==='Sauce'?C.good:C.purple,background:(item.cat==='Cart'?C.info:item.cat==='Badder'?C.warn:item.cat==='Sauce'?C.good:C.purple)+'22',borderRadius:3,padding:'1px 5px'}}>{item.cat.toUpperCase()}</span>
                                     <span>{item.oh+' avail'}</span>
                                     {item.vel>0&&<span style={{color:item.vel>100?C.good:item.vel>30?C.muted:C.dim}}>{item.vel+'/wk'}</span>}
+                                    <span>{'$'+item.ws}</span>
                                   </div>
                                 </div>
                                 <div style={{display:'flex',alignItems:'center'}}>
