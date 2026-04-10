@@ -718,16 +718,20 @@ window._STRAIN_DB=[
     // Extract parentage cross from strain description
     function extractCross(desc){
       if(!desc)return '';
-      // New format: "Strain – Parent1 × Parent2 verb..."
-      var m=desc.match(/–\s*(?:A [a-z]+ [a-z]+ of\s+)?([A-Z][^×]+×\s*[A-Z][A-Za-z0-9 '#\-\.]+?)(?:\s+(?:brings|delivers|creates|combines|blends|gives|serves|offers|produces|mixes|tastes|hits|pours|is|fuses|pairs|unites|explodes|fires|takes|keeps|overflows|radiates|bursts|glues|defines|ignites|strikes|drips|layers|smells))/i);
-      if(m)return m[1].trim().replace(/'s .*/,'');
-      // "Name – Parent1 × Parent2," or "Name – Parent1 × Parent2."
-      var m2=desc.match(/–\s*([A-Z][^×]+×\s*[A-Z][A-Za-z0-9 '#\-]+?)(?:\s*[,\.])/);
-      if(m2)return m2[1].trim();
-      // Old format: "cross of X x Y" or "born from X x Y"
-      var m3=desc.match(/(?:cross of|born from|blend of|lineage of)\s+([A-Z][^×x]+\s*[×x]\s*[A-Z][A-Za-z0-9 '#\-]+?)(?:\s|,|\.)/i);
-      if(m3)return m3[1].trim().replace(/\bx\b/gi,' × ');
-      return '';
+      var idx=desc.indexOf('×');if(idx<0)return '';
+      // Left side: text before ×
+      var left=desc.substring(0,idx).trim();
+      // Strip "Strain – " prefix
+      var dashIdx=left.lastIndexOf('–');
+      if(dashIdx>=0)left=left.substring(dashIdx+1).trim();
+      // Strip preamble like "A decadent indica of" (article + lowercase words + of)
+      left=left.replace(/^(?:An? )(?:[a-z]+ )*(?:of |from )/,'').trim();
+      // Right side: text after ×, stop at verb/punctuation
+      var right=desc.substring(idx+1).trim();
+      var rm=right.match(/^([A-Z][A-Za-z0-9 '#\.\-]+?)(?:'s|\s*[,\.]|\s+(?:brings|delivers|creates|combines|blends|gives|serves|offers|produces|mixes|tastes|hits|pours|is|fuses|pairs|unites|explodes|fires|takes|keeps|overflows|radiates|bursts|glues|defines|ignites|strikes|drips|dripping|layers|smells|born|with|for|the|and|a|carries|leaves|wrapping|coating)\b)/i);
+      if(!rm)rm=right.match(/^([A-Z][A-Za-z0-9 '#\-]+)/);
+      if(!left||!rm)return '';
+      return left.replace(/'s$/,'')+' × '+rm[1].trim();
     }
 
 
@@ -3586,20 +3590,26 @@ window._STRAIN_DB=[
                     var catPool={};
                     var hasBattery=o.skus.some(function(s){return(s.category||'').toLowerCase().includes('batter');});
                     var buysCart=o.skus.some(function(s){var cl=(s.category||'').toLowerCase();return cl.includes('cart')||cl.includes('vape');});
+                    var buysConc=o.skus.some(function(s){var cl=(s.category||'').toLowerCase();return cl.includes('badder')||cl.includes('sauce')||cl.includes('diamond')||cl.includes('shatter')||cl.includes('concentrate');});
                     invKeys.forEach(function(k){
                       var p=invPool[k];if(p.rem<=0)return;
                       var cat=skuCat(p.sku);if(cat==='other')return;
-                      // Battery: only push to cart buyers who haven't ordered batteries
-                      var ok=buysCat(o,cat)||(cat==='battery'&&!hasBattery&&buysCart);
+                      var ok=false;
+                      if(cat==='cart')ok=buysCart;
+                      else if(cat==='badder'||cat==='sauce'||cat==='diamonds')ok=buysConc;
+                      else if(cat==='battery')ok=(buysCart&&!hasBattery)||buysCat(o,cat);
+                      else ok=buysCat(o,cat);
                       if(!ok)return;
-                      if(!catPool[cat])catPool[cat]=[];
-                      catPool[cat].push({k:k,cat:cat,ws:catWs(cat),isNew:p.isNew,vel30:p.vel30||0});
+                      // Group concentrates into one pool for min 3 rule
+                      var poolKey=(cat==='badder'||cat==='sauce'||cat==='diamonds')?'concentrate':cat;
+                      if(!catPool[poolKey])catPool[poolKey]=[];
+                      catPool[poolKey].push({k:k,cat:cat,ws:catWs(cat),isNew:p.isNew,vel30:p.vel30||0});
                     });
-                    // Fixed depth: 20 per cart, 10 per everything else
-                    // Minimum 3 strains per category before cap kicks in
-                    Object.keys(catPool).forEach(function(cat){
-                      var pool=catPool[cat];
-                      var qtyPerStrain=cat==='cart'?20:10;
+                    // Fixed depth: 20 per cart, 10 per concentrate/battery
+                    // Minimum 3 strains per pool before cap kicks in
+                    Object.keys(catPool).forEach(function(poolKey){
+                      var pool=catPool[poolKey];
+                      var qtyPerStrain=poolKey==='cart'?20:10;
                       pool.sort(function(a,b){
                         var sa=a.isNew?50:a.vel30;
                         var sb=b.isNew?50:b.vel30;
@@ -3616,10 +3626,11 @@ window._STRAIN_DB=[
                         if(qty<10)return;
                         p.rem-=qty;spent+=qty*m.ws;catCount++;
                         var strain=p.sku.replace(/^Globs\s*-\s*/i,'').split(' - ')[0].trim();
-                        var catLabel=cat==='cart'?'Vape Cart - Live Resin':cat.charAt(0).toUpperCase()+cat.slice(1);
+                        var catLabel=m.cat==='cart'?'Vape Cart - Live Resin':m.cat.charAt(0).toUpperCase()+m.cat.slice(1);
                         var skuNk=nk(p.sku);var strainNk=nk(strain);
                         var isNewForStore=!o.skus.some(function(s){return nk(s.sku)===skuNk||nk(s.strain||'')===strainNk;});
-                        lineArr.push({strain:strain,sku:p.sku,cat:catLabel,qty:qty,ws:m.ws,lineRev:qty*m.ws,onHand:p.onHand,zoneStart:p.onHand,zn:zoneLabel[o.zone]||o.zone||'',low:qty<10,isNew:p.isNew,isNewForStore:isNewForStore});
+                        var slu=strainLookup(strain);var genetics=(slu&&slu.c)?slu.c.replace(/\bx\b/gi,' \u00d7 '):(slu&&slu.d)?extractCross(slu.d):'';
+                        lineArr.push({strain:strain,sku:p.sku,cat:catLabel,qty:qty,ws:m.ws,lineRev:qty*m.ws,onHand:p.onHand,zoneStart:p.onHand,zn:zoneLabel[o.zone]||o.zone||'',low:qty<10,isNew:p.isNew,isNewForStore:isNewForStore,genetics:genetics});
                       });
                     });
                     if(lineArr.length>0){alloc[o.name]=lineArr;allocCount++;}
@@ -3805,8 +3816,8 @@ window._STRAIN_DB=[
                                 React.createElement('span',{style:{color:C.dim,fontSize:10}},isOpen?'\u25BC':'\u25B6'))
                             ),
                             React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:4,marginBottom:6}},
-                              React.createElement('div',{style:{background:C.bg,borderRadius:3,padding:'4px 0',textAlign:'center'}},React.createElement('div',{style:{fontSize:12,fontWeight:700}},curK(o.rev)),React.createElement('div',{style:{fontSize:9,color:C.dim}},'Revenue')),
-                              isOnTrack?React.createElement('div',{style:{background:C.good+'22',borderRadius:3,padding:'4px 0',textAlign:'center'}},React.createElement('div',{style:{fontSize:14,color:C.good}},'\u2713'),React.createElement('div',{style:{fontSize:9,color:C.good,fontWeight:600}},'On Track')):React.createElement('div',{style:{background:C.bg,borderRadius:3,padding:'4px 0',textAlign:'center'}},React.createElement('div',{style:{fontSize:12,fontWeight:700,color:o.daysSince>90?C.danger:o.daysSince>45?C.warn:C.text}},o.daysSince+'d'),React.createElement('div',{style:{fontSize:9,color:C.dim}},'Silent')),
+                              React.createElement('div',{style:{background:C.bg,borderRadius:3,padding:'4px 0',textAlign:'center'}},React.createElement('div',{style:{fontSize:12,fontWeight:700}},curK(o.rev)),React.createElement('div',{style:{fontSize:8,color:C.dim}},'365d Rev')),
+                              isOnTrack?React.createElement('div',{style:{background:C.good+'22',borderRadius:3,padding:'4px 0',textAlign:'center'}},React.createElement('div',{style:{fontSize:14,color:C.good}},'\u2713'),React.createElement('div',{style:{fontSize:9,color:C.good,fontWeight:600}},'On Track')):React.createElement('div',{style:{background:C.bg,borderRadius:3,padding:'4px 0',textAlign:'center'}},React.createElement('div',{style:{fontSize:12,fontWeight:700,color:o.daysSince>90?C.danger:o.daysSince>45?C.warn:C.text}},o.daysSince+'d'),React.createElement('div',{style:{fontSize:8,color:C.dim}},'Last Order')),
                               React.createElement('div',{style:{background:C.bg,borderRadius:3,padding:'4px 0',textAlign:'center'}},React.createElement('div',{style:{fontSize:12,fontWeight:700}},o.median+'d'),React.createElement('div',{style:{fontSize:9,color:C.dim}},'Cadence')),
                               React.createElement('div',{style:{background:C.bg,borderRadius:3,padding:'4px 0',textAlign:'center'}},React.createElement('div',{style:{fontSize:12,fontWeight:700}},o.orders),React.createElement('div',{style:{fontSize:9,color:C.dim}},'Orders')),
                               React.createElement('div',{style:{background:(o.goalPct>=80?C.good:o.goalPct>=50?C.warn:C.danger)+'22',borderRadius:3,padding:'4px 0',textAlign:'center'}},React.createElement('div',{style:{fontSize:12,fontWeight:700,color:o.goalPct>=80?C.good:o.goalPct>=50?C.warn:C.danger}},o.goalPct+'%'),React.createElement('div',{style:{fontSize:9,color:C.dim}},'Goal'))
@@ -3823,6 +3834,7 @@ window._STRAIN_DB=[
                             lines.map(function(l,li){return React.createElement('div',{key:l.sku||li,style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px solid '+C.border+'33',gap:8,flexWrap:'wrap'}},
                               React.createElement('div',{style:{flex:1,minWidth:0}},
                                 React.createElement('div',{style:{fontSize:11,fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:4,flexWrap:'wrap'}},l.strain,l.isNew?React.createElement('span',{style:{fontSize:7,fontWeight:700,color:'#00bcd4',background:'#00bcd422',padding:'1px 4px',borderRadius:2}},'NEW SKU'):null,l.isNewForStore&&!l.isNew?React.createElement('span',{style:{fontSize:7,fontWeight:700,color:'#ff9800',background:'#ff980022',padding:'1px 4px',borderRadius:2}},'NEW FOR STORE'):null,l.isNewForStore&&l.isNew?React.createElement('span',{style:{fontSize:7,fontWeight:700,color:'#ff9800',background:'#ff980022',padding:'1px 4px',borderRadius:2}},'1ST ORDER'):null),
+                                l.genetics?React.createElement('div',{style:{fontSize:9,color:C.dim,fontStyle:'italic',marginTop:-1}},l.genetics):null,
                                 React.createElement('div',{style:{fontSize:10,color:C.dim}},l.cat)
                               ),
                               React.createElement('div',{style:{display:'flex',gap:12,alignItems:'center',flexShrink:0}},
