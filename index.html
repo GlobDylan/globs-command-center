@@ -3584,17 +3584,20 @@ window._STRAIN_DB=[
                     var spent=0;var lineArr=[];
                     // Group available inventory by category
                     var catPool={};
+                    var hasBattery=o.skus.some(function(s){return(s.category||'').toLowerCase().includes('batter');});
+                    var buysCart=o.skus.some(function(s){var cl=(s.category||'').toLowerCase();return cl.includes('cart')||cl.includes('vape');});
                     invKeys.forEach(function(k){
                       var p=invPool[k];if(p.rem<=0)return;
                       var cat=skuCat(p.sku);if(cat==='other')return;
-                      var ok=buysCat(o,cat);
+                      // Battery: only push to cart buyers who haven't ordered batteries
+                      var ok=buysCat(o,cat)||(cat==='battery'&&!hasBattery&&buysCart);
                       if(!ok)return;
                       if(!catPool[cat])catPool[cat]=[];
                       catPool[cat].push({k:k,cat:cat,ws:catWs(cat),isNew:p.isNew,vel30:p.vel30||0});
                     });
-                    // Fixed depth: 20 per cart strain, 10 per everything else
+                    // Fixed depth: 20 per cart, 10 per everything else
+                    // Minimum 3 strains per category before cap kicks in
                     Object.keys(catPool).forEach(function(cat){
-                      if(spent>=cap)return;
                       var pool=catPool[cat];
                       var qtyPerStrain=cat==='cart'?20:10;
                       pool.sort(function(a,b){
@@ -3602,14 +3605,16 @@ window._STRAIN_DB=[
                         var sb=b.isNew?50:b.vel30;
                         return sb-sa;
                       });
+                      var catCount=0;
                       pool.forEach(function(m){
-                        if(spent>=cap)return;
+                        // First 3 strains per category always get allocated, then cap applies
+                        if(catCount>=3&&spent>=cap)return;
                         var p=invPool[m.k];if(p.rem<=0)return;
-                        var qty=Math.min(qtyPerStrain,p.rem,Math.floor((cap-spent)/m.ws));
+                        var qty=catCount>=3?Math.min(qtyPerStrain,p.rem,Math.floor((cap-spent)/m.ws)):Math.min(qtyPerStrain,p.rem);
                         if(qty<10)return;
                         qty=Math.round(qty/10)*10;
                         if(qty<10)return;
-                        p.rem-=qty;spent+=qty*m.ws;
+                        p.rem-=qty;spent+=qty*m.ws;catCount++;
                         var strain=p.sku.replace(/^Globs\s*-\s*/i,'').split(' - ')[0].trim();
                         var catLabel=cat==='cart'?'Vape Cart - Live Resin':cat.charAt(0).toUpperCase()+cat.slice(1);
                         var skuNk=nk(p.sku);var strainNk=nk(strain);
@@ -3808,7 +3813,7 @@ window._STRAIN_DB=[
                             ),
                             React.createElement('div',{style:{display:'flex',gap:8,fontSize:11,color:C.dim,alignItems:'center'}},
                               o.rep?React.createElement('span',null,o.rep):null,
-                              React.createElement('span',{style:{fontWeight:600,color:o.goalPct>=80?C.good:o.goalPct>=50?C.warn:C.danger}},curK(o.periodRev)+' / '+curK(o.expectedRev)),
+                              React.createElement('span',{className:'no-screenshot',style:{fontWeight:600,color:o.goalPct>=80?C.good:o.goalPct>=50?C.warn:C.danger}},curK(o.periodRev)+' / '+curK(o.expectedRev)),
                               !isOnTrack&&lines.length>0?React.createElement('span',{style:{color:C.good,marginLeft:'auto'}},lines.length+' SKUs \u00b7 '+curK(orderRev)):null,
                               isOnTrack?React.createElement('span',{style:{color:C.dim,marginLeft:'auto',fontSize:10}},'\u223c'+(o.median-o.daysSince)+'d to next order'):null
                             )
@@ -3828,7 +3833,8 @@ window._STRAIN_DB=[
                             );}),
                             React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:8,marginTop:4}},
                               React.createElement('span',{style:{fontSize:11,fontWeight:800}},orderUnits+' units'),
-                              React.createElement('span',{style:{fontSize:13,fontWeight:900,color:C.good}},curK(orderRev)+' / '+curK(Math.round(o.avgOrderVal*1.15))+' cap')
+                              React.createElement('span',{style:{fontSize:13,fontWeight:900,color:C.good}},curK(orderRev)+' total'),
+                              React.createElement('span',{className:'no-screenshot',style:{fontSize:10,color:C.dim,marginLeft:4}},'(cap '+curK(Math.round(o.avgOrderVal*1.15))+')')
                             ),
                             React.createElement('div',{style:{display:'flex',gap:6,marginTop:10,justifyContent:'flex-end',flexWrap:'wrap'}},
                               React.createElement('button',{onClick:function(){window._goAcct&&window._goAcct(o.name);},style:{padding:'8px 16px',borderRadius:3,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.border,background:'transparent',color:C.muted}},'View Account'),
