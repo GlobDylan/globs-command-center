@@ -1306,6 +1306,7 @@ window._STRAIN_DB=[
       const [obShowEmail,setObShowEmail]=useState(false);
       const [obSearch,setObSearch]=useState('');
       const [financialsView,setFinancialsView]=useState('pnl'); // 'pnl' | 'cashflow'
+      const [investorView,setInvestorView]=useState('org'); // 'org' | 'tasks' | 'deck'
       const [pnlDays,setPnlDays]=useState(90);
       const [snapExpanded,setSnapExpanded]=useState(null);
       const [mfgSubTab,setMfgSubTab]=useState('orders'); // 'orders' | 'sops'
@@ -1545,7 +1546,7 @@ window._STRAIN_DB=[
       const totalOutliers=useMemo(function(){let n=0;displayAccounts.forEach(function(acc){(acc.skus||[]).forEach(function(s){const mu=markupAnalysis(s.retailPrice,cogsFor(s.category).wholesale,getTaxRate(acc.name));if(mu&&!mu.aligned)n++;});});return n;},[displayAccounts]);
       const filteredAccounts=useMemo(function(){let list=displayAccounts.slice();if(periodDays<365){list=list.filter(function(a){var pr=a.periodRevenue&&a.periodRevenue[periodDays];return pr&&pr>0;});}if(search.trim()){const q=search.toLowerCase();list=list.filter(function(a){return a.name.toLowerCase().includes(q)||(a.rep||"").toLowerCase().includes(q);});}if(zoneFilter!=="All")list=list.filter(function(a){return a.zone===zoneFilter;});if(tierFilter!=="All")list=list.filter(function(a){return computeTier(a.orderDayTs).label===tierFilter;});if(sortBy==="sales")list.sort(function(a,b){var aRev=(a.periodRevenue&&a.periodRevenue[periodDays])||a.totalSales||0;var bRev=(b.periodRevenue&&b.periodRevenue[periodDays])||b.totalSales||0;return bRev-aRev;});else if(sortBy==="name")list.sort(function(a,b){return a.name.localeCompare(b.name);});else if(sortBy==="skus")list.sort(function(a,b){return(b.skus&&b.skus.length||0)-(a.skus&&a.skus.length||0);});return list;},[displayAccounts,search,zoneFilter,tierFilter,sortBy,periodDays]);
 
-      const mfgVelocity=useMemo(function(){const map={};displayAccountsAll.forEach(function(acc){(acc.orderedSkus||[]).forEach(function(s){const u=s.totalQty||s.qty||0;if(u<=0)return;const k=s.sku;if(!map[k])map[k]={sku:s.sku,strain:s.strain,category:s.category,wholesale:s.wholesale||0,units90:0,accountCount:0,firstDate:s.firstDate||"",lastDate:s.lastDate||""};map[k].units90+=u;map[k].accountCount+=1;if(s.firstDate&&(!map[k].firstDate||s.firstDate<map[k].firstDate))map[k].firstDate=s.firstDate;if(s.lastDate&&(!map[k].lastDate||s.lastDate>map[k].lastDate))map[k].lastDate=s.lastDate;});});const pc=['vape','cart','badder','sauce','shatter','diamond','concentrate','live'],nk=function(k){return k.toLowerCase().replace(/[^a-z0-9]/g,"");};return Object.values(map).filter(function(s){const c=s.category.toLowerCase();if(s.sku&&(s.sku.toLowerCase().includes('promo')||s.sku.toLowerCase().includes('sample')))return false;return pc.some(function(p){return c.includes(p);})&&s.units90>5;}).map(function(s){let sd=1;if(s.firstDate&&s.lastDate&&s.firstDate!==s.lastDate){const f=new Date(s.firstDate),l=new Date(s.lastDate);if(!isNaN(f)&&!isNaN(l))sd=Math.max(1,Math.round((l-f)/86400000)+1);}const eff=Math.max(sd,30),rel=sd>=14,wv=+(s.units90/eff*7).toFixed(1),dv=+(s.units90/eff).toFixed(2);const _m=Object.entries(inventoryData).find(function(e){return nk(e[0])===nk(s.sku);});const ie=inventoryData[s.sku]||(_m?_m[1]:null);return Object.assign({},s,{spanDays:sd,reliable:rel,weeklyVel:wv,dailyVel:dv,inInventory:!!ie,invOnHand:ie?(ie.onHand!=null?ie.onHand:null):null,batch:ie?ie.batch:"",thc:ie?ie.thc:"",pkgDate:ie?ie.pkgDate:"",daysOld:ie?ie.daysOld:""});}).sort(function(a,b){return b.weeklyVel-a.weeklyVel;});},[displayAccountsAll,inventoryData]);
+      const mfgVelocity=useMemo(function(){const map={};displayAccountsAll.forEach(function(acc){(acc.orderedSkus||[]).forEach(function(s){const u=s.totalQty||s.qty||0;if(u<=0)return;const k=s.sku;if(!map[k])map[k]={sku:s.sku,strain:s.strain,category:s.category,wholesale:s.wholesale||0,units90:0,accountCount:0,firstDate:s.firstDate||"",lastDate:s.lastDate||""};map[k].units90+=u;map[k].accountCount+=1;if(s.firstDate&&(!map[k].firstDate||s.firstDate<map[k].firstDate))map[k].firstDate=s.firstDate;if(s.lastDate&&(!map[k].lastDate||s.lastDate>map[k].lastDate))map[k].lastDate=s.lastDate;});});const pc=['vape','cart','badder','sauce','shatter','diamond','concentrate','live'],nk=function(k){return k.toLowerCase().replace(/[^a-z0-9]/g,"");};return Object.values(map).filter(function(s){const c=s.category.toLowerCase();if(s.sku&&(s.sku.toLowerCase().includes('promo')||s.sku.toLowerCase().includes('sample')))return false;return pc.some(function(p){return c.includes(p);})&&s.units90>5;}).map(function(s){let sd=1;if(s.firstDate){const f=new Date(s.firstDate),now=new Date();if(!isNaN(f))sd=Math.max(1,Math.round((now-f)/86400000)+1);}const eff=Math.max(sd,30),rel=sd>=14,wv=+(s.units90/eff*7).toFixed(1),dv=+(s.units90/eff).toFixed(2);const _m=Object.entries(inventoryData).find(function(e){return nk(e[0])===nk(s.sku);});const ie=inventoryData[s.sku]||(_m?_m[1]:null);return Object.assign({},s,{spanDays:sd,reliable:rel,weeklyVel:wv,dailyVel:dv,inInventory:!!ie,invOnHand:ie?(ie.onHand!=null?ie.onHand:null):null,batch:ie?ie.batch:"",thc:ie?ie.thc:"",pkgDate:ie?ie.pkgDate:"",daysOld:ie?ie.daysOld:""});}).sort(function(a,b){return b.weeklyVel-a.weeklyVel;});},[displayAccountsAll,inventoryData]);
 
       const weeks=useMemo(function(){return Object.keys(snapshots).sort();},[snapshots]);
       const velocity=useMemo(function(){if(weeks.length<2)return{added:[],removed:[]};const snapCur=snapshots[weeks[weeks.length-1]]||{},snapPrev=snapshots[weeks[weeks.length-2]]||{},added=[],removed=[],allKeys=Array.from(new Set(Object.keys(snapCur).concat(Object.keys(snapPrev))));allKeys.forEach(function(k){const cs=new Set(snapCur[k]||[]),ps=new Set(snapPrev[k]||[]),strain=parseWMSku(k).strain;cs.forEach(function(d){if(!ps.has(d))added.push({strain:strain,dispensary:d});});ps.forEach(function(d){if(!cs.has(d))removed.push({strain:strain,dispensary:d});});});return{added:added,removed:removed};},[snapshots,weeks]);
@@ -4284,26 +4285,70 @@ window._STRAIN_DB=[
                     ),
                     // ── INVENTORY DEPLETION TRACKER ──
                     mfgVelocity.length>0?(function(){
-                      var depRows=mfgVelocity.filter(function(s){return s.invOnHand!=null&&s.invOnHand>0&&s.dailyVel>0;}).map(function(s){
-                        var oh=s.invOnHand||0,dl=Math.floor(oh/s.dailyVel),pct=Math.min(100,Math.round(dl/60*100));
-                        var cl=cogsFor(s.category).label;var cc=cl==='Vape Cart'?C.info:cl==='Badder'?C.warn:cl==='Sauce'?C.good:C.purple;
-                        return{strain:s.strain.replace(/^Globs\s*-\s*/i,'').split(' - ')[0],cat:cl==='Vape Cart'?'Cart':cl,cc:cc,oh:oh,dl:dl,pct:pct,vel:s.weeklyVel};
-                      }).sort(function(a,b){return a.dl-b.dl;});
-                      var critical=depRows.filter(function(r){return r.dl<14;}),low=depRows.filter(function(r){return r.dl>=14&&r.dl<30;});
+                      // Build 30-day + 7-day batch velocity per SKU from period data
+                      var sku30d={};var sku7d={};
+                      displayAccountsAll.forEach(function(acc){
+                        (acc.orderedSkus||[]).forEach(function(s){
+                          var k=s.sku;if(!k)return;
+                          sku30d[k]=(sku30d[k]||0)+((s.periodUnits&&s.periodUnits[30])||0);
+                          sku7d[k]=(sku7d[k]||0)+((s.periodUnits&&s.periodUnits[7])||0);
+                        });
+                      });
+                      // Only SKUs with inventory data
+                      var depRows=mfgVelocity.filter(function(s){
+                        var oh=s.invOnHand!=null?s.invOnHand:(mfgInventory[s.sku]!==undefined?parseInt(mfgInventory[s.sku])||0:null);
+                        return oh!==null;
+                      }).map(function(s){
+                        var oh=s.invOnHand!=null?s.invOnHand:(parseInt(mfgInventory[s.sku])||0);
+                        var u30=sku30d[s.sku]||0;
+                        var u7=sku7d[s.sku]||0;
+                        var dailyBatch=u30>0?u30/30:0;
+                        var weeklyBatch=+(dailyBatch*7).toFixed(1);
+                        var sold=s.units90||0;
+                        var span=s.spanDays||0;
+                        var dl=dailyBatch>0&&oh>0?Math.round(oh/dailyBatch):oh>0?999:0;
+                        var pct=dl===999?100:Math.min(100,Math.round(dl/90*100));
+                        var cl=cogsFor(s.category).label;
+                        var cc=cl==='Vape Cart'?C.info:cl==='Badder'?C.warn:cl==='Sauce'?C.good:C.purple;
+                        var catShort=cl==='Vape Cart'?'Cart':cl;
+                        return{strain:s.strain.replace(/^Globs\s*-\s*/i,'').split(' - ')[0],cat:catShort,cc:cc,oh:oh,sold:sold,u30:u30,u7:u7,span:span,dl:dl,pct:pct,vel:weeklyBatch,sku:s.sku};
+                      }).sort(function(a,b){
+                        if(a.oh===0&&b.oh>0)return-1;if(a.oh>0&&b.oh===0)return 1;
+                        if(a.oh===0&&b.oh===0)return b.sold-a.sold;
+                        if(a.dl===999&&b.dl!==999)return 1;if(a.dl!==999&&b.dl===999)return-1;
+                        return a.dl-b.dl;
+                      });
+                      var outOfStock=depRows.filter(function(r){return r.oh===0;});
+                      var critical=depRows.filter(function(r){return r.oh>0&&r.dl<14&&r.dl!==999;});
+                      var low=depRows.filter(function(r){return r.oh>0&&r.dl>=14&&r.dl<30;});
                       if(depRows.length===0)return null;
                       return React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:16,marginBottom:20}},
                         React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',paddingBottom:8,borderBottom:'1px solid '+C.border,marginBottom:10}},
                           React.createElement('div',{style:{fontSize:14,fontWeight:700,letterSpacing:2}},'INVENTORY DEPLETION'),
-                          React.createElement('div',{style:{display:'flex',gap:8,fontSize:10}},
+                          React.createElement('div',{style:{display:'flex',gap:6,fontSize:9,flexWrap:'wrap'}},
+                            outOfStock.length>0?React.createElement('span',{style:{color:'#fff',background:C.danger,padding:'1px 5px',borderRadius:2,fontWeight:700}},outOfStock.length+' OOS'):null,
                             critical.length>0?React.createElement('span',{style:{color:C.danger,fontWeight:700}},critical.length+' critical'):null,
                             low.length>0?React.createElement('span',{style:{color:C.warn,fontWeight:700}},low.length+' low'):null,
-                            React.createElement('span',{style:{color:C.dim}},depRows.length+' tracked'))),
-                        depRows.slice(0,10).map(function(r,i){var bc=r.dl<14?C.danger:r.dl<30?C.warn:C.good;return React.createElement('div',{key:i,style:{marginBottom:6}},
-                          React.createElement('div',{style:{display:'flex',justifyContent:'space-between',fontSize:10,marginBottom:2}},
-                            React.createElement('span',{style:{fontWeight:600,color:r.dl<14?C.danger:C.text}},r.strain),
-                            React.createElement('span',{style:{color:bc,fontWeight:700}},r.dl+'d · '+r.oh+' left')),
-                          React.createElement('div',{style:{height:4,background:'#111',borderRadius:2,overflow:'hidden'}},
-                            React.createElement('div',{style:{width:r.pct+'%',height:'100%',background:bc,borderRadius:2}})));})
+                            React.createElement('span',{style:{color:C.dim}},depRows.length+' in inventory'))),
+                        React.createElement('div',{style:{fontSize:9,color:C.dim,marginBottom:8}},'Velocity = 30-day batch sell-through rate'),
+                        depRows.slice(0,50).map(function(r,i){
+                          var bc=r.oh===0?C.danger:r.dl<14&&r.dl!==999?C.danger:r.dl<30?C.warn:r.dl===999?C.dim:C.good;
+                          return React.createElement('div',{key:r.sku||i,style:{marginBottom:8,paddingBottom:6,borderBottom:'1px solid '+C.border+'33'}},
+                            React.createElement('div',{style:{display:'flex',justifyContent:'space-between',fontSize:10,marginBottom:2}},
+                              React.createElement('span',{style:{fontWeight:600,color:r.oh===0||(r.dl<14&&r.dl!==999)?C.danger:C.text}},r.strain),
+                              React.createElement('span',{style:{fontSize:9,color:r.cc,fontWeight:600}},r.cat)
+                            ),
+                            React.createElement('div',{style:{display:'flex',justifyContent:'space-between',fontSize:9,color:C.dim,marginBottom:3}},
+                              React.createElement('span',null,r.oh>0?r.oh+' OH':'OOS'),
+                              React.createElement('span',null,r.u30+' sold 30d'),
+                              React.createElement('span',null,r.sold+' total'),
+                              React.createElement('span',null,r.span>0?r.span+'d menu':'\u2014'),
+                              React.createElement('span',{style:{color:bc,fontWeight:700}},r.oh===0?'reorder':r.dl===999?'no 30d sales':r.dl+'d left')
+                            ),
+                            React.createElement('div',{style:{height:4,background:'#111',borderRadius:2,overflow:'hidden'}},
+                              React.createElement('div',{style:{width:Math.max(r.oh>0&&r.dl!==999?2:0,r.pct)+'%',height:'100%',background:bc,borderRadius:2}}))
+                          );
+                        })
                       );
                     })():null,
                     // ── BEST PERFORMING STRAINS ──
@@ -4806,8 +4851,7 @@ window._STRAIN_DB=[
 
                 {/* ══ INVESTOR DECK ══ */}
                 {tab==="investor"&&(function(){
-                  var investorView=window._investorView||'org';
-                  function setInvestorView(v){window._investorView=v;setTab('investor');}
+                  // investorView is React state declared at component level
                   // ── Aggregate ALL metrics from SF Account Activity ──
                   var rev={7:0,30:0,60:0,90:0,180:0,365:0};
                   var units={7:0,30:0,60:0,90:0,180:0,365:0};
