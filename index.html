@@ -573,16 +573,20 @@ window._STRAIN_DB=[
         if (soNum) a.soNumbers.add(soNum); if (soNum&&date&&!a.soDates[soNum]) a.soDates[soNum]=date;
         if (extPrice>0) { a.totalSales+=extPrice; a.totalQty+=qty; a._rows.push({date:date,qty:qty,extPrice:extPrice,category:category,sku:sku}); }
         const strain=sku.replace(/^Globs\s*-\s*/i,"").split(" - ")[0].trim();
-        const ex=a.orderedSkus.find(s => s.sku===sku);
+        // Parse date to timestamp for proper chronological comparison
+        var _dp=date?date.split('/'):null;
+        var _dts=_dp&&_dp.length>=3?new Date(parseInt(_dp[2]),parseInt(_dp[0])-1,parseInt(_dp[1])).getTime():0;
+        const ex=a.orderedSkus.find(s => s.sku===sku&&s.category===category);
         if (ex) {
-          if (extPrice>0) { ex.totalQty=(ex.totalQty||0)+qty; if(price>0&&date&&(!ex._lastPriceDate||date>=ex._lastPriceDate)){ex.wholesale=price;ex._lastPriceDate=date;} }
+          if (extPrice>0) { ex.totalQty=(ex.totalQty||0)+qty; if(price>0&&_dts&&(!ex._lastPriceTs||_dts>=ex._lastPriceTs)){ex.wholesale=price;ex._lastPriceTs=_dts;} }
           if (date) { if(!ex.firstDate||date<ex.firstDate) ex.firstDate=date; if(!ex.lastDate||date>ex.lastDate) ex.lastDate=date; }
         } else {
-          a.orderedSkus.push({sku:sku,strain:strain,category:category,wholesale:price,qty:qty,totalQty:extPrice>0?qty:0,firstDate:date||"",lastDate:date||""});
+          a.orderedSkus.push({sku:sku,strain:strain,category:category,wholesale:price,qty:qty,totalQty:extPrice>0?qty:0,firstDate:date||"",lastDate:date||"",_lastPriceTs:_dts||0});
         }
       });
       const PERIODS=[7,30,60,90,180,270,365];
       let fMax=0;
+      let futureOrderCount=0,futureOrderRev=0;
       Object.values(accs).forEach(function(a) {
         (a._rows||[]).forEach(function(r) {
           if (!r.date) return;
@@ -592,17 +596,23 @@ window._STRAIN_DB=[
         });
       });
       if (!fMax) fMax=Date.now();
+      // Cap at today — future-dated orders (scheduled) should not shift the window
+      var nowTs=Date.now();
+      var anchorTs=Math.min(fMax,nowTs);
       const cutoff={};
-      PERIODS.forEach(function(d) { cutoff[d]=fMax-d*86400000; });
+      PERIODS.forEach(function(d) { cutoff[d]=anchorTs-d*86400000; });
       Object.values(accs).forEach(function(a) {
         a.periodRevenue={7:0,30:0,60:0,90:0,180:0,270:0,365:0};
         a.periodCatRevenue={7:{},30:{},60:{},90:{},180:{},270:{},365:{}};
         a.skuPeriodUnits={};
+        a._futureRev=0;a._futureOrders=0;
         (a._rows||[]).forEach(function(r) {
           if (!r.date||!r.extPrice) return;
           const pts=r.date.split('/');
           const ts=new Date(parseInt(pts[2]),parseInt(pts[0])-1,parseInt(pts[1])).getTime();
           if (isNaN(ts)) return;
+          // Flag future-dated orders
+          if(ts>nowTs){a._futureRev+=r.extPrice;a._futureOrders++;futureOrderCount++;futureOrderRev+=r.extPrice;return;}
           PERIODS.forEach(function(d) {
             if (ts>=cutoff[d]) {
               a.periodRevenue[d]+=r.extPrice;
@@ -621,10 +631,11 @@ window._STRAIN_DB=[
           if (!r.date||!r.extPrice||r.extPrice<=0) return;
           const p=r.date.split('/'); if(p.length!==3) return;
           const ts=new Date(parseInt(p[2]),parseInt(p[0])-1,parseInt(p[1])).getTime();
-          if (!isNaN(ts)) ods[ts]=true;
+          if (!isNaN(ts)&&ts<=nowTs) ods[ts]=true;// Exclude future dates from cadence
         });
         a.orderDayTs=Object.keys(ods).map(Number).sort(function(a,b){return a-b;});
-        delete a._rows;
+        a.futureRev=a._futureRev||0;a.futureOrders=a._futureOrders||0;
+        delete a._rows;delete a._futureRev;delete a._futureOrders;
       });
       const SUP=["upnorth samples","internal","test account"];
       return Object.values(accs)
@@ -635,7 +646,7 @@ window._STRAIN_DB=[
         .map(function(a) {
           return Object.assign({},a,{
             soNumbers: Array.from(a.soNumbers),
-            skuPrices: Object.fromEntries((a.orderedSkus||[]).filter(s=>s.wholesale>0).map(s=>[s.sku,s.wholesale])),
+            skuPrices: Object.fromEntries((a.orderedSkus||[]).filter(s=>s.wholesale>0).map(s=>[s.sku+'|||'+s.category,s.wholesale])),
             orderedSkus: a.orderedSkus.map(function(s) {
               return Object.assign({},s,{
                 orderCount: (soMap[a.name+"|||"+s.sku]&&soMap[a.name+"|||"+s.sku].size)||1,
@@ -767,6 +778,10 @@ window._STRAIN_DB=[
       if(c.includes("promo")||c.includes("sample"))return COGS.Promo;
       return COGS.Other;
     }
+    // Use per-SKU wholesale from parser (extPrice/qty). Falls back to COGS default if missing.
+    function validWholesale(price,category){
+      return(price&&price>0)?price:cogsFor(category).wholesale;
+    }
     const PKG = {
       Concentrates:[
         {id:"c1",name:"Concentrate Box",desc:"TWO (old stock → Treeform)",lead:42,cost:0.16,perUnit:1,initOnHand:15150,initOnOrder:25000},
@@ -802,6 +817,8 @@ window._STRAIN_DB=[
     };
     const STRAIN_DB=[{n:"Authentic Og",t:"Hybrid",d:"True to its name, Authentic OG brings that classic gas-and-earth terp profile with a heavy-hitting calm. A lineage of Heirloom OG x Godfather OG delivers the real deal OG body melt.",g:"Relaxed, Melow, Creative"},{n:"Baja Blazt",t:"Hybrid",d:"A vibrant hybrid born from Sour Kush x Pink Z, Baja Blazt explodes with citrus and tropical funk. Expect smooth creative energy balanced by a mellow, euphoric finish.",g:"Relaxed, Melow, Creative"},{n:"Banana Belts",t:"Hybrid",d:"Banana Papaya x Rainbow Belts brings sweet tropical fruit and creamy undertones. The high rolls in smooth and happy, ideal for easing tension without losing focus.",g:"Relaxed, Melow, Creative"},{n:"Banana Runtz",t:"Hybrid",d:"This Banana OG x Runtz cross hits like a candy-coated dessert. Its creamy banana gas flavor pairs with an uplifting, talkative buzz that fades into calm.",g:"Relaxed, Melow, Creative"},{n:"Banana Zkittlez",t:"Hybrid",d:"Bursting with tropical sweetness and smooth smoke, Banana Zkittlez (Z3 Banana Pheno x Zkittlez) offers a mellow, euphoric hybrid experience perfect for creative sessions.",g:"Relaxed, Melow, Creative"},{n:"Blue Cookies",t:"Indica",d:"GSC x Blueberry brings berry-forward sweetness with hints of baked dough. Blue Cookies delivers a relaxing, euphoric ride that melts away stress.",g:"Relaxed, Sleepy, Hungry"},{n:"Blue Diesel",t:"Sativa",d:"NYC Diesel x Blueberry gives this sativa its sweet berry gas nose and quick mental lift. Expect bright energy, clear focus, and a smooth fruity exhale.",g:"Focused, Energized, Uplifting"},{n:"Blue Yerbiez",t:"Sativa",d:"Yerbiez x Blueberry Muffin unites creamy sweetness with earthy pine. A sativa-leaning hybrid built for daytime clarity and chill creativity.",g:"Focused, Energized, Uplifting"},{n:"Blue Z",t:"Indica",d:"Blue Diamond x Z delivers heavy blueberry funk layered with candy gas. The result is an indica that hits hard yet stays flavorful to the last pull.",g:"Relaxed, Sleepy, Hungry"},{n:"Blue Zkittlez",t:"Indica",d:"A fruit-forward blend of Blue Diamond x Zkittlez, this indica radiates tropical candy sweetness with a calming, full-body unwind.",g:"Relaxed, Sleepy, Hungry"},{n:"Blueberry Muffin",t:"Indica",d:"Classic and comforting, this Humboldt-born indica smells like warm blueberry pastries. Smooth relaxation without sedation, perfect for winding down.",g:"Relaxed, Sleepy, Hungry"},{n:"Blueberry Pancakes",t:"Indica",d:"A breakfast of champions — DJ Short Blueberry x Unknown genetics create a syrupy, berry-rich profile that finishes creamy and cozy.",g:"Relaxed, Sleepy, Hungry"},{n:"Bluey V",t:"Sativa",d:"Blue Z x LV OG brings together gassy citrus zest with deep blueberry undertones. A balanced sativa that wakes up the senses without jitter.",g:"Focused, Energized, Uplifting"},{n:"Bubble Gum",t:"Indica",d:"True to its name, this old-school indica pops with sugary sweetness and nostalgic flavor. Smooth, mellow, and easygoing from start to finish.",g:"Relaxed, Sleepy, Hungry"},{n:"Caked Up",t:"Indica",d:"Ice Cream Cake x Wedding Cake layers dessert terps on dessert terps. Expect sweet dough, heavy relaxation, and a dreamy full-body melt.",g:"Relaxed, Sleepy, Hungry"},{n:"Caramel Apple Gelato",t:"Hybrid",d:"Sweet apple candy meets creamy fuel in this Apple Cider x Jet Fuel Gelato cross. A balanced hybrid that hits smooth and leaves a candy-coated calm.",g:"Relaxed, Melow, Creative"},{n:"Cereal Milk",t:"Hybrid",d:"Y Life x Snowman delivers that milky-sweet, gassy aroma with a balanced head and body high. Perfect for creative flow or post-work chill.",g:"Relaxed, Melow, Creative"},{n:"Chem Cookies",t:"Hybrid",d:"Chemdawg x GSC blends diesel funk and doughy sweetness. Heavy, euphoric effects come with focus and a deep body glow.",g:"Relaxed, Melow, Creative"},{n:"Chem K",t:"Sativa",d:"From Chemdawg x SFV OG, this sativa leans gassy and sharp. Expect mental clarity, a creative jolt, and smooth earthy undertones.",g:"Focused, Energized, Uplifting"},{n:"Cherry Pie",t:"Indica",d:"GDP x Durban Poison gives this indica its signature sweet-tart aroma and cozy, nostalgic feel. Perfect for winding down after a long day.",g:"Relaxed, Sleepy, Hungry"},{n:"Cherry Slush",t:"Hybrid",d:"Cherry Pie x Purple Punch x AK-47 mixes fruit punch sweetness with mild spice. A hybrid that lifts the mood while keeping your body at ease.",g:"Relaxed, Melow, Creative"},{n:"Cherry Zkittlez",t:"Indica",d:"Zkittlez x Cherry Pie creates a decadent candy-cherry flavor. The relaxing indica effects land soft but deep, perfect for easing stress.",g:"Relaxed, Sleepy, Hungry"},{n:"Chocolate Cherries",t:"Hybrid",d:"Chocolate Thai x Cherry Pie blends cocoa notes and ripe fruit for a rich, dessert-style high. The hybrid buzz is calm, creative, and flavorful.",g:"Relaxed, Melow, Creative"},{n:"Close Encounter",t:"Sativa",d:"Cinderella 99 x Alien OG strikes the sweet spot between uplift and chill. Expect fruity citrus notes with an out-of-this-world cerebral pop.",g:"Focused, Energized, Uplifting"},{n:"Cookie Dough",t:"Hybrid",d:"GSC x Dos-i-Dos brings sugary dough aroma and a calming hybrid vibe. Great for evening focus or relaxing creativity.",g:"Relaxed, Melow, Creative"},{n:"Crypto Berries",t:"Hybrid",d:"Crypto Berries – A sweet and gassy hybrid of Crypto Cake × Blueberry Muffin, blending dessert-fruit terps with balanced relaxation and a smooth, happy headspace.",g:"Relaxed, Melow, Creative"},{n:"Crypto Cake",t:"Indica",d:"Crypto Cake – Chemdawg × Ice Cream Cake delivers a deep gas-and-cream aroma with heavy indica effects that calm the body and quiet the mind.",g:"Relaxed, Sleepy, Hungry"},{n:"Crypto Cookies",t:"Indica",d:"Crypto Cookies – A decadent cross of Crypto Cake × GSC, combining sugary cookie sweetness with a strong, stoney finish perfect for evenings in.",g:"Relaxed, Sleepy, Hungry"},{n:"Dolce N Banana",t:"Indica",d:"Dolce N Banana – Golden State Banana lineage brings creamy fruit and calm, creating a smooth indica ideal for easy nights and sweet dreams.",g:"Relaxed, Sleepy, Hungry"},{n:"Evidence Og",t:"Indica",d:"Evidence OG – Classified × Reserve OG hits heavy with pure diesel power. Expect classic couch-lock OG depth with a clean, earthy exhale.",g:"Relaxed, Sleepy, Hungry"},{n:"Florida Oranges",t:"Hybrid",d:"Florida Oranges – Orange Daiquiri × TK BX1 explodes with sweet citrus and tropical tang, offering an uplifting high and pure sunshine energy.",g:"Relaxed, Melow, Creative"},{n:"Fluffy Pancakes",t:"Hybrid",d:"Fluffy Pancakes – Marshmallow OG × Pancakes delivers dessert terps and soft euphoria in every pull. Sweet, doughy, and deeply relaxing.",g:"Relaxed, Melow, Creative"},{n:"Forbidden Fruit",t:"Hybrid",d:"Forbidden Fruit – Cherry Pie × Tangie creates a lush, fruity aroma and a serene, head-to-toe calm that melts away stress like candy.",g:"Relaxed, Melow, Creative"},{n:"Fortune Cookies",t:"Hybrid",d:"Fortune Cookies – GSC × OG Kush is classic Cali gas meets cookie dough sweetness, striking a perfect hybrid balance of focus and relaxation.",g:"Relaxed, Melow, Creative"},{n:"Frozen Grapes",t:"Indica",d:"Frozen Grapes – Grapes of Wrath × Banana Split brings frosty purple flavor and heavy indica calm with a creamy, fruity finish.",g:"Relaxed, Sleepy, Hungry"},{n:"Fruit Stripe",t:"Hybrid",d:"Fruit Stripe – Lemonchello × London Pound Cake produces sweet citrus and vanilla-cream notes with a balanced hybrid buzz and mellow clarity.",g:"Relaxed, Melow, Creative"},{n:"G.D.P.",t:"Indica",d:"G.D.P. – Mendo Purps × Skunk × Afghan Kush defines the classic grape indica: heavy, sedating, and deeply flavorful.",g:"Relaxed, Sleepy, Hungry"},{n:"Gary Payton",t:"Hybrid",d:"Gary Payton – Y × Snowman delivers gas, cookies, and clarity in a powerful hybrid that’s equal parts heady and grounded.",g:"Relaxed, Melow, Creative"},{n:"Gastro Pop",t:"Indica",d:"Gastro Pop – Apples & Bananas × Grape Gas gives a sweet-and-tart inhale and a smooth exhale of grape funk. Relaxing yet alert, ideal for social nights.",g:"Relaxed, Sleepy, Hungry"},{n:"Gdp",t:"Indica",d:"GDP – Big Bud × Purple Urkle, the original purple powerhouse. Deep grape flavor, body melt effects, and timeless California heritage.",g:"Relaxed, Sleepy, Hungry"},{n:"Gelato #41",t:"Indica",d:"Gelato #41 – Sunset Sherbet × Thin Mint GSC serves creamy dessert terps with a smooth, euphoric high that never overwhelms.",g:"Relaxed, Sleepy, Hungry"},{n:"Gelatti Prime",t:"Indica",d:"Gelatti Prime – Gelatti × Napali Pink fuses gas and candy sweetness with an indica-leaning calm and full-body satisfaction.",g:"Relaxed, Sleepy, Hungry"},{n:"Gelonade",t:"Hybrid",d:"Gelonade – Gelato #41 × Lemon Tree balances zesty lemon brightness with creamy dessert notes, creating a euphoric, flavor-packed hybrid built for daytime flow.",g:"Relaxed, Melow, Creative"},{n:"Glob Force One",t:"Hybrid",d:"Glob Force One – Jet Fuel OG × Presidential Kush takes flight with gassy citrus aroma and a bold hybrid punch that fuels creativity.",g:"Relaxed, Melow, Creative"},{n:"Golden Papaya",t:"Hybrid",d:"Golden Papaya – Kosher Kush × Papaya blends tropical sweetness and gas with deep indica relaxation and a soft fruity finish.",g:"Relaxed, Melow, Creative"},{n:"Grandma’s Cookies",t:"Hybrid",d:"Grandma’s Cookies – GSC × Sugar Berries brings baked-good sweetness and mellow hybrid balance perfect for laid-back evenings.",g:"Relaxed, Melow, Creative"},{n:"Grape Cocktail",t:"Indica",d:"Grape Cocktail – Grape Pie × Mimosa mixes sweet berry and citrus fizz into a chill indica high with smooth, flavorful smoke.",g:"Relaxed, Sleepy, Hungry"},{n:"Grape Jelly Doughnut",t:"Indica",d:"Grape Jelly Doughnut – Birthday Cake OG × Grape Sherbet tastes like purple frosting and candy gas. A knockout indica with a sugar-sweet finish.",g:"Relaxed, Sleepy, Hungry"},{n:"Gush Mintz",t:"Indica",d:"Gush Mintz – Gushers × Kush Mintz offers creamy fruit aroma with a cool mint exhale and a heavy, calming effect that sticks.",g:"Relaxed, Sleepy, Hungry"},{n:"Headband",t:"Hybrid",d:"Headband – OG Kush × Sour Diesel’s signature cerebral pressure and lemon-diesel flavor create a creative, balanced hybrid high.",g:"Relaxed, Melow, Creative"},{n:"Hella Grapes",t:"Indica",d:"Hella Grapes – A rich purple indica with deep grape candy aroma and smooth smoke. The cross of Grape Soda × Purple Urkle brings a calm, body-heavy high.",g:"Relaxed, Sleepy, Hungry"},{n:"Hella Lemons",t:"Sativa",d:"Hella Lemons – Bright and zesty, Lemonade BX1 packs a sharp citrus punch with an energetic sativa lift that’s crisp and focused.",g:"Focused, Energized, Uplifting"},{n:"Honey Butter",t:"Hybrid",d:"Honey Butter – From Honey Banana BX1, this hybrid drips creamy sweetness and smooth balance, easing tension without couchlock.",g:"Relaxed, Melow, Creative"},{n:"Hot Zauce",t:"Indica",d:"Hot Zauce – Chili Verde × Pancakes × Zkittlez delivers fiery flavor and heavy calm, pairing peppery spice with a rich dessert undertone.",g:"Relaxed, Sleepy, Hungry"},{n:"Ice Cream Paint Job",t:"Indica",d:"Ice Cream Paint Job – A decadent indica of Ice Cream Cake × Rainbow Sherbet, dripping creamy sweetness and leaving a relaxing body melt.",g:"Relaxed, Sleepy, Hungry"},{n:"Jet Fuel Og",t:"Hybrid",d:"Jet Fuel OG – Aspen OG × High Country Diesel ignites with sharp gas and citrus, fueling creative focus before an easy fade.",g:"Relaxed, Melow, Creative"},{n:"Kush Mint Cookies",t:"Indica",d:"Kush Mint Cookies – A decadent indica blend with creamy gas and mint from Kush Mints × Animal Cookies, offering deep calm and flavor.",g:"Relaxed, Sleepy, Hungry"},{n:"Kush Mints",t:"Indica",d:"Kush Mints – Animal Mints × Bubba Kush hits smooth and gassy with a cooling mint exhale and long-lasting, body-heavy relief.",g:"Relaxed, Sleepy, Hungry"},{n:"La Kush Cake",t:"Indica",d:"La Kush Cake – Wedding Cake × Kush Mints combines sweet vanilla dough and OG gas for a knockout indica experience.",g:"Relaxed, Sleepy, Hungry"},{n:"Lambs Bread",t:"Sativa",d:"Lambs Bread – A Jamaican landrace sativa known for its bright, energetic clarity and earthy-sweet flavor profile.",g:"Focused, Energized, Uplifting"},{n:"Lazy Sunday",t:"Indica",d:"Lazy Sunday – Sunday Driver × GMO brings doughy fruit aroma and mellow I/S relaxation — a hybrid built for slow afternoons.",g:"Relaxed, Sleepy, Hungry"},{n:"Lemon Cherry Gelato",t:"Hybrid",d:"Lemon Cherry Gelato – Sunset Sherbet × GSC serves candy-sweet lemon flavor and balanced hybrid calm, equally uplifting and relaxing.",g:"Relaxed, Melow, Creative"},{n:"Lemon Haze",t:"Sativa",d:"Lemon Haze – Lemon Skunk × Silver Haze brings electric citrus aroma and energizing sativa focus that hits clean and fast.",g:"Focused, Energized, Uplifting"},{n:"Lemon Og",t:"Indica",d:"Lemon OG – A classic indica-leaning hybrid with lemon peel aroma and earthy gas undertones that unwind body and mind.",g:"Relaxed, Sleepy, Hungry"},{n:"Lemon Sour Diesel",t:"Sativa",d:"Lemon Sour Diesel – Lemon Skunk × OG #18 delivers crisp citrus with sour funk. Expect alert focus and creative energy.",g:"Focused, Energized, Uplifting"},{n:"Lemon Sours",t:"Sativa",d:"Lemon Sours – Lemon Kush × Sour Diesel combines tangy lemon zest and pungent gas with a smooth, clear sativa lift.",g:"Focused, Energized, Uplifting"},{n:"Lemon Thai",t:"Sativa",d:"Lemon Thai – A tropical sativa built from Thai and Hawaiian landraces, offering bright citrus flavor and uplifting cerebral buzz.",g:"Focused, Energized, Uplifting"},{n:"Lemon Trainwreck",t:"Sativa",d:"Lemon Trainwreck – Lemon Diesel × Trainwreck creates a zesty citrus aroma with a euphoric, fast-moving sativa kick.",g:"Focused, Energized, Uplifting"},{n:"Lemon Tree",t:"Sativa",d:"Lemon Tree – Lemon Skunk × Sour Diesel defines lemon-forward hybrids — tart, clean, and energizing with a smooth exhale.",g:"Focused, Energized, Uplifting"},{n:"Lemon Zkittlez",t:"Hybrid",d:"Lemon Zkittlez – A lively hybrid of Lemon Skunk × Zkittlez, bursting with citrus zest and candy sweetness. Smooth energy meets mellow creativity for all-day balance.",g:"Relaxed, Melow, Creative"},{n:"Lemonade",t:"Sativa",d:"Lemonade – Lemon OG × Gorilla Haze creates a sweet-tart sativa that tastes like fresh-squeezed lemon with a clean, uplifting finish.",g:"Focused, Energized, Uplifting"},{n:"Lil Treat",t:"Sativa",d:"Lil Treat – Ice Cream Cake × Crypto Cake brings dessert terps and creamy gas together in a sweet, chill hybrid that rewards every puff.",g:"Focused, Energized, Uplifting"},{n:"Lofi Og",t:"Hybrid",d:"Lofi OG – Fire OG × True OG keeps it classic: gassy, earthy, and loud. A balanced hybrid that grounds the body and clears the head.",g:"Relaxed, Melow, Creative"},{n:"Lost Art Og",t:"Indica",d:"Lost Art OG – Davinci’s OG × Lemon OG delivers citrus fuel aroma and a calm, steady indica high perfect for unwinding without fog.",g:"Relaxed, Sleepy, Hungry"},{n:"Lychee",t:"Sativa",d:"Lychee – Pink Rozay × White Runtz pairs candy-sweet fruit notes with a smooth floral finish. A gentle, mood-lifting hybrid with luxury flavor.",g:"Focused, Energized, Uplifting"},{n:"Machiavelli",t:"Sativa",d:"Machiavelli – Mac 1 × Lemon Thai blends creamy lemon zest and floral spice into a bright sativa that inspires creativity and clear focus.",g:"Focused, Energized, Uplifting"},{n:"Melonade",t:"Indica",d:"Melonade – Watermelon Zkittlez × Lemon Tree pours out juicy melon aroma and smooth citrus finish, offering a euphoric but grounded indica ride.",g:"Relaxed, Sleepy, Hungry"},{n:"Modified Berries",t:"Indica",d:"Modified Berries – GMO × Blueberry fuses diesel funk with sweet fruit, crafting a rich indica that relaxes body and mind.",g:"Relaxed, Sleepy, Hungry"},{n:"Modified Honey",t:"Hybrid",d:"Modified Honey – GMO × Honey Banana gives sticky sweetness and gas, a hybrid built for calm focus and flavorful clouds.",g:"Relaxed, Melow, Creative"},{n:"Modified Oranges",t:"Hybrid",d:"Modified Oranges – GMO × Orange Cookies delivers tangy citrus and savory depth with an easy hybrid glide that soothes without sedation.",g:"Relaxed, Melow, Creative"},{n:"Modified Runtz",t:"Indica",d:"Modified Runtz – GMO × Runtz combines candy and gas for a decadent indica that hits heavy yet smooth.",g:"Relaxed, Sleepy, Hungry"},{n:"Ms. Muffin",t:"Indica",d:"Ms. Muffin – Stargirl × Blueberry Muffin smells like warm pastries and blueberries. A cozy indica with a gentle euphoric edge.",g:"Relaxed, Sleepy, Hungry"},{n:"Nerdz",t:"Hybrid",d:"Nerdz – Strawberry Cough × Grape Ape tastes like fruit candy with a balanced hybrid high that keeps spirits light and talkative.",g:"Relaxed, Melow, Creative"},{n:"Nigerian Lemon Fuel",t:"Sativa",d:"Nigerian Lemon Fuel – Nigerian Haze × Jet Fuel bursts with citrus diesel and mental energy, keeping you lifted and productive.",g:"Focused, Energized, Uplifting"},{n:"Obama Runtz",t:"Indica",d:"Obama Runtz – Afghani × OG Kush × Runtz brings earthy gas and creamy candy flavor with a presidentially smooth indica calm.",g:"Relaxed, Sleepy, Hungry"},{n:"Orange Creamsicle",t:"Sativa",d:"Orange Creamsicle – Orange Crush × Juicy Fruit tastes like dessert in vapor form. Sweet citrus cream with an uplifting, joyful buzz.",g:"Focused, Energized, Uplifting"},{n:"Orange Sunshine",t:"Hybrid",d:"Orange Sunshine – LSD × Cali-O radiates bright orange aroma and euphoric clarity — pure vintage sunshine vibes.",g:"Relaxed, Melow, Creative"},{n:"Oreoz",t:"Hybrid",d:"Oreoz – Secret Weapon × Cookies N’ Cream is a rich hybrid with chocolate-cookie sweetness and a dense, relaxing body high.",g:"Relaxed, Melow, Creative"},{n:"Original Gsc",t:"Indica",d:"Original GSC – OG Kush × F1 Durban: the classic cookie lineage that shaped modern flavor. Balanced, euphoric, and unmistakably gassy-sweet.",g:"Relaxed, Sleepy, Hungry"},{n:"Oz Kush",t:"Indica",d:"OZ Kush – OG Kush × Z brings creamy Kush gas and tropical candy notes into perfect hybrid harmony.",g:"Relaxed, Sleepy, Hungry"},{n:"Pancakes",t:"Indica",d:"Pancakes – London Pound Cake × Kush Mints delivers buttery vanilla aroma and indulgent relaxation that hits like breakfast for dinner.",g:"Relaxed, Sleepy, Hungry"},{n:"Papaya",t:"Hybrid",d:"Papaya – Citral #13 × Ice #2 brings sweet tropical fruit and subtle spice with a mellow hybrid calm ideal for creative flow.",g:"Relaxed, Melow, Creative"},{n:"Papaya Dosi",t:"Indica",d:"Papaya Dosi – Papaya × Dosidos combines creamy fruit terps and heavy indica relaxation with a smooth tropical finish.",g:"Relaxed, Sleepy, Hungry"},{n:"Paris Og",t:"Indica",d:"Paris OG – Headband × Lemon OG delivers sharp citrus gas and a soothing indica body high perfect for evening unwind.",g:"Relaxed, Sleepy, Hungry"},{n:"Peanut Butter Cup",t:"Hybrid",d:"Peanut Butter Cup – Do-Si-Dos × Mendo Breath gives nutty, earthy sweetness and a dense indica melt that soothes deep.",g:"Relaxed, Melow, Creative"},{n:"Platinum Papaya",t:"Sativa",d:"Platinum Papaya – Platinum Kush × Golden Papaya pairs creamy gas with tropical candy for a bright, balanced hybrid.",g:"Focused, Energized, Uplifting"},{n:"Pure Imagination",t:"Sativa",d:"Pure Imagination – Mona Lisa × Runtz blends berry candy and vanilla cream into a dreamy, heady hybrid that sparks creativity.",g:"Focused, Energized, Uplifting"},{n:"Purple Thai",t:"Sativa",d:"Purple Thai – Oaxacan Landrace × Chocolate Thai delivers earthy cocoa aroma and clear sativa focus — old-school energy reborn.",g:"Focused, Energized, Uplifting"},{n:"Purple Zaza",t:"Indica",d:"Purple Zaza – Runtz × Zaza brings purple fruit flavor and heavy indica calm with a candy-smooth smoke.",g:"Relaxed, Sleepy, Hungry"},{n:"Rainbow Belts",t:"Indica",d:"Rainbow Belts – Moonbow × Z overflows with candy sweetness and vibrant terps, wrapping you in colorful, euphoric calm.",g:"Relaxed, Sleepy, Hungry"},{n:"Rainbow Chip",t:"Indica",d:"Rainbow Chip – Sunset Sherbet × Mint Chocolate Chip unites dessert terps with a mellow indica body buzz and creamy exhale.",g:"Relaxed, Sleepy, Hungry"},{n:"Rainbow Road",t:"Hybrid",d:"Rainbow Road – Rainbow Belts BX1 takes that sweet, fruity base and turns it into a smooth-gliding hybrid built for balance.",g:"Relaxed, Melow, Creative"},{n:"Rainbow Sherbet",t:"Indica",d:"Rainbow Sherbet – Zkittlez × Sherbet tastes like tropical candy and citrus. A soothing indica that melts tension without sedation.",g:"Relaxed, Sleepy, Hungry"},{n:"Rosé Runtz",t:"Indica",d:"Rosé Runtz – Apples and Bananas × White Runtz gives floral sweetness and creamy gas with an indulgent indica finish.",g:"Relaxed, Sleepy, Hungry"},{n:"Rs-11",t:"Hybrid",d:"Rs-11 – Pink Guava × OZK produces a sweet tropical scent and balanced hybrid calm with smooth potency.",g:"Relaxed, Melow, Creative"},{n:"Runtz De Jour",t:"Indica",d:"Runtz de Jour – Runtz B × 1 is pure candy gas — a creamy, euphoric indica classic refined for flavor and comfort.",g:"Relaxed, Sleepy, Hungry"},{n:"Sfv Og",t:"Indica",d:"SFV OG – OG Kush × Afghani brings sharp gas and pine with a grounded indica calm that hits the body before easing the mind.",g:"Relaxed, Sleepy, Hungry"},{n:"Silk Road Sour",t:"Hybrid",d:"Silk Road Sour – Nigerian Lemon Fuel × Turbo Diesel delivers citrus-diesel aroma and smooth hybrid balance for relaxed alertness.",g:"Relaxed, Melow, Creative"},{n:"Sour Apple Zkittlez",t:"Hybrid",d:"Sour Apple Zkittlez – Sour Diesel × Apple Zkittlez mixes tart fruit and fuel, offering a happy, social hybrid high.",g:"Relaxed, Melow, Creative"},{n:"Sour Durban",t:"Hybrid",d:"Sour Durban – Sour Diesel × Durban Poison carries sweet earth and citrus spice with focused sativa clarity and long-lasting uplift.",g:"Relaxed, Melow, Creative"},{n:"Sour Grapes",t:"Indica",d:"Sour Grapes – Sour Diesel × GDP creates sweet grape gas and cozy indica relaxation with a rich, syrupy finish.",g:"Relaxed, Sleepy, Hungry"},{n:"Sour Sangria",t:"Sativa",d:"Sour Sangria – Yuzu Mac × Pandora delivers sparkling citrus and berry aroma with a bright, creative sativa lift.",g:"Focused, Energized, Uplifting"},{n:"Space Queen",t:"Sativa",d:"Space Queen – Space Queen × Alien OG combines sweet tropical fruit and pine with a balanced, euphoric headspace.",g:"Focused, Energized, Uplifting"},{n:"Space Xxx",t:"Hybrid",d:"Space XXX – Jet Fuel OG × Satellite OG produces gassy citrus flavor and an even-tempered hybrid high great for evening chill.",g:"Relaxed, Melow, Creative"},{n:"Strawberry Cough",t:"Sativa",d:"Strawberry Cough – Haze × Strawberry Fields bursts with ripe strawberry aroma and uplifting, social sativa energy.",g:"Focused, Energized, Uplifting"},{n:"Strawberry Lemonade",t:"Sativa",d:"Strawberry Lemonade – Strawberry Cough × Lemonade is bright, tart, and cheerful — a sweet daytime sativa for creative flow.",g:"Focused, Energized, Uplifting"},{n:"Strawberry Milk",t:"Hybrid",d:"Strawberry Milk – Strawberry Cough × Cereal Milk blends berries and cream with balanced hybrid calm.",g:"Relaxed, Melow, Creative"},{n:"Strawberry Runtz",t:"Indica",d:"Strawberry Runtz – Strawberry Banana × Runtz hits with fruity candy terps and smooth indica relaxation.",g:"Relaxed, Sleepy, Hungry"},{n:"Summer Daze",t:"Indica",d:"Summer Daze – Strawberry Cough × Wedding Cake offers sweet dessert flavor and a mellow, dreamy hybrid vibe.",g:"Relaxed, Sleepy, Hungry"},{n:"Super Glue",t:"Hybrid",d:"Super Glue – Afghani × Northern Lights glues stress to the couch with pungent diesel aroma and heavy indica calm.",g:"Relaxed, Melow, Creative"},{n:"Super Silver Haze",t:"Sativa",d:"Super Silver Haze – Skunk × Northern Lights × Haze defines classic citrus-spice sativa energy with long-lasting clarity and focus.",g:"Focused, Energized, Uplifting"},{n:"Sweet-N-Sour Diesel",t:"Sativa",d:"Sweet-N-Sour Diesel – Mexican Haze × Hawaiian Sativa fires off tropical citrus and classic diesel aroma, delivering a bright, fast-moving sativa rush.",g:"Focused, Energized, Uplifting"},{n:"The Great Stank",t:"Hybrid",d:"The Great Stank – GMO × London Pound Cake combines savory garlic gas with sweet cake frosting for a powerful hybrid punch that lingers smooth.",g:"Relaxed, Melow, Creative"},{n:"The Juice",t:"Sativa",d:"The Juice – White Widow × Tangie pours out vibrant citrus and pine, offering an energetic lift with crisp flavor and clear focus.",g:"Focused, Energized, Uplifting"},{n:"Tomahawk",t:"Indica",d:"Tomahawk – An earthy, pine-driven indica that hits strong and steady, wrapping you in full-body calm and heavy relaxation.",g:"Relaxed, Sleepy, Hungry"},{n:"Triangle Mints",t:"Hybrid",d:"Triangle Mints – Animal Mints × GSC blends cookie dough sweetness and minty gas for a perfectly balanced hybrid high.",g:"Relaxed, Melow, Creative"},{n:"Tropaya",t:"Indica",d:"Tropaya – Tropicanna Cookies × Papaya serves tropical citrus and sweet fruit terps with an indica-leaning calm that’s smooth and soothing.",g:"Relaxed, Sleepy, Hungry"},{n:"Tropicana Cookies",t:"Hybrid",d:"Tropicana Cookies – GSC × Tangie tastes like orange candy and doughy gas, producing a happy, creative hybrid buzz.",g:"Relaxed, Melow, Creative"},{n:"Tsunami Warning",t:"Sativa",d:"Tsunami Warning – Turbo Diesel × Lemon Thai erupts with lemon-fuel aroma and pure sativa energy—lively, clear, and unstoppable.",g:"Focused, Energized, Uplifting"},{n:"Turbo Diesel",t:"Sativa",d:"Turbo Diesel – Sour Diesel × Sour Kush offers classic diesel flavor and electric uplift, perfect for productive days.",g:"Focused, Energized, Uplifting"},{n:"Viva La Runtz",t:"Indica",d:"Viva La Runtz – Runtz × Narco OG mixes candy gas and creamy fruit, coating the palate with an indica wave of smooth relief.",g:"Relaxed, Sleepy, Hungry"},{n:"Waffle Cone",t:"Sativa",d:"Waffle Cone – Gelato × Pancakes tastes like vanilla dessert and sweet gas, a cozy hybrid that keeps you smiling.",g:"Focused, Energized, Uplifting"},{n:"Wagyu",t:"Hybrid",d:"Wagyu – Meatbreath × Gelato 41 blends rich umami funk and dessert terps for a luxurious hybrid calm that hits deep.",g:"Relaxed, Melow, Creative"},{n:"Wagyu Truffle Butter",t:"Hybrid",d:"Wagyu Truffle Butter – Wagyu × Truffle Butter drips creamy, earthy flavor and delivers heavy hybrid relaxation with decadent smoothness.",g:"Relaxed, Melow, Creative"},{n:"White Durban",t:"Sativa",d:"White Durban – White Fire OG × Durban Poison is a citrus-spiced sativa that boosts energy and focus with a clean finish.",g:"Focused, Energized, Uplifting"},{n:"White Strawberry",t:"Sativa",d:"White Strawberry – The White × Strawberry Cough offers frosty sweetness and gentle, creative lift in a refreshing sativa.",g:"Focused, Energized, Uplifting"},{n:"White Widow",t:"Sativa",d:"",g:"Focused, Energized, Uplifting"},{n:"Yerbiez",t:"Sativa",d:"Yerbiez – Blueberry Muffin × White Durban mixes berry pastry aroma with crisp sativa clarity and relaxed balance.",g:"Focused, Energized, Uplifting"},{n:"Yuzu Lemonade",t:"Hybrid",d:"Yuzu Lemonade – Lemonade × Lemon Tree bursts with sweet citrus freshness and a balanced, happy hybrid buzz.",g:"Relaxed, Melow, Creative"},{n:"Zkittlez",t:"Indica",d:"Zkittlez – Grape Ape × Grapefruit is pure candy fruit aroma and smooth indica calm, a California classic for flavor chasers.",g:"Relaxed, Sleepy, Hungry"},{n:"Zoap",t:"Hybrid",d:"Zoap – Rainbow Sherbet × Pink Guava delivers tropical candy aroma with creamy smoothness and balanced hybrid effects.",g:"Relaxed, Melow, Creative"},{n:"Zundown",t:"Indica",d:"Zundown – Z3 Banana Pheno × Sunset Sherbet pairs fruity banana sherbet flavor with a mellow indica fade built for evenings.",g:"Relaxed, Sleepy, Hungry"},{n:"Zushi",t:"Hybrid",d:"Zushi – Z × Kush Mints fuses candy terps and cool mint for a flavorful hybrid that’s smooth, euphoric, and deeply relaxing.",g:"Relaxed, Melow, Creative"},{n:"Modified Cherries",t:"Hybrid",d:"Modified Cherries – GMO × Cherry Pie blends savory garlic funk with sweet cherry fruit, creating a potent hybrid with rich terpene depth and smooth, calming effects.",g:"Relaxed, Melow, Creative"},{n:"Pineapple Haze",t:"Sativa",d:"Pineapple Haze – Pineapple × Haze delivers tropical sweetness and bright sativa energy with a smooth, uplifting finish.",g:"Focused, Energized, Uplifting"},{n:"Hella Oranges",t:"Hybrid",d:"Hella Oranges – Orange Daiquiri × TK BX1 explodes with sweet citrus and tropical tang, offering an uplifting high and pure sunshine energy.",g:"Relaxed, Melow, Creative"},{n:"Ms Muffin",t:"Indica",d:"Ms. Muffin – Stargirl × Blueberry Muffin smells like warm pastries and blueberries. A cozy indica with a gentle euphoric edge.",g:"Relaxed, Sleepy, Hungry"}];
     function strainLookup(name){var n=(name||"").toLowerCase().replace(/[^a-z0-9]/g,"");return STRAIN_DB.find(function(s){return s.n.toLowerCase().replace(/[^a-z0-9]/g,"")===n;})||null;}
+    // Load custom strains from localStorage
+    try{var _cs=JSON.parse(localStorage.getItem('gpi:custom-strains')||'[]');_cs.forEach(function(s){if(s.n&&!strainLookup(s.n))STRAIN_DB.push(s);});}catch(e){}
     const CA_TAX={'berkeley':0.38,'oakland':0.33,'san francisco':0.28,'san jose':0.36,'santa clara':0.30,'redwood city':0.28,'palo alto':0.28,'walnut creek':0.27,'concord':0.27,'antioch':0.29,'santa rosa':0.27,'napa':0.27,'arcata':0.26,'eureka':0.26,'redding':0.25,'los angeles':0.38,'long beach':0.36,'san diego':0.35,'la mesa':0.35,'fresno':0.27,'stockton':0.30,'sacramento':0.28,'bakersfield':0.25};
     function getTaxRate(name) { const n=(name||"").toLowerCase(); const cities=Object.keys(CA_TAX); for(let i=0;i<cities.length;i++){if(n.includes(cities[i]))return CA_TAX[cities[i]];} return 0.30; }
     function markupAnalysis(retail,ws,tax) { if(!ws||!retail||ws<1)return null; const raw=+(retail/ws).toFixed(2),consumer=+(retail*(1+tax)).toFixed(2),aligned=raw>=2&&raw<=2.5; return{raw,consumer,aligned,label:aligned?"aligned":raw<2?"below target":"above target"}; }
@@ -862,7 +879,7 @@ window._STRAIN_DB=[
       const [section,setSection]=useState("pricing");
       const tier=computeTier(account.orderDayTs),tax=getTaxRate(account.name);
       const isCorp=account.allLocations||account.name.toLowerCase().includes("corporate");
-      const rows=(account.skus||[]).map(function(s){const avg=skuAvgs[s.wmName]||0;const skuPs=account.skuPrices||{};const ns2=function(n){return n.toLowerCase().replace(/[^a-z0-9]/g,"");};let ap=0;Object.entries(skuPs).forEach(function(e){if(ns2(e[0]).includes(ns2(s.strain)))ap=e[1];});const ws=ap>0?ap:cogsFor(s.category).wholesale;return Object.assign({},s,{avg,wholesale:ws,mu:markupAnalysis(s.retailPrice,ws,tax)});});
+      const rows=(account.skus||[]).map(function(s){const avg=skuAvgs[s.wmName]||0;const ws=validWholesale(s.wholesale,s.category);return Object.assign({},s,{avg,wholesale:ws,mu:markupAnalysis(s.retailPrice,ws,tax)});});
       const outliers=rows.filter(function(r){return r.mu?!r.mu.aligned:false;}).length;
       const promoCount=(account.promotions||[]).length;
       const cad=computeCadence(account.orderDayTs);
@@ -895,6 +912,7 @@ window._STRAIN_DB=[
               <div style={{background:C.bg,borderRadius:4,padding:'5px 0',textAlign:'center'}}>
                 <div style={{fontSize:14,fontWeight:800,color:account.hasSalesData?C.text:C.dim}}>{account.hasSalesData?curK(periodRev):'—'}</div>
                 <div style={{fontSize:9,color:C.dim}}>{periodDays}d Rev</div>
+                {account.futureRev>0&&<div style={{fontSize:8,color:'#00bcd4',marginTop:2}}>+{curK(account.futureRev)} scheduled</div>}
               </div>
               <div style={{background:C.bg,borderRadius:4,padding:'5px 0',textAlign:'center'}}>
                 <div style={{fontSize:14,fontWeight:800}}>{periodSkuCount>0?periodSkuCount:rows.length>0?rows.length:'—'}</div>
@@ -963,7 +981,7 @@ window._STRAIN_DB=[
                           <TypeTag label={s.category||'—'}/>
                           {s.soldThrough&&<span style={{background:C.goodBg,border:'1px solid '+C.goodBdr,color:C.good,fontSize:10,fontWeight:700,padding:'1px 6px',borderRadius:2}}>↻ SOLD THROUGH</span>}
                         </div>
-                        <span style={{fontSize:12,fontWeight:600}}>{cur(s.wholesale>0?s.wholesale:cogsFor(s.category).wholesale)}</span>
+                        <span style={{fontSize:12,fontWeight:600}}>{cur(validWholesale(s.wholesale,s.category))}</span>
                       </div>
                       <div style={{fontSize:11,color:C.dim,marginTop:3}}>{(s.periodUnits&&s.periodUnits[periodDays]||0)+' units · '+(s.orderCount>1?s.orderCount+'× ordered':'ORDERED')}</div>
                     </div>;})}
@@ -1000,15 +1018,15 @@ window._STRAIN_DB=[
         {id:'dylan',name:'Dylan',role:'exec',pin:'2024',active:true},
         {id:'chere',name:'Chere',role:'mfg',pin:'',active:true,needsSetup:true},
         {id:'victor',name:'Victor',role:'mfg',pin:'',active:true,needsSetup:true},
-        {id:'jonah',name:'Jonah',role:'distro',pin:'',active:true,needsSetup:true},
-        {id:'ian',name:'Ian',role:'distro',pin:'',active:true,needsSetup:true},
+        {id:'jonah',name:'Jonah',role:'distro',title:'Sales Director',pin:'',active:true,needsSetup:true},
+        {id:'ian',name:'Ian',role:'distro',title:'Brand Manager',pin:'',active:true,needsSetup:true},
         {id:'mattb',name:'Matt B.',role:'distro',pin:'',active:true,needsSetup:true,repName:'Matthew Blackburn',zone:'RB'},
         {id:'cp',name:'CP',role:'distro',pin:'',active:true,needsSetup:true,repName:'Christina Perpetua'},
         {id:'briank',name:'Brian K.',role:'distro',pin:'',active:true,needsSetup:true,repName:'Brian Kiser',zone:'RB'},
         {id:'brianb',name:'Brian B.',role:'distro',pin:'5678',active:true,needsSetup:false,repName:'Brian Bresee',zone:'DNU'},
         {id:'caraway',name:'Matt C.',role:'distro',pin:'',active:true,needsSetup:true,repName:'Matthew Caraway',zone:'ZASP'},
-        {id:'eric',name:'Eric',role:'distro',pin:'',active:true,needsSetup:true,repName:'Eric Ervin'},
-        {id:'brandyn',name:'Brandyn',role:'distro',pin:'',active:true,needsSetup:true,repName:'Brandyn'},
+        {id:'eric',name:'Eric',role:'distro',title:'NorCal + Central CA Sales Mgr',pin:'',active:true,needsSetup:true,repName:'Eric Ervin'},
+        {id:'brandyn',name:'Brandyn',role:'distro',title:'SoCal Sales Mgr',pin:'',active:true,needsSetup:true,repName:'Brandyn'},
         {id:'isaac',name:'Isaac',role:'distro',pin:'',active:true,needsSetup:true,repName:'Isaac Romero'},
         {id:'danny',name:'Danny',role:'distro',pin:'',active:true,needsSetup:true,repName:'Danny Smith'},
         {id:'daniel',name:'Daniel',role:'distro',pin:'',active:true,needsSetup:true,repName:'Daniel Rojas'},
@@ -1120,6 +1138,68 @@ window._STRAIN_DB=[
       function toggleTheme(){setLightMode(function(p){return !p;});}
       const [periodDays,setPeriodDays]=useState(365);
       const [rideAlongs, setRideAlongs] = useState(null);
+      function generateRideAlongs(){
+        var dd=window._DD_live||window._DD||[];
+        var _ZN={RB:'RB UpNorth',DNU:'DNU-YZ-HUB',ZASP:'ZASP'};
+        var allRoutes=[];
+        ['DNU','RB','ZASP'].forEach(function(zoneKey){
+          var pool=dd.filter(function(d){return d[1]===zoneKey&&d[12]>0;});
+          if(pool.length===0)return;
+          var scored=pool.map(function(d){
+            var rev365=d[12]||0,rev90=d[9]||0,rev30=d[7]||0;
+            var isLegacy=d[5]==='L',isRising=d[5]==='R';
+            var annualized30=rev30*12;
+            var upsideGap=Math.max(0,rev365-annualized30);
+            var upsideScore=upsideGap*0.4;
+            var legacyBonus=isLegacy?rev365*0.35:0;
+            var declineRatio=rev365>0?(rev365-rev90)/rev365:0;
+            var declineScore=Math.max(0,declineRatio)*rev365*0.25;
+            var risingBonus=isRising&&rev30>0?rev30*2:0;
+            var revenueWeight=rev365*0.15;
+            var totalScore=upsideScore+legacyBonus+declineScore+risingBonus+revenueWeight;
+            var tags=[];
+            if(isLegacy)tags.push('LEGACY');
+            if(declineRatio>0.5)tags.push('DECLINING');else if(declineRatio>0.25)tags.push('COOLING');
+            if(upsideGap>2000)tags.push('HIGH UPSIDE');else if(upsideGap>500)tags.push('UPSIDE');
+            if(isRising&&rev30>0)tags.push('MOMENTUM');
+            if(rev30===0&&rev90>0)tags.push('GONE QUIET');
+            if(rev30===0&&rev90===0&&rev365>0)tags.push('WIN BACK');
+            return{nm:d[0],zone:d[1],city:d[4],status:d[5],x:d[2],y:d[3],rev365:rev365,rev90:rev90,rev30:rev30,score:totalScore,tags:tags,upsideGap:upsideGap};
+          }).sort(function(a,b){return b.score-a.score;});
+          var topPool=scored.slice(0,30);
+          var used={};
+          var zoneRoutes=[];
+          for(var routeNum=0;routeNum<2&&topPool.length>0;routeNum++){
+            var seed=null;
+            for(var si=0;si<topPool.length;si++){if(!used[topPool[si].nm]){seed=topPool[si];break;}}
+            if(!seed)break;
+            used[seed.nm]=true;
+            var route=[seed];
+            var radius=routeNum===0?25:40;
+            for(var ri=0;ri<topPool.length;ri++){
+              var cand=topPool[ri];
+              if(used[cand.nm])continue;
+              var near=false;
+              for(var qi=0;qi<route.length;qi++){var dx=cand.x-route[qi].x;var dy=cand.y-route[qi].y;if(Math.sqrt(dx*dx+dy*dy)<radius){near=true;break;}}
+              if(near){route.push(cand);used[cand.nm]=true;if(route.length>=6)break;}
+            }
+            route.sort(function(a,b){return a.y-b.y;});
+            var routeRev=route.reduce(function(s,a){return s+a.rev365;},0);
+            var routeUpside=route.reduce(function(s,a){return s+a.upsideGap;},0);
+            var legacyCount=route.filter(function(a){return a.status==='L';}).length;
+            var cityFreq={};
+            route.forEach(function(a){cityFreq[a.city]=(cityFreq[a.city]||0)+1;});
+            var primaryCity=route[0].city;
+            var maxFreq=0;
+            Object.keys(cityFreq).forEach(function(c){if(cityFreq[c]>maxFreq){maxFreq=cityFreq[c];primaryCity=c;}});
+            var uniqueCities=Object.keys(cityFreq);
+            zoneRoutes.push({stops:route,region:uniqueCities.length>2?primaryCity+' area':uniqueCities.join(' / '),zone:zoneKey,zoneName:_ZN[zoneKey]||zoneKey,dayNum:routeNum+1,rev365:routeRev,upside:routeUpside,legacyCount:legacyCount});
+          }
+          allRoutes=allRoutes.concat(zoneRoutes);
+        });
+        setRideAlongs({routes:allRoutes,generated:new Date().toISOString()});
+        toast('\u2713 Generated '+allRoutes.length+' ride-along routes');
+      }
       const [zoneFlipped, setZoneFlipped] = useState({});
       const [dRep, setDRep] = useState(function(){try{var s=JSON.parse(sessionStorage.getItem('gpi-session'));if(s&&s.repName&&s.role==='distro')return s.repName;return'ALL';}catch(e){return'ALL';}});// dispatch rep filter
       const [dExpanded, setDExpanded] = useState({});// expanded account cards on flip
@@ -1154,7 +1234,7 @@ window._STRAIN_DB=[
         var skus=(acc.orderedSkus||[]).filter(function(s){return s.totalQty>0&&!((s.sku||'').toLowerCase().includes('promo')||(s.sku||'').toLowerCase().includes('sample'));});
         var n=acc.orderDayTs?acc.orderDayTs.length:1;
         var totalOrderVal=0;
-        skus.forEach(function(s){totalOrderVal+=(s.totalQty||0)*(s.wholesale>0?s.wholesale:cogsFor(s.category).wholesale);});
+        skus.forEach(function(s){totalOrderVal+=(s.totalQty||0)*validWholesale(s.wholesale,s.category);});
         var avgOrderVal=Math.round(totalOrderVal/Math.max(1,n));
         var budget=avgOrderVal>=1150?1500:avgOrderVal>=750?1000:500;
         // Category helpers
@@ -1300,6 +1380,8 @@ window._STRAIN_DB=[
       const [demoZoneFilter,setDemoZoneFilter]=useState('ALL');
       const [glExpandedRow,setGlExpandedRow]=useState(null);
       const [pkgFilter,setPkgFilter]=useState('ALL');
+      const [promoDecisions,setPromoDecisions]=useState(function(){try{return JSON.parse(localStorage.getItem('gpi:promo-decisions')||'{}');}catch(e){return {};}});
+      function setPromoDecision(promoKey,decision){var next=Object.assign({},promoDecisions);next[promoKey]={decision:decision,ts:new Date().toISOString()};setPromoDecisions(next);try{localStorage.setItem('gpi:promo-decisions',JSON.stringify(next));}catch(e){}toast('\u2713 '+decision+' recorded');}
       const [prioStatus,setPrioStatus]=useState(function(){try{return JSON.parse(localStorage.getItem('gpi:prio-status'))||{};}catch(e){return{};}});
       const [mfgCustomItems,setMfgCustomItems]=useState({});
       const [briefNotes,setBriefNotes]=useState(function(){try{return localStorage.getItem('gpi:brief-notes')||'';}catch(e){return'';}});
@@ -1329,6 +1411,8 @@ window._STRAIN_DB=[
 
       useEffect(function(){boot();},[]); // eslint-disable-line
       async function boot(){
+        // v7.1 migration: clear cached accounts with cross-category price contamination
+        try{if(!localStorage.getItem('gpi:v71-cache-v3')){await window.storage.delete('gpi-accounts');await window.storage.delete('gpi-inventory');await window.storage.delete('gpi-promo-accounts');localStorage.setItem('gpi:v71-cache-v3','1');localStorage.removeItem('gpi:sf-load-time');}}catch(e){}
         async function load(k,s){try{const r=await window.storage.get(k);if(r)s(JSON.parse(r.value));}catch(e){}}
         await load("gpi-accounts",setAccounts);
         await load("gpi-promo-accounts",setPromoAccounts);
@@ -1378,6 +1462,8 @@ window._STRAIN_DB=[
       function pRev(a){return (a.periodRevenue&&a.periodRevenue[periodDays]!=null)?a.periodRevenue[periodDays]:(a.totalSales||0);}
 
       const [csvLoading,setCsvLoading]=useState(false);
+      const [sfLoadTime,setSfLoadTime]=useState(function(){try{return localStorage.getItem('gpi:sf-load-time')||null;}catch(e){return null;}});
+      function dataAge(iso){if(!iso)return'never';var ms=Date.now()-new Date(iso).getTime();var m=Math.floor(ms/60000);if(m<1)return'just now';if(m<60)return m+'m ago';var h=Math.floor(m/60);if(h<24)return h+'h ago';var d=Math.floor(h/24);return d+'d ago';}
 
       function handleCSVFile(e){
         const file=e.target.files[0];if(!file)return;
@@ -1431,16 +1517,24 @@ window._STRAIN_DB=[
                     var pkgRaw=row[2];var pkgStr='';
                     if(pkgRaw instanceof Date){pkgStr=(pkgRaw.getMonth()+1)+'/'+pkgRaw.getDate()+'/'+pkgRaw.getFullYear();}
                     else if(pkgRaw){pkgStr=String(pkgRaw).split('T')[0];}
-                    invData[sku]={
-                      onHand:parseInt(row[6])||0,pkgDate:pkgStr,
-                      daysOld:String(row[3]||'').replace(/[^0-9]/g,''),
-                      batch:String(row[4]||'').trim(),
-                      thc:String(row[5]||'').replace('%','').trim(),
-                      type:String(row[1]||'').trim(),
-                      bayArea:parseInt(row[7])||parseInt(row[8])||0,
-                      socal:parseInt(row[9])||parseInt(row[10])||0,
-                      farNorth:parseInt(row[11])||parseInt(row[12])||0
-                    };
+                    var batchStr=String(row[4]||'').trim();
+                    if(invData[sku]){
+                      // Same SKU, different batch — add to batches array and sum on-hand
+                      invData[sku].onHand+=parseInt(row[6])||0;
+                      invData[sku]._batches.push({batch:batchStr,onHand:parseInt(row[6])||0,pkgDate:pkgStr,thc:String(row[5]||'').replace('%','').trim(),daysOld:String(row[3]||'').replace(/[^0-9]/g,'')});
+                    } else {
+                      invData[sku]={
+                        onHand:parseInt(row[6])||0,pkgDate:pkgStr,
+                        daysOld:String(row[3]||'').replace(/[^0-9]/g,''),
+                        batch:batchStr,
+                        thc:String(row[5]||'').replace('%','').trim(),
+                        type:String(row[1]||'').trim(),
+                        bayArea:parseInt(row[7])||parseInt(row[8])||0,
+                        socal:parseInt(row[9])||parseInt(row[10])||0,
+                        farNorth:parseInt(row[11])||parseInt(row[12])||0,
+                        _batches:[{batch:batchStr,onHand:parseInt(row[6])||0,pkgDate:pkgStr,thc:String(row[5]||'').replace('%','').trim(),daysOld:String(row[3]||'').replace(/[^0-9]/g,'')}]
+                      };
+                    }
                   }
                   loaded.push(debugCount+' inv SKUs ('+invRows.length+'r, 1st:'+debugFirst+')');
                   if(Object.keys(invData).length>0){
@@ -1470,6 +1564,7 @@ window._STRAIN_DB=[
                   if(mktR.type==='account'&&mktR.data){setPromoAccounts(mktR.data);persist('gpi-promo-accounts',mktR.data);loaded.push(mktR.data.length+' promo accounts');}
                 }
                 if(loaded.length>0){
+                  var _now=new Date().toISOString();setSfLoadTime(_now);try{localStorage.setItem('gpi:sf-load-time',_now);}catch(e){}
                   var parsed=['Account Activity','Inventory','Contacts','Marketing'].filter(function(s){return wb.SheetNames.some(function(n){return n.toLowerCase().includes(s.toLowerCase().split(' ')[0]);});});
                   var skipped=wb.SheetNames.filter(function(n){return!parsed.some(function(p){return n.toLowerCase().includes(p.toLowerCase().split(' ')[0]);});});
                   toast('\u2713 Loaded: '+loaded.join(' \u00b7 ')+(skipped.length>0?' \u00b7 Skipped sheets: '+skipped.join(', '):''));
@@ -1507,7 +1602,7 @@ window._STRAIN_DB=[
               if(r.type==="inventory"){setInventoryData(r.data);var oh2={};Object.keys(r.data).forEach(function(k){oh2[k]=r.data[k].onHand;});setMfgInventory(oh2);persist("gpi-inventory",r.data);toast('\u2713 Loaded inventory: '+Object.keys(r.data).length+' SKUs');}
               else if(r.type==="account90"){
                 if(!r.data||r.data.length===0){toast('\u26a0 CSV parsed but 0 accounts found');setCsvLoading(false);return;}
-                setAccounts(r.data);persist("gpi-accounts",r.data);toast('\u2713 Loaded '+r.data.length+' accounts');
+                setAccounts(r.data);persist("gpi-accounts",r.data);var _now2=new Date().toISOString();setSfLoadTime(_now2);try{localStorage.setItem('gpi:sf-load-time',_now2);}catch(e){}toast('\u2713 Loaded '+r.data.length+' accounts');
               }
               else if(r.type==="account"){setPromoAccounts(r.data);persist("gpi-promo-accounts",r.data);toast('\u2713 Loaded promotions for '+r.data.length+' accounts');}
               else toast("\u26a0 Unrecognized CSV format");
@@ -1534,7 +1629,7 @@ window._STRAIN_DB=[
           const md=Object.keys(wmDisp).find(function(d){return fuzzyMatch(acc.name,d);});
           const pm=promoAccounts.find(function(p){return fuzzyMatch(acc.name,p.name);});
           const ns2=function(n){return n.toLowerCase().replace(/[^a-z0-9]/g,"");};
-          const osr=(acc.orderedSkus||[]).map(function(s){const wk=Object.keys(mktAvg).find(function(k){return ns2(parseWMSku(k).strain)===ns2(s.strain);});const ap=s.wholesale>0?s.wholesale:((acc.skuPrices||{})[s.sku]||0)>0?(acc.skuPrices||{})[s.sku]:cogsFor(s.category).wholesale;return Object.assign({},s,{wholesale:ap,marketAvg:wk?mktAvg[wk]:0});});
+          const osr=(acc.orderedSkus||[]).map(function(s){const wk=Object.keys(mktAvg).find(function(k){return ns2(parseWMSku(k).strain)===ns2(s.strain);});const ap=validWholesale(s.wholesale,s.category);return Object.assign({},s,{wholesale:ap,marketAvg:wk?mktAvg[wk]:0});});
           return Object.assign({},acc,{skus:md?wmDisp[md]:[],orderedSkus:osr,wmMatch:md,promotions:(pm&&pm.promotions)||acc.promotions||[]});
         });
       },[accounts,priceData,promoAccounts,skuAvgs]);
@@ -1739,7 +1834,7 @@ window._STRAIN_DB=[
                     );})}
                   </div>
                   <div style={{fontSize:10,color:C.borderHi,letterSpacing:2,marginBottom:16}}>TAP TO SIGN IN</div>
-                  <div style={{fontSize:10,color:C.borderHi,letterSpacing:2}}>CONFIDENTIAL · v7.0</div>
+                  <div style={{fontSize:10,color:C.borderHi,letterSpacing:2}}>CONFIDENTIAL · v7.1</div>
                 </div>)}
 
                 {loginStep===2&&(<div>
@@ -1869,7 +1964,7 @@ window._STRAIN_DB=[
                 {/* ══ ACCOUNTS ══ */}
                 {tab==="accounts"&&(
                   <>
-                    {(function(){var ddMap={};(window._DD||[]).forEach(function(d){ddMap[d[0].toLowerCase().replace(/[^a-z0-9]/g,'')]=d[4];});var uCities={};var acctCount=0;displayAccounts.forEach(function(a){var rev=(a.periodRevenue&&a.periodRevenue[periodDays])||0;if(rev<=0)return;acctCount++;var nk=a.name.toLowerCase().replace(/[^a-z0-9]/g,'');var city=ddMap[nk];if(city)uCities[city]=true;});var tRev=displayAccounts.reduce(function(s,a){return s+(a.periodRevenue&&a.periodRevenue[periodDays]||0);},0);return(
+                    {(function(){var ddMap={};(window._DD||[]).forEach(function(d){ddMap[d[0].toLowerCase().replace(/[^a-z0-9]/g,'')]=d[4];});var uCities={};var acctCount=0;var totalFutureRev=0;displayAccounts.forEach(function(a){var rev=(a.periodRevenue&&a.periodRevenue[periodDays])||0;if(rev<=0)return;acctCount++;var nk=a.name.toLowerCase().replace(/[^a-z0-9]/g,'');var city=ddMap[nk];if(city)uCities[city]=true;totalFutureRev+=(a.futureRev||0);});var tRev=displayAccounts.reduce(function(s,a){return s+(a.periodRevenue&&a.periodRevenue[periodDays]||0);},0);return(
                     <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))',gap:12,marginBottom:18,textAlign:'center'}}>
                       <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'14px 10px'}}>
                         <div style={{fontSize:22,fontWeight:900}}>{acctCount}</div>
@@ -1882,6 +1977,7 @@ window._STRAIN_DB=[
                       <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'14px 10px'}}>
                         <div style={{fontSize:22,fontWeight:900}}>{curK(tRev)}</div>
                         <div style={{fontSize:11,color:C.dim,letterSpacing:1.5,marginTop:2}}>REVENUE ({periodDays}D)</div>
+                        {totalFutureRev>0&&<div style={{fontSize:9,color:'#00bcd4',marginTop:3}}>+{curK(totalFutureRev)} scheduled</div>}
                       </div>
                     </div>);})()}
                     <div style={{marginBottom:14}}>
@@ -2077,9 +2173,14 @@ window._STRAIN_DB=[
                           <div style={{fontSize:10,color:C.dim}}>{'+ $'+Math.round(totalDistro/1000)+'K distro (16%)'}</div>
                         </div>
                         <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}}>
-                          <div style={{fontSize:10,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>Net After Distro</div>
-                          <div style={{fontSize:20,fontWeight:800,color:netRevCollected-totalProdCost>0?C.good:C.danger}}>{'$'+Math.round((netRevCollected-totalProdCost)/1000)+'K'}</div>
-                          <div style={{fontSize:10,color:C.dim}}>{'on $'+Math.round(netRevCollected/1000)+'K net rev'}</div>
+                          <div style={{fontSize:10,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>Realized P&L</div>
+                          <div style={{fontSize:20,fontWeight:800,color:netRevCollected-Math.round(totalProdCost*(totalSold/Math.max(1,totalProduced)))>0?C.good:C.warn}}>{'$'+Math.round((netRevCollected-Math.round(totalProdCost*(totalSold/Math.max(1,totalProduced))))/1000)+'K'}</div>
+                          <div style={{fontSize:10,color:C.dim}}>{'sold units only · cost prorated'}</div>
+                        </div>
+                        <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}}>
+                          <div style={{fontSize:10,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>Projected Net</div>
+                          <div style={{fontSize:20,fontWeight:800,color:Math.round(totalRevProjected*0.84)-totalProdCost>0?C.good:C.danger}}>{'$'+Math.round((Math.round(totalRevProjected*0.84)-totalProdCost)/1000)+'K'}</div>
+                          <div style={{fontSize:10,color:'#d4a24c'}}>{'if all '+totalOnHand.toLocaleString()+' OH sell'}</div>
                         </div>
                         <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}}>
                           <div style={{fontSize:10,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>GL Credit Line</div>
@@ -2255,7 +2356,7 @@ window._STRAIN_DB=[
                   };
                   var glNow=new Date();
                   return(<div>
-                    <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:10}}>
                       {/* Margin Calculator */}
                       <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'14px 14px'}}>
                         <div style={{fontSize:14,fontWeight:700,letterSpacing:2,paddingBottom:8,borderBottom:'1px solid '+C.border,marginBottom:8}}>MARGIN CALCULATOR</div>
@@ -2361,57 +2462,86 @@ window._STRAIN_DB=[
                       <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'14px 14px'}}>
                         <div style={{fontSize:14,fontWeight:700,letterSpacing:2,paddingBottom:8,borderBottom:'1px solid '+C.border,marginBottom:10}}>PROMO REQUESTS</div>
                         {(function(){
-                          var pending=[];
+                          var allPromos=[];
+                          var cutoffDate=new Date();cutoffDate.setDate(cutoffDate.getDate()-90);// Only show promos from last 90 days
                           displayAccounts.forEach(function(a){
                             (a.promotions||[]).forEach(function(p){
-                              if(p.confirmation==='Pending'){
-                                var rev=pRev(a);
-                                var ts=(a.orderDayTs||[]).slice().sort(function(x,y){return x-y;});
-                                var orders=ts.length;
-                                var ds=ts.length>0?Math.max(0,Math.round((Date.now()-ts[ts.length-1])/86400000)):999;
-                                var gaps=[];for(var gi=1;gi<ts.length;gi++)gaps.push((ts[gi]-ts[gi-1])/86400000);
-                                gaps.sort(function(x,y){return x-y;});
-                                var med=gaps.length>0?gaps[Math.floor(gaps.length/2)]:30;
-                                var cadenceOK=ds<=Math.max(med*1.5,21);
-                                var discountPct=parseFloat((p.pctOff||'').replace(/[^0-9.]/g,''))||0;
-                                // Score: higher = more reason to approve
-                                var score=0;
-                                if(rev>5000)score+=3;else if(rev>2000)score+=2;else if(rev>500)score+=1;
-                                if(orders>=10)score+=2;else if(orders>=5)score+=1;
-                                if(cadenceOK)score+=2;
-                                if(ds<30)score+=1;
-                                if(discountPct<=15)score+=1;else if(discountPct>30)score-=1;
-                                var verdict=score>=6?'APPROVE':score>=4?'LEAN APPROVE':score>=2?'LEAN DENY':'DENY';
-                                var verdictColor=score>=6?C.good:score>=4?'#6fa8d6':score>=2?C.warn:C.danger;
-                                var reasons=[];
-                                if(rev>2000)reasons.push('$'+Math.round(rev).toLocaleString()+' lifetime');
-                                else reasons.push('Low revenue ($'+Math.round(rev).toLocaleString()+')');
-                                if(cadenceOK)reasons.push('Active buyer');else reasons.push('Overdue '+ds+'d');
-                                if(discountPct>25)reasons.push('Deep discount '+discountPct+'%');
-                                pending.push({account:a.name,event:p.event||'—',pctOff:p.pctOff||'—',reqDays:p.reqDays||'—',rev:rev,orders:orders,ds:ds,verdict:verdict,verdictColor:verdictColor,score:score,reasons:reasons.join(' \u00b7 ')});
-                              }
+                              if(!p.event&&!p.confirmation)return;
+                              // Filter to recent promos only
+                              if(p.startDate){try{var sd=new Date(p.startDate);if(!isNaN(sd)&&sd<cutoffDate)return;}catch(e){}}
+                              var rev=pRev(a);
+                              var ts=(a.orderDayTs||[]).slice().sort(function(x,y){return x-y;});
+                              var orders=ts.length;
+                              var ds=ts.length>0?Math.max(0,Math.round((Date.now()-ts[ts.length-1])/86400000)):999;
+                              var gaps=[];for(var gi=1;gi<ts.length;gi++)gaps.push((ts[gi]-ts[gi-1])/86400000);
+                              gaps.sort(function(x,y){return x-y;});
+                              var med=gaps.length>0?gaps[Math.floor(gaps.length/2)]:30;
+                              var cadenceOK=ds<=Math.max(med*1.5,21);
+                              var rawPct=parseFloat((p.pctOff||'').replace(/[^0-9.]/g,''))||0;
+                              var discountPct=rawPct>0&&rawPct<1?Math.round(rawPct*100):rawPct;// Convert decimal to %
+                              var score=0;
+                              if(rev>5000)score+=3;else if(rev>2000)score+=2;else if(rev>500)score+=1;
+                              if(orders>=10)score+=2;else if(orders>=5)score+=1;
+                              if(cadenceOK)score+=2;
+                              if(ds<30)score+=1;
+                              if(discountPct>0&&discountPct<=15)score+=1;else if(discountPct>30)score-=1;
+                              var verdict=score>=6?'APPROVE':score>=4?'LEAN APPROVE':score>=2?'LEAN DENY':'DENY';
+                              var verdictColor=score>=6?C.good:score>=4?'#6fa8d6':score>=2?C.warn:C.danger;
+                              var reasons=[];
+                              if(rev>2000)reasons.push('$'+Math.round(rev).toLocaleString()+' lifetime');
+                              else reasons.push('Low revenue ($'+Math.round(rev).toLocaleString()+')');
+                              if(cadenceOK)reasons.push('Active buyer');else reasons.push('Overdue '+ds+'d');
+                              if(discountPct>25)reasons.push('Deep discount '+discountPct+'%');
+                              var status=(p.confirmation||'').trim();
+                              // Clean up event and date display
+                              var eventClean=(p.event||'\u2014').replace(/\s+00:00:00$/,'').replace(/^\d{4}-\d{2}-\d{2}$/,function(d){try{return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'});}catch(e){return d;}});
+                              var startClean=(p.startDate||'').replace(/\s+00:00:00$/,'').split(' ')[0];
+                              if(startClean){try{var sd2=new Date(startClean);if(!isNaN(sd2))startClean=sd2.toLocaleDateString('en-US',{month:'short',day:'numeric'});}catch(e){}}
+                              var pctLabel=discountPct>0?discountPct+'%':'\u2014';
+                              allPromos.push({account:a.name,event:eventClean,pctOff:pctLabel,reqDays:p.reqDays||'\u2014',startDate:startClean,rev:rev,orders:orders,ds:ds,verdict:verdict,verdictColor:verdictColor,score:score,reasons:reasons.join(' \u00b7 '),status:status,isPending:!status||status==='Pending',isNo:status==='No',promoKey:a.name+'|||'+eventClean+'|||'+startClean});
                             });
                           });
-                          pending.sort(function(a,b){return b.rev-a.rev;});
-                          if(!pending.length)return<div style={{fontSize:10,color:C.dim,padding:'8px 0'}}>No pending promo requests</div>;
-                          return pending.map(function(p,i){return<div key={i} style={{marginBottom:12,padding:'10px 12px',background:C.bg,borderRadius:4,border:'1px solid '+C.border}}>
-                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
-                              <div style={{fontSize:10,fontWeight:700}}>{p.account}</div>
-                              <span style={{fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:2,background:p.verdictColor+'22',color:p.verdictColor,border:'1px solid '+p.verdictColor+'44'}}>{p.verdict}</span>
-                            </div>
-                            <div style={{display:'flex',gap:12,fontSize:11,color:C.muted,marginBottom:4}}>
-                              <span>{p.event}</span>
-                              <span style={{fontWeight:700}}>{p.pctOff}</span>
-                              <span>{p.reqDays!=='—'?p.reqDays+'d':'—'}</span>
-                            </div>
-                            <div style={{fontSize:10,color:C.dim,marginBottom:6}}>{p.reasons}</div>
-                            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:4,fontSize:10,marginBottom:8}}>
-                              <div style={{background:C.surface,borderRadius:2,padding:'4px 0',textAlign:'center'}}><div style={{fontWeight:700}}>{curK(p.rev)}</div><div style={{color:C.dim}}>Rev</div></div>
-                              <div style={{background:C.surface,borderRadius:2,padding:'4px 0',textAlign:'center'}}><div style={{fontWeight:700}}>{p.orders}</div><div style={{color:C.dim}}>Orders</div></div>
-                              <div style={{background:C.surface,borderRadius:2,padding:'4px 0',textAlign:'center'}}><div style={{fontWeight:700}}>{p.ds+'d'}</div><div style={{color:C.dim}}>Silent</div></div>
-                              <div style={{background:C.surface,borderRadius:2,padding:'4px 0',textAlign:'center'}}><div style={{fontWeight:700}}>{p.score+'/9'}</div><div style={{color:C.dim}}>Score</div></div>
-                            </div>
-                          </div>;});
+                          allPromos.sort(function(a,b){if(a.isPending!==b.isPending)return a.isPending?-1:1;return b.rev-a.rev;});
+                          var pendingCount=allPromos.filter(function(p){return p.isPending;}).length;
+                          var decisionCount=allPromos.filter(function(p){return promoDecisions[p.promoKey];}).length;
+                          var totalCount=allPromos.length;
+                          if(!totalCount)return React.createElement('div',{style:{padding:'12px 0',textAlign:'center'}},
+                            React.createElement('div',{style:{fontSize:10,color:C.dim,marginBottom:6}},'No promo data loaded'),
+                            React.createElement('div',{style:{fontSize:9,color:C.dim}},'Upload XLSX with Marketing Workbook sheet tab to populate'));
+                          return React.createElement('div',null,
+                            React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}},
+                              React.createElement('div',{style:{fontSize:9,color:C.dim}},totalCount+' promos (last 90d)'+(pendingCount>0?' \u00b7 '+pendingCount+' pending':'')),
+                              decisionCount>0?React.createElement('button',{onClick:function(){
+                                var lines=[];allPromos.forEach(function(p){var d=promoDecisions[p.promoKey];if(d)lines.push(d.decision.toUpperCase()+': '+p.account+' \u2014 '+p.event+' ('+p.pctOff+', '+p.reqDays+(p.reqDays!=='\u2014'?'d':'')+') Score: '+p.score+'/9');});
+                                var body='GLOBS PROMO DECISIONS\n'+new Date().toLocaleDateString()+'\n\n'+lines.join('\n')+'\n\nPlease update Salesforce accordingly.\n\n\u2014 Dylan';
+                                window.open('mailto:herndon@upnorthhumboldt.com?subject='+encodeURIComponent('Globs Promo Decisions '+new Date().toLocaleDateString())+'&body='+encodeURIComponent(body));
+                                toast('\u2713 Email opened with '+lines.length+' decisions');
+                              },style:{padding:'4px 10px',fontSize:9,fontWeight:700,border:'1px solid '+C.good,background:C.good+'11',color:C.good,borderRadius:3,cursor:'pointer',fontFamily:'inherit'}},'\u2709 Send '+decisionCount+' to Ian'):null),
+                            allPromos.map(function(p,i){var myDecision=promoDecisions[p.promoKey];return React.createElement('div',{key:i,style:{marginBottom:12,padding:'10px 12px',background:C.bg,borderRadius:4,border:'1px solid '+(myDecision?(myDecision.decision==='approve'?C.good:C.danger)+'44':p.isPending?p.verdictColor+'44':p.isNo?C.danger+'33':C.border),opacity:p.isPending||myDecision?1:0.6}},
+                            React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}},
+                              React.createElement('div',{style:{fontSize:10,fontWeight:700}},p.account),
+                              React.createElement('div',{style:{display:'flex',gap:4,alignItems:'center'}},
+                                !p.isPending?React.createElement('span',{style:{fontSize:8,fontWeight:600,padding:'2px 6px',borderRadius:2,background:p.isNo?C.danger+'22':C.good+'22',color:p.isNo?C.danger:C.good,border:'1px solid '+(p.isNo?C.danger:C.good)+'44'}},p.isNo?'DENIED':'CONFIRMED'):null,
+                                React.createElement('span',{style:{fontSize:10,fontWeight:700,padding:'2px 8px',borderRadius:2,background:p.verdictColor+'22',color:p.verdictColor,border:'1px solid '+p.verdictColor+'44'}},p.verdict))),
+                            React.createElement('div',{style:{display:'flex',gap:12,fontSize:11,color:C.muted,marginBottom:4}},
+                              React.createElement('span',null,p.event),
+                              React.createElement('span',{style:{fontWeight:700}},p.pctOff),
+                              p.startDate?React.createElement('span',null,p.startDate):null,
+                              React.createElement('span',null,p.reqDays!=='\u2014'?p.reqDays+'d':'\u2014')),
+                            React.createElement('div',{style:{fontSize:10,color:C.dim,marginBottom:6}},p.reasons),
+                            React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:4,fontSize:10}},
+                              React.createElement('div',{style:{background:C.surface,borderRadius:2,padding:'4px 0',textAlign:'center'}},React.createElement('div',{style:{fontWeight:700}},curK(p.rev)),React.createElement('div',{style:{color:C.dim}},'Rev')),
+                              React.createElement('div',{style:{background:C.surface,borderRadius:2,padding:'4px 0',textAlign:'center'}},React.createElement('div',{style:{fontWeight:700}},p.orders),React.createElement('div',{style:{color:C.dim}},'Orders')),
+                              React.createElement('div',{style:{background:C.surface,borderRadius:2,padding:'4px 0',textAlign:'center'}},React.createElement('div',{style:{fontWeight:700}},p.ds+'d'),React.createElement('div',{style:{color:C.dim}},'Silent')),
+                              React.createElement('div',{style:{background:C.surface,borderRadius:2,padding:'4px 0',textAlign:'center'}},React.createElement('div',{style:{fontWeight:700}},p.score+'/9'),React.createElement('div',{style:{color:C.dim}},'Score'))),
+                            React.createElement('div',{style:{display:'flex',gap:6,marginTop:8}},
+                              myDecision?React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6,flex:1}},
+                                React.createElement('span',{style:{fontSize:9,fontWeight:700,color:myDecision.decision==='approve'?C.good:C.danger}},myDecision.decision==='approve'?'\u2713 APPROVED':'\u2717 DENIED'),
+                                React.createElement('button',{onClick:function(){var next=Object.assign({},promoDecisions);delete next[p.promoKey];setPromoDecisions(next);try{localStorage.setItem('gpi:promo-decisions',JSON.stringify(next));}catch(e){}},style:{padding:'2px 6px',fontSize:8,border:'1px solid '+C.border,background:'transparent',color:C.dim,borderRadius:2,cursor:'pointer',fontFamily:'inherit'}},'undo'))
+                              :React.createElement(React.Fragment,null,
+                                React.createElement('button',{onClick:function(){setPromoDecision(p.promoKey,'approve');},style:{flex:1,padding:'5px 0',fontSize:9,fontWeight:700,border:'1px solid '+C.good,background:C.good+'11',color:C.good,borderRadius:3,cursor:'pointer',fontFamily:'inherit'}},'\u2713 Approve'),
+                                React.createElement('button',{onClick:function(){setPromoDecision(p.promoKey,'deny');},style:{flex:1,padding:'5px 0',fontSize:9,fontWeight:700,border:'1px solid '+C.danger,background:C.danger+'11',color:C.danger,borderRadius:3,cursor:'pointer',fontFamily:'inherit'}},'\u2717 Deny')))
+                          );}));
                         })()}
                       </div>
                     </div>
@@ -3117,107 +3247,6 @@ window._STRAIN_DB=[
                       )
                     );
                   }
-                  // ── RIDE ALONG GENERATOR ──
-                  function generateRideAlongs() {
-                    var dd = window._DD_live || DD;
-                    var allRoutes = [];
-                    // Generate 2 day-trip routes per zone
-                    // DD: [name, zone, x, y, city, tier, 7d, 30d, 60d, 90d, 180d, 270d, 365d]
-                    //      0     1     2  3  4     5     6   7    8    9    10    11    12
-                    ['DNU','RB','ZASP'].forEach(function(zoneKey) {
-                      var pool = dd.filter(function(d) { return d[1] === zoneKey && d[12] > 0; });
-                      if (pool.length === 0) return;
-
-                      // Score each account
-                      var scored = pool.map(function(d) {
-                        var rev365 = d[12] || 0;
-                        var rev90 = d[9] || 0;
-                        var rev30 = d[7] || 0;
-                        var isLegacy = d[5] === 'L';
-                        var isRising = d[5] === 'R';
-                        var annualized30 = rev30 * 12;
-                        var upsideGap = Math.max(0, rev365 - annualized30);
-                        var upsideScore = upsideGap * 0.4;
-                        var legacyBonus = isLegacy ? rev365 * 0.35 : 0;
-                        var declineRatio = rev365 > 0 ? (rev365 - rev90) / rev365 : 0;
-                        var declineScore = Math.max(0, declineRatio) * rev365 * 0.25;
-                        var risingBonus = isRising && rev30 > 0 ? rev30 * 2 : 0;
-                        var revenueWeight = rev365 * 0.15;
-                        var totalScore = upsideScore + legacyBonus + declineScore + risingBonus + revenueWeight;
-                        var tags = [];
-                        if (isLegacy) tags.push('LEGACY');
-                        if (declineRatio > 0.5) tags.push('DECLINING');
-                        else if (declineRatio > 0.25) tags.push('COOLING');
-                        if (upsideGap > 2000) tags.push('HIGH UPSIDE');
-                        else if (upsideGap > 500) tags.push('UPSIDE');
-                        if (isRising && rev30 > 0) tags.push('MOMENTUM');
-                        if (rev30 === 0 && rev90 > 0) tags.push('GONE QUIET');
-                        if (rev30 === 0 && rev90 === 0 && rev365 > 0) tags.push('WIN BACK');
-                        return { nm:d[0], zone:d[1], city:d[4], status:d[5], x:d[2], y:d[3], rev365:rev365, rev90:rev90, rev30:rev30, score:totalScore, tags:tags, upsideGap:upsideGap };
-                      }).sort(function(a, b) { return b.score - a.score; });
-
-                      // Build 2 routes from top accounts in this zone
-                      var topPool = scored.slice(0, 30);
-                      var used = {};
-                      var zoneRoutes = [];
-
-                      for (var routeNum = 0; routeNum < 2 && topPool.length > 0; routeNum++) {
-                        var seed = null;
-                        for (var si = 0; si < topPool.length; si++) {
-                          if (!used[topPool[si].nm]) { seed = topPool[si]; break; }
-                        }
-                        if (!seed) break;
-                        used[seed.nm] = true;
-
-                        var route = [seed];
-                        // Cluster nearby accounts — expand radius for day 2 to avoid overlap with day 1
-                        var radius = routeNum === 0 ? 25 : 40;
-                        for (var ri = 0; ri < topPool.length; ri++) {
-                          var cand = topPool[ri];
-                          if (used[cand.nm]) continue;
-                          // Distance from any stop already in route
-                          var near = false;
-                          for (var qi = 0; qi < route.length; qi++) {
-                            var dx = cand.x - route[qi].x;
-                            var dy = cand.y - route[qi].y;
-                            if (Math.sqrt(dx*dx + dy*dy) < radius) { near = true; break; }
-                          }
-                          if (near) {
-                            route.push(cand);
-                            used[cand.nm] = true;
-                            if (route.length >= 6) break;
-                          }
-                        }
-
-                        // Sort stops north→south
-                        route.sort(function(a, b) { return a.y - b.y; });
-
-                        var routeRev = route.reduce(function(s, a) { return s + a.rev365; }, 0);
-                        var routeUpside = route.reduce(function(s, a) { return s + a.upsideGap; }, 0);
-                        var legacyCount = route.filter(function(a) { return a.status === 'L'; }).length;
-                        var cityFreq = {};
-                        route.forEach(function(a) { cityFreq[a.city] = (cityFreq[a.city] || 0) + 1; });
-                        var primaryCity = route[0].city;
-                        var maxFreq = 0;
-                        Object.keys(cityFreq).forEach(function(c) { if (cityFreq[c] > maxFreq) { maxFreq = cityFreq[c]; primaryCity = c; } });
-                        var uniqueCities = Object.keys(cityFreq);
-
-                        zoneRoutes.push({
-                          stops: route,
-                          region: uniqueCities.length > 2 ? primaryCity + ' area' : uniqueCities.join(' / '),
-                          zone: zoneKey,
-                          zoneName: ZN[zoneKey] || zoneKey,
-                          dayNum: routeNum + 1,
-                          rev365: routeRev,
-                          upside: routeUpside,
-                          legacyCount: legacyCount
-                        });
-                      }
-                      allRoutes = allRoutes.concat(zoneRoutes);
-                    });
-
-                    setRideAlongs({ routes: allRoutes, generated: new Date().toISOString() });
-                  }
 
                   return(
                     <div>
@@ -3246,7 +3275,7 @@ window._STRAIN_DB=[
                           })
                         );
                       })()}
-                      {authRole==='distro'&&authUser&&authUser.repName&&React.createElement('div',{style:{padding:'6px 12px',marginBottom:14,background:'#6fa8d611',border:'1px solid #6fa8d633',borderRadius:4,fontSize:10,color:'#6fa8d6',fontWeight:600}},'\u{1F464} Viewing: '+authUser.name+' · '+(authUser.repName||''))}
+                      {authRole==='distro'&&authUser&&authUser.repName&&React.createElement('div',{style:{padding:'6px 12px',marginBottom:14,background:'#6fa8d611',border:'1px solid #6fa8d633',borderRadius:4,fontSize:10,color:'#6fa8d6',fontWeight:600}},'\u{1F464} Viewing: '+authUser.name+(authUser.title?' · '+authUser.title:'')+' · '+(authUser.repName||''))}
 
                       {/* ── RIDE ALONG RESULTS ── */}
                       {rideAlongs && rideAlongs.routes.length > 0 && (
@@ -3432,8 +3461,12 @@ window._STRAIN_DB=[
                   function handleAddStrain(){
                     if(!newStrain.name.trim())return;
                     var desc=newStrain.desc||("A " + newStrain.type.toLowerCase() + " strain" + (newStrain.cross?" born from "+newStrain.cross:"") + " with a unique terpene profile.");
-                    STRAIN_DB.push({n:newStrain.name.trim(),t:newStrain.type,d:desc,g:"Relaxed, Melow, Creative"});
+                    var entry={n:newStrain.name.trim(),t:newStrain.type,d:desc,g:"Relaxed, Melow, Creative"};
+                    STRAIN_DB.push(entry);
+                    // Persist custom strains to localStorage
+                    try{var cs=JSON.parse(localStorage.getItem('gpi:custom-strains')||'[]');cs.push(entry);localStorage.setItem('gpi:custom-strains',JSON.stringify(cs));}catch(e){}
                     setNewStrain({name:"",type:"Hybrid",cross:"",desc:""});setShowNewStrain(false);
+                    toast('✓ Strain added: '+entry.n);
                   }
                   return(
                     <div>
@@ -3517,7 +3550,7 @@ window._STRAIN_DB=[
                       var q=s.totalQty||0;totalHistQty+=q;
                       if(!catAvgQty[cat])catAvgQty[cat]={qty:0};
                       catAvgQty[cat].qty+=q;
-                      totalOrderVal+=(s.totalQty||0)*(s.wholesale>0?s.wholesale:cogsFor(s.category).wholesale);
+                      totalOrderVal+=(s.totalQty||0)*validWholesale(s.wholesale,s.category);
                     });
                     Object.keys(catAvgQty).forEach(function(c){
                       // avgPerOrder = how many units of this category per typical order
@@ -3526,11 +3559,12 @@ window._STRAIN_DB=[
                     });
                     var avgOrderVal=Math.round(totalOrderVal/Math.max(1,n));
                     var budget=Math.max(500,Math.round(avgOrderVal*1.1/100)*100);// 110% of avg, rounded to nearest $100
-                    // Goal: expected revenue this period based on cadence
-                    var expectedOrders=median>0?Math.max(1,Math.round(periodDays/median)):1;
-                    var expectedRev=Math.round(expectedOrders*avgOrderVal);
-                    var goalPct=expectedRev>0?Math.round(periodRev/expectedRev*100):0;
-                    OPP.push({name:acc.name.replace(/ - Corporate$/i,""),zone:zone,orders:n,median:median,daysSince:daysSince,status:status,rev:Math.round(rev),rep:acc.rep||'',skus:skus,score:score,avgOrderVal:avgOrderVal,budget:budget,catAvgQty:catAvgQty,hasPeriodActivity:daysSince<=periodDays,periodRev:Math.round(periodRev),expectedRev:expectedRev,goalPct:goalPct});
+                    // Goal: recent 90d pace annualized vs 365d revenue + 15% growth target
+                    var growthTarget=Math.round(rev*1.15);
+                    var rev90=(acc.periodRevenue&&acc.periodRevenue[90]!=null)?acc.periodRevenue[90]:0;
+                    var recentPaceAnnualized=rev90>0?Math.round(rev90/90*365):0;
+                    var goalPct=growthTarget>0?Math.round(recentPaceAnnualized/growthTarget*100):0;
+                    OPP.push({name:acc.name.replace(/ - Corporate$/i,""),zone:zone,orders:n,median:median,daysSince:daysSince,status:status,rev:Math.round(rev),rep:acc.rep||'',skus:skus,score:score,avgOrderVal:avgOrderVal,budget:budget,catAvgQty:catAvgQty,hasPeriodActivity:daysSince<=periodDays,periodRev:Math.round(periodRev),growthTarget:growthTarget,recentPace:recentPaceAnnualized,goalPct:goalPct});
                   });
                   OPP.sort(function(a,b){return b.score-a.score;});
 
@@ -3720,7 +3754,7 @@ window._STRAIN_DB=[
                       authRole==='exec'?React.createElement('div',{style:{marginBottom:8}},
                         React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:6}},'REP'),
                         React.createElement('div',{style:{display:'flex',background:C.surface,borderRadius:8,border:'1px solid '+C.border,overflow:'hidden',overflowX:'auto',WebkitOverflowScrolling:'touch'}},["ALL"].concat(uniqueReps).map(function(r,i,arr){return React.createElement('button',{key:r,onClick:function(){setORep(r);if(r==='ALL')setOZone('ALL');else setOZone(repToZone(r));},style:{flex:'0 0 auto',padding:'10px 14px',fontSize:12,fontWeight:oRep===r?700:400,border:'none',borderRight:i<arr.length-1?'1px solid '+C.border:'none',background:oRep===r?C.text:'transparent',color:oRep===r?C.bg:C.muted,fontFamily:'inherit',cursor:'pointer',whiteSpace:'nowrap'}},r==="ALL"?"All":r.split(' ')[0]);}))
-                      ):authUser&&authUser.repName?React.createElement('div',{style:{padding:'6px 12px',background:'#6fa8d611',border:'1px solid #6fa8d633',borderRadius:4,fontSize:10,color:'#6fa8d6',fontWeight:600}},'\u{1F464} '+authUser.name+' · '+(authUser.repName||'')):null
+                      ):authUser&&authUser.repName?React.createElement('div',{style:{padding:'6px 12px',background:'#6fa8d611',border:'1px solid #6fa8d633',borderRadius:4,fontSize:10,color:'#6fa8d6',fontWeight:600}},'\u{1F464} '+authUser.name+(authUser.title?' · '+authUser.title:'')+' · '+(authUser.repName||'')):null
                     ),
                     React.createElement('div',{style:{display:'flex',gap:8,marginBottom:16,alignItems:'center',flexWrap:'wrap'}},
                       React.createElement('button',{onClick:function(){generateRideAlongs();},style:{padding:'8px 18px',borderRadius:4,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid #d4a24c',background:'#d4a24c22',color:'#d4a24c',letterSpacing:0.5}},'\u{1F697} Generate Ride Alongs'),
@@ -3824,7 +3858,7 @@ window._STRAIN_DB=[
                             ),
                             React.createElement('div',{style:{display:'flex',gap:8,fontSize:11,color:C.dim,alignItems:'center'}},
                               o.rep?React.createElement('span',null,o.rep):null,
-                              React.createElement('span',{className:'no-screenshot',style:{fontWeight:600,color:o.goalPct>=80?C.good:o.goalPct>=50?C.warn:C.danger}},curK(o.periodRev)+' / '+curK(o.expectedRev)),
+                              React.createElement('span',{className:'no-screenshot',style:{fontWeight:600,color:o.goalPct>=80?C.good:o.goalPct>=50?C.warn:C.danger}},curK(o.recentPace)+' pace / '+curK(o.growthTarget)+' target'),
                               !isOnTrack&&lines.length>0?React.createElement('span',{style:{color:C.good,marginLeft:'auto'}},lines.length+' SKUs \u00b7 '+curK(orderRev)):null,
                               isOnTrack?React.createElement('span',{style:{color:C.dim,marginLeft:'auto',fontSize:10}},'\u223c'+(o.median-o.daysSince)+'d to next order'):null
                             )
@@ -3872,12 +3906,12 @@ window._STRAIN_DB=[
                           ):isOpen&&isOnTrack?React.createElement('div',{style:{borderTop:'1px solid '+C.border,padding:'12px'}},
                             React.createElement('div',{style:{fontSize:10,color:C.good,letterSpacing:1.5,textTransform:'uppercase',marginBottom:8,fontWeight:700}},'ON TRACK \u00b7 '+o.daysSince+'d / '+o.median+'d cadence'),
                             React.createElement('div',{style:{display:'flex',justifyContent:'space-between',fontSize:11,marginBottom:6}},
-                              React.createElement('span',{style:{color:C.dim}},'Period revenue ('+periodDays+'d)'),
-                              React.createElement('span',{style:{fontWeight:700}},curK(o.periodRev))
+                              React.createElement('span',{style:{color:C.dim}},'Annualized pace (from 90d)'),
+                              React.createElement('span',{style:{fontWeight:700}},curK(o.recentPace))
                             ),
                             React.createElement('div',{style:{display:'flex',justifyContent:'space-between',fontSize:11,marginBottom:6}},
-                              React.createElement('span',{style:{color:C.dim}},'Expected ('+Math.round(periodDays/o.median)+' orders \u00d7 '+curK(o.avgOrderVal)+')'),
-                              React.createElement('span',{style:{fontWeight:700}},curK(o.expectedRev))
+                              React.createElement('span',{style:{color:C.dim}},'Growth target (365d +15%)'),
+                              React.createElement('span',{style:{fontWeight:700}},curK(o.growthTarget))
                             ),
                             React.createElement('div',{style:{height:6,background:'#111',borderRadius:3,overflow:'hidden',marginBottom:6}},
                               React.createElement('div',{style:{width:Math.min(100,o.goalPct)+'%',height:'100%',background:o.goalPct>=80?C.good:o.goalPct>=50?C.warn:C.danger,borderRadius:3}})
@@ -4192,6 +4226,8 @@ window._STRAIN_DB=[
                 {tab==="briefing"&&(function(){
                   var now=Date.now(),today=new Date();
                   var glDrop5Confirmed=localStorage.getItem('gpi:gl-drop5-confirmed')==='true';
+                  var glPaidSet={};try{glPaidSet=JSON.parse(localStorage.getItem('gpi:gl-paid')||'{}');}catch(e){}
+                  function toggleGLPaid(label){var next=Object.assign({},glPaidSet);if(next[label])delete next[label];else next[label]=new Date().toISOString();try{localStorage.setItem('gpi:gl-paid',JSON.stringify(next));}catch(e){}location.reload();}
                   var GL={limit:75000,credit:3346,owed:[
                     // S17104: Drop #1/2/3 labor — Dylan's own oil, GL did filling/graming
                     {label:'S17104 · Drop 1/2/3 labor',amt:15893,due:'Feb 15',dropped:'Jan 20',breakdown:[
@@ -4244,14 +4280,15 @@ window._STRAIN_DB=[
                     // Drop #5 badder (in production at GL — UpNorth biomass)
                     {label:'Drop #5 badder labor (est)',amt:6000,detail:'~6,000 × $1.00/unit'}
                   ]};
-                  var glTotal=GL.owed.reduce(function(s,r){return s+r.amt;},0)-GL.credit;
+                  var glOwedActive=GL.owed.filter(function(r){return !glPaidSet[r.label];});
+                  var glTotal=glOwedActive.reduce(function(s,r){return s+r.amt;},0)-GL.credit;
                   var glPendingTotal=GL.pending.reduce(function(s,r){return s+r.amt;},0);
                   if(glDrop5Confirmed){glTotal+=glPendingTotal;glPendingTotal=0;}
                   var glPct=Math.round(glTotal/GL.limit*100);
                   var glPendingPct=Math.round(glPendingTotal/GL.limit*100);
                   var glNow=new Date();
                   var payoutDL=Math.max(0,Math.round((new Date('2026-04-13')-today)/86400000));
-                  var nextGLPay=GL.owed.filter(function(r){return new Date(r.due+' 2026')>today;}).sort(function(a,b){return new Date(a.due+' 2026')-new Date(b.due+' 2026');})[0];
+                  var nextGLPay=glOwedActive.filter(function(r){return new Date(r.due+' 2026')>today;}).sort(function(a,b){return new Date(a.due+' 2026')-new Date(b.due+' 2026');})[0];
                   var glDL=nextGLPay?Math.max(0,Math.round((new Date(nextGLPay.due+' 2026')-today)/86400000)):99;
                   var DROPS=[
                     {id:'#2',type:'Cart',produced:5138,sold:5044,oh:94,date:'2026-01-20',avgP:10.24,rev:51635,cost:Math.round(5138*COGS.Cart.cost)},
@@ -4327,7 +4364,7 @@ window._STRAIN_DB=[
                   // 7. Single-order accounts
                   if(singleOrd.length>20)priorities.push({num:priorities.length+1,text:singleOrd.length+' accounts ordered once and never came back. Schedule demos for top 5.',tab:'Marketing'});
                   // 8. GL payment upcoming
-                  var nextGL=GL.owed.filter(function(r){return new Date(r.due+' 2026')>today;}).sort(function(a,b){return new Date(a.due+' 2026')-new Date(b.due+' 2026');})[0];
+                  var nextGL=glOwedActive.filter(function(r){return new Date(r.due+' 2026')>today;}).sort(function(a,b){return new Date(a.due+' 2026')-new Date(b.due+' 2026');})[0];
                   if(nextGL){var nextGLDays=Math.max(0,Math.round((new Date(nextGL.due+' 2026')-today)/86400000));if(nextGLDays<=21)priorities.push({num:priorities.length+1,text:'GL payment $'+nextGL.amt.toLocaleString()+' ('+nextGL.label+') due in '+nextGLDays+'d.',tab:'Executive'});}
                   if(!priorities.length)priorities.push({num:1,text:'No urgent actions. Review Executive for velocity trends.',tab:'Executive'});
                   return React.createElement('div',null,
@@ -4341,6 +4378,15 @@ window._STRAIN_DB=[
                         React.createElement('span',{style:{color:C.warn}},'\u25CF ~7d lag pickup \u2192 menu')
                       ),
                       (function(){var totalProduced=DROPS.reduce(function(s,d){return s+d.produced;},0);var gap=totalProduced-totalSold-totalOH;return gap>0?React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:6}},totalProduced.toLocaleString()+' produced \u2212 '+totalSold.toLocaleString()+' sold \u2212 '+totalOH.toLocaleString()+' OH = '+gap.toLocaleString()+' in production'):null;})()
+                    ),
+                    // ── DATA FRESHNESS ──
+                    React.createElement('div',{style:{display:'flex',gap:12,marginBottom:16,padding:'8px 12px',background:C.raised,borderRadius:6,fontSize:9,color:C.dim,flexWrap:'wrap',alignItems:'center'}},
+                      React.createElement('span',{style:{fontWeight:700,letterSpacing:1.5}},'DATA'),
+                      React.createElement('span',null,'SF: '+(sfLoadTime?dataAge(sfLoadTime):'not loaded')),
+                      React.createElement('span',null,'Returns: '+(returnsLog.length>0?returnsLog.length+' entries':'empty')),
+                      React.createElement('span',null,'PKG: '+(Object.keys(pkgComps).length>0?'loaded':'defaults')),
+                      React.createElement('span',null,'GL: '+glOwedActive.length+'/'+GL.owed.length+' active'),
+                      sfLoadTime&&(Date.now()-new Date(sfLoadTime).getTime())>172800000?React.createElement('span',{style:{color:C.warn,fontWeight:700}},'\u26a0 Stale — re-upload SF XLSX'):null
                     ),
                     // ── MARGIN SUMMARY ──
                     React.createElement('div',{style:{background:blendedMargin>35?C.good+'15':blendedMargin>20?C.warn+'15':C.danger+'15',border:'1px solid '+(blendedMargin>35?C.good:blendedMargin>20?C.warn:C.danger)+'33',borderRadius:8,padding:'14px 16px',marginBottom:20,display:'flex',justifyContent:'space-between',alignItems:'center'}},
@@ -4362,7 +4408,7 @@ window._STRAIN_DB=[
                     // ── PATH TO COD TRACKER ──
                     (function(){
                       var amexBal=26000;
-                      var glNet=GL.owed.reduce(function(s,r){return s+r.amt;},0)-GL.credit;// confirmed balance, excludes pending estimates
+                      var glNet=glOwedActive.reduce(function(s,r){return s+r.amt;},0)-GL.credit;// confirmed balance, excludes paid + pending
                       var febPayout=38397,marPayout=59602;
                       var febToAmex=11000,febToGL=febPayout-febToAmex;
                       var glAfterFeb=glNet-febToGL;
@@ -4449,9 +4495,9 @@ window._STRAIN_DB=[
                           if(s.lastDate&&(!skuLast[kn]||s.lastDate>skuLast[kn]))skuLast[kn]=s.lastDate;
                         });
                       });
-                      var depRows=Object.keys(inventoryData).map(function(sku){
+                      var depRows=[];
+                      Object.keys(inventoryData).forEach(function(sku){
                         var inv=inventoryData[sku];
-                        var oh=parseInt(inv.onHand)||0;
                         var kn=nk(sku);
                         var u30=sku30d[kn]||0;
                         var u7=sku7d[kn]||0;
@@ -4459,28 +4505,30 @@ window._STRAIN_DB=[
                         var accts=skuAccts[kn]||0;
                         var cat=skuCat2[kn]||'';
                         var first=skuFirst[kn]||'';
-                        var last=skuLast[kn]||'';
-                        // Days on menu — use first sale date OR pkgDate if no sales yet
                         var span=0;
                         if(first){var fd=new Date(first),now=new Date();if(!isNaN(fd))span=Math.max(1,Math.round((now-fd)/86400000));}
-                        var isNew=false;
-                        if(span>0&&span<=7)isNew=true;
-                        else if(!first&&inv.pkgDate){var pd2=new Date(inv.pkgDate),now2=new Date();if(!isNaN(pd2)){var pkgDays=Math.round((now2-pd2)/86400000);if(pkgDays>=0&&pkgDays<=7)isNew=true;}}
-                        // Batch velocity from 30d
-                        var dailyBatch=u30>0?u30/30:0;
-                        var weeklyBatch=+(dailyBatch*7).toFixed(1);
-                        var dl=dailyBatch>0&&oh>0?Math.round(oh/dailyBatch):oh>0?999:0;
-                        var pct=dl===999?100:dl===0?0:Math.min(100,Math.round(dl/90*100));
-                        // Category from sales data, then inventory type field, then SKU name
+                        var dailyTotal=u30>0?u30/30:0;
                         var cl=cat?cogsFor(cat).label:'';
                         if(!cl&&inv.type){var it=inv.type.toLowerCase();cl=it.includes('cart')||it.includes('vape')?'Vape Cart':it.includes('badder')?'Badder':it.includes('sauce')?'Sauce':it.includes('diamond')?'Diamonds':it.includes('concentrate')?'Concentrate':'';}
-                        if(!cl){var sl=sku.toLowerCase();cl=sl.includes('cart')||sl.includes('vape')?'Vape Cart':sl.includes('badder')?'Badder':sl.includes('sauce')?'Sauce':sl.includes('diamond')?'Diamonds':'';};
                         if(!cl){var sl=sku.toLowerCase();cl=sl.includes('cart')||sl.includes('vape')?'Vape Cart':sl.includes('badder')?'Badder':sl.includes('sauce')?'Sauce':sl.includes('diamond')?'Diamonds':'';}
                         var cc=cl==='Vape Cart'?C.info:cl==='Badder'?C.warn:cl==='Sauce'?C.good:cl==='Diamonds'?C.purple:C.dim;
-                        var catShort=cl==='Vape Cart'?'Cart':cl||'—';
+                        var catShort=cl==='Vape Cart'?'Cart':cl||'\u2014';
                         var strain=sku.replace(/^Globs\s*-\s*/i,'').split(' - ')[0];
-                        return{strain:strain,cat:catShort,cc:cc,oh:oh,sold:sold,u30:u30,u7:u7,span:span,dl:dl,pct:pct,vel:weeklyBatch,sku:sku,isNew:isNew,accts:accts,batch:inv.batch||'',pkgDate:inv.pkgDate||''};
-                      }).sort(function(a,b){
+                        var batches=inv._batches&&inv._batches.length>1?inv._batches:[null];
+                        batches.forEach(function(b,bi){
+                          var oh=b?b.onHand:(parseInt(inv.onHand)||0);
+                          var batchLabel=b?b.batch:(inv.batch||'');
+                          var bPkg=b?b.pkgDate:(inv.pkgDate||'');
+                          var isNew=false;
+                          if(span>0&&span<=7)isNew=true;
+                          else if(!first&&bPkg){var pd2=new Date(bPkg),now2=new Date();if(!isNaN(pd2)){var pkgDays=Math.round((now2-pd2)/86400000);if(pkgDays>=0&&pkgDays<=7)isNew=true;}}
+                          var dl=dailyTotal>0&&oh>0?Math.round(oh/dailyTotal):oh>0?999:0;
+                          var pct=dl===999?100:dl===0?0:Math.min(100,Math.round(dl/90*100));
+                          var weeklyBatch=+(dailyTotal*7).toFixed(1);
+                          depRows.push({strain:strain,cat:catShort,cc:cc,oh:oh,sold:sold,u30:u30,u7:u7,span:span,dl:dl,pct:pct,vel:weeklyBatch,sku:sku+'_b'+bi,isNew:isNew,accts:accts,batch:batchLabel,pkgDate:bPkg,multiBatch:batches.length>1});
+                        });
+                      });
+                      depRows.sort(function(a,b){
                         if(a.oh===0&&b.oh>0)return-1;if(a.oh>0&&b.oh===0)return 1;
                         if(a.oh===0&&b.oh===0)return b.sold-a.sold;
                         if(a.dl===999&&b.dl!==999)return 1;if(a.dl!==999&&b.dl===999)return-1;
@@ -4499,23 +4547,25 @@ window._STRAIN_DB=[
                             low.length>0?React.createElement('span',{style:{color:C.warn,fontWeight:700}},low.length+' low'):null,
                             newSkus.length>0?React.createElement('span',{style:{color:'#00bcd4',fontWeight:700}},newSkus.length+' new'):null,
                             React.createElement('span',{style:{color:C.dim}},depRows.length+' SKUs'))),
-                        React.createElement('div',{style:{fontSize:9,color:C.dim,marginBottom:8}},'Velocity = 30-day batch sell-through \u00b7 Source: Inventory sheet'),
+                        React.createElement('div',{style:{fontSize:9,color:C.dim,marginBottom:8}},'Per-batch OH and age \u00b7 30d velocity shared across batches \u00b7 Source: Inventory sheet'),
                         depRows.slice(0,50).map(function(r,i){
                           var bc=r.oh===0?C.danger:r.dl<14&&r.dl!==999?C.danger:r.dl<30?C.warn:r.dl===999?C.dim:C.good;
+                          var pkgAge='';
+                          if(r.pkgDate){try{var pd=new Date(r.pkgDate);if(!isNaN(pd)){var ageDays=Math.round((Date.now()-pd.getTime())/86400000);pkgAge='pkg '+pd.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' \u00b7 '+ageDays+'d old';}}catch(e){}}
                           return React.createElement('div',{key:r.sku||i,style:{marginBottom:8,paddingBottom:6,borderBottom:'1px solid '+C.border+'33'}},
                             React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:10,marginBottom:2}},
                               React.createElement('span',{style:{fontWeight:600,color:r.oh===0||(r.dl<14&&r.dl!==999)?C.danger:C.text,display:'flex',alignItems:'center',gap:4}},
                                 r.strain,
+                                r.batch&&r.multiBatch?React.createElement('span',{style:{fontSize:7,color:C.dim,fontWeight:400}},'('+r.batch+')'):null,
                                 r.isNew?React.createElement('span',{style:{fontSize:7,fontWeight:800,color:'#00bcd4',background:'#00bcd422',border:'1px solid #00bcd444',padding:'1px 4px',borderRadius:2}},'NEW'):null
                               ),
                               React.createElement('span',{style:{fontSize:9,color:r.cc,fontWeight:600}},r.cat)
                             ),
-                            React.createElement('div',{style:{display:'flex',justifyContent:'space-between',fontSize:9,color:C.dim,marginBottom:3}},
-                              React.createElement('span',null,r.oh>0?r.oh+' OH':'OOS'),
-                              React.createElement('span',null,r.u30>0?r.u30+' sold 30d':'no 30d'),
-                              React.createElement('span',null,r.sold>0?r.sold+' total':'unsold'),
-                              React.createElement('span',null,r.span>0?r.span+'d menu':'\u2014'),
-                              React.createElement('span',{style:{color:bc,fontWeight:700}},r.oh===0?'reorder':r.dl===999?'no movement':r.dl+'d left')
+                            React.createElement('div',{style:{display:'flex',gap:12,fontSize:9,color:C.dim,marginBottom:3}},
+                              React.createElement('span',{style:{fontWeight:r.oh>0?600:700,color:r.oh===0?C.danger:C.text}},r.oh>0?r.oh+' OH':'OOS'),
+                              pkgAge?React.createElement('span',null,pkgAge):null,
+                              React.createElement('span',null,'30d vel: '+r.u30),
+                              React.createElement('span',{style:{color:bc,fontWeight:700,marginLeft:'auto'}},r.oh===0?'reorder':r.dl===999?'no movement':r.dl+'d left')
                             ),
                             React.createElement('div',{style:{height:4,background:'#111',borderRadius:2,overflow:'hidden'}},
                               React.createElement('div',{style:{width:Math.max(r.oh>0&&r.dl!==999?2:0,r.pct)+'%',height:'100%',background:bc,borderRadius:2}}))
@@ -4609,17 +4659,22 @@ window._STRAIN_DB=[
                       ),
                       React.createElement('div',{style:{fontSize:10,fontWeight:700,letterSpacing:1.5,color:C.dim,marginBottom:6}},'PAYABLES SCHEDULE'),
                       GL.owed.map(function(r,i){
-                        var isOverdue=new Date(r.due+' 2026')<glNow;
+                        var isPaid=!!glPaidSet[r.label];
+                        var isOverdue=!isPaid&&new Date(r.due+' 2026')<glNow;
                         var daysSinceDrop=Math.round((glNow-new Date(r.dropped+' 2026'))/86400000);
                         var isOpen=glExpandedRow===i;
-                        return React.createElement('div',{key:i},
-                          React.createElement('div',{onClick:function(){setGlExpandedRow(isOpen?null:i);},style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 0',borderBottom:isOpen?'none':'1px solid '+C.border,fontSize:10,cursor:r.breakdown?'pointer':'default'}},
-                            React.createElement('span',{style:{color:C.muted,flex:1,display:'flex',alignItems:'center',gap:4}},
-                              r.breakdown&&React.createElement('span',{style:{fontSize:10,color:C.dim,transform:isOpen?'rotate(90deg)':'none',transition:'transform 0.15s',display:'inline-block'}},'\u25B6'),
+                        return React.createElement('div',{key:i,style:{opacity:isPaid?0.4:1}},
+                          React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 0',borderBottom:isOpen?'none':'1px solid '+C.border,fontSize:10}},
+                            React.createElement('span',{onClick:function(){if(r.breakdown&&!isPaid)setGlExpandedRow(isOpen?null:i);},style:{color:isPaid?C.dim:C.muted,flex:1,display:'flex',alignItems:'center',gap:4,cursor:r.breakdown&&!isPaid?'pointer':'default',textDecoration:isPaid?'line-through':'none'}},
+                              !isPaid&&r.breakdown&&React.createElement('span',{style:{fontSize:10,color:C.dim,transform:isOpen?'rotate(90deg)':'none',transition:'transform 0.15s',display:'inline-block'}},'\u25B6'),
                               r.label),
-                            React.createElement('span',{style:{fontSize:10,color:daysSinceDrop>60?C.danger:daysSinceDrop>30?C.warn:C.muted,marginRight:8,padding:'1px 5px',borderRadius:2,background:daysSinceDrop>60?C.dangerBg:daysSinceDrop>30?C.warnBg:'transparent'}},daysSinceDrop+'d aging'),
-                            React.createElement('span',null,React.createElement('span',{style:{color:isOverdue?C.danger:C.muted,marginRight:8,fontSize:11}},'due '+r.due),React.createElement('span',{style:{fontWeight:600}},'$'+r.amt.toLocaleString()))),
-                          isOpen&&r.breakdown&&React.createElement('div',{style:{padding:'6px 0 8px 18px',borderBottom:'1px solid '+C.border}},
+                            isPaid?React.createElement('span',{style:{fontSize:8,fontWeight:700,color:C.good,background:C.goodBg,border:'1px solid '+C.goodBdr,padding:'1px 5px',borderRadius:2,marginRight:6}},'PAID'):
+                              React.createElement('span',{style:{fontSize:10,color:daysSinceDrop>60?C.danger:daysSinceDrop>30?C.warn:C.muted,marginRight:8,padding:'1px 5px',borderRadius:2,background:daysSinceDrop>60?C.dangerBg:daysSinceDrop>30?C.warnBg:'transparent'}},daysSinceDrop+'d aging'),
+                            React.createElement('span',{style:{display:'flex',alignItems:'center',gap:6}},
+                              React.createElement('span',{style:{color:isOverdue?C.danger:C.muted,marginRight:4,fontSize:11}},'due '+r.due),
+                              React.createElement('span',{style:{fontWeight:600,textDecoration:isPaid?'line-through':'none'}},'$'+r.amt.toLocaleString()),
+                              React.createElement('button',{onClick:function(e){e.stopPropagation();toggleGLPaid(r.label);},style:{padding:'2px 6px',fontSize:8,fontWeight:600,border:'1px solid '+(isPaid?C.border:C.good+'66'),background:isPaid?'transparent':C.good+'11',color:isPaid?C.dim:C.good,borderRadius:2,cursor:'pointer',fontFamily:'inherit',marginLeft:4}},isPaid?'undo':'paid'))),
+                          !isPaid&&isOpen&&r.breakdown&&React.createElement('div',{style:{padding:'6px 0 8px 18px',borderBottom:'1px solid '+C.border}},
                             r.breakdown.map(function(b,bi){
                               return React.createElement('div',{key:bi,style:{display:'flex',justifyContent:'space-between',padding:'3px 0',fontSize:11}},
                                 React.createElement('div',{style:{flex:1}},
@@ -4930,7 +4985,7 @@ window._STRAIN_DB=[
                     {s:7,t:'Packing Slip',d:'Generate packing slip with strain, qty, batch #, METRC tag. Include in shipment box.',p:null,c:null},
                     {s:8,t:'Photo Documentation',d:'Photograph: (1) labeled product, (2) packing slip, (3) sealed cases. Upload to Drive.',p:'Google Drive',c:null},
                     {s:9,t:'Final QC Sign-off',d:'Second person verifies: label accuracy, METRC match, unit count, seal integrity. Sign packing slip.',p:null,c:null},
-                    {s:10,t:'Release to Distribution',d:'Confirm transfer in METRC. Notify UpNorth (Ian) with manifest details and ETA.',p:null,c:null}
+                    {s:10,t:'Release to Distribution',d:'Confirm transfer in METRC. Notify UpNorth (Ian, Brand Manager) with manifest details and ETA.',p:null,c:null}
                   ];
                   var SOPS=[
                     {k:'carts',l:'Vape Carts',c:'#6fa8d6',steps:CART_STEPS,cost:'$5.50 all-in'},
@@ -5080,8 +5135,8 @@ window._STRAIN_DB=[
                     var FOUNDER_ROLES=['Manufacturing','Distribution','Sourcing','Accounting','Sales','Brand + Events','Compliance','Technology'];
                     var SUPPORT=[
                       {name:'Jonah',title:'Sales Director',scope:'Account mgmt, pricing, demos',color:C.good},
-                      {name:'Eric Ervin',title:'Field Rep',scope:'NorCal + Central CA',color:C.info},
-                      {name:'Brandyn',title:'Field Rep',scope:'SoCal',color:C.danger}
+                      {name:'Eric Ervin',title:'NorCal + Central CA Sales Mgr',scope:'NorCal + Central CA field ops',color:C.info},
+                      {name:'Brandyn',title:'SoCal Sales Mgr',scope:'SoCal field ops',color:C.danger}
                     ];
                     var VENDORS=[
                       {name:'Greenline Labs',role:'Extraction + Filling',color:C.good},
@@ -5149,8 +5204,8 @@ window._STRAIN_DB=[
                     var TASKS=[
                       {area:'Manufacturing',icon:'\u2699',color:C.warn,items:['Manage extraction runs at Greenline Labs','Oversee vape cart filling (hardware, oil, assembly)','Coordinate concentrate production (badder, sauce, diamonds)','Post-processing decisions (decarb, liquid diamond conversion)','Batch tracking, yield analysis, quality control','Production scheduling + drop cadence planning']},
                       {area:'Sourcing',icon:'\uD83C\uDF31',color:'#8bc34a',items:['Source ALL input biomass directly from California farms','Negotiate biomass pricing ($0.74\u20131.02/g self-funded)','Source ALL hardware (Octave 1ML Quad carts, jars, caps)','Source packaging (Treeform custom boxes, labels, poptops)','Manage vendor relationships + reorder cadence','Inbound shipment tracking (air + ground)']},
-                      {area:'Distribution',icon:'\uD83D\uDE9A',color:C.info,items:['Manage UpNorth relationship (Ian, Drew Pavlos)','Zone allocation strategy (NorCal/Central/SoCal)','Inventory balancing across 3 distribution hubs','Transfer logistics + compliance documentation','Payout reconciliation (45-day terms after month close)','Monitor sell-through velocity by zone + account']},
-                      {area:'Sales + Store Visits',icon:'\uD83D\uDCB0',color:C.good,items:['Personal store visits for demos + relationship building','Pricing strategy + wholesale menu management','Coordinate reps: Jonah (Director), Eric (NorCal), Brandyn (SoCal)','Opportunity pipeline monitoring + follow-up','Suggested order generation for each account','Monday zone email campaigns to drive reorders']},
+                      {area:'Distribution',icon:'\uD83D\uDE9A',color:C.info,items:['Manage UpNorth relationship (Ian — Brand Manager, Drew Pavlos)','Zone allocation strategy (NorCal/Central/SoCal)','Inventory balancing across 3 distribution hubs','Transfer logistics + compliance documentation','Payout reconciliation (45-day terms after month close)','Monitor sell-through velocity by zone + account']},
+                      {area:'Sales + Store Visits',icon:'\uD83D\uDCB0',color:C.good,items:['Personal store visits for demos + relationship building','Pricing strategy + wholesale menu management','Coordinate sales team: Jonah (Sales Director), Eric (NorCal/Central CA Sales Mgr), Brandyn (SoCal Sales Mgr)','Opportunity pipeline monitoring + follow-up','Suggested order generation for each account','Monday zone email campaigns to drive reorders']},
                       {area:'Accounting + Finance',icon:'\uD83D\uDCC8',color:'#e91e63',items:['ALL bookkeeping — AP/AR, invoicing, reconciliation','Cash flow projection + 6-month outlook','COGS tracking per unit across all product categories','Greenline invoice verification ($70K+ across 10 invoices)','Amex float management ($26K revolving on $30K limit)','Revenue reporting, P&L, margin analysis','COD transition planning + vendor term negotiation']},
                       {area:'Brand + Events',icon:'\u2B50',color:C.purple,items:['ALL strain naming + genetics documentation','ALL product photography + brand asset management','Trade show attendance + planning (HOF, MJBiz, Emerald Cup, NCIA)','Merch ordering (dab mats, stickers, branded materials)','Digital presence + retailer-facing marketing materials','Label design (front circle sticker, back compliance sticker)']},
                       {area:'Compliance',icon:'\uD83D\uDCCB',color:'#f44336',items:['METRC batch tracking + tag management','COA management (Encore Labs PDF parsing)','California packaging compliance (THC warnings, symbols)','Label generation (OL5275 front, OL285WX back, RL926TT thermal)','License maintenance + regulatory monitoring','SOP documentation + team training']},
@@ -5196,7 +5251,7 @@ window._STRAIN_DB=[
                         '</div>'+
                         '<div style="border-left:3px solid #EF9F27;padding:12px 14px;margin-bottom:8px;background:#EF9F2708">'+
                         '<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:700">\u2778 Account Penetration</span><span style="font-size:11px;color:#EF9F27;font-weight:700">'+whitespace+'% whitespace</span></div>'+
-                        '<div style="font-size:11px;color:#ccc;margin-top:4px;line-height:1.5">Only '+penetration+'% of '+totalAccounts+' distribution accounts are currently active. Each new drop triggers reorder cycles at existing accounts and first orders at dormant ones. 3 field reps (Jonah, Eric, Brandyn) are actively demoing into untapped accounts.</div>'+
+                        '<div style="font-size:11px;color:#ccc;margin-top:4px;line-height:1.5">Only '+penetration+'% of '+totalAccounts+' distribution accounts are currently active. Each new drop triggers reorder cycles at existing accounts and first orders at dormant ones. 3 sales managers (Jonah, Eric, Brandyn) are actively demoing into untapped accounts.</div>'+
                         '</div>'+
                         '<div style="border-left:3px solid #e91e63;padding:12px 14px;margin-bottom:8px;background:#e91e6308">'+
                         '<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:700">\u2779 Production Cadence</span><span style="font-size:11px;color:#e91e63;font-weight:700">5,000\u20136,000 units/drop</span></div>'+
@@ -5298,7 +5353,7 @@ window._STRAIN_DB=[
                         '</div></div>'+
                         '<p class="note">Valuation premiums: vertically integrated supply chain, '+Math.round(grossMargin)+'% gross margins, '+totalAccounts+' retail accounts across 3 CA zones, established vendor relationships, proprietary strain library ('+skuCount+' SKUs), and operational analytics platform (GPI).</p></div>');
                       // Slide 12: Team
-                      slides.push('<div class="slide"><h2>Team &amp; Operations</h2><div class="team"><div class="person"><strong>Dylan</strong> \u00b7 Founder/CEO \u2014 Operations, finance, production, strategy</div><div class="person"><strong>Jonah</strong> \u00b7 Sales Director \u2014 Account management, pricing, demos</div><div class="person"><strong>Eric Ervin</strong> \u00b7 NorCal + Central CA field rep</div><div class="person"><strong>Brandyn</strong> \u00b7 SoCal field rep</div></div><h3 style="margin-top:20px">Key Partners</h3><div class="team"><div class="person"><strong>Greenline Labs</strong> \u2014 Extraction + filling (Moss Landing, CA)</div><div class="person"><strong>Encore Labs</strong> \u2014 Testing + COAs</div><div class="person"><strong>UpNorth</strong> \u2014 Statewide distribution (3 zones)</div><div class="person"><strong>Treeform</strong> \u2014 Custom packaging</div></div></div>');
+                      slides.push('<div class="slide"><h2>Team &amp; Operations</h2><div class="team"><div class="person"><strong>Dylan</strong> \u00b7 Founder/CEO \u2014 Operations, finance, production, strategy</div><div class="person"><strong>Ian</strong> \u00b7 Brand Manager \u2014 UpNorth liaison, compliance, logistics</div><div class="person"><strong>Jonah</strong> \u00b7 Sales Director \u2014 Account management, pricing, demos</div><div class="person"><strong>Eric Ervin</strong> \u00b7 NorCal + Central CA Sales Manager</div><div class="person"><strong>Brandyn</strong> \u00b7 SoCal Sales Manager</div></div><h3 style="margin-top:20px">Key Partners</h3><div class="team"><div class="person"><strong>Greenline Labs</strong> \u2014 Extraction + filling (Moss Landing, CA)</div><div class="person"><strong>Encore Labs</strong> \u2014 Testing + COAs</div><div class="person"><strong>UpNorth</strong> \u2014 Statewide distribution (3 zones)</div><div class="person"><strong>Treeform</strong> \u2014 Custom packaging</div></div></div>');
 
                       var css='*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,system-ui,sans-serif;background:#000;color:#fff}'+
                         '.slide{width:100%;max-width:800px;margin:0 auto 40px;padding:48px 40px;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:12px;min-height:500px;page-break-after:always}'+
@@ -5311,7 +5366,7 @@ window._STRAIN_DB=[
                         'table{width:100%;border-collapse:collapse;margin-top:16px;font-size:12px}th{text-align:left;padding:8px;border-bottom:2px solid #333;color:#999;font-weight:600}td{padding:8px;border-bottom:1px solid #1a1a1a}'+
                         '.team{margin-top:12px}.person{padding:10px 14px;border-bottom:1px solid #1a1a1a;font-size:13px;line-height:1.5}'+
                         '@media print{body{background:#000}.slide{border:none;margin:0;page-break-after:always;max-width:100%}}';
-                      w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>GLOBS Investor Deck</title><style>'+css+'</style></head><body>'+slides.join('')+'<div style="text-align:center;padding:40px;font-size:10px;color:#666">CONFIDENTIAL \u00b7 GLOBS \u00b7 v7.0</div></body></html>');
+                      w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>GLOBS Investor Deck</title><style>'+css+'</style></head><body>'+slides.join('')+'<div style="text-align:center;padding:40px;font-size:10px;color:#666">CONFIDENTIAL \u00b7 GLOBS \u00b7 v7.1</div></body></html>');
                       w.document.close();
                     }
 
@@ -6838,7 +6893,7 @@ const YIELD_KEY = 'gpi-yield-log';
             }, "Unlock"),
             err && React.createElement("div", { style: { marginTop: 12, fontSize: 11, color: "#f44336", letterSpacing: 0.5 } }, "Incorrect password")
           ),
-          React.createElement("div", { style: { marginTop: 20, fontSize: 9, color: "#1e2736", letterSpacing: 2, textTransform: "uppercase" } }, "GLOBS · CONFIDENTIAL · v7.0")
+          React.createElement("div", { style: { marginTop: 20, fontSize: 9, color: "#1e2736", letterSpacing: 2, textTransform: "uppercase" } }, "GLOBS · CONFIDENTIAL · v7.1")
         )
       );
     }
