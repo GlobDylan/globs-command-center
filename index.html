@@ -2296,11 +2296,12 @@ window._STRAIN_DB=[
                       // ── Raw Materials: purchased but not yet in a batch ──
                       // These are updated manually as orders land or get used
                       var RAW=[
-                        {label:'Cart Boxes (Treeform PO34521)',detail:'11,000 × $0.21 · air shipped Apr 7 · none allocated',qty:11000,unitCost:0.21,amt:2310},
-                        {label:'20ct Master Cases (PO34525)',detail:'550 × $1.63 · air shipped',qty:550,unitCost:1.63,amt:896.50},
-                        {label:'TE Lid Labels',detail:'Stock on hand',qty:4000,unitCost:0.04,amt:160},
-                        {label:'Concentrate Boxes',detail:'Stock on hand · 6K deducted for Drop #5',qty:2000,unitCost:0.16,amt:320},
-                        {label:'Tubes (Treeform)',detail:'Stock on hand',qty:1000,unitCost:0.08,amt:80}
+                        {label:'Cart Boxes (Treeform PO34521)',detail:'11,000 × $0.21 · arrived Apr 7 · for future cart drops',qty:11000,unitCost:0.21,amt:2310},
+                        {label:'20ct Master Cases (PO34525)',detail:'550 × $1.63 · air shipped · for future cart drops',qty:550,unitCost:1.63,amt:896.50},
+                        {label:'Jars + Caps',detail:'INV36807 fully allocated (Drop 3/3B/5) — 0 remaining',qty:0,unitCost:0.35,amt:0},
+                        {label:'Concentrate Boxes',detail:'6K deducted for Drop #5 — remaining stock',qty:0,unitCost:0.16,amt:0},
+                        {label:'TE Lid Labels',detail:'6K deducted for Drop #5 — remaining stock',qty:0,unitCost:0.04,amt:0},
+                        {label:'Tubes (Treeform)',detail:'Cart tubes · not touched by Drop #5',qty:1000,unitCost:0.08,amt:80}
                       ];
                       var rawTotal=RAW.reduce(function(s,r){return s+r.amt;},0);
 
