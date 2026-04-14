@@ -2147,21 +2147,32 @@ window._STRAIN_DB=[
                   var STAGE_LABELS={MFG:'Production',LAB:'Testing',COMPLIANCE:'Compliance',PKG:'Packaging',TRANSFER:'Pickup',DISTRO:'Distribution',SALE:'Sale',COLLECT:'Collection',PAYOUT:'Payout'};
                   var STAGE_ICONS={MFG:'🔬',LAB:'🧪',COMPLIANCE:'✓',PKG:'📦',TRANSFER:'🚛',DISTRO:'🏪',SALE:'💰',COLLECT:'📋',PAYOUT:'💵'};
                   // Compute live sell-through per batch from Salesforce XLSX data
-                  // Matches strains by normalized name + category, sums units + revenue
+                  // Uses period-filtered SKU data to avoid counting sales from other batches
                   var _strainAbbrev={icpj:'icecreampaintjob',snsd:'sweetnsour diesel',gc:'grandmascookies',fg:'frozengrapes',wtb:'wagyutrufflebutter',mc:'modifiedcherries',hb:'headband'};
                   function batchLiveData(batch,pipeCategory){
                     if(!displayAccounts||displayAccounts.length===0)return null;
-                    var catMatch=pipeCategory==='VAPE CARTS'?function(c){var lc=c.toLowerCase();return lc.includes('cart')||lc.includes('vape');}:pipeCategory==='EXTRACTS'?function(c){var lc=c.toLowerCase();return lc.includes('badder')||lc.includes('sauce')||lc.includes('concentrate')||lc.includes('shatter')||lc.includes('diamond');}:function(){return true;};
-                    // For extract batches, also narrow by specific sub-category
+                    // Determine days since batch hit distro/sale
+                    var distroDate=batch.milestones.SALE||batch.milestones.DISTRO||batch.milestones.TRANSFER;
+                    var daysSinceDrop=365;
+                    if(distroDate){
+                      var pts=distroDate.split(' ');// "Apr 9" or "Apr 10"
+                      var dts=new Date(pts[0]+' '+pts[1]+', 2026');
+                      if(!isNaN(dts))daysSinceDrop=Math.max(1,Math.round((Date.now()-dts.getTime())/86400000));
+                    }
+                    // Pick the smallest period that covers the batch's sales window
+                    var usePeriod=daysSinceDrop<=7?7:daysSinceDrop<=30?30:daysSinceDrop<=60?60:daysSinceDrop<=90?90:daysSinceDrop<=180?180:365;
+                    // Category matching
+                    var isCarts=pipeCategory==='VAPE CARTS';
+                    var catMatch=isCarts?function(c){var lc=c.toLowerCase();return lc.includes('cart')||lc.includes('vape');}:function(c){var lc=c.toLowerCase();return lc.includes('badder')||lc.includes('sauce')||lc.includes('concentrate')||lc.includes('shatter')||lc.includes('diamond');};
+                    // Sub-category for extract batches
                     var subCatMatch=null;
                     if(batch.id.toLowerCase().includes('badder'))subCatMatch=function(c){return c.toLowerCase().includes('badder');};
                     else if(batch.id.toLowerCase().includes('sauce'))subCatMatch=function(c){return c.toLowerCase().includes('sauce');};
-                    // Build normalized strain set from batch
+                    // Normalize batch strain names
                     var batchNK={};
                     (batch.strains||[]).forEach(function(s){
                       var nk=s.toLowerCase().replace(/[^a-z0-9]/g,'');
                       batchNK[nk]=true;
-                      // Also expand abbreviations
                       if(_strainAbbrev[nk])batchNK[_strainAbbrev[nk]]=true;
                     });
                     var totalUnits=0,totalRev=0,matchedAccounts=0;
@@ -2176,19 +2187,21 @@ window._STRAIN_DB=[
                           if(sn===bk||sn.includes(bk)||bk.includes(sn))matched=true;
                         });
                         if(!matched)return;
-                        var qty=s.totalQty||0;
-                        var rev=qty*(s.wholesale||0);
-                        totalUnits+=qty;
-                        totalRev+=rev;
+                        // Use period-filtered units instead of totalQty
+                        var pUnits=s.periodUnits&&s.periodUnits[usePeriod]?s.periodUnits[usePeriod]:(s.totalQty||0);
+                        var ws=s.wholesale||batch.ws||0;
+                        totalUnits+=pUnits;
+                        totalRev+=pUnits*ws;
                         if(!accMatched){accMatched=true;matchedAccounts++;}
                       });
                     });
                     // Cap at batch units
                     if(totalUnits>batch.units)totalUnits=batch.units;
-                    if(totalRev>batch.total)totalRev=batch.total;
-                    var avgPrice=totalUnits>0?totalRev/totalUnits:batch.ws;
+                    var cappedRev=totalUnits*(totalUnits>0?totalRev/Math.max(1,totalUnits):batch.ws);
+                    if(cappedRev>batch.total)cappedRev=batch.total;
+                    var avgPrice=totalUnits>0?cappedRev/totalUnits:batch.ws;
                     var onHand=Math.max(0,batch.units-totalUnits);
-                    return{unitsSold:totalUnits,revSold:totalRev,onHand:onHand,avgPrice:avgPrice,accounts:matchedAccounts};
+                    return{unitsSold:totalUnits,revSold:Math.round(cappedRev),onHand:onHand,avgPrice:avgPrice,accounts:matchedAccounts,period:usePeriod,daysSinceDrop:daysSinceDrop};
                   }
                   var pipelines=[
                     {name:'VAPE CARTS',color:'#6fa8d6',batches:[
@@ -2442,7 +2455,7 @@ window._STRAIN_DB=[
                                   <span style={{color:C.muted}}>Avg Price Realized</span><span style={{fontWeight:700}}>{'$'+bAvgPrice.toFixed(2)}</span>
                                 </div>
                                 <div style={{display:'flex',justifyContent:'space-between'}}>
-                                  <span style={{color:C.muted}}>Revenue Collected</span><span style={{fontWeight:700,color:C.good}}>{'$'+actualRev.toLocaleString()+(live?' · LIVE':'')}</span>
+                                  <span style={{color:C.muted}}>Revenue Collected</span><span style={{fontWeight:700,color:C.good}}>{'$'+actualRev.toLocaleString()+(live?' · LIVE '+live.period+'d':'')}</span>
                                 </div>
                                 {bOnHand>0&&<div style={{display:'flex',justifyContent:'space-between'}}>
                                   <span style={{color:C.muted}}>Revenue Pending ({bOnHand} × ${bAvgPrice.toFixed(2)})</span><span style={{fontWeight:600,color:'#d4a24c'}}>{'$'+Math.round(bOnHand*bAvgPrice).toLocaleString()}</span>
