@@ -1182,6 +1182,7 @@ window._STRAIN_DB=[
         (window._DD||[]).forEach(function(d){coordMap[d[0].toLowerCase().replace(/[^a-z0-9]/g,'')]={x:d[2],y:d[3],ct:d[4]};});
         // Build scored list from displayAccounts
         var allRoutes=[];
+        var _dbgCoord=0,_dbgRev=0;
         ['DNU','RB','ZASP'].forEach(function(zoneKey){
           var pool=[];
           displayAccountsAll.forEach(function(a){
@@ -1190,9 +1191,11 @@ window._STRAIN_DB=[
             if(zk!==zoneKey)return;
             var nk=a.name.toLowerCase().replace(/[^a-z0-9]/g,'');
             var co=coordMap[nk];if(!co)return;
+            _dbgCoord++;
             var pr=a.periodRevenue||{};
             var rev365=Math.round(pr[365]||0),rev90=Math.round(pr[90]||0),rev30=Math.round(pr[30]||0);
             if(rev365<=0)return;
+            _dbgRev++;
             var tier=computeTier(a.orderDayTs);
             var isLegacy=tier.label==='Legacy',isRising=tier.label==='On The Rise';
             var annualized30=rev30*12;
@@ -1243,7 +1246,7 @@ window._STRAIN_DB=[
         });
         setRideAlongs({routes:allRoutes,generated:new Date().toISOString()});
         if(allRoutes.length>0)toast('\u2713 Generated '+allRoutes.length+' ride-along routes');
-        else toast('\u26a0 No routes generated \u2014 check that accounts have zone + coordinate data');
+        else toast('\u26a0 0 routes: '+displayAccountsAll.length+' accounts, '+Object.keys(coordMap).length+' coords, '+_dbgCoord+' matched, '+_dbgRev+' w/rev');
       }
       const [zoneFlipped, setZoneFlipped] = useState({});
       const [dRep, setDRep] = useState(function(){try{var s=JSON.parse(sessionStorage.getItem('gpi-session'));if(s&&s.repName&&s.role==='distro')return s.repName;return'ALL';}catch(e){return'ALL';}});// dispatch rep filter
