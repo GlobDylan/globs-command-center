@@ -1187,6 +1187,8 @@ window._STRAIN_DB=[
           var pool=[];
           displayAccountsAll.forEach(function(a){
             if(!a.hasSalesData)return;
+            if(oRep!=='ALL'&&(a.rep||'')!==oRep)return;
+            if(oZone!=='ALL'&&toZoneKey(a.zone)!==oZone)return;
             var zk=toZoneKey(a.zone);
             if(zk!==zoneKey)return;
             var nk=a.name.toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -1245,8 +1247,8 @@ window._STRAIN_DB=[
           allRoutes=allRoutes.concat(zoneRoutes);
         });
         setRideAlongs({routes:allRoutes,generated:new Date().toISOString()});
-        if(allRoutes.length>0)toast('\u2713 Generated '+allRoutes.length+' ride-along routes');
-        else toast('\u26a0 0 routes: '+displayAccountsAll.length+' accounts, '+Object.keys(coordMap).length+' coords, '+_dbgCoord+' matched, '+_dbgRev+' w/rev');
+        if(allRoutes.length>0)toast('\u2713 Generated '+allRoutes.length+' ride-along routes'+(oRep!=='ALL'?' for '+oRep:''));
+        else toast('\u26a0 0 routes: '+displayAccountsAll.length+' accounts, '+Object.keys(coordMap).length+' coords, '+_dbgCoord+' matched, '+_dbgRev+' w/rev'+(oRep!=='ALL'?' (filtered: '+oRep+')':''));
       }
       const [zoneFlipped, setZoneFlipped] = useState({});
       const [dRep, setDRep] = useState(function(){try{var s=JSON.parse(sessionStorage.getItem('gpi-session'));if(s&&s.repName&&s.role==='distro')return s.repName;return'ALL';}catch(e){return'ALL';}});// dispatch rep filter
@@ -3343,101 +3345,6 @@ window._STRAIN_DB=[
                       })()}
                       {authRole==='distro'&&authUser&&authUser.repName&&React.createElement('div',{style:{padding:'6px 12px',marginBottom:14,background:'#6fa8d611',border:'1px solid #6fa8d633',borderRadius:4,fontSize:10,color:'#6fa8d6',fontWeight:600}},'\u{1F464} Viewing: '+authUser.name+(authUser.title?' · '+authUser.title:'')+' · '+(authUser.repName||''))}
 
-                      {/* ── RIDE ALONG RESULTS ── */}
-                      {rideAlongs && rideAlongs.routes.length > 0 && (
-                        <div style={{marginBottom:20,background:C.surface,border:'1px solid #d4a24c33',borderRadius:6,padding:16}}>
-                          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
-                            <div>
-                              <div style={{fontSize:13,fontWeight:800,color:'#d4a24c',letterSpacing:1}}>RIDE ALONG ITINERARY</div>
-                              <div style={{fontSize:11,color:C.dim,marginTop:2}}>2 days per zone · {rideAlongs.routes.length} total trips · prioritized by upside + legacy</div>
-                            </div>
-                            <div style={{display:'flex',gap:6}}>
-                            {(function(){
-                              var raDate=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-                              var raBody='GLOBS RIDE ALONG ITINERARY\n'+raDate+'\n'+rideAlongs.routes.length+' trips · 2 days per zone\n\n';
-                              ['DNU','RB','ZASP'].forEach(function(zk){
-                                var zr=rideAlongs.routes.filter(function(r){return r.zone===zk;});
-                                if(!zr.length)return;
-                                raBody+=(ZN[zk]||zk)+' — '+zr.length+' days\n';
-                                zr.forEach(function(r){
-                                  raBody+='  Day '+r.dayNum+': '+r.region+' ('+r.stops.length+' stops · '+curK(r.rev365)+' rev)\n';
-                                  r.stops.forEach(function(s,si){raBody+='    '+(si+1)+'. '+s.nm+' — '+s.city+'\n';});
-                                  raBody+='\n';
-                                });
-                              });
-                              raBody+='— GPI Command Center';
-                              var bs={padding:'4px 10px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit'};
-                              return shareActions('Globs Ride Along - '+raDate,raBody,bs);
-                            })()}
-                            <button onClick={function(){setRideAlongs(null);}} style={{padding:'4px 10px',borderRadius:3,fontSize:11,cursor:'pointer',border:'1px solid '+C.border,background:'transparent',color:C.dim}}>Dismiss</button>
-                            </div>
-                          </div>
-                          {['DNU','RB','ZASP'].map(function(zk) {
-                            var zoneRoutes = rideAlongs.routes.filter(function(r) { return r.zone === zk; });
-                            if (zoneRoutes.length === 0) return null;
-                            var zoneColor = ZC[zk] || '#888';
-                            var zoneTotalRev = zoneRoutes.reduce(function(s,r){ return s + r.rev365; }, 0);
-                            var zoneTotalStops = zoneRoutes.reduce(function(s,r){ return s + r.stops.length; }, 0);
-                            return (
-                              <div key={zk} style={{marginBottom:16}}>
-                                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 12px',background:zoneColor+'11',border:'1px solid '+zoneColor+'33',borderRadius:4,marginBottom:8}}>
-                                  <div style={{display:'flex',alignItems:'center',gap:8}}>
-                                    <span style={{width:10,height:10,borderRadius:'50%',background:zoneColor}}></span>
-                                    <span style={{fontSize:12,fontWeight:800,letterSpacing:1}}>{ZN[zk]||zk}</span>
-                                    <span style={{fontSize:11,color:C.dim}}>{zoneTotalStops} stops · {zoneRoutes.length} days</span>
-                                  </div>
-                                  <span style={{fontSize:12,fontWeight:700,color:zoneColor}}>{curK(zoneTotalRev)}</span>
-                                </div>
-                                {zoneRoutes.map(function(route, ri) {
-                                  return (
-                                    <div key={ri} style={{marginBottom:8,background:'#050505',borderRadius:6,border:'1px solid '+zoneColor+'22',overflow:'hidden'}}>
-                                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 14px',background:'#111',borderBottom:'1px solid #1a1a1a'}}>
-                                        <div style={{display:'flex',alignItems:'center',gap:10}}>
-                                          <span style={{fontSize:16,fontWeight:900,color:zoneColor}}>Day {route.dayNum}</span>
-                                          <span style={{fontSize:12,fontWeight:600}}>{route.region}</span>
-                                          <span style={{fontSize:11,color:C.dim}}>{route.stops.length} stops</span>
-                                        </div>
-                                        <div style={{textAlign:'right'}}>
-                                          <div style={{fontSize:12,fontWeight:700}}>{curK(route.rev365)} <span style={{fontSize:11,color:C.dim,fontWeight:400}}>365d rev</span></div>
-                                          <div style={{fontSize:11,color:zoneColor}}>{route.legacyCount} legacy · {curK(route.upside)} upside</div>
-                                        </div>
-                                      </div>
-                                <div style={{padding:'8px 14px'}}>
-                                  {route.stops.map(function(stop, si) {
-                                    var statusColor = TC2[stop.status] || '#888';
-                                    return (
-                                      <div key={si} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 0',borderBottom:si<route.stops.length-1?'1px solid #151515':'none',cursor:'pointer'}} onClick={function(){window._goAcct(stop.nm);}}>
-                                        <div style={{width:20,textAlign:'center'}}>
-                                          <div style={{fontSize:12,fontWeight:800,color:'#d4a24c'}}>{si+1}</div>
-                                        </div>
-                                        <div style={{width:4,height:28,borderRadius:2,background:statusColor,flexShrink:0}}></div>
-                                        <div style={{flex:1,minWidth:0}}>
-                                          <div style={{fontSize:12,fontWeight:600,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{stop.nm}</div>
-                                          <div style={{fontSize:11,color:C.dim}}>{stop.city} · {TN2[stop.status]||'—'}</div>
-                                        </div>
-                                        <div style={{display:'flex',gap:4,flexWrap:'wrap',justifyContent:'flex-end',flexShrink:0}}>
-                                          {stop.tags.map(function(tag, ti) {
-                                            var tagBg = tag === 'LEGACY' ? '#7cb87a22' : tag.includes('UPSIDE') ? '#d4a24c22' : tag === 'WIN BACK' || tag === 'DECLINING' ? '#f4433622' : '#88888822';
-                                            var tagC = tag === 'LEGACY' ? '#7cb87a' : tag.includes('UPSIDE') ? '#d4a24c' : tag === 'WIN BACK' || tag === 'DECLINING' ? '#f44336' : '#888';
-                                            return <span key={ti} style={{fontSize:10,fontWeight:700,padding:'1px 5px',borderRadius:2,background:tagBg,color:tagC,letterSpacing:0.5,whiteSpace:'nowrap'}}>{tag}</span>;
-                                          })}
-                                        </div>
-                                        <div style={{textAlign:'right',flexShrink:0,minWidth:50}}>
-                                          <div style={{fontSize:11,fontWeight:700}}>{curK(stop.rev365)}</div>
-                                          <div style={{fontSize:10,color:stop.rev30>0?C.good:C.dim}}>{stop.rev30>0?curK(stop.rev30)+'/30d':'inactive'}</div>
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                            );
-                          })}
-                        </div>
-                      )}
                       <div style={{display:'flex',gap:14,flexWrap:'wrap',marginBottom:12}}>{ZONES.map(function(z){return buildZone(z);})}</div>
                       <div id="gpi-ddet" style={{display:'none',background:C.surface,borderRadius:4,padding:'10px 14px',fontSize:10,marginBottom:16}}></div>
                       {dPriceVerify&&React.createElement('div',{style:{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.85)',zIndex:999,display:'flex',alignItems:'center',justifyContent:'center',padding:16},onClick:function(){setDPriceVerify(null);}},
@@ -3891,8 +3798,32 @@ window._STRAIN_DB=[
                       })()
                     ),
                     rideAlongs&&rideAlongs.routes.length>0?React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:14,marginBottom:16}},
-                      React.createElement('div',{style:{fontSize:13,fontWeight:700,letterSpacing:2,marginBottom:4}},'\uD83D\uDE97 RIDE ALONG ROUTES'),
-                      React.createElement('div',{style:{fontSize:10,color:C.dim,marginBottom:10}},rideAlongs.routes.length+' trips \u00b7 2 days per zone'),
+                      React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}},
+                        React.createElement('div',null,
+                          React.createElement('div',{style:{fontSize:13,fontWeight:700,letterSpacing:2}},'\uD83D\uDE97 RIDE ALONG ROUTES'),
+                          React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:2}},rideAlongs.routes.length+' trips'+(oRep!=='ALL'?' \u00b7 '+oRep:''))
+                        ),
+                        React.createElement('div',{style:{display:'flex',gap:4,alignItems:'center'}},
+                          (function(){
+                            var raDate=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+                            var raBody='GLOBS RIDE ALONG ITINERARY\n'+raDate+'\n'+rideAlongs.routes.length+' trips'+(oRep!=='ALL'?' \u00b7 '+oRep:'')+'\n\n';
+                            ['DNU','RB','ZASP'].forEach(function(zk){
+                              var zr=rideAlongs.routes.filter(function(r){return r.zone===zk;});
+                              if(!zr.length)return;
+                              raBody+=(DZN2[zk]||zk)+'\n';
+                              zr.forEach(function(r){
+                                raBody+='  Day '+r.dayNum+': '+r.region+' ('+r.stops.length+' stops \u00b7 $'+Math.round(r.rev365).toLocaleString()+' rev)\n';
+                                r.stops.forEach(function(s,si){raBody+='    '+(si+1)+'. '+s.nm+' \u2014 '+s.city+(s.tags.length?' ['+s.tags.join(', ')+']':'')+' $'+Math.round(s.rev365).toLocaleString()+'\n';});
+                                raBody+='\n';
+                              });
+                            });
+                            raBody+='\u2014 GPI Command Center';
+                            var bs={padding:'4px 10px',borderRadius:3,fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'inherit'};
+                            return shareActions('Globs Ride Along - '+raDate,raBody,bs);
+                          })(),
+                          React.createElement('button',{onClick:function(){setRideAlongs(null);},style:{padding:'4px 10px',borderRadius:3,fontSize:10,cursor:'pointer',border:'1px solid '+C.border,background:'transparent',color:C.dim,fontFamily:'inherit'}},'\u2715')
+                        )
+                      ),
                       ['DNU','RB','ZASP'].map(function(zk){
                         var zr=rideAlongs.routes.filter(function(r){return r.zone===zk;});
                         if(zr.length===0)return null;
