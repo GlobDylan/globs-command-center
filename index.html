@@ -3890,6 +3890,36 @@ window._STRAIN_DB=[
                         return React.createElement('div',{style:{display:'flex',gap:6,marginLeft:'auto'}},shareActions(subj,body,bs));
                       })()
                     ),
+                    rideAlongs&&rideAlongs.routes.length>0?React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:14,marginBottom:16}},
+                      React.createElement('div',{style:{fontSize:13,fontWeight:700,letterSpacing:2,marginBottom:4}},'\uD83D\uDE97 RIDE ALONG ROUTES'),
+                      React.createElement('div',{style:{fontSize:10,color:C.dim,marginBottom:10}},rideAlongs.routes.length+' trips \u00b7 2 days per zone'),
+                      ['DNU','RB','ZASP'].map(function(zk){
+                        var zr=rideAlongs.routes.filter(function(r){return r.zone===zk;});
+                        if(zr.length===0)return null;
+                        var zc=DZC2[zk]||'#888';
+                        return React.createElement('div',{key:'ra-'+zk,style:{marginBottom:10}},
+                          React.createElement('div',{style:{fontSize:11,fontWeight:700,color:zc,marginBottom:4}},(DZN2[zk]||zk)),
+                          zr.map(function(route,ri){
+                            return React.createElement('div',{key:ri,style:{background:C.bg,borderLeft:'3px solid '+zc,borderRadius:4,padding:'8px 12px',marginBottom:4}},
+                              React.createElement('div',{style:{display:'flex',justifyContent:'space-between',marginBottom:4}},
+                                React.createElement('span',{style:{fontSize:11,fontWeight:700}},'Day '+route.dayNum+' \u2014 '+route.region),
+                                React.createElement('span',{style:{fontSize:10,fontWeight:600,color:zc}},curK(route.rev365))
+                              ),
+                              React.createElement('div',{style:{fontSize:9,color:C.dim,marginBottom:4}},route.stops.length+' stops \u00b7 '+route.legacyCount+' legacy \u00b7 '+curK(route.upside)+' upside'),
+                              route.stops.map(function(stop,si){
+                                return React.createElement('div',{key:si,style:{display:'flex',justifyContent:'space-between',padding:'3px 0',borderTop:si>0?'1px solid '+C.border+'22':'none',fontSize:10}},
+                                  React.createElement('span',{style:{fontWeight:600}},stop.nm),
+                                  React.createElement('div',{style:{display:'flex',gap:4,alignItems:'center'}},
+                                    stop.tags.slice(0,2).map(function(t){return React.createElement('span',{key:t,style:{fontSize:7,fontWeight:700,padding:'1px 3px',borderRadius:2,background:t==='LEGACY'?C.good+'22':t.includes('DECLIN')?C.danger+'22':C.warn+'22',color:t==='LEGACY'?C.good:t.includes('DECLIN')?C.danger:C.warn}},t);}),
+                                    React.createElement('span',{style:{color:C.dim}},curK(stop.rev365))
+                                  )
+                                );
+                              })
+                            );
+                          })
+                        );
+                      })
+                    ):null,
                     React.createElement('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:8}},
                       React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}},oFilt.length+' opportunities'),
                       React.createElement('button',{onClick:function(){var allOpen=oFilt.every(function(o){return openOpps[o.name];});var next={};oFilt.forEach(function(o){next[o.name]=!allOpen;});setOpenOpps(next);},style:{fontSize:10,color:C.dim,background:'transparent',border:'1px solid '+C.border,borderRadius:2,padding:'3px 10px',cursor:'pointer',fontFamily:'inherit',letterSpacing:1}},oFilt.every(function(o){return openOpps[o.name];})?'▲ COLLAPSE ALL':'▼ EXPAND ALL')
