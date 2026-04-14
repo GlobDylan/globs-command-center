@@ -586,7 +586,6 @@ window._STRAIN_DB=[
       });
       const PERIODS=[7,30,60,90,180,270,365];
       let fMax=0;
-      let futureOrderCount=0,futureOrderRev=0;
       Object.values(accs).forEach(function(a) {
         (a._rows||[]).forEach(function(r) {
           if (!r.date) return;
@@ -596,14 +595,23 @@ window._STRAIN_DB=[
         });
       });
       if (!fMax) fMax=Date.now();
-      // Cap at today — future-dated orders (scheduled) should not shift the window
       var nowTs=Date.now();
-      var anchorTs=Math.min(fMax,nowTs);
+      var nowDate=new Date(nowTs);
       const cutoff={};
-      PERIODS.forEach(function(d) { cutoff[d]=anchorTs-d*86400000; });
+      PERIODS.forEach(function(d) { cutoff[d]=nowTs-d*86400000; });
+      // Calendar period boundaries
+      var wd=nowDate.getDay();var mondayOffset=wd===0?6:(wd-1);// days since Monday
+      var thisWkStart=new Date(nowDate.getFullYear(),nowDate.getMonth(),nowDate.getDate()-mondayOffset).getTime();
+      var lastWkStart=thisWkStart-7*86400000;
+      var lastWkEnd=thisWkStart;
+      var thisMoStart=new Date(nowDate.getFullYear(),nowDate.getMonth(),1).getTime();
+      var lastMoEnd=thisMoStart;
+      var lastMoStart=new Date(nowDate.getFullYear(),nowDate.getMonth()-1,1).getTime();
+      var ytdStart=new Date(nowDate.getFullYear(),0,1).getTime();
       Object.values(accs).forEach(function(a) {
         a.periodRevenue={7:0,30:0,60:0,90:0,180:0,270:0,365:0};
         a.periodCatRevenue={7:{},30:{},60:{},90:{},180:{},270:{},365:{}};
+        a.calRevenue={thisWk:0,lastWk:0,thisMo:0,lastMo:0,ytd:0};
         a.skuPeriodUnits={};
         a._futureRev=0;a._futureOrders=0;
         (a._rows||[]).forEach(function(r) {
@@ -611,8 +619,8 @@ window._STRAIN_DB=[
           const pts=r.date.split('/');
           const ts=new Date(parseInt(pts[2]),parseInt(pts[0])-1,parseInt(pts[1])).getTime();
           if (isNaN(ts)) return;
-          // Flag future-dated orders
-          if(ts>nowTs){a._futureRev+=r.extPrice;a._futureOrders++;futureOrderCount++;futureOrderRev+=r.extPrice;return;}
+          // Tag pipeline orders (delivery dates after today) but still count their revenue
+          if(ts>nowTs){a._futureRev+=r.extPrice;a._futureOrders++;}
           PERIODS.forEach(function(d) {
             if (ts>=cutoff[d]) {
               a.periodRevenue[d]+=r.extPrice;
@@ -624,6 +632,12 @@ window._STRAIN_DB=[
               }
             }
           });
+          // Calendar periods
+          if(ts>=thisWkStart)a.calRevenue.thisWk+=r.extPrice;
+          if(ts>=lastWkStart&&ts<lastWkEnd)a.calRevenue.lastWk+=r.extPrice;
+          if(ts>=thisMoStart)a.calRevenue.thisMo+=r.extPrice;
+          if(ts>=lastMoStart&&ts<lastMoEnd)a.calRevenue.lastMo+=r.extPrice;
+          if(ts>=ytdStart)a.calRevenue.ytd+=r.extPrice;
         });
         a.revenue90=a.periodRevenue[90]; a.catRevenue90=a.periodCatRevenue[90];
         const ods={};
@@ -875,7 +889,23 @@ window._STRAIN_DB=[
       );
     }
 
-    function AccountRow({account,open,onToggle,skuAvgs,periodDays,returnsLog}){
+    // Calendar period helpers (top-level so AccountRow can access)
+    function calRev(a,p){
+      if(!p||!a)return 0;
+      if(a.calRevenue&&a.calRevenue[p]!=null)return a.calRevenue[p];
+      if(typeof p==='number'&&a.periodRevenue)return a.periodRevenue[p]||0;
+      return a.totalSales||0;
+    }
+    var ACCT_PERIODS=[
+      {key:'thisWk',label:'This Wk'},
+      {key:'lastWk',label:'Last Wk'},
+      {key:'thisMo',label:'This Mo'},
+      {key:'lastMo',label:'Last Mo'},
+      {key:90,label:'90d'},
+      {key:'ytd',label:'YTD'}
+    ];
+
+    function AccountRow({account,open,onToggle,skuAvgs,periodDays,acctPeriod,returnsLog}){
       const [section,setSection]=useState("pricing");
       const tier=computeTier(account.orderDayTs),tax=getTaxRate(account.name);
       const isCorp=account.allLocations||account.name.toLowerCase().includes("corporate");
@@ -893,6 +923,7 @@ window._STRAIN_DB=[
       const stCount=periodSkus.filter(function(s){return s.soldThrough;}).length;
       const periodSkuCount=periodSkus.length;
       const periodRev=(account.periodRevenue&&account.periodRevenue[periodDays]!=null)?account.periodRevenue[periodDays]:account.totalSales;
+      const periodLabel=periodDays+'d';
       const cadLabel=cad.cadenceDays?(cad.cadenceDays<14?cad.cadenceDays+'d':cad.cadenceDays<60?Math.round(cad.cadenceDays/7)+'wk':Math.round(cad.cadenceDays/30)+'mo'):null;
       return(
         <div style={{marginBottom:6}}>
@@ -908,12 +939,15 @@ window._STRAIN_DB=[
                 <span style={{color:C.dim,fontSize:10}}>{open?'▼':'▶'}</span>
               </div>
             </div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6,marginBottom:6}}>
+            <div style={{display:'grid',gridTemplateColumns:account.futureRev>0?'repeat(4,1fr)':'repeat(3,1fr)',gap:6,marginBottom:6}}>
               <div style={{background:C.bg,borderRadius:4,padding:'5px 0',textAlign:'center'}}>
                 <div style={{fontSize:14,fontWeight:800,color:account.hasSalesData?C.text:C.dim}}>{account.hasSalesData?curK(periodRev):'—'}</div>
-                <div style={{fontSize:9,color:C.dim}}>{periodDays}d Rev</div>
-                {account.futureRev>0&&<div style={{fontSize:8,color:'#00bcd4',marginTop:2}}>+{curK(account.futureRev)} scheduled</div>}
+                <div style={{fontSize:9,color:C.dim}}>{periodLabel} Rev</div>
               </div>
+              {account.futureRev>0&&<div style={{background:C.good+'11',borderRadius:4,padding:'5px 0',textAlign:'center'}}>
+                <div style={{fontSize:14,fontWeight:800,color:C.good}}>{curK(account.futureRev)}</div>
+                <div style={{fontSize:9,color:C.good}}>Pipeline</div>
+              </div>}
               <div style={{background:C.bg,borderRadius:4,padding:'5px 0',textAlign:'center'}}>
                 <div style={{fontSize:14,fontWeight:800}}>{periodSkuCount>0?periodSkuCount:rows.length>0?rows.length:'—'}</div>
                 <div style={{fontSize:9,color:C.dim}}>SKUs</div>
@@ -1137,36 +1171,46 @@ window._STRAIN_DB=[
       },[lightMode]);
       function toggleTheme(){setLightMode(function(p){return !p;});}
       const [periodDays,setPeriodDays]=useState(365);
+      const [acctPeriod,setAcctPeriod]=useState('thisMo');
       const [rideAlongs, setRideAlongs] = useState(null);
       function generateRideAlongs(){
-        var dd=window._DD_live||window._DD||[];
+        if(!displayAccountsAll||displayAccountsAll.length===0){toast('\u26a0 Upload Salesforce XLSX first');return;}
         var _ZN={RB:'RB UpNorth',DNU:'DNU-YZ-HUB',ZASP:'ZASP'};
+        function toZoneKey(z){var s=(z||'').toLowerCase();if(s.includes('upnorth')||s==='rb upnorth'||s==='rb')return'RB';if(s.includes('dnu')||s.includes('yz'))return'DNU';if(s.includes('zasp'))return'ZASP';return'RB';}
+        // Build coordinate lookup from hardcoded _DD
+        var coordMap={};
+        (window._DD||[]).forEach(function(d){coordMap[d[0].toLowerCase().replace(/[^a-z0-9]/g,'')]={x:d[2],y:d[3],ct:d[4]};});
+        // Build scored list from displayAccounts
         var allRoutes=[];
         ['DNU','RB','ZASP'].forEach(function(zoneKey){
-          var pool=dd.filter(function(d){return d[1]===zoneKey&&d[12]>0;});
-          if(pool.length===0)return;
-          var scored=pool.map(function(d){
-            var rev365=d[12]||0,rev90=d[9]||0,rev30=d[7]||0;
-            var isLegacy=d[5]==='L',isRising=d[5]==='R';
+          var pool=[];
+          displayAccountsAll.forEach(function(a){
+            if(!a.hasSalesData)return;
+            var zk=toZoneKey(a.zone);
+            if(zk!==zoneKey)return;
+            var nk=a.name.toLowerCase().replace(/[^a-z0-9]/g,'');
+            var co=coordMap[nk];if(!co)return;
+            var pr=a.periodRevenue||{};
+            var rev365=Math.round(pr[365]||0),rev90=Math.round(pr[90]||0),rev30=Math.round(pr[30]||0);
+            if(rev365<=0)return;
+            var tier=computeTier(a.orderDayTs);
+            var isLegacy=tier.label==='Legacy',isRising=tier.label==='On The Rise';
             var annualized30=rev30*12;
             var upsideGap=Math.max(0,rev365-annualized30);
-            var upsideScore=upsideGap*0.4;
-            var legacyBonus=isLegacy?rev365*0.35:0;
-            var declineRatio=rev365>0?(rev365-rev90)/rev365:0;
-            var declineScore=Math.max(0,declineRatio)*rev365*0.25;
-            var risingBonus=isRising&&rev30>0?rev30*2:0;
-            var revenueWeight=rev365*0.15;
-            var totalScore=upsideScore+legacyBonus+declineScore+risingBonus+revenueWeight;
+            var totalScore=upsideGap*0.4+(isLegacy?rev365*0.35:0)+Math.max(0,rev365>0?(rev365-rev90)/rev365:0)*rev365*0.25+(isRising&&rev30>0?rev30*2:0)+rev365*0.15;
             var tags=[];
+            var dr=rev365>0?(rev365-rev90)/rev365:0;
             if(isLegacy)tags.push('LEGACY');
-            if(declineRatio>0.5)tags.push('DECLINING');else if(declineRatio>0.25)tags.push('COOLING');
+            if(dr>0.5)tags.push('DECLINING');else if(dr>0.25)tags.push('COOLING');
             if(upsideGap>2000)tags.push('HIGH UPSIDE');else if(upsideGap>500)tags.push('UPSIDE');
             if(isRising&&rev30>0)tags.push('MOMENTUM');
             if(rev30===0&&rev90>0)tags.push('GONE QUIET');
             if(rev30===0&&rev90===0&&rev365>0)tags.push('WIN BACK');
-            return{nm:d[0],zone:d[1],city:d[4],status:d[5],x:d[2],y:d[3],rev365:rev365,rev90:rev90,rev30:rev30,score:totalScore,tags:tags,upsideGap:upsideGap};
-          }).sort(function(a,b){return b.score-a.score;});
-          var topPool=scored.slice(0,30);
+            pool.push({nm:a.name.replace(/ - Corporate$/i,''),zone:zoneKey,city:co.ct,status:isLegacy?'L':isRising?'R':'N',x:co.x,y:co.y,rev365:rev365,rev90:rev90,rev30:rev30,score:totalScore,tags:tags,upsideGap:upsideGap});
+          });
+          if(pool.length===0)return;
+          pool.sort(function(a,b){return b.score-a.score;});
+          var topPool=pool.slice(0,30);
           var used={};
           var zoneRoutes=[];
           for(var routeNum=0;routeNum<2&&topPool.length>0;routeNum++){
@@ -1198,7 +1242,8 @@ window._STRAIN_DB=[
           allRoutes=allRoutes.concat(zoneRoutes);
         });
         setRideAlongs({routes:allRoutes,generated:new Date().toISOString()});
-        toast('\u2713 Generated '+allRoutes.length+' ride-along routes');
+        if(allRoutes.length>0)toast('\u2713 Generated '+allRoutes.length+' ride-along routes');
+        else toast('\u26a0 No routes generated \u2014 check that accounts have zone + coordinate data');
       }
       const [zoneFlipped, setZoneFlipped] = useState({});
       const [dRep, setDRep] = useState(function(){try{var s=JSON.parse(sessionStorage.getItem('gpi-session'));if(s&&s.repName&&s.role==='distro')return s.repName;return'ALL';}catch(e){return'ALL';}});// dispatch rep filter
@@ -1412,7 +1457,7 @@ window._STRAIN_DB=[
       useEffect(function(){boot();},[]); // eslint-disable-line
       async function boot(){
         // v7.1 migration: clear cached accounts with cross-category price contamination
-        try{if(!localStorage.getItem('gpi:v71-cache-v3')){await window.storage.delete('gpi-accounts');await window.storage.delete('gpi-inventory');await window.storage.delete('gpi-promo-accounts');localStorage.setItem('gpi:v71-cache-v3','1');localStorage.removeItem('gpi:sf-load-time');}}catch(e){}
+        try{if(!localStorage.getItem('gpi:s7-full-reset')){await window.storage.delete('gpi-accounts');await window.storage.delete('gpi-inventory');await window.storage.delete('gpi-promo-accounts');localStorage.setItem('gpi:s7-full-reset','1');localStorage.removeItem('gpi:sf-load-time');}}catch(e){}
         async function load(k,s){try{const r=await window.storage.get(k);if(r)s(JSON.parse(r.value));}catch(e){}}
         await load("gpi-accounts",setAccounts);
         await load("gpi-promo-accounts",setPromoAccounts);
@@ -1964,21 +2009,33 @@ window._STRAIN_DB=[
                 {/* ══ ACCOUNTS ══ */}
                 {tab==="accounts"&&(
                   <>
-                    {(function(){var ddMap={};(window._DD||[]).forEach(function(d){ddMap[d[0].toLowerCase().replace(/[^a-z0-9]/g,'')]=d[4];});var uCities={};var acctCount=0;var totalFutureRev=0;displayAccounts.forEach(function(a){var rev=(a.periodRevenue&&a.periodRevenue[periodDays])||0;if(rev<=0)return;acctCount++;var nk=a.name.toLowerCase().replace(/[^a-z0-9]/g,'');var city=ddMap[nk];if(city)uCities[city]=true;totalFutureRev+=(a.futureRev||0);});var tRev=displayAccounts.reduce(function(s,a){return s+(a.periodRevenue&&a.periodRevenue[periodDays]||0);},0);return(
-                    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(140px,1fr))',gap:12,marginBottom:18,textAlign:'center'}}>
-                      <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'14px 10px'}}>
-                        <div style={{fontSize:22,fontWeight:900}}>{acctCount}</div>
-                        <div style={{fontSize:11,color:C.dim,letterSpacing:1.5,marginTop:2}}>ACTIVE ({periodDays}D)</div>
+                    {(function(){var ddMap={};(window._DD||[]).forEach(function(d){ddMap[d[0].toLowerCase().replace(/[^a-z0-9]/g,'')]=d[4];});var uCities={};var acctCount=0;var totalFutureRev=0;
+                    displayAccounts.forEach(function(a){var rev=(a.periodRevenue&&a.periodRevenue[periodDays])||0;if(rev<=0)return;acctCount++;var nk=a.name.toLowerCase().replace(/[^a-z0-9]/g,'');var city=ddMap[nk];if(city)uCities[city]=true;totalFutureRev+=(a.futureRev||0);});
+                    var tRev=displayAccounts.reduce(function(s,a){return s+(a.periodRevenue&&a.periodRevenue[periodDays]||0);},0);
+                    var fmt=function(d){return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'});};
+                    var rangeLabel=fmt(Date.now()-periodDays*86400000)+' – '+fmt(Date.now());
+                    return(
+                    <div style={{display:'grid',gridTemplateColumns:totalFutureRev>0?'1fr 1fr 1fr 1fr':'1fr 1fr 1fr',gap:10,marginBottom:18,textAlign:'center'}}>
+                      <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'12px 8px'}}>
+                        <div style={{fontSize:20,fontWeight:900}}>{acctCount}</div>
+                        <div style={{fontSize:10,color:C.dim,letterSpacing:1,marginTop:2}}>ACTIVE ({periodDays}D)</div>
+                        <div style={{fontSize:8,color:C.dim,marginTop:2}}>{rangeLabel}</div>
                       </div>
-                      <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'14px 10px'}}>
-                        <div style={{fontSize:22,fontWeight:900}}>{Object.keys(uCities).length}</div>
-                        <div style={{fontSize:11,color:C.dim,letterSpacing:1.5,marginTop:2}}>CITIES</div>
+                      <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'12px 8px'}}>
+                        <div style={{fontSize:20,fontWeight:900}}>{curK(tRev)}</div>
+                        <div style={{fontSize:10,color:C.dim,letterSpacing:1,marginTop:2}}>REVENUE ({periodDays}D)</div>
+                        <div style={{fontSize:8,color:C.dim,marginTop:2}}>{rangeLabel}</div>
                       </div>
-                      <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'14px 10px'}}>
-                        <div style={{fontSize:22,fontWeight:900}}>{curK(tRev)}</div>
-                        <div style={{fontSize:11,color:C.dim,letterSpacing:1.5,marginTop:2}}>REVENUE ({periodDays}D)</div>
-                        {totalFutureRev>0&&<div style={{fontSize:9,color:'#00bcd4',marginTop:3}}>+{curK(totalFutureRev)} scheduled</div>}
+                      <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'12px 8px'}}>
+                        <div style={{fontSize:20,fontWeight:900}}>{Object.keys(uCities).length}</div>
+                        <div style={{fontSize:10,color:C.dim,letterSpacing:1,marginTop:2}}>CITIES</div>
+                        <div style={{fontSize:8,color:C.dim,marginTop:2}}>{rangeLabel}</div>
                       </div>
+                      {totalFutureRev>0&&<div style={{background:C.good+'11',border:'1px solid '+C.good+'33',borderRadius:6,padding:'12px 8px'}}>
+                        <div style={{fontSize:20,fontWeight:900,color:C.good}}>{curK(totalFutureRev)}</div>
+                        <div style={{fontSize:10,color:C.good,letterSpacing:1,marginTop:2}}>PIPELINE</div>
+                        <div style={{fontSize:8,color:C.good+'aa',marginTop:2}}>This week +</div>
+                      </div>}
                     </div>);})()}
                     <div style={{marginBottom:14}}>
                       <div style={{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:6}}>PERIOD</div>
@@ -1995,7 +2052,7 @@ window._STRAIN_DB=[
                     </div>
                     <div style={{border:'1px solid '+C.border,borderRadius:6,overflow:'hidden'}}>
                       {filteredAccounts.length===0&&<div style={{padding:40,textAlign:'center',color:C.dim,fontSize:12}}>No accounts match</div>}
-                      {filteredAccounts.map(function(acc){return<AccountRow key={acc.name} account={acc} open={!!openAccts[acc.name]} onToggle={function(){setOpenAccts(function(p){const n=Object.assign({},p);n[acc.name]=!n[acc.name];return n;});}} skuAvgs={skuAvgs} periodDays={periodDays} returnsLog={returnsLog}/>;}) }
+                      {filteredAccounts.map(function(acc){return<AccountRow key={acc.name} account={acc} open={!!openAccts[acc.name]} onToggle={function(){setOpenAccts(function(p){const n=Object.assign({},p);n[acc.name]=!n[acc.name];return n;});}} skuAvgs={skuAvgs} periodDays={periodDays} acctPeriod={acctPeriod} returnsLog={returnsLog}/>;}) }
                     </div>
                     {filteredAccounts.length>0&&<div style={{display:'flex',gap:8,marginTop:10}}><button style={Object.assign({},btnSt('ghost'),{fontSize:10,color:C.dim})} onClick={function(){const o={};filteredAccounts.forEach(function(a){o[a.name]=true;});setOpenAccts(o);}}>Expand All</button><button style={Object.assign({},btnSt('ghost'),{fontSize:10,color:C.dim})} onClick={function(){setOpenAccts({});}}>Collapse All</button></div>}
                     <div style={{display:'flex',gap:10,marginTop:14,flexWrap:'wrap',alignItems:'center',padding:'10px 0',borderTop:'1px solid '+C.border}}>
@@ -2501,7 +2558,13 @@ window._STRAIN_DB=[
                               allPromos.push({account:a.name,event:eventClean,pctOff:pctLabel,reqDays:p.reqDays||'\u2014',startDate:startClean,rev:rev,orders:orders,ds:ds,verdict:verdict,verdictColor:verdictColor,score:score,reasons:reasons.join(' \u00b7 '),status:status,isPending:!status||status==='Pending',isNo:status==='No',promoKey:a.name+'|||'+eventClean+'|||'+startClean});
                             });
                           });
-                          allPromos.sort(function(a,b){if(a.isPending!==b.isPending)return a.isPending?-1:1;return b.rev-a.rev;});
+                          allPromos.sort(function(a,b){
+                            // Pending first, then newest to oldest by start date
+                            if(a.isPending!==b.isPending)return a.isPending?-1:1;
+                            var da=a.startDate?new Date(a.startDate):new Date(0);
+                            var db=b.startDate?new Date(b.startDate):new Date(0);
+                            return db-da;
+                          });
                           var pendingCount=allPromos.filter(function(p){return p.isPending;}).length;
                           var decisionCount=allPromos.filter(function(p){return promoDecisions[p.promoKey];}).length;
                           var totalCount=allPromos.length;
