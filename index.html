@@ -2192,7 +2192,7 @@ window._STRAIN_DB=[
                   }
                   var pipelines=[
                     {name:'VAPE CARTS',color:'#6fa8d6',batches:[
-                      {id:'DROP #4 · GLO-VC-016–020',label:'5 Strains · 5,000 units · Shipping Apr 9',units:5000,unitsSold:0,onHand:5000,ws:12,avgPrice:12,total:60000,revSold:0,distroRate:0.16,stage:'TRANSFER',stageDetail:'UpNorth pickup Apr 9 — 5,000 on hand',strains:['Modified Cherries','ICPJ','Sweet n\' Sour Diesel','Headband','Grandma\'s Cookies'],milestones:{MFG:'Feb 18',LAB:'Apr 1',COMPLIANCE:'Apr 6',PKG:'Apr 6',TRANSFER:'Apr 9',COLLECT:'1 period · Apr (6-wk)',PAYOUT:'Jun 12'},salesPeriods:[
+                      {id:'DROP #4 · GLO-VC-016–020',label:'5 Strains · 5,000 units · Shipping Apr 9',units:5000,unitsSold:0,onHand:5000,ws:12,avgPrice:12,total:60000,revSold:0,distroRate:0.16,stage:'SALE',stageDetail:'Delivered Apr 9 — selling',strains:['Modified Cherries','ICPJ','Sweet n\' Sour Diesel','Headband','Grandma\'s Cookies'],milestones:{MFG:'Feb 18',LAB:'Apr 1',COMPLIANCE:'Apr 6',PKG:'Apr 6',TRANSFER:'Apr 9',DISTRO:'Apr 9',SALE:'Apr 10',COLLECT:'1 period · Apr (6-wk)',PAYOUT:'Jun 12'},salesPeriods:[
                         {month:'Apr',units:20,rev:240,payoutDate:'Jun 12',status:'PENDING'},
                       ],costs:[
                         {label:'Cart Hardware',detail:'VapeCartsCC D742 · 5K × $1.85 · Feb 18',amt:9527.50},
@@ -2355,9 +2355,10 @@ window._STRAIN_DB=[
                           var effectiveMilestones=Object.assign({},batch.milestones,storeOv.milestones||{});
                           var currentIdx=STAGES.indexOf(effectiveStage);
                           var nextStage=currentIdx<STAGES.length-1?STAGES[currentIdx+1]:null;
-                          // Live sell-through: override hardcoded data when at SALE or beyond
+                          // Live sell-through: always check XLSX for actual sales
                           var saleIdx=STAGES.indexOf('SALE');
-                          var live=currentIdx>=saleIdx?batchLiveData(batch,pipe.name):null;
+                          var live=batchLiveData(batch,pipe.name);
+                          if(live&&live.unitsSold===0)live=null;// no actual sales found
                           var bUnitsSold=live?live.unitsSold:(batch.unitsSold||0);
                           var bRevSold=live?live.revSold:(batch.revSold||0);
                           var bOnHand=live?live.onHand:(batch.onHand||0);
