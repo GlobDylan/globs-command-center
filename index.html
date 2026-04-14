@@ -1460,7 +1460,7 @@ window._STRAIN_DB=[
       const [obCatFilter,setObCatFilter]=useState('All');
       const [obShowEmail,setObShowEmail]=useState(false);
       const [obSearch,setObSearch]=useState('');
-      const [financialsView,setFinancialsView]=useState('pnl'); // 'pnl' | 'cashflow'
+      const [financialsView,setFinancialsView]=useState('margin'); // 'margin' | 'pnl' | 'cashflow'
       const [ordersView,setOrdersView]=useState('orders'); // 'orders' | 'returns'
       const [brandView,setBrandView]=useState('assets'); // 'assets' | 'investor'
       const [investorView,setInvestorView]=useState('org'); // 'org' | 'tasks' | 'deck'
@@ -2125,8 +2125,8 @@ window._STRAIN_DB=[
                   </>
                 )}
 
-                {/* ══ EXECUTIVE ══ */}
-                {tab==="executive"&&(function(){
+                {/* ══ MARGIN ANALYSIS ══ */}
+                {tab==="financials"&&financialsView==="margin"&&(function(){
                   const CM={"Vape Cart - Live Resin":"Vape Cart","Badder":"Badder","Sauce":"Sauce","Diamonds":"Diamonds","Shatter":"Shatter","Battery":"Battery","Sample/Promo":"Sample/Promo"},cb={"Vape Cart":COGS.Cart,"Badder":COGS.Badder,"Sauce":COGS.Sauce,"Diamonds":COGS.Diamonds,"Shatter":COGS.Shatter,"Battery":COGS.Battery,"Sample/Promo":COGS.Promo};
                   const byType={};let tR=0,tC=0,tU=0;
                   displayAccounts.forEach(function(acc){const cr=(acc.periodCatRevenue&&acc.periodCatRevenue[periodDays])?acc.periodCatRevenue[periodDays]:(acc.catRevenue90||{});Object.keys(cr).forEach(function(rc){const rev=cr[rc];if(!rev||rev<=0)return;const label=CM[rc]||rc,cogs=cb[label]||COGS.Other,units=cogs.wholesale>1?Math.round(rev/cogs.wholesale):0,pc=units*cogs.cost,yourRev=rev*0.84;if(!byType[label])byType[label]={label,units:0,revenue:0,cogs:0};byType[label].units+=units;byType[label].revenue+=yourRev;byType[label].cogs+=pc;tR+=yourRev;tC+=pc;tU+=units;});});
@@ -2155,8 +2155,8 @@ window._STRAIN_DB=[
                   );
                 })()}
 
-                {/* ── PRODUCTION TO CASH PIPELINE (Executive tab addition) ── */}
-                {tab==="executive"&&(function(){
+                {/* ── PRODUCTION TO CASH PIPELINE (Briefing) ── */}
+                {tab==="briefing"&&(function(){
                   var STAGES=['MFG','LAB','COMPLIANCE','PKG','TRANSFER','DISTRO','SALE','COLLECT','PAYOUT'];
                   var STAGE_LABELS={MFG:'Production',LAB:'Testing',COMPLIANCE:'Compliance',PKG:'Packaging',TRANSFER:'Pickup',DISTRO:'Distribution',SALE:'Sale',COLLECT:'Collection',PAYOUT:'Payout'};
                   var STAGE_ICONS={MFG:'🔬',LAB:'🧪',COMPLIANCE:'✓',PKG:'📦',TRANSFER:'🚛',DISTRO:'🏪',SALE:'💰',COLLECT:'📋',PAYOUT:'💵'};
@@ -3077,7 +3077,7 @@ window._STRAIN_DB=[
                 {tab==="financials"&&(function(){
                   return(<div>
                     <div style={{display:'flex',gap:0,marginBottom:20,borderBottom:'1px solid '+C.border}}>
-                      {[['pnl','P&L'],['cashflow','Cash Flow']].map(function(sv){return<button key={sv[0]} onClick={function(){setFinancialsView(sv[0]);}} style={{flex:1,padding:'12px 8px',border:'none',borderBottom:'2px solid '+(financialsView===sv[0]?C.text:'transparent'),background:'transparent',color:financialsView===sv[0]?C.text:C.dim,cursor:'pointer',fontSize:13,fontWeight:financialsView===sv[0]?700:400,letterSpacing:1.5,textTransform:'uppercase',fontFamily:'inherit',textAlign:'center'}}>{sv[1]}</button>;})}
+                      {[['margin','Margin'],['pnl','P&L'],['cashflow','Cash Flow']].map(function(sv){return<button key={sv[0]} onClick={function(){setFinancialsView(sv[0]);}} style={{flex:1,padding:'12px 8px',border:'none',borderBottom:'2px solid '+(financialsView===sv[0]?C.text:'transparent'),background:'transparent',color:financialsView===sv[0]?C.text:C.dim,cursor:'pointer',fontSize:13,fontWeight:financialsView===sv[0]?700:400,letterSpacing:1.5,textTransform:'uppercase',fontFamily:'inherit',textAlign:'center'}}>{sv[1]}</button>;})}
                     </div>
                   </div>);
                 })()}
