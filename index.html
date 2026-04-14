@@ -6325,14 +6325,15 @@ window._STRAIN_DB=[
                 method:'POST',headers:{'Content-Type':'application/json'},
                 body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:buildSystemPrompt(),messages:apiMsgs})
               }).then(function(r){return r.json();}).then(function(data){
-                if(data.error){setAiMessages(function(prev){return prev.concat([{role:'assistant',content:'\u26A0 '+data.error}]);});setAiLoading(false);return;}
+                if(data.error){var errMsg=typeof data.error==='string'?data.error:(data.error.message||JSON.stringify(data.error));setAiMessages(function(prev){return prev.concat([{role:'assistant',content:'\u26A0 '+errMsg}]);});setAiLoading(false);return;}
                 var reply=(data.content||[]).filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n')||'No response.';
                 setAiMessages(function(prev){return prev.concat([{role:'assistant',content:reply}]);});
                 setAiLoading(false);
                 speakText(reply);
                 setTimeout(function(){if(aiChatRef.current)aiChatRef.current.scrollTop=aiChatRef.current.scrollHeight;},50);
               }).catch(function(err){
-                setAiMessages(function(prev){return prev.concat([{role:'assistant',content:'\u26A0 Connection error: '+err.message+'. Check your proxy URL in settings.'}]);});
+                var errMsg=err&&err.message?err.message:(typeof err==='string'?err:JSON.stringify(err));
+                setAiMessages(function(prev){return prev.concat([{role:'assistant',content:'\u26A0 '+errMsg+'. Check your proxy URL in settings.'}]);});
                 setAiLoading(false);
               });
               setTimeout(function(){if(aiChatRef.current)aiChatRef.current.scrollTop=aiChatRef.current.scrollHeight;},50);
