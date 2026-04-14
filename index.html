@@ -5696,6 +5696,10 @@ window._STRAIN_DB=[
                       // Slide 10: Projections
                       slides.push('<div class="slide"><h2>Financial Projections</h2><div class="accent-bar"></div><div class="grid2"><div class="stat hl"><div class="big green">$'+Math.round(monthlyNet*6/1000)+'K</div><div class="label">6-Month Net Revenue (est)</div></div><div class="stat"><div class="big">$'+Math.round(run30/1000)+'K</div><div class="label">30d Annualized Run Rate</div></div></div><div class="grid2" style="margin-top:12px"><div class="stat"><div class="big">COD</div><div class="label">Target: May\u2013Jun 2026</div></div><div class="stat"><div class="big">$26K</div><div class="label">Amex Production Float</div></div></div><p class="note">Path to cash-on-delivery eliminates 45-day payout float. Amex $26K revolving production float at $30K limit. Greenline payment terms starting Apr 2026. All projections sourced from Salesforce 365-day trailing data.</p></div>');
                       // Slide 14: What You're Buying — IP & Assets
+                      // Greenline on-hand extract inventory (from Chere reconciliation)
+                      var glInventory={ldGrams:2708+20261,hteGrams:2033.8+14694.2,badderGrams:6083.4,biomassLbs:457};
+                      var glTotalExtract=Math.round(glInventory.ldGrams+glInventory.hteGrams+glInventory.badderGrams);
+                      var glExtractValue=Math.round(glTotalExtract*1.02);// at $1.02/g CAM rate
                       slides.push('<div class="slide"><h2>What You\u2019re Buying</h2><div class="accent-bar"></div>'+
                         '<div style="font-size:11px;color:#555;margin-bottom:24px">Complete, operational cannabis brand with zero infrastructure liabilities.</div>'+
                         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'+
@@ -5705,12 +5709,13 @@ window._STRAIN_DB=[
                         '<div style="padding:14px 16px;border-left:3px solid #6fa8d6;background:#6fa8d606;border-radius:0 10px 10px 0"><div style="font-size:11px;font-weight:700;color:#6fa8d6;margin-bottom:4px">$60K Cart Filler</div><div style="font-size:9px;color:#666">5,000+ carts/day \u00b7 1-person operation</div></div>'+
                         '<div style="padding:14px 16px;border-left:3px solid #9b8ec4;background:#9b8ec406;border-radius:0 10px 10px 0"><div style="font-size:11px;font-weight:700;color:#9b8ec4;margin-bottom:4px">'+totalAccounts+' Retail Accounts</div><div style="font-size:9px;color:#666">Salesforce CRM \u00b7 Order history \u00b7 Contact data \u00b7 3 zones</div></div>'+
                         '<div style="padding:14px 16px;border-left:3px solid #e879a0;background:#e879a006;border-radius:0 10px 10px 0"><div style="font-size:11px;font-weight:700;color:#e879a0;margin-bottom:4px">Supply Chain Contracts</div><div style="font-size:9px;color:#666">GL $75K credit \u00b7 UpNorth 16% distro \u00b7 CAM biomass rates</div></div>'+
+                        '<div style="padding:14px 16px;border-left:3px solid #4ade80;background:#4ade8006;border-radius:0 10px 10px 0"><div style="font-size:11px;font-weight:700;color:#4ade80;margin-bottom:4px">'+glTotalExtract.toLocaleString()+'g Extract at Greenline</div><div style="font-size:9px;color:#666">LD + HTE + Badder on hand \u00b7 ~$'+Math.round(glExtractValue/1000)+'K value \u00b7 + 457 lbs in queue</div></div>'+
                         '<div style="padding:14px 16px;border-left:3px solid #d4a24c;background:#d4a24c06;border-radius:0 10px 10px 0"><div style="font-size:11px;font-weight:700;color:#d4a24c;margin-bottom:4px">Domain Portfolio</div><div style="font-size:9px;color:#666">getglobs.com (merch pipeline) \u00b7 gotglobs.com (backup)</div></div>'+
-                        '<div style="padding:14px 16px;border-left:3px solid #4ade80;background:#4ade8006;border-radius:0 10px 10px 0"><div style="font-size:11px;font-weight:700;color:#4ade80;margin-bottom:4px">Brand Assets + Packaging</div><div style="font-size:9px;color:#666">Logos \u00b7 Colorways \u00b7 Custom packaging \u00b7 Label templates</div></div>'+
+                        '<div style="padding:14px 16px;border-left:3px solid #6fa8d6;background:#6fa8d606;border-radius:0 10px 10px 0"><div style="font-size:11px;font-weight:700;color:#6fa8d6;margin-bottom:4px">Brand Assets + Packaging</div><div style="font-size:9px;color:#666">Logos \u00b7 Colorways \u00b7 Custom packaging \u00b7 Label templates</div></div>'+
                         '<div style="padding:14px 16px;border-left:3px solid #00bcd4;background:#00bcd406;border-radius:0 10px 10px 0"><div style="font-size:11px;font-weight:700;color:#00bcd4;margin-bottom:4px">COA \u2192 Label Pipeline</div><div style="font-size:9px;color:#666">Encore Labs PDF parser \u00b7 In development \u00b7 Compliance label generation</div></div>'+
-                        '<div style="padding:14px 16px;border-left:3px solid #6fa8d6;background:#6fa8d606;border-radius:0 10px 10px 0"><div style="font-size:11px;font-weight:700;color:#6fa8d6;margin-bottom:4px">SOPs + Playbooks</div><div style="font-size:9px;color:#666">Cart + concentrate production workflows documented</div></div>'+
+                        '<div style="padding:14px 16px;border-left:3px solid #9b8ec4;background:#9b8ec406;border-radius:0 10px 10px 0"><div style="font-size:11px;font-weight:700;color:#9b8ec4;margin-bottom:4px">SOPs + Playbooks</div><div style="font-size:9px;color:#666">Cart + concentrate production workflows documented</div></div>'+
                         '</div>'+
-                        '<p class="note">An acquirer inherits a fully operational brand, proven revenue, proprietary technology, and below-market supply chain terms \u2014 with zero infrastructure liabilities.</p></div>');
+                        '<p class="note">An acquirer inherits a fully operational brand, proven revenue, proprietary technology, '+glTotalExtract.toLocaleString()+'g of extract inventory, and below-market supply chain terms \u2014 with zero infrastructure liabilities.</p></div>');
                       // Slide 15: Valuation
                       var annualized=monthlyGross*12;
                       var valRev=Math.round(annualized*2.5);
@@ -5720,7 +5725,8 @@ window._STRAIN_DB=[
                       var ipCartFiller=60000;// hard asset
                       var ipGPIPlatform=200000;// dev replacement cost (7,300+ lines custom platform)
                       var ipBrandAssets=40000;// trademark, domains, strain library, packaging designs
-                      var ipTotal=ipCartFiller+ipGPIPlatform+ipBrandAssets;
+                      var ipExtractInventory=Math.round((2708+20261+2033.8+14694.2+6083.4)*1.02);// GL on-hand extract at $1.02/g
+                      var ipTotal=ipCartFiller+ipGPIPlatform+ipBrandAssets+ipExtractInventory;
                       var baseVal=Math.round((valRev+valGP)/2);
                       var askPrice=Math.round((baseVal+ipTotal)/50000)*50000;
                       var askMult=annualized>0?(askPrice/annualized).toFixed(1):'?';
@@ -5735,6 +5741,7 @@ window._STRAIN_DB=[
                         '<div class="kpi-row"><span class="kpi-label">Cart filler equipment ($60K book value)</span><span class="kpi-val">$'+ipCartFiller.toLocaleString()+'</span></div>'+
                         '<div class="kpi-row"><span class="kpi-label">GPI platform (dev replacement cost)</span><span class="kpi-val">$'+ipGPIPlatform.toLocaleString()+'</span></div>'+
                         '<div class="kpi-row"><span class="kpi-label">Trademark, domains, strain library, brand assets</span><span class="kpi-val">$'+ipBrandAssets.toLocaleString()+'</span></div>'+
+                        '<div class="kpi-row"><span class="kpi-label">Extract inventory at Greenline ('+Math.round((2708+20261+2033.8+14694.2+6083.4)/1000)+'K grams)</span><span class="kpi-val">$'+ipExtractInventory.toLocaleString()+'</span></div>'+
                         '<div class="kpi-row" style="border-bottom:0.5px solid #1a1a1a"><span class="kpi-label">IP + Asset Total</span><span class="kpi-val" style="color:#00bcd4">$'+ipTotal.toLocaleString()+'</span></div>'+
                         '<div style="margin-top:24px;padding:32px;background:linear-gradient(180deg,#d4a24c08 0%,transparent 100%);border:0.5px solid #d4a24c33;border-radius:16px;text-align:center">'+
                         '<div style="font-size:9px;color:#d4a24c;letter-spacing:4px;margin-bottom:12px;font-weight:600">ACQUISITION PRICE</div>'+
