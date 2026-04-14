@@ -1837,6 +1837,37 @@ window._STRAIN_DB=[
         return actions;
       }
 
+      // Reusable screenshot share — captures element as PNG, shares via native sheet or downloads
+      function screenshotShare(elId,title){
+        var el=document.getElementById(elId);
+        if(!el||!window.html2canvas){toast('\u2717 Screenshot not available');return;}
+        var hide=el.querySelectorAll('.no-screenshot');
+        hide.forEach(function(h){h.style.display='none';});
+        el.style.padding='16px';el.style.background='#0a0a0a';
+        html2canvas(el,{backgroundColor:'#0a0a0a',scale:2,useCORS:true}).then(function(canvas){
+          el.style.padding='';el.style.background='';
+          hide.forEach(function(h){h.style.display='';});
+          canvas.toBlob(function(blob){
+            var fname=(title||'globs-share').replace(/[^a-z0-9]/gi,'-').toLowerCase()+'.png';
+            var file=new File([blob],fname,{type:'image/png'});
+            if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+              navigator.share({title:title||'Globs',files:[file]}).catch(function(){});
+            } else {
+              var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;a.click();
+            }
+          });
+        }).catch(function(){
+          el.style.padding='';el.style.background='';
+          hide.forEach(function(h){h.style.display='';});
+          toast('\u2717 Screenshot failed');
+        });
+      }
+
+      // Screenshot share button element — reusable
+      function ScreenshotBtn(props){
+        return React.createElement('button',{className:'no-screenshot',onClick:function(){screenshotShare(props.targetId,props.title);},style:{padding:'7px 16px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.info,background:C.info+'22',color:C.info,letterSpacing:0.5}},'\uD83D\uDCF2 Share');
+      }
+
       return(
         <div style={{fontFamily:"'DM Mono','Courier New',monospace",background:C.bg,minHeight:'100vh',color:C.text,transition:'background 0.2s,color 0.2s'}}>
           {/* ═══ LOGIN GATE ═══ */}
@@ -3797,30 +3828,14 @@ window._STRAIN_DB=[
                         return React.createElement('div',{style:{display:'flex',gap:6,marginLeft:'auto'}},shareActions(subj,body,bs));
                       })()
                     ),
-                    rideAlongs&&rideAlongs.routes.length>0?React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:14,marginBottom:16}},
+                    rideAlongs&&rideAlongs.routes.length>0?React.createElement('div',{id:'ride-along-screenshot',style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:14,marginBottom:16}},
                       React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}},
                         React.createElement('div',null,
                           React.createElement('div',{style:{fontSize:13,fontWeight:700,letterSpacing:2}},'\uD83D\uDE97 RIDE ALONG ROUTES'),
                           React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:2}},rideAlongs.routes.length+' trips'+(oRep!=='ALL'?' \u00b7 '+oRep:''))
                         ),
-                        React.createElement('div',{style:{display:'flex',gap:4,alignItems:'center'}},
-                          (function(){
-                            var raDate=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-                            var raBody='GLOBS RIDE ALONG ITINERARY\n'+raDate+'\n'+rideAlongs.routes.length+' trips'+(oRep!=='ALL'?' \u00b7 '+oRep:'')+'\n\n';
-                            ['DNU','RB','ZASP'].forEach(function(zk){
-                              var zr=rideAlongs.routes.filter(function(r){return r.zone===zk;});
-                              if(!zr.length)return;
-                              raBody+=(DZN2[zk]||zk)+'\n';
-                              zr.forEach(function(r){
-                                raBody+='  Day '+r.dayNum+': '+r.region+' ('+r.stops.length+' stops \u00b7 $'+Math.round(r.rev365).toLocaleString()+' rev)\n';
-                                r.stops.forEach(function(s,si){raBody+='    '+(si+1)+'. '+s.nm+' \u2014 '+s.city+(s.tags.length?' ['+s.tags.join(', ')+']':'')+' $'+Math.round(s.rev365).toLocaleString()+'\n';});
-                                raBody+='\n';
-                              });
-                            });
-                            raBody+='\u2014 GPI Command Center';
-                            var bs={padding:'4px 10px',borderRadius:3,fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'inherit'};
-                            return shareActions('Globs Ride Along - '+raDate,raBody,bs);
-                          })(),
+                        React.createElement('div',{className:'no-screenshot',style:{display:'flex',gap:4,alignItems:'center'}},
+                          React.createElement(ScreenshotBtn,{targetId:'ride-along-screenshot',title:'Globs Ride Along'}),
                           React.createElement('button',{onClick:function(){setRideAlongs(null);},style:{padding:'4px 10px',borderRadius:3,fontSize:10,cursor:'pointer',border:'1px solid '+C.border,background:'transparent',color:C.dim,fontFamily:'inherit'}},'\u2715')
                         )
                       ),
