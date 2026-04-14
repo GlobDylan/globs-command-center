@@ -2188,7 +2188,7 @@ window._STRAIN_DB=[
                         });
                         if(!matched)return;
                         // Use period-filtered units instead of totalQty
-                        var pUnits=s.periodUnits&&s.periodUnits[usePeriod]?s.periodUnits[usePeriod]:(s.totalQty||0);
+                        var pUnits=s.periodUnits?(s.periodUnits[usePeriod]||0):0;
                         var ws=s.wholesale||batch.ws||0;
                         totalUnits+=pUnits;
                         totalRev+=pUnits*ws;
