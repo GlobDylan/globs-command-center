@@ -2293,24 +2293,31 @@ window._STRAIN_DB=[
                   return(<div style={{marginTop:24}}>
                     <div style={{fontSize:11,fontWeight:800,letterSpacing:3,marginBottom:16}}>PRODUCTION → CASH PIPELINE</div>
                     {(function(){
-                      var allBatches=pipelines.reduce(function(a,p){return a.concat(p.batches);},[]);
-                      var totalProduced=allBatches.reduce(function(s,b){return s+b.units;},0);
-                      var totalSold=allBatches.reduce(function(s,b){return s+(b.unitsSold||0);},0);
-                      var totalOnHand=allBatches.reduce(function(s,b){return s+(b.onHand||0);},0);
-                      var totalRevCollected=allBatches.reduce(function(s,b){return s+(b.revSold||0);},0);
-                      var totalRevProjected=allBatches.reduce(function(s,b){return s+(b.total||0);},0);
-                      var totalProdCost=allBatches.reduce(function(s,b){return s+(b.costs?b.costs.reduce(function(cs,r){return cs+r.amt;},0):0);},0);
+                      var allBatches=pipelines.reduce(function(a,p){return a.concat(p.batches.map(function(b){return{b:b,pipe:p.name};}));},[]);
+                      var totalProduced=0,totalSold=0,totalOnHand=0,totalRevCollected=0,totalRevProjected=0,totalProdCost=0;
+                      allBatches.forEach(function(entry){
+                        var b=entry.b;
+                        var live=batchLiveData(b,entry.pipe);
+                        if(live&&live.unitsSold>0){
+                          totalProduced+=b.units;totalSold+=live.unitsSold;totalOnHand+=live.onHand;
+                          totalRevCollected+=live.revSold;totalRevProjected+=Math.max(b.total,live.revSold+(live.onHand*live.avgPrice));
+                        } else {
+                          totalProduced+=b.units;totalSold+=(b.unitsSold||0);totalOnHand+=(b.onHand||0);
+                          totalRevCollected+=(b.revSold||0);totalRevProjected+=(b.total||0);
+                        }
+                        totalProdCost+=b.costs?b.costs.reduce(function(cs,r){return cs+r.amt;},0):0;
+                      });
                       var totalDistro=Math.round(totalRevProjected*0.16);
                       var totalCOGS=totalProdCost+totalDistro;
                       var netRevCollected=totalRevCollected-Math.round(totalRevCollected*0.16);
-                      var pendingRev=allBatches.reduce(function(s,b){return s+((b.onHand||0)*(b.avgPrice||0));},0);
+                      var pendingRev=totalRevProjected-totalRevCollected;
                       var glCredit=2000;// Standing credit with GL
                       var glLimit=75000;
                       return<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:8,marginBottom:20}}>
                         <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}}>
                           <div style={{fontSize:10,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>2026 Produced</div>
                           <div style={{fontSize:20,fontWeight:800}}>{totalProduced.toLocaleString()}</div>
-                          <div style={{fontSize:10,color:C.dim}}>{allBatches.length+' batches'}</div>
+                          <div style={{fontSize:10,color:C.dim}}>{allBatches.length+' batches'+(displayAccounts.length>0?' · LIVE':'')}</div>
                         </div>
                         <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}}>
                           <div style={{fontSize:10,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>Sold / On Hand</div>
