@@ -722,14 +722,14 @@ window._STRAIN_DB=[
     const EXTRACT_CAM={ld:1.08,thca:0.95,hte:0.95};// CAM biomass ($30/lb + $40/lb toll)
     const EXTRACT_GL=1.25;// Greenline buy-back rate (they front everything)
     const COGS = {
-      Cart:{label:"Vape Cart",wholesale:12,oil:1.25,pkg:2.20,labor:1.00,testing:0.40,cost:4.85,distroRate:0.16,formula:'50% LD + 50% HTE',oilUN:0.79,oilCAM:1.02},
-      Diamonds:{label:"Diamonds",wholesale:10,oil:1.25,pkg:0.61,labor:1.00,testing:0.40,cost:3.26,distroRate:0.16,formula:'100% LD',oilUN:0.85,oilCAM:1.08},
-      Badder:{label:"Badder",wholesale:8,oil:1.25,pkg:0.61,labor:1.00,testing:0.40,cost:3.26,distroRate:0.16,formula:'60% THCa + 40% HTE',oilUN:0.74,oilCAM:0.95},
-      Sauce:{label:"Sauce",wholesale:8,oil:1.25,pkg:0.61,labor:1.00,testing:0.40,cost:3.26,distroRate:0.16,formula:'70% THCa + 30% HTE',oilUN:0.74,oilCAM:0.95},
-      Shatter:{label:"Shatter",wholesale:7,oil:1.25,pkg:0.61,labor:1.00,testing:0.40,cost:3.26,distroRate:0.16,formula:'60% THCa + 40% HTE',oilUN:0.74,oilCAM:0.95},
+      Cart:{label:"Vape Cart",wholesale:12,oil:1.02,pkg:1.91,labor:1.00,testing:0.40,cost:4.89,distroRate:0.16,formula:'50% LD + 50% HTE',oilUN:0.79,oilCAM:1.02},
+      Diamonds:{label:"Diamonds",wholesale:10,oil:1.02,pkg:0.61,labor:1.00,testing:0.40,cost:3.03,distroRate:0.16,formula:'100% LD',oilUN:0.85,oilCAM:1.08},
+      Badder:{label:"Badder",wholesale:8,oil:1.02,pkg:0.51,labor:1.00,testing:0.42,cost:2.96,distroRate:0.16,formula:'60% THCa + 40% HTE',oilUN:0.74,oilCAM:1.02},
+      Sauce:{label:"Sauce",wholesale:8,oil:1.25,pkg:0.51,labor:1.00,testing:0.40,cost:3.16,distroRate:0.16,formula:'70% THCa + 30% HTE',oilUN:0.74,oilCAM:0.95},
+      Shatter:{label:"Shatter",wholesale:7,oil:1.02,pkg:0.51,labor:1.00,testing:0.40,cost:2.93,distroRate:0.16,formula:'60% THCa + 40% HTE',oilUN:0.74,oilCAM:1.02},
       Battery:{label:"Battery",wholesale:14,oil:0,pkg:0.50,labor:0,testing:0,cost:6.00,distroRate:0.16},
-      Promo:{label:"Sample/Promo",wholesale:0.01,oil:1.25,pkg:0.61,labor:1.00,testing:0.40,cost:3.26,distroRate:0},
-      Other:{label:"Other",wholesale:8.50,oil:1.25,pkg:0.61,labor:1.00,testing:0.40,cost:3.26,distroRate:0.16}
+      Promo:{label:"Sample/Promo",wholesale:0.01,oil:1.02,pkg:0.51,labor:1.00,testing:0.40,cost:2.93,distroRate:0},
+      Other:{label:"Other",wholesale:8.50,oil:1.02,pkg:0.51,labor:1.00,testing:0.40,cost:2.93,distroRate:0.16}
     };
     // CP cost: replace oil with biomass+toll (both per lb of input, converted to per gram of output via yield)
     // biomass $/lb + toll $/lb = total input $/lb → ÷ 453.6 ÷ (yield/100) = material $/g output
@@ -5204,7 +5204,7 @@ window._STRAIN_DB=[
                   ];
                   var SOPS=[
                     {k:'carts',l:'Vape Carts',c:'#6fa8d6',steps:CART_STEPS,cost:'$4.89 all-in'},
-                    {k:'concentrates',l:'Concentrates',c:'#d4a24c',steps:CONC_STEPS,cost:'$3.98 badder / $3.16 sauce'},
+                    {k:'concentrates',l:'Concentrates',c:'#d4a24c',steps:CONC_STEPS,cost:'$2.96 badder / $3.16 sauce'},
                     {k:'extraction',l:'Extraction',c:'#7cb87a',steps:EXT_STEPS,cost:'GL handles 100%'},
                     {k:'compliance',l:'Compliance Submission',c:'#f44336',steps:COMP_STEPS,cost:'COA + METRC + Labels → Transfer'}
                   ];
@@ -5350,11 +5350,13 @@ window._STRAIN_DB=[
                   var periods=[7,30,60,90,180,365];
                   (accounts||[]).forEach(function(a){
                     totalAccounts++;
-                    if(a.zone)zoneCounts[a.zone]=(zoneCounts[a.zone]||0)+1;
+                    var zRaw=(a.zone||'').toLowerCase();
+                    var zk=zRaw.includes('upnorth')||zRaw==='rb upnorth'||zRaw==='rb'?'RB':zRaw.includes('dnu')||zRaw.includes('yz')?'DNU':zRaw.includes('zasp')?'ZASP':zRaw.length>0?'RB':'';
+                    if(zk)zoneCounts[zk]=(zoneCounts[zk]||0)+1;
                     // totalSales = true total from SF (all rows, no date filter)
                     var ts=a.totalSales||0;
                     totalSalesAll+=ts;
-                    if(ts>0){activeAll++;if(a.zone){zoneRev[a.zone]=(zoneRev[a.zone]||0)+ts;zoneActive[a.zone]=(zoneActive[a.zone]||0)+1;}}
+                    if(ts>0){activeAll++;if(zk){zoneRev[zk]=(zoneRev[zk]||0)+ts;zoneActive[zk]=(zoneActive[zk]||0)+1;}}
                     var tq=a.totalQty||0;
                     totalQtyAll+=tq;
                     periods.forEach(function(d){
@@ -5381,7 +5383,7 @@ window._STRAIN_DB=[
                   var run30=Math.round(rev[30]*12);// annualized from 30d
                   var run90=Math.round(rev[90]*4);// annualized from 90d
                   var skuCount=Object.keys(uniqueSkus).length;
-                  var COGS_CART=4.89,COGS_BADDER=3.98,COGS_SAUCE=3.16;
+                  var COGS_CART=4.89,COGS_BADDER=2.96,COGS_SAUCE=3.16;
                   // Compute blended COGS from actual category mix
                   var _tUnits=0,_tCost=0;
                   displayAccountsAll.forEach(function(acc){(acc.orderedSkus||[]).forEach(function(s){
@@ -5528,7 +5530,7 @@ window._STRAIN_DB=[
                         '</div>'+
                         '<p class="note">Early-stage MoM growth rates will moderate as the base grows, but the underlying drivers are structural and repeatable. The ceiling is determined by production capacity and capital, not market demand \u2014 a capital-efficient growth story.</p></div>');
                       // Slide 4: Unit Economics (SF-derived + COGS)
-                      slides.push('<div class="slide"><h2>Unit Economics</h2><div class="grid2"><div class="stat"><div class="big">$'+avgPrice365.toFixed(2)+'</div><div class="label">Avg Wholesale (365d Salesforce)</div></div><div class="stat"><div class="big">$'+avgPrice90.toFixed(2)+'</div><div class="label">Avg Wholesale (90d Salesforce)</div></div></div><div class="grid3" style="margin-top:12px"><div class="stat"><div class="big">$4.89</div><div class="label">Cart COGS/unit</div></div><div class="stat"><div class="big">$3.98</div><div class="label">Badder COGS/unit</div></div><div class="stat"><div class="big">$3.16</div><div class="label">Sauce COGS/unit</div></div></div><div class="grid2" style="margin-top:12px"><div class="stat hl"><div class="big green">~'+grossMargin+'%</div><div class="label">Blended Gross Margin</div></div><div class="stat"><div class="big">'+skuCount+'</div><div class="label">Active SKUs</div></div></div><p class="note">COGS includes extraction ($1.02/g CAM rate for carts/badder, $1.25/g GL for sauce), hardware, packaging, labels, filling labor ($1/unit). Self-funded biomass at $0.74\u20131.02/g. Margin calculated net of 16% distro fee.</p></div>');
+                      slides.push('<div class="slide"><h2>Unit Economics</h2><div class="grid2"><div class="stat"><div class="big">$'+avgPrice365.toFixed(2)+'</div><div class="label">Avg Wholesale (365d Salesforce)</div></div><div class="stat"><div class="big">$'+avgPrice90.toFixed(2)+'</div><div class="label">Avg Wholesale (90d Salesforce)</div></div></div><div class="grid3" style="margin-top:12px"><div class="stat"><div class="big">$4.89</div><div class="label">Cart COGS/unit</div></div><div class="stat"><div class="big">$2.96</div><div class="label">Badder COGS/unit</div></div><div class="stat"><div class="big">$3.16</div><div class="label">Sauce COGS/unit</div></div></div><div class="grid2" style="margin-top:12px"><div class="stat hl"><div class="big green">~'+grossMargin+'%</div><div class="label">Blended Gross Margin</div></div><div class="stat"><div class="big">'+skuCount+'</div><div class="label">Active SKUs</div></div></div><p class="note">COGS includes extraction ($1.02/g CAM rate for carts/badder, $1.25/g GL for sauce), hardware, packaging, labels, filling labor ($1/unit). Self-funded biomass at $0.74\u20131.02/g. Margin calculated net of 16% distro fee.</p></div>');
                       // Slide 5: Distribution (SF-sourced)
                       slides.push('<div class="slide"><h2>Distribution Footprint</h2><div class="grid3"><div class="stat"><div class="big">'+totalAccounts+'</div><div class="label">Total Accounts</div></div><div class="stat"><div class="big green">'+activeAll+'</div><div class="label">Active (365d)</div></div><div class="stat"><div class="big">'+active[90]+'</div><div class="label">Active (90d)</div></div></div><div class="zones"><div class="zone"><span class="dot" style="background:#ffeb3b"></span>NorCal (DNU) \u00b7 '+zoneActive.DNU+' active / '+zoneCounts.DNU+' total \u00b7 $'+Math.round(zoneRev.DNU/1000)+'K</div><div class="zone"><span class="dot" style="background:#6fa8d6"></span>Central CA (RB) \u00b7 '+zoneActive.RB+' active / '+zoneCounts.RB+' total \u00b7 $'+Math.round(zoneRev.RB/1000)+'K</div><div class="zone"><span class="dot" style="background:#f44336"></span>SoCal (ZASP) \u00b7 '+zoneActive.ZASP+' active / '+zoneCounts.ZASP+' total \u00b7 $'+Math.round(zoneRev.ZASP/1000)+'K</div></div><p class="note">Distributed by UpNorth across 3 California zone hubs: Arcata/Humboldt, Riverbank, Los Angeles. Account data from Salesforce.</p></div>');
                       // Slide 6: Product + Pipeline
