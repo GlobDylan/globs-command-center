@@ -2307,66 +2307,59 @@ window._STRAIN_DB=[
                         }
                         totalProdCost+=b.costs?b.costs.reduce(function(cs,r){return cs+r.amt;},0):0;
                       });
-                      var totalDistro=Math.round(totalRevProjected*0.16);
-                      var totalCOGS=totalProdCost+totalDistro;
-                      var netRevCollected=totalRevCollected-Math.round(totalRevCollected*0.16);
-                      var pendingRev=totalRevProjected-totalRevCollected;
-                      var glCredit=2000;// Standing credit with GL
-                      var glLimit=75000;
-                      return<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:8,marginBottom:20}}>
-                        <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}}>
-                          <div style={{fontSize:10,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>2026 Produced</div>
-                          <div style={{fontSize:20,fontWeight:800}}>{totalProduced.toLocaleString()}</div>
-                          <div style={{fontSize:10,color:C.dim}}>{allBatches.length+' batches'+(displayAccounts.length>0?' · LIVE':'')}</div>
-                        </div>
-                        <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}}>
-                          <div style={{fontSize:10,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>Sold / On Hand</div>
-                          <div style={{fontSize:20,fontWeight:800,color:C.good}}>{totalSold.toLocaleString()}</div>
-                          <div style={{fontSize:10,color:'#d4a24c'}}>{totalOnHand.toLocaleString()+' at UpNorth'}</div>
-                        </div>
-                        <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}}>
-                          <div style={{fontSize:10,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>Revenue Collected</div>
-                          <div style={{fontSize:20,fontWeight:800,color:C.good}}>{'$'+Math.round(totalRevCollected/1000)+'K'}</div>
-                          <div style={{fontSize:10,color:'#d4a24c'}}>{'$'+Math.round(pendingRev/1000)+'K pending'}</div>
-                        </div>
-                        <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}}>
-                          <div style={{fontSize:10,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>Production Cost</div>
-                          <div style={{fontSize:20,fontWeight:800,color:C.danger}}>{'$'+Math.round(totalProdCost/1000)+'K'}</div>
-                          <div style={{fontSize:10,color:C.dim}}>{'+ $'+Math.round(totalDistro/1000)+'K distro (16%)'}</div>
-                        </div>
-                        <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}}>
-                          <div style={{fontSize:10,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>Realized P&L</div>
-                          <div style={{fontSize:20,fontWeight:800,color:netRevCollected-Math.round(totalProdCost*(totalSold/Math.max(1,totalProduced)))>0?C.good:C.warn}}>{'$'+Math.round((netRevCollected-Math.round(totalProdCost*(totalSold/Math.max(1,totalProduced))))/1000)+'K'}</div>
-                          <div style={{fontSize:10,color:C.dim}}>{'sold units only · cost prorated'}</div>
-                        </div>
-                        <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}}>
-                          <div style={{fontSize:10,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>Projected Net</div>
-                          <div style={{fontSize:20,fontWeight:800,color:Math.round(totalRevProjected*0.84)-totalProdCost>0?C.good:C.danger}}>{'$'+Math.round((Math.round(totalRevProjected*0.84)-totalProdCost)/1000)+'K'}</div>
-                          <div style={{fontSize:10,color:'#d4a24c'}}>{'if all '+totalOnHand.toLocaleString()+' OH sell'}</div>
-                        </div>
-                        <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px'}}>
-                          <div style={{fontSize:10,color:C.dim,letterSpacing:1.5,textTransform:'uppercase'}}>GL Credit Line</div>
-                          <div style={{fontSize:20,fontWeight:800}}>{'$'+Math.round(glLimit/1000)+'K'}</div>
-                          <div style={{fontSize:10,color:C.good}}>{'$'+glCredit.toLocaleString()+' standing credit'}</div>
-                        </div>
-                        <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:4,padding:'10px 12px',gridColumn:'1 / -1'}}>
-                          <div style={{fontSize:10,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:6}}>2026 PROJECTED CASH CYCLE</div>
-                          <div style={{display:'flex',justifyContent:'space-between',flexWrap:'wrap',gap:12}}>
-                            <div>
-                              <div style={{fontSize:11,color:C.muted}}>Total Cash Invested</div>
-                              <div style={{fontSize:16,fontWeight:800,color:C.danger}}>{'$'+Math.round(totalProdCost/1000)+'K total · GL: $'+Math.round(glLimit/1000)+'K limit / 75-day terms'}</div>
-                            </div>
-                            <div>
-                              <div style={{fontSize:11,color:C.muted}}>Total Expected Revenue (all batches)</div>
-                              <div style={{fontSize:16,fontWeight:800}}>{'$'+Math.round(totalRevProjected/1000)+'K gross → $'+Math.round(totalRevProjected*0.84/1000)+'K net'}</div>
-                            </div>
-                            <div>
-                              <div style={{fontSize:11,color:C.muted}}>Projected Net Margin (all drops)</div>
-                              <div style={{fontSize:16,fontWeight:800,color:(totalRevProjected*0.84-totalProdCost)>0?C.good:C.danger}}>{'$'+Math.round((totalRevProjected*0.84-totalProdCost)/1000)+'K ('+Math.round((totalRevProjected*0.84-totalProdCost)/totalRevProjected*100)+'%)'}</div>
-                            </div>
+                      var moneyBack=Math.round(totalRevCollected*0.84);
+                      var profit=moneyBack-Math.round(totalProdCost*(totalSold/Math.max(1,totalProduced)));
+                      var unsoldValue=Math.round((totalRevProjected-totalRevCollected)*0.84);
+                      var projectedProfit=Math.round(totalRevProjected*0.84)-totalProdCost;
+                      var recoupPct=totalProdCost>0?Math.min(100,Math.round(moneyBack/totalProdCost*100)):0;
+                      var marginPct=moneyBack>0?Math.round(profit/moneyBack*100):0;
+                      var sellPct=totalProduced>0?Math.round(totalSold/totalProduced*100):0;
+                      return<div style={{marginBottom:24}}>
+                        <div style={{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:8}}>{'YOUR MONEY'+(displayAccounts.length>0?' · LIVE FROM SALESFORCE':'')}</div>
+                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:12}}>
+                          <div style={{background:C.danger+'12',border:'1px solid '+C.danger+'33',borderRadius:8,padding:'14px 16px'}}>
+                            <div style={{fontSize:10,color:C.danger,letterSpacing:1,fontWeight:600}}>YOU SPENT</div>
+                            <div style={{fontSize:24,fontWeight:900,color:C.danger,marginTop:4}}>{'$'+Math.round(totalProdCost/1000)+'K'}</div>
+                            <div style={{fontSize:10,color:C.dim,marginTop:2}}>{totalProduced.toLocaleString()+' units across '+allBatches.length+' batches'}</div>
                           </div>
-                          <div style={{marginTop:8,fontSize:11,color:C.dim,borderTop:'1px solid '+C.border,paddingTop:6}}>
-                            {'First $ out: Nov 2025 (Octave 1614) · First $ in: Jan 27 (first sale) · Next payout: Apr 10 ($38.4K Feb report) · Cycle: production to final payout spans ~4 months per drop · UpNorth terms: calendar month sales + 6-wk consignment → 2nd Friday payout · GL terms: $75K credit · 75-day net'}
+                          <div style={{background:C.good+'12',border:'1px solid '+C.good+'33',borderRadius:8,padding:'14px 16px'}}>
+                            <div style={{fontSize:10,color:C.good,letterSpacing:1,fontWeight:600}}>CAME BACK (after 16% distro)</div>
+                            <div style={{fontSize:24,fontWeight:900,color:C.good,marginTop:4}}>{'$'+Math.round(moneyBack/1000)+'K'}</div>
+                            <div style={{fontSize:10,color:C.dim,marginTop:2}}>{totalSold.toLocaleString()+' sold · '+sellPct+'% of production'}</div>
+                          </div>
+                        </div>
+                        <div style={{background:profit>0?C.good+'12':C.danger+'12',border:'1px solid '+(profit>0?C.good:C.danger)+'33',borderRadius:8,padding:'14px 16px',marginBottom:12,textAlign:'center'}}>
+                          <div style={{fontSize:10,color:profit>0?C.good:C.danger,letterSpacing:1,fontWeight:600}}>{profit>0?'PROFIT ON SOLD UNITS':'LOSS ON SOLD UNITS'}</div>
+                          <div style={{fontSize:28,fontWeight:900,color:profit>0?C.good:C.danger,marginTop:4}}>{'$'+Math.round(Math.abs(profit)/1000)+'K'}</div>
+                          <div style={{fontSize:11,color:C.muted,marginTop:2}}>{marginPct+'% margin · cost prorated to '+totalSold.toLocaleString()+' units sold'}</div>
+                        </div>
+                        <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:'14px 16px',marginBottom:12}}>
+                          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+                            <div style={{fontSize:10,color:C.warn,letterSpacing:1,fontWeight:600}}>STILL ON SHELVES</div>
+                            <div style={{fontSize:16,fontWeight:800,color:C.warn}}>{totalOnHand.toLocaleString()+' units'}</div>
+                          </div>
+                          <div style={{fontSize:11,color:C.muted}}>{'Worth ~$'+Math.round(unsoldValue/1000)+'K after distro fee if it all sells'}</div>
+                          <div style={{height:6,background:'#111',borderRadius:3,marginTop:8,overflow:'hidden'}}>
+                            <div style={{height:6,borderRadius:3,background:C.good,width:sellPct+'%'}}/>
+                          </div>
+                          <div style={{display:'flex',justifyContent:'space-between',fontSize:9,color:C.dim,marginTop:4}}>
+                            <span>{sellPct+'% sold'}</span>
+                            <span>{(100-sellPct)+'% remaining'}</span>
+                          </div>
+                        </div>
+                        <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:'14px 16px'}}>
+                          <div style={{fontSize:10,color:C.info,letterSpacing:1,fontWeight:600,marginBottom:8}}>IF EVERYTHING SELLS</div>
+                          <div style={{display:'flex',justifyContent:'space-between',fontSize:12}}>
+                            <span style={{color:C.muted}}>Total Revenue (after distro)</span>
+                            <span style={{fontWeight:700}}>{'$'+Math.round(totalRevProjected*0.84/1000)+'K'}</span>
+                          </div>
+                          <div style={{display:'flex',justifyContent:'space-between',fontSize:12,marginTop:4}}>
+                            <span style={{color:C.muted}}>Total Production Cost</span>
+                            <span style={{fontWeight:700,color:C.danger}}>{'-$'+Math.round(totalProdCost/1000)+'K'}</span>
+                          </div>
+                          <div style={{display:'flex',justifyContent:'space-between',fontSize:14,marginTop:6,paddingTop:6,borderTop:'1px solid '+C.border}}>
+                            <span style={{fontWeight:800}}>Projected Profit</span>
+                            <span style={{fontWeight:900,color:projectedProfit>0?C.good:C.danger}}>{'$'+Math.round(projectedProfit/1000)+'K ('+Math.round(projectedProfit/Math.max(1,totalRevProjected*0.84)*100)+'%)'}</span>
                           </div>
                         </div>
                       </div>;
