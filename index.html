@@ -1356,25 +1356,6 @@ window._STRAIN_DB=[
         logSecurity('PRICE_VERIFY',(authUser?authUser.name:'unknown')+' verified category pricing for '+dPriceVerify.account);
       }
 
-      function shareInvoice(){
-        if(!dInvoice)return;
-        var inv=dInvoice;
-        var text='GLOBS — SUGGESTED REORDER\n';
-        text+=inv.date+'\n\n';
-        text+='Account: '+inv.account+'\n';
-        if(inv.rep)text+='Rep: '+inv.rep+'\n';
-        text+='Target: $'+inv.budget+'\n\n';
-        text+='─────────────────────────────\n';
-        inv.lines.forEach(function(l){
-          text+=l.qty+'x  '+l.strain+' ('+l.cat+')\n';
-          text+='    @ $'+l.ws.toFixed(2)+' = $'+l.lineRev.toFixed(2)+'\n';
-        });
-        text+='─────────────────────────────\n';
-        text+='ORDER TOTAL: $'+inv.total.toFixed(2)+'\n';
-        text+='\n— Globs GPI Command Center';
-        if(navigator.share){navigator.share({title:'Globs Order — '+inv.account,text:text}).catch(function(){});}
-        else{if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){toast('✓ Invoice copied');});}}
-      }
       const [accounts,setAccounts]=useState([]);
       const [promoAccounts,setPromoAccounts]=useState([]);
       const [priceData,setPriceData]=useState({});
@@ -1818,24 +1799,6 @@ window._STRAIN_DB=[
       function btnSt(v){return{padding:'6px 14px',borderRadius:4,fontSize:11,fontWeight:600,cursor:'pointer',letterSpacing:0.2,border:v==='primary'?'none':v==='outline'?'1px solid '+C.borderHi:'1px solid '+C.border,background:v==='primary'?C.text:'transparent',color:v==='primary'?C.bg:v==='outline'?C.muted:C.dim,transition:'all 0.15s'};}
       const inp={background:C.surface,border:'1px solid '+C.border,borderRadius:3,color:C.text,fontSize:12,fontFamily:'inherit',padding:'3px 6px',width:70,textAlign:'right',outline:'none'};
       const inp2={background:C.surface,border:'1px solid '+C.border,borderRadius:3,color:C.text,fontSize:11,fontFamily:'inherit',padding:'4px 7px',outline:'none'};
-
-      // ── Reusable Share / Copy / Print actions ──
-      function shareActions(title,text,btnStyle){
-        var bs=btnStyle||{padding:'7px 18px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit'};
-        var actions=[];
-        // Share (native share sheet — works on iOS/Android)
-        if(typeof navigator!=='undefined'&&navigator.share){
-          actions.push(React.createElement('button',{key:'share',onClick:function(){navigator.share({title:title,text:text}).catch(function(){});},style:Object.assign({},bs,{border:'1px solid #6fa8d6',background:'#6fa8d6',color:'#fff'})},'📤 Share'));
-        } else {
-          // Fallback: mailto
-          actions.push(React.createElement('button',{key:'email',onClick:function(){window.location.href='mailto:?subject='+encodeURIComponent(title)+'&body='+encodeURIComponent(text);},style:Object.assign({},bs,{border:'1px solid #6fa8d6',background:'#6fa8d6',color:'#fff'})},'✉ Email'));
-        }
-        // Copy to clipboard
-        actions.push(React.createElement('button',{key:'copy',onClick:function(){if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){toast('✓ Copied to clipboard');}).catch(function(){toast('✗ Copy failed');});}else{var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('✓ Copied');}},style:Object.assign({},bs,{border:'1px solid '+C.text,background:C.text,color:C.bg})},'📋 Copy'));
-        // Print
-        actions.push(React.createElement('button',{key:'print',onClick:function(){window.print();},style:Object.assign({},bs,{border:'1px solid #fff',background:'#fff',color:'#000'})},'🖨 Print'));
-        return actions;
-      }
 
       // Reusable screenshot share — captures element as PNG, shares via native sheet or downloads
       function screenshotShare(elId,title,bgColor){
@@ -3409,7 +3372,7 @@ window._STRAIN_DB=[
                         )
                       )}
                       {dInvoice&&React.createElement('div',{style:{position:'fixed',top:0,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.85)',zIndex:999,display:'flex',alignItems:'center',justifyContent:'center',padding:16},onClick:function(){setDInvoice(null);}},
-                        React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.borderHi,borderRadius:8,padding:24,width:'100%',maxWidth:420,maxHeight:'80vh',overflowY:'auto'},onClick:function(e){e.stopPropagation();}},
+                        React.createElement('div',{id:'invoice-screenshot',style:{background:C.surface,border:'1px solid '+C.borderHi,borderRadius:8,padding:24,width:'100%',maxWidth:420,maxHeight:'80vh',overflowY:'auto'},onClick:function(e){e.stopPropagation();}},
                           React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}},
                             React.createElement('div',null,
                               React.createElement('div',{style:{fontSize:14,fontWeight:800,letterSpacing:3}},'GLOBS'),
@@ -3440,8 +3403,8 @@ window._STRAIN_DB=[
                             React.createElement('span',{style:{fontSize:11,fontWeight:800,letterSpacing:2}},'ORDER TOTAL'),
                             React.createElement('span',{style:{fontSize:18,fontWeight:800,color:C.good}},'$'+dInvoice.total.toFixed(2))
                           ),
-                          React.createElement('div',{style:{display:'flex',gap:8,marginTop:12}},
-                            React.createElement('button',{onClick:shareInvoice,style:{flex:1,padding:'10px',borderRadius:4,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'none',background:C.good,color:'#fff',letterSpacing:1}},'📤 Share Invoice'),
+                          React.createElement('div',{className:'no-screenshot',style:{display:'flex',gap:8,marginTop:12}},
+                            React.createElement(ScreenshotBtn,{targetId:'invoice-screenshot',title:'Globs Order - '+(dInvoice?dInvoice.account:'')}),
                             React.createElement('button',{onClick:function(){setDInvoice(null);},style:{padding:'10px 16px',borderRadius:4,fontSize:11,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.border,background:'transparent',color:C.dim}},'Close')
                           )
                         )
@@ -3796,7 +3759,7 @@ window._STRAIN_DB=[
                           var subj=zName+' Zone Report — '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
                           // Store for share actions
                           window._zoneExport={subj:subj,body:body};
-                          toast('\u2713 '+zName+' report ready — use Share/Copy below');
+                          toast('\u2713 '+zName+' report ready');
                         },style:{padding:'6px 12px',borderRadius:3,fontSize:11,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+zColor+'66',background:zColor+'11',color:zColor,letterSpacing:0.5}},'✉ '+zk+' ('+zAccts.length+')');
                       }),
                       window._zoneExport&&React.createElement(ScreenshotBtn,{targetId:'opp-screenshot',title:'Globs Zone Report'}),
