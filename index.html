@@ -5682,7 +5682,23 @@ window._STRAIN_DB=[
                         '<p class="note">Already built and battle-tested on live operations. Capital accelerates go-to-market.</p></div>');
                       // Slide 10: Projections
                       slides.push('<div class="slide"><h2>Financial Projections</h2><div class="accent-bar"></div><div class="grid2"><div class="stat hl"><div class="big green">$'+Math.round(monthlyNet*6/1000)+'K</div><div class="label">6-Month Net Revenue (est)</div></div><div class="stat"><div class="big">$'+Math.round(run30/1000)+'K</div><div class="label">30d Annualized Run Rate</div></div></div><div class="grid2" style="margin-top:12px"><div class="stat"><div class="big">COD</div><div class="label">Target: May\u2013Jun 2026</div></div><div class="stat"><div class="big">$26K</div><div class="label">Amex Production Float</div></div></div><p class="note">Path to cash-on-delivery eliminates 45-day payout float. Amex $26K revolving production float at $30K limit. Greenline payment terms starting Apr 2026. All projections sourced from Salesforce 365-day trailing data.</p></div>');
-                      // Slide 11: Valuation
+                      // Slide 14: What You're Buying — IP & Assets
+                      slides.push('<div class="slide"><h2>What You\u2019re Buying</h2><div class="accent-bar"></div>'+
+                        '<div style="font-size:11px;color:#555;margin-bottom:24px">Complete, operational cannabis brand with zero infrastructure liabilities.</div>'+
+                        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'+
+                        '<div style="padding:14px 16px;border-left:3px solid #d4a24c;background:#d4a24c06;border-radius:0 10px 10px 0"><div style="font-size:11px;font-weight:700;color:#d4a24c;margin-bottom:4px">GLOBS\u2122 Trademark</div><div style="font-size:9px;color:#666">Federal trademark pending \u00b7 Full brand identity</div></div>'+
+                        '<div style="padding:14px 16px;border-left:3px solid #4ade80;background:#4ade8006;border-radius:0 10px 10px 0"><div style="font-size:11px;font-weight:700;color:#4ade80;margin-bottom:4px">'+uniqueStrainNames+' Proprietary Strains</div><div style="font-size:9px;color:#666">Documented genetics \u00b7 COAs \u00b7 Proven retail velocity</div></div>'+
+                        '<div style="padding:14px 16px;border-left:3px solid #00bcd4;background:#00bcd406;border-radius:0 10px 10px 0"><div style="font-size:11px;font-weight:700;color:#00bcd4;margin-bottom:4px">GPI Command Center</div><div style="font-size:9px;color:#666">7,300+ line proprietary platform \u00b7 SaaS-ready</div></div>'+
+                        '<div style="padding:14px 16px;border-left:3px solid #6fa8d6;background:#6fa8d606;border-radius:0 10px 10px 0"><div style="font-size:11px;font-weight:700;color:#6fa8d6;margin-bottom:4px">$60K Cart Filler</div><div style="font-size:9px;color:#666">5,000+ carts/day \u00b7 1-person operation</div></div>'+
+                        '<div style="padding:14px 16px;border-left:3px solid #9b8ec4;background:#9b8ec406;border-radius:0 10px 10px 0"><div style="font-size:11px;font-weight:700;color:#9b8ec4;margin-bottom:4px">'+totalAccounts+' Retail Accounts</div><div style="font-size:9px;color:#666">Salesforce CRM \u00b7 Order history \u00b7 Contact data \u00b7 3 zones</div></div>'+
+                        '<div style="padding:14px 16px;border-left:3px solid #e879a0;background:#e879a006;border-radius:0 10px 10px 0"><div style="font-size:11px;font-weight:700;color:#e879a0;margin-bottom:4px">Supply Chain Contracts</div><div style="font-size:9px;color:#666">GL $75K credit \u00b7 UpNorth 16% distro \u00b7 CAM biomass rates</div></div>'+
+                        '<div style="padding:14px 16px;border-left:3px solid #d4a24c;background:#d4a24c06;border-radius:0 10px 10px 0"><div style="font-size:11px;font-weight:700;color:#d4a24c;margin-bottom:4px">Domain Portfolio</div><div style="font-size:9px;color:#666">getglobs.com (merch pipeline) \u00b7 gotglobs.com (backup)</div></div>'+
+                        '<div style="padding:14px 16px;border-left:3px solid #4ade80;background:#4ade8006;border-radius:0 10px 10px 0"><div style="font-size:11px;font-weight:700;color:#4ade80;margin-bottom:4px">Brand Assets + Packaging</div><div style="font-size:9px;color:#666">Logos \u00b7 Colorways \u00b7 Custom packaging \u00b7 Label templates</div></div>'+
+                        '<div style="padding:14px 16px;border-left:3px solid #00bcd4;background:#00bcd406;border-radius:0 10px 10px 0"><div style="font-size:11px;font-weight:700;color:#00bcd4;margin-bottom:4px">COA \u2192 Label Automation</div><div style="font-size:9px;color:#666">Encore Labs PDF parser \u00b7 Compliant label generation</div></div>'+
+                        '<div style="padding:14px 16px;border-left:3px solid #6fa8d6;background:#6fa8d606;border-radius:0 10px 10px 0"><div style="font-size:11px;font-weight:700;color:#6fa8d6;margin-bottom:4px">SOPs + Playbooks</div><div style="font-size:9px;color:#666">Cart + concentrate production workflows documented</div></div>'+
+                        '</div>'+
+                        '<p class="note">An acquirer inherits a fully operational brand, proven revenue, proprietary technology, and below-market supply chain terms \u2014 with zero infrastructure liabilities.</p></div>');
+                      // Slide 15: Valuation
                       var annualized=monthlyGross*12;
                       var valRev=Math.round(annualized*2.5);
                       var valGP=Math.round(annualized*(grossMargin/100)*5);
@@ -5714,7 +5730,7 @@ window._STRAIN_DB=[
                         'body{font-family:"Inter",-apple-system,system-ui,sans-serif;background:#020202;color:#e8e0d4;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;counter-reset:slide}'+
                         '.slide{width:100%;max-width:920px;margin:0 auto 80px;padding:64px 56px 56px;background:linear-gradient(180deg,#080808 0%,#050505 100%);border:0.5px solid #1a1a1a;border-radius:20px;min-height:560px;page-break-after:always;position:relative;counter-increment:slide}'+
                         '.slide::before{content:"";position:absolute;top:20px;left:24px;width:32px;height:44px;background-image:url('+LOGO_G+');background-size:contain;background-repeat:no-repeat;opacity:0.35;mix-blend-mode:screen}'+
-                        '.slide::after{content:counter(slide) " / 15";position:absolute;bottom:24px;right:32px;font-size:9px;letter-spacing:2px;font-weight:400;color:#333}'+
+                        '.slide::after{content:counter(slide) " / 16";position:absolute;bottom:24px;right:32px;font-size:9px;letter-spacing:2px;font-weight:400;color:#333}'+
                         '.cover{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:480px}'+
                         '.cover::before{content:"";position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at 50% 30%,#d4a24c06 0%,transparent 70%);border-radius:20px;pointer-events:none}'+
                         '.cover::after{display:none}'+
@@ -5767,8 +5783,8 @@ window._STRAIN_DB=[
                           React.createElement('div',{style:{fontSize:9,color:C.dim}},'Blended Margin')
                         )
                       ),
-                      React.createElement('div',{style:{fontSize:10,color:C.dim,marginBottom:8}},'Deck includes 15 slides:'),
-                      ['Cover','Revenue','Growth Drivers','Unit Economics','Distribution','Product + Velocity','Brand IP + Strains','Production Pipeline','Capital Efficiency','Competitive Landscape','Lean Operations','GPI Technology IP','Projections','Valuation + Equity','Team + Partners'].map(function(s,i){
+                      React.createElement('div',{style:{fontSize:10,color:C.dim,marginBottom:8}},'Deck includes 16 slides:'),
+                      ['Cover','Revenue','Growth Drivers','Unit Economics','Distribution','Product + Velocity','Brand IP + Strains','Production Pipeline','Capital Efficiency','Competitive Landscape','The Model','Technology IP','Projections','What You\u2019re Buying','Valuation + Equity','Team + Partners'].map(function(s,i){
                         return React.createElement('div',{key:i,style:{padding:'6px 12px',fontSize:11,color:C.muted,borderLeft:'2px solid '+C.border}},
                           React.createElement('span',{style:{color:C.dim,marginRight:8}},(i+1)+'.'),s
                         );
