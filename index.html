@@ -4415,27 +4415,35 @@ window._STRAIN_DB=[
                   var payoutDL=Math.max(0,Math.round((new Date('2026-04-13')-today)/86400000));
                   var nextGLPay=glOwedActive.filter(function(r){return new Date(r.due+' 2026')>today;}).sort(function(a,b){return new Date(a.due+' 2026')-new Date(b.due+' 2026');})[0];
                   var glDL=nextGLPay?Math.max(0,Math.round((new Date(nextGLPay.due+' 2026')-today)/86400000)):99;
-                  var DROPS=[
-                    {id:'#2',type:'Cart',produced:5138,sold:5044,oh:94,date:'2026-01-20',avgP:10.24,rev:51635,cost:Math.round(5138*COGS.Cart.cost)},
-                    {id:'#3',type:'Badder',produced:5766,sold:4173,oh:1593,date:'2026-02-10',avgP:7.34,rev:30648,cost:Math.round(5766*COGS.Badder.cost)},
-                    {id:'#3B-C',type:'Cart',produced:4630,sold:4529,oh:101,date:'2026-03-03',avgP:9.12,rev:41304,cost:Math.round(4630*COGS.Cart.cost)},
-                    {id:'#3B-S',type:'Sauce',produced:3968,sold:1689,oh:2279,date:'2026-03-03',avgP:7.41,rev:12515,cost:Math.round(3968*COGS.Sauce.cost)},
-                    {id:'#4',type:'Cart',produced:5116,sold:0,oh:5116,date:'2026-04-07',avgP:12,rev:0,cost:Math.round(5116*COGS.Cart.cost)},
-                    {id:'#5',type:'Badder',produced:6000,sold:0,oh:0,date:'2026-04-07',avgP:8,rev:0,cost:Math.round(6000*COGS.Badder.cost),stage:'MFG',note:'In production at Greenline — SNSD, ICPJ, Grandmas Cookies, Frozen Grapes, Modified Cherries, Headband'}
-                  ];
-                  var totalOH=DROPS.reduce(function(s,d){return s+d.oh;},0);
-                  var totalRev=DROPS.reduce(function(s,d){return s+d.rev;},0);
-                  var totalSold=DROPS.reduce(function(s,d){return s+d.sold;},0);
-                  // Compute real blended margin from sold units
+                  // Live stats from XLSX data instead of hardcoded DROPS
+                  var totalRev365=0,totalUnits365=0;
+                  displayAccounts.forEach(function(a){
+                    totalRev365+=(a.periodRevenue&&a.periodRevenue[365])||0;
+                    (a.orderedSkus||[]).forEach(function(s){totalUnits365+=(s.totalQty||0);});
+                  });
+                  var totalOH=0;
+                  Object.keys(inventoryData).forEach(function(k){
+                    var oh=parseInt(inventoryData[k].onHand||inventoryData[k])||0;
+                    if(oh>0)totalOH+=oh;
+                  });
+                  var totalRev=totalRev365;
+                  var totalSold=totalUnits365;
+                  // Compute live blended margin from account category data
+                  var CM_B={"Vape Cart - Live Resin":"Vape Cart","Badder":"Badder","Sauce":"Sauce","Diamonds":"Diamonds","Shatter":"Shatter","Battery":"Battery","Sample/Promo":"Sample/Promo"};
+                  var cb_B={"Vape Cart":COGS.Cart,"Badder":COGS.Badder,"Sauce":COGS.Sauce,"Diamonds":COGS.Diamonds,"Shatter":COGS.Shatter,"Battery":COGS.Battery,"Sample/Promo":COGS.Promo};
                   var totalNetRev=0,totalCogsSold=0;
-                  DROPS.forEach(function(d){
-                    if(d.sold<=0)return;
-                    var netRev=d.rev*0.84;
-                    var cogsPer=d.type==='Cart'?COGS.Cart.cost:d.type==='Badder'?COGS.Badder.cost:d.type==='Sauce'?COGS.Sauce.cost:COGS.Diamonds.cost;
-                    totalNetRev+=netRev;totalCogsSold+=d.sold*cogsPer;
+                  displayAccounts.forEach(function(acc){
+                    var cr=(acc.periodCatRevenue&&acc.periodCatRevenue[365])?acc.periodCatRevenue[365]:(acc.catRevenue90||{});
+                    Object.keys(cr).forEach(function(rc){
+                      var rev=cr[rc];if(!rev||rev<=0)return;
+                      var label=CM_B[rc]||rc;var cogs=cb_B[label]||COGS.Other;
+                      var units=cogs.wholesale>1?Math.round(rev/cogs.wholesale):0;
+                      totalNetRev+=rev*0.84;
+                      totalCogsSold+=units*cogs.cost;
+                    });
                   });
                   var blendedMargin=totalNetRev>0?((totalNetRev-totalCogsSold)/totalNetRev*100):0;
-                  var sauceOH=DROPS.filter(function(d){return d.type==='Sauce';}).reduce(function(s,d){return s+d.oh;},0);
+                  var sauceOH=0;Object.keys(inventoryData).forEach(function(k){if(k.toLowerCase().includes('sauce')){var oh=parseInt(inventoryData[k].onHand||inventoryData[k])||0;sauceOH+=oh;}});
                   var overdueAccts=displayAccounts.filter(function(a){if(!a.orderDayTs||a.orderDayTs.length<2)return false;var ts=a.orderDayTs.slice().sort(function(x,y){return x-y;});var ds=Math.round((now-ts[ts.length-1])/86400000);var gaps=[];for(var i=1;i<ts.length;i++)gaps.push((ts[i]-ts[i-1])/86400000);gaps.sort(function(x,y){return x-y;});var med=gaps[Math.floor(gaps.length/2)]||30;return ds>Math.max(med*1.5,21);});
                   var singleOrd=displayAccounts.filter(function(a){return(a.orderDayTs||[]).length<=1&&pRev(a)>100;});
                   var unresolvedRet=returnsLog.filter(function(r){return r.status!=='CREDIT APPLIED'&&r.status!=='RESOLVED'&&!r.preMarket;});
@@ -4502,7 +4510,7 @@ window._STRAIN_DB=[
                         React.createElement('span',null,'\u25CF '+totalOH.toLocaleString()+' on hand'),
                         React.createElement('span',{style:{color:C.warn}},'\u25CF ~7d lag pickup \u2192 menu')
                       ),
-                      (function(){var totalProduced=DROPS.reduce(function(s,d){return s+d.produced;},0);var gap=totalProduced-totalSold-totalOH;return gap>0?React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:6}},totalProduced.toLocaleString()+' produced \u2212 '+totalSold.toLocaleString()+' sold \u2212 '+totalOH.toLocaleString()+' OH = '+gap.toLocaleString()+' in production'):null;})()
+                      totalOH>0?React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:6}},totalOH.toLocaleString()+' units on hand at UpNorth'):null
                     ),
                     // ── DATA FRESHNESS ──
                     React.createElement('div',{style:{display:'flex',gap:12,marginBottom:16,padding:'8px 12px',background:C.raised,borderRadius:6,fontSize:9,color:C.dim,flexWrap:'wrap',alignItems:'center'}},
@@ -4821,35 +4829,8 @@ window._STRAIN_DB=[
                       ),
                       React.createElement('div',{style:{marginTop:12,padding:'10px 12px',background:C.bg,borderRadius:4,fontSize:11,color:C.dim}},'75-day terms \u00b7 Jan labor PAID \u00b7 COD target as relationship matures')
                     ),
-                    React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:10}},'BATCH TRACKER'),
-                    DROPS.map(function(d){
-                      var pct=d.produced>0?Math.round(d.sold/d.produced*100):0;
-                      var tc=d.type==='Cart'?'#6fa8d6':d.type==='Badder'?'#d4a24c':'#7cb87a';
-                      var days=networkDays(new Date(d.date),today);
-                      var vel=days>0?(d.sold/days).toFixed(0):0;
-                      var margin=d.rev>0?Math.round((d.rev*0.84-d.cost)/d.rev*100):0;
-                      var story=pct>=98?'Sold through.':pct>=80?vel+' units/day \u2014 on track to clear.':pct>=50?vel+' units/day \u2014 steady, '+Math.round(d.oh/Math.max(vel,1))+'d to clear.':pct>0?vel+' units/day \u2014 slow mover, needs push.':'Just shipped \u2014 tracking starts now.';
-                      return React.createElement('div',{key:d.id,style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'14px 16px',marginBottom:8}},
-                        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}},
-                          React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8}},
-                            React.createElement('span',{style:{fontSize:11,fontWeight:800}},d.id),
-                            React.createElement('span',{style:{fontSize:10,padding:'2px 8px',borderRadius:2,background:tc+'22',color:tc,fontWeight:700,border:'1px solid '+tc+'44'}},d.type),
-                            React.createElement('span',{style:{fontSize:11,color:C.dim}},d.date.replace('2026-',''))
-                          ),
-                          margin>0&&React.createElement('span',{style:{fontSize:11,fontWeight:700,color:margin>30?C.good:margin>20?'#6fa8d6':C.warn}},margin+'% margin')
-                        ),
-                        React.createElement('div',{style:{display:'flex',alignItems:'center',gap:10,marginBottom:6}},
-                          React.createElement('div',{style:{flex:1,height:6,background:'#111',borderRadius:3,overflow:'hidden'}},
-                            React.createElement('div',{style:{height:6,borderRadius:3,background:tc,width:pct+'%'}})
-                          ),
-                          React.createElement('span',{style:{fontSize:10,fontWeight:700,color:C.text,flexShrink:0}},pct+'%')
-                        ),
-                        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',fontSize:11}},
-                          React.createElement('span',{style:{color:C.muted}},story),
-                          React.createElement('span',{style:{color:C.dim}},d.sold.toLocaleString()+'/'+d.produced.toLocaleString()+' \u00b7 '+d.oh+' OH')
-                        )
-                      );
-                    }),
+                    React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:10}},'BATCH STATUS'),
+                    React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:'14px 16px',marginBottom:8,fontSize:11,color:C.muted}},'See Production \u2192 Cash Pipeline below for live batch sell-through'),
                     overdueAccts.length>0&&React.createElement('div',{style:{marginTop:20,marginBottom:20}},
                       React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:10}},overdueAccts.length+' OVERDUE ACCOUNTS \u2014 REVENUE AT RISK'),
                       overdueAccts.sort(function(a,b){return pRev(b)-pRev(a);}).slice(0,8).map(function(a,i){var ts=(a.orderDayTs||[]).slice().sort(function(x,y){return x-y;});var ds=ts.length>0?Math.round((now-ts[ts.length-1])/86400000):0;return React.createElement('div',{key:i,style:{display:'flex',justifyContent:'space-between',padding:'5px 0',borderBottom:'1px solid '+C.border,cursor:'pointer'},onClick:function(){window._goAcct&&window._goAcct(a.name);}},
