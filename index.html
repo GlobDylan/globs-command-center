@@ -1258,6 +1258,42 @@ window._STRAIN_DB=[
       const [dPriceVerify, setDPriceVerify] = useState(null);// pricing verification step {account, lines}
       const [dVerifiedPrices, setDVerifiedPrices] = useState({});// rep-verified prices {sku: price} persisted
       const [p2cExpanded, setP2cExpanded] = useState({});// P2C cost structure expand/collapse
+      const [dropStages, setDropStages] = useState(function(){try{return JSON.parse(localStorage.getItem('gpi:drop-stages'))||{};}catch(e){return{};}});
+      function advanceStage(batchId,stages){
+        var STAGES_L=stages||['MFG','LAB','COMPLIANCE','PKG','TRANSFER','DISTRO','SALE','COLLECT','PAYOUT'];
+        setDropStages(function(prev){
+          var n=Object.assign({},prev);
+          var cur=n[batchId]||{};
+          // Find current effective stage — stored override or hardcoded default
+          var curStage=cur.stage||null;
+          // If no stored stage, find the hardcoded one from the pipelines
+          if(!curStage){
+            var found=null;
+            (window._dropPipelines||[]).forEach(function(p){p.batches.forEach(function(b){if(b.id===batchId)found=b.stage;});});
+            curStage=found||'MFG';
+          }
+          var curIdx=STAGES_L.indexOf(curStage);
+          var nextIdx=curIdx+1;
+          if(nextIdx>=STAGES_L.length)return prev;
+          var nextStageKey=STAGES_L[nextIdx];
+          var today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
+          var ms=Object.assign({},cur.milestones||{});
+          ms[nextStageKey]=today;
+          n[batchId]={stage:nextStageKey,milestones:ms,updated:Date.now()};
+          try{localStorage.setItem('gpi:drop-stages',JSON.stringify(n));}catch(e){}
+          toast('\u2713 '+batchId+' → '+nextStageKey);
+          return n;
+        });
+      }
+      function resetStage(batchId){
+        setDropStages(function(prev){
+          var n=Object.assign({},prev);
+          delete n[batchId];
+          try{localStorage.setItem('gpi:drop-stages',JSON.stringify(n));}catch(e){}
+          toast('Reset '+batchId+' to default');
+          return n;
+        });
+      }
       const [demoForm, setDemoForm] = useState({account:'',rep:'',date:'',timeBlock:'',notes:'',statusFilter:'ALL'});// demo scheduling form
 
       // Homescreen pin instructions for first-time mobile users
@@ -2110,25 +2146,49 @@ window._STRAIN_DB=[
                   var STAGES=['MFG','LAB','COMPLIANCE','PKG','TRANSFER','DISTRO','SALE','COLLECT','PAYOUT'];
                   var STAGE_LABELS={MFG:'Production',LAB:'Testing',COMPLIANCE:'Compliance',PKG:'Packaging',TRANSFER:'Pickup',DISTRO:'Distribution',SALE:'Sale',COLLECT:'Collection',PAYOUT:'Payout'};
                   var STAGE_ICONS={MFG:'🔬',LAB:'🧪',COMPLIANCE:'✓',PKG:'📦',TRANSFER:'🚛',DISTRO:'🏪',SALE:'💰',COLLECT:'📋',PAYOUT:'💵'};
-                  // Compute sell-through per batch from Salesforce data — capped at batch total
-                  function batchSellThrough(strainList,wsPrice,batchTotal,dropDate){
-                    var sold=0;
-                    var dropTs=dropDate?new Date(dropDate+' 2026').getTime():(Date.now()-90*86400000);
+                  // Compute live sell-through per batch from Salesforce XLSX data
+                  // Matches strains by normalized name + category, sums units + revenue
+                  var _strainAbbrev={icpj:'icecreampaintjob',snsd:'sweetnsour diesel',gc:'grandmascookies',fg:'frozengrapes',wtb:'wagyutrufflebutter',mc:'modifiedcherries',hb:'headband'};
+                  function batchLiveData(batch,pipeCategory){
+                    if(!displayAccounts||displayAccounts.length===0)return null;
+                    var catMatch=pipeCategory==='VAPE CARTS'?function(c){var lc=c.toLowerCase();return lc.includes('cart')||lc.includes('vape');}:pipeCategory==='EXTRACTS'?function(c){var lc=c.toLowerCase();return lc.includes('badder')||lc.includes('sauce')||lc.includes('concentrate')||lc.includes('shatter')||lc.includes('diamond');}:function(){return true;};
+                    // For extract batches, also narrow by specific sub-category
+                    var subCatMatch=null;
+                    if(batch.id.toLowerCase().includes('badder'))subCatMatch=function(c){return c.toLowerCase().includes('badder');};
+                    else if(batch.id.toLowerCase().includes('sauce'))subCatMatch=function(c){return c.toLowerCase().includes('sauce');};
+                    // Build normalized strain set from batch
+                    var batchNK={};
+                    (batch.strains||[]).forEach(function(s){
+                      var nk=s.toLowerCase().replace(/[^a-z0-9]/g,'');
+                      batchNK[nk]=true;
+                      // Also expand abbreviations
+                      if(_strainAbbrev[nk])batchNK[_strainAbbrev[nk]]=true;
+                    });
+                    var totalUnits=0,totalRev=0,matchedAccounts=0;
                     displayAccounts.forEach(function(acc){
+                      var accMatched=false;
                       (acc.orderedSkus||[]).forEach(function(s){
+                        if(!catMatch(s.category||''))return;
+                        if(subCatMatch&&!subCatMatch(s.category||''))return;
                         var sn=(s.strain||'').toLowerCase().replace(/[^a-z0-9]/g,'');
-                        strainList.forEach(function(bs){
-                          var bn=bs.toLowerCase().replace(/[^a-z0-9]/g,'');
-                          if(sn.includes(bn)||bn.includes(sn)){
-                            // Only count orders after the drop date
-                            var qty=s.totalQty||0;
-                            sold+=qty*wsPrice;
-                          }
+                        var matched=false;
+                        Object.keys(batchNK).forEach(function(bk){
+                          if(sn===bk||sn.includes(bk)||bk.includes(sn))matched=true;
                         });
+                        if(!matched)return;
+                        var qty=s.totalQty||0;
+                        var rev=qty*(s.wholesale||0);
+                        totalUnits+=qty;
+                        totalRev+=rev;
+                        if(!accMatched){accMatched=true;matchedAccounts++;}
                       });
                     });
-                    // Cap at batch total — can't sell more than produced
-                    return Math.min(sold,batchTotal||sold);
+                    // Cap at batch units
+                    if(totalUnits>batch.units)totalUnits=batch.units;
+                    if(totalRev>batch.total)totalRev=batch.total;
+                    var avgPrice=totalUnits>0?totalRev/totalUnits:batch.ws;
+                    var onHand=Math.max(0,batch.units-totalUnits);
+                    return{unitsSold:totalUnits,revSold:totalRev,onHand:onHand,avgPrice:avgPrice,accounts:matchedAccounts};
                   }
                   var pipelines=[
                     {name:'VAPE CARTS',color:'#6fa8d6',batches:[
@@ -2204,6 +2264,7 @@ window._STRAIN_DB=[
                       ]}
                     ]}
                   ];
+                  window._dropPipelines=pipelines;
                   return(<div style={{marginTop:24}}>
                     <div style={{fontSize:11,fontWeight:800,letterSpacing:3,marginBottom:16}}>PRODUCTION → CASH PIPELINE</div>
                     {(function(){
@@ -2288,23 +2349,36 @@ window._STRAIN_DB=[
                           {pipe.batches[0].total>0&&<span style={{fontSize:16,fontWeight:800,color:C.good}}>{'$'+pipe.batches[0].total.toLocaleString()}</span>}
                         </div>
                         {pipe.batches.map(function(batch){
-                          var currentIdx=STAGES.indexOf(batch.stage);
+                          // Merge stored stage overrides
+                          var storeOv=dropStages[batch.id]||{};
+                          var effectiveStage=storeOv.stage||batch.stage;
+                          var effectiveMilestones=Object.assign({},batch.milestones,storeOv.milestones||{});
+                          var currentIdx=STAGES.indexOf(effectiveStage);
+                          var nextStage=currentIdx<STAGES.length-1?STAGES[currentIdx+1]:null;
+                          // Live sell-through: override hardcoded data when at SALE or beyond
+                          var saleIdx=STAGES.indexOf('SALE');
+                          var live=currentIdx>=saleIdx?batchLiveData(batch,pipe.name):null;
+                          var bUnitsSold=live?live.unitsSold:(batch.unitsSold||0);
+                          var bRevSold=live?live.revSold:(batch.revSold||0);
+                          var bOnHand=live?live.onHand:(batch.onHand||0);
+                          var bAvgPrice=live?live.avgPrice:(batch.avgPrice||batch.ws);
+                          var bTotal=live?Math.max(batch.total,bRevSold+(bOnHand*bAvgPrice)):(batch.total||0);
                           var prodCost=batch.costs?batch.costs.reduce(function(s,r){return s+r.amt;},0):0;
                           var dr=batch.distroRate||0.16;
-                          var useActual=(batch.revSold||0)>0;
-                          var revForCalc=useActual?batch.revSold:batch.total;
+                          var useActual=bRevSold>0;
+                          var revForCalc=useActual?bRevSold:bTotal;
                           var margin=revForCalc*(1-dr)-prodCost;
                           var marginPct=revForCalc>0?Math.round(margin/revForCalc*100):0;
-                          var sellPct=batch.units>0&&batch.unitsSold>0?Math.round(batch.unitsSold/batch.units*100):0;
+                          var sellPct=batch.units>0&&bUnitsSold>0?Math.round(bUnitsSold/batch.units*100):0;
                           var isOpen=p2cExpanded[batch.id];
                           return(<div key={batch.id} style={{marginBottom:8}}>
                             <div onClick={function(){setP2cExpanded(function(p){var n2=Object.assign({},p);n2[batch.id]=!n2[batch.id];return n2;});}} style={{display:'flex',alignItems:'center',gap:8,padding:'10px 12px',background:isOpen?pipe.color+'11':'transparent',border:'1px solid '+(isOpen?pipe.color+'33':C.border),borderRadius:isOpen?'4px 4px 0 0':'4px',cursor:'pointer'}}>
                               <span style={{fontSize:10,color:pipe.color,userSelect:'none'}}>{isOpen?'▼':'▶'}</span>
                               <span style={{fontSize:10,fontWeight:700,flex:1}}>{batch.id}</span>
                               {sellPct>0&&<span style={{fontSize:11,color:C.good,fontWeight:600}}>{sellPct+'% sold'}</span>}
-                              {batch.revSold>0&&<span style={{fontSize:11,color:C.muted}}>{'$'+Math.round(batch.revSold/1000)+'K'}</span>}
+                              {bRevSold>0&&<span style={{fontSize:11,color:C.muted}}>{'$'+Math.round(bRevSold/1000)+'K'}</span>}
                               <span style={{fontSize:11,fontWeight:700,color:margin>0?C.good:C.danger}}>{'margin $'+Math.round(margin/1000)+'K ('+marginPct+'%)'}</span>
-                              {batch.onHand>0&&<span style={{fontSize:10,color:'#d4a24c'}}>{batch.onHand+' OH'}</span>}
+                              {bOnHand>0&&<span style={{fontSize:10,color:'#d4a24c'}}>{bOnHand+' OH'}</span>}
                             </div>
                             {isOpen&&<div style={{padding:'10px',border:'1px solid '+(pipe.color+'33'),borderTop:'none',borderRadius:'0 0 4px 4px'}}>
                             <div style={{display:'flex',gap:3,marginBottom:10,flexWrap:'wrap'}}>
@@ -2314,22 +2388,26 @@ window._STRAIN_DB=[
                                 var bdr=isPast?pipe.color+'66':isCurrent?pipe.color:'#222';
                                 var tc=isPast?pipe.color:isCurrent?'#000':'#333';
                                 var isSale=stg==='SALE';
-                                var saleActive=isSale&&currentIdx>=si&&batch.unitsSold>0;
-                                var soldAmt=saleActive?batch.revSold:0;
-                                var isCollect=stg==='COLLECT'&&batch.milestones.COLLECT;
-                                var isPayout=stg==='PAYOUT'&&batch.milestones.PAYOUT;
+                                var saleActive=isSale&&currentIdx>=si&&bUnitsSold>0;
+                                var soldAmt=saleActive?bRevSold:0;
+                                var isCollect=stg==='COLLECT'&&effectiveMilestones.COLLECT;
+                                var isPayout=stg==='PAYOUT'&&effectiveMilestones.PAYOUT;
                                 return(<div key={stg} style={{flex:1,minWidth:36,padding:'6px 3px',borderRadius:3,border:'1px solid '+(saleActive?C.good+'66':bdr),background:saleActive?C.good+'22':bg,textAlign:'center',animation:saleActive?'pulse 1.5s ease-in-out infinite':'none'}}>
                                   <div style={{fontSize:10}}>{STAGE_ICONS[stg]}</div>
                                   <div style={{fontSize:10,fontWeight:isCurrent||saleActive?800:500,color:saleActive?C.good:tc,letterSpacing:0.5,marginTop:2}}>{STAGE_LABELS[stg]}</div>
-                                  {batch.milestones[stg]&&!saleActive&&<div style={{fontSize:10,color:isPast?pipe.color+'99':isCurrent?'#000':'#444',marginTop:1}}>{batch.milestones[stg]}</div>}
-                                  {saleActive&&<div style={{fontSize:10,fontWeight:700,color:C.good,marginTop:2}}>{'$'+Math.round(soldAmt/1000)+'K/$'+Math.round(batch.total/1000)+'K'}</div>}
-                                  {saleActive&&batch.onHand>0&&<div style={{fontSize:10,color:'#d4a24c',marginTop:1}}>{batch.onHand+' on hand'}</div>}
+                                  {effectiveMilestones[stg]&&!saleActive&&<div style={{fontSize:10,color:isPast?pipe.color+'99':isCurrent?'#000':'#444',marginTop:1}}>{effectiveMilestones[stg]}</div>}
+                                  {saleActive&&<div style={{fontSize:10,fontWeight:700,color:C.good,marginTop:2}}>{'$'+Math.round(soldAmt/1000)+'K/$'+Math.round(bTotal/1000)+'K'}</div>}
+                                  {saleActive&&bOnHand>0&&<div style={{fontSize:10,color:'#d4a24c',marginTop:1}}>{bOnHand+' on hand'}</div>}
                                 </div>);
                               })}
                             </div>
                             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 12px',background:pipe.color+'11',border:'1px solid '+pipe.color+'33',borderRadius:4,fontSize:10}}>
-                              <span style={{color:pipe.color,fontWeight:700}}>{STAGE_ICONS[batch.stage]+' '+STAGE_LABELS[batch.stage]+': '+batch.stageDetail}</span>
-                              {batch.units>0&&<span style={{color:C.dim}}>{batch.units.toLocaleString()+' units @ $'+batch.ws}</span>}
+                              <span style={{color:pipe.color,fontWeight:700}}>{STAGE_ICONS[effectiveStage]+' '+STAGE_LABELS[effectiveStage]+(effectiveMilestones[effectiveStage]?' · '+effectiveMilestones[effectiveStage]:'')}</span>
+                              <div style={{display:'flex',gap:4,alignItems:'center'}}>
+                                {batch.units>0&&<span style={{color:C.dim}}>{batch.units.toLocaleString()+' units @ $'+batch.ws}</span>}
+                                {nextStage&&<button onClick={function(e){e.stopPropagation();advanceStage(batch.id,STAGES);}} style={{padding:'4px 10px',borderRadius:3,fontSize:9,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+pipe.color,background:pipe.color+'22',color:pipe.color,letterSpacing:0.5}}>{'→ '+STAGE_LABELS[nextStage]}</button>}
+                                {storeOv.stage&&<button onClick={function(e){e.stopPropagation();resetStage(batch.id);}} style={{padding:'4px 6px',borderRadius:3,fontSize:9,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.border,background:'transparent',color:C.dim}}>↺</button>}
+                              </div>
                             </div>
                             {batch.strains.length>0&&<div style={{display:'flex',gap:4,flexWrap:'wrap',marginTop:8}}>
                               {batch.strains.map(function(s){return<span key={s} style={{fontSize:10,padding:'8px 12px',borderRadius:2,background:pipe.color+'11',border:'1px solid '+pipe.color+'22',color:pipe.color}}>{s}</span>;})}
@@ -2347,29 +2425,29 @@ window._STRAIN_DB=[
                                 <span style={{fontSize:10,fontWeight:700,padding:'1px 4px',borderRadius:2,background:isPaid?C.good+'22':isDue?'#d4a24c22':'transparent',color:isPaid?C.good:isDue?'#d4a24c':C.dim,border:'1px solid '+(isPaid?C.good+'44':isDue?'#d4a24c44':'transparent')}}>{sp.status}</span>
                               </div>;})}
                             </div>}
-                            {batch.costs&&batch.costs.length>0&&(function(){var prodCost=batch.costs.reduce(function(s,r){return s+r.amt;},0);var dr=batch.distroRate||0.16;var actualRev=batch.revSold||0;var projRev=batch.total||0;var useActual=actualRev>0;var revForCalc=useActual?actualRev:projRev;var distroFee=Math.round(revForCalc*dr);var netRev=revForCalc-distroFee;var margin=netRev-prodCost;var pct=revForCalc>0?((margin/revForCalc)*100).toFixed(0):0;return<div style={{marginTop:8}}>
-                              {batch.unitsSold>0&&<div style={{padding:'10px 12px',background:'#0d1117',border:'1px solid #1a1a1a',borderRadius:4,marginBottom:6,fontSize:10}}>
+                            {batch.costs&&batch.costs.length>0&&(function(){var prodCost=batch.costs.reduce(function(s,r){return s+r.amt;},0);var dr=batch.distroRate||0.16;var actualRev=bRevSold||0;var projRev=bTotal||0;var useActual=actualRev>0;var revForCalc=useActual?actualRev:projRev;var distroFee=Math.round(revForCalc*dr);var netRev=revForCalc-distroFee;var margin=netRev-prodCost;var pct=revForCalc>0?((margin/revForCalc)*100).toFixed(0):0;return<div style={{marginTop:8}}>
+                              {bUnitsSold>0&&<div style={{padding:'10px 12px',background:'#0d1117',border:'1px solid #1a1a1a',borderRadius:4,marginBottom:6,fontSize:10}}>
                                 <div style={{fontSize:10,fontWeight:700,letterSpacing:1.5,color:C.dim,marginBottom:4}}>SELL-THROUGH</div>
                                 <div style={{display:'flex',justifyContent:'space-between'}}>
                                   <span style={{color:C.muted}}>Produced</span><span style={{fontWeight:600}}>{batch.units.toLocaleString()}</span>
                                 </div>
                                 <div style={{display:'flex',justifyContent:'space-between'}}>
-                                  <span style={{color:C.muted}}>Sold</span><span style={{fontWeight:600,color:C.good}}>{batch.unitsSold.toLocaleString()+' ('+Math.round(batch.unitsSold/batch.units*100)+'%)'}</span>
+                                  <span style={{color:C.muted}}>Sold</span><span style={{fontWeight:600,color:C.good}}>{bUnitsSold.toLocaleString()+' ('+Math.round(bUnitsSold/batch.units*100)+'%)'}</span>
                                 </div>
                                 <div style={{display:'flex',justifyContent:'space-between'}}>
-                                  <span style={{color:C.muted}}>On Hand</span><span style={{fontWeight:600,color:batch.onHand>0?'#d4a24c':C.good}}>{batch.onHand.toLocaleString()}</span>
+                                  <span style={{color:C.muted}}>On Hand</span><span style={{fontWeight:600,color:bOnHand>0?'#d4a24c':C.good}}>{bOnHand.toLocaleString()}</span>
                                 </div>
                                 <div style={{display:'flex',justifyContent:'space-between',marginTop:3,paddingTop:3,borderTop:'1px solid #222'}}>
-                                  <span style={{color:C.muted}}>Avg Price Realized</span><span style={{fontWeight:700}}>{'$'+batch.avgPrice.toFixed(2)}</span>
+                                  <span style={{color:C.muted}}>Avg Price Realized</span><span style={{fontWeight:700}}>{'$'+bAvgPrice.toFixed(2)}</span>
                                 </div>
                                 <div style={{display:'flex',justifyContent:'space-between'}}>
-                                  <span style={{color:C.muted}}>Revenue Collected</span><span style={{fontWeight:700,color:C.good}}>{'$'+actualRev.toLocaleString()}</span>
+                                  <span style={{color:C.muted}}>Revenue Collected</span><span style={{fontWeight:700,color:C.good}}>{'$'+actualRev.toLocaleString()+(live?' · LIVE':'')}</span>
                                 </div>
-                                {batch.onHand>0&&<div style={{display:'flex',justifyContent:'space-between'}}>
-                                  <span style={{color:C.muted}}>Revenue Pending ({batch.onHand} × ${batch.avgPrice.toFixed(2)})</span><span style={{fontWeight:600,color:'#d4a24c'}}>{'$'+Math.round(batch.onHand*batch.avgPrice).toLocaleString()}</span>
+                                {bOnHand>0&&<div style={{display:'flex',justifyContent:'space-between'}}>
+                                  <span style={{color:C.muted}}>Revenue Pending ({bOnHand} × ${bAvgPrice.toFixed(2)})</span><span style={{fontWeight:600,color:'#d4a24c'}}>{'$'+Math.round(bOnHand*bAvgPrice).toLocaleString()}</span>
                                 </div>}
                                 <div style={{height:4,background:'#222',borderRadius:2,marginTop:6}}>
-                                  <div style={{height:4,background:C.good,borderRadius:2,width:Math.round(batch.unitsSold/batch.units*100)+'%'}}/>
+                                  <div style={{height:4,background:C.good,borderRadius:2,width:Math.round(bUnitsSold/batch.units*100)+'%'}}/>
                                 </div>
                               </div>}
                               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 12px',background:'#050505',borderRadius:p2cExpanded[batch.id+'_costs']?'4px 4px 0 0':'4px',border:'1px solid #1a1a1a',cursor:'pointer',fontSize:10}} onClick={function(){setP2cExpanded(function(p){var n2=Object.assign({},p);n2[batch.id+"_costs"]=!n2[batch.id+"_costs"];return n2;});}}>
@@ -2386,7 +2464,7 @@ window._STRAIN_DB=[
                                   <span style={{fontWeight:700,color:C.danger}}>{'$'+prodCost.toLocaleString()}</span>
                                 </div>
                                 <div style={{display:'flex',justifyContent:'space-between',fontSize:10,padding:'3px 0'}}>
-                                  <span style={{color:C.muted}}>{useActual?'Revenue (actual · '+batch.unitsSold+' sold × $'+batch.avgPrice.toFixed(2)+')':'Revenue (projected · '+batch.units+' × $'+batch.ws+')'}</span>
+                                  <span style={{color:C.muted}}>{useActual?'Revenue (actual · '+bUnitsSold+' sold × $'+bAvgPrice.toFixed(2)+')':'Revenue (projected · '+batch.units+' × $'+batch.ws+')'}</span>
                                   <span style={{fontWeight:600,color:C.good}}>{'$'+revForCalc.toLocaleString()}</span>
                                 </div>
                                 <div style={{display:'flex',justifyContent:'space-between',fontSize:10,padding:'3px 0'}}>
@@ -2397,7 +2475,7 @@ window._STRAIN_DB=[
                                   <span style={{fontWeight:800}}>{'NET MARGIN'+(useActual?' (actual)':' (projected)')}</span>
                                   <span style={{fontWeight:800,color:margin>0?C.good:C.danger}}>{'$'+margin.toLocaleString()+' ('+pct+'%)'}</span>
                                 </div>
-                                {batch.units>0&&<div style={{fontSize:10,color:C.dim,marginTop:4}}>{'Prod: $'+(prodCost/batch.units).toFixed(2)+'/unit · COGS: $'+((prodCost+distroFee)/(useActual?batch.unitsSold:batch.units)).toFixed(2)+'/unit · Margin: $'+(margin/(useActual?batch.unitsSold:batch.units)).toFixed(2)+'/unit'}</div>}
+                                {batch.units>0&&<div style={{fontSize:10,color:C.dim,marginTop:4}}>{'Prod: $'+(prodCost/batch.units).toFixed(2)+'/unit · COGS: $'+((prodCost+distroFee)/(useActual?bUnitsSold:batch.units)).toFixed(2)+'/unit · Margin: $'+(margin/(useActual?bUnitsSold:batch.units)).toFixed(2)+'/unit'}</div>}
                               </div>}
                             </div>;})()}
                           </div>}
