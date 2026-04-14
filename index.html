@@ -1044,9 +1044,9 @@ window._STRAIN_DB=[
 
       // ── SECURITY SYSTEM ──────────────────────────────────────────────────
       const ROLES={
-        exec:{label:'Executive',tabs:['briefing','accounts','opportunities','dispatch','strains','yield','mfg','sop','labels','packaging','executive','financials','returns','revenue','orders','pipeline','brand','investor','security'],canExport:true,canUpload:true,canEditMargin:true,canApprove:true,seeFinancials:true},
+        exec:{label:'Executive',tabs:['briefing','accounts','opportunities','dispatch','strains','yield','mfg','sop','labels','packaging','executive','financials','returns','revenue','orders','pipeline','contacts','brand','investor','security'],canExport:true,canUpload:true,canEditMargin:true,canApprove:true,seeFinancials:true},
         mfg:{label:'Manufacturing',tabs:['briefing','strains','yield','mfg','sop','labels','packaging'],canExport:false,canUpload:true,canEditMargin:false,canApprove:false,seeFinancials:false},
-        distro:{label:'Distribution',tabs:['accounts','opportunities','dispatch','orders','pipeline','returns'],canExport:false,canUpload:true,canEditMargin:false,canApprove:false,seeFinancials:false}
+        distro:{label:'Distribution',tabs:['accounts','opportunities','dispatch','orders','pipeline','returns','contacts'],canExport:false,canUpload:true,canEditMargin:false,canApprove:false,seeFinancials:false}
       };
       const PINS_DEPRECATED=null;// Individual user PINs replace shared PINs
       const DEFAULT_USERS=[
@@ -2017,13 +2017,13 @@ window._STRAIN_DB=[
             </div>
           )}
 
-          {(hasData||tab==="financials"||tab==="labels"||tab==="strains"||tab==="yield"||tab==="returns"||tab==="briefing"||tab==="revenue"||tab==="sop"||tab==="security"||tab==="orders"||tab==="pipeline"||tab==="brand"||tab==="investor")&&(
+          {(hasData||tab==="financials"||tab==="labels"||tab==="strains"||tab==="yield"||tab==="returns"||tab==="briefing"||tab==="revenue"||tab==="sop"||tab==="security"||tab==="orders"||tab==="pipeline"||tab==="brand"||tab==="investor"||tab==="contacts")&&(
             <>
               <div className="gpi-tab-bar" style={{background:C.bg,borderBottom:'1px solid '+C.border,padding:'0 24px',display:'flex',gap:0,overflowX:'auto',WebkitOverflowScrolling:'touch',alignItems:'flex-end'}}>
                 {killSwitches.maintenanceMode&&<div style={{position:'fixed',top:58,left:0,right:0,background:'#d4a24c',color:'#000',padding:'4px 20px',fontSize:10,fontWeight:700,textAlign:'center',zIndex:49,letterSpacing:2}}>⚠ MAINTENANCE MODE — DATA CHANGES DISABLED</div>}
                 {killSwitches.readOnly&&!killSwitches.maintenanceMode&&<div style={{position:'fixed',top:58,left:0,right:0,background:'#6fa8d6',color:'#fff',padding:'4px 20px',fontSize:10,fontWeight:700,textAlign:'center',zIndex:49,letterSpacing:2}}>READ-ONLY MODE — EDITS DISABLED BY ADMIN</div>}
                 {authRole==='distro'?(
-                  [["accounts","Accounts"],["opportunities","Opps"],["dispatch","Dispatch"],["orders","Orders"],["pipeline","Incoming"],["returns","Returns"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})
+                  [["accounts","Accounts"],["opportunities","Opps"],["dispatch","Dispatch"],["orders","Orders"],["pipeline","Incoming"],["returns","Returns"],["contacts","Contacts"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})
                 ):(
                   <>
                   <span style={{fontSize:10,color:C.dim,letterSpacing:2,textTransform:'uppercase',padding:'6px 10px 10px 0',flexShrink:0,opacity:0.6}}>DISTRO</span>
@@ -2033,7 +2033,7 @@ window._STRAIN_DB=[
                   {[["strains","Strains"],["yield","Ext. Log"],["mfg","MFG"],["sop","SOPs"],["labels","Labels"],["packaging","Packaging"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
                   <span style={{width:1,alignSelf:'stretch',background:C.border,margin:'6px 10px',flexShrink:0}}></span>
                   <span style={{fontSize:10,color:C.dim,letterSpacing:2,textTransform:'uppercase',padding:'6px 10px 10px 0',flexShrink:0,opacity:0.6}}>EXEC</span>
-                  {[["briefing","Briefing"],["executive","Executive"],["financials","Financials"],["returns","Returns"],["revenue","Marketing"],["orders","Orders"],["pipeline","Incoming"],["brand","Brand"],["investor","Investor"],["security","Security"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
+                  {[["briefing","Briefing"],["financials","Financials"],["revenue","Marketing"],["orders","Orders"],["pipeline","Incoming"],["contacts","Contacts"],["brand","Brand"],["security","Security"]].filter(function(tl){return canAccessTab(tl[0]);}).map(function(tl){return<button key={tl[0]} style={Object.assign({},tabSt(tab===tl[0]),{marginRight:8})} onClick={function(){switchTab(tl[0]);}}>{tl[1]}</button>;})}
                   </>
                 )}
               </div>
@@ -5131,6 +5131,45 @@ window._STRAIN_DB=[
                         React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:2}},'Open in Drive \u2197'));})
                     )
                   );
+                })()}
+
+                {/* ══ CONTACTS ══ */}
+                {tab==="contacts"&&(function(){
+                  var contacts=Array.isArray(contactsData)?contactsData:[];
+                  var cSearch=search.toLowerCase().trim();
+                  var filtered=cSearch?contacts.filter(function(c){return c.account.toLowerCase().includes(cSearch)||c.name.toLowerCase().includes(cSearch)||(c.email||'').toLowerCase().includes(cSearch)||(c.title||'').toLowerCase().includes(cSearch);}):contacts;
+                  // Group by account
+                  var byAcct={};
+                  filtered.forEach(function(c){if(!byAcct[c.account])byAcct[c.account]=[];byAcct[c.account].push(c);});
+                  var acctKeys=Object.keys(byAcct).sort();
+                  return(<div>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}}>
+                      <div style={{fontSize:11,color:C.dim,letterSpacing:2}}>CONTACTS · {filtered.length} people · {acctKeys.length} accounts</div>
+                    </div>
+                    <input value={search} onChange={function(e){setSearch(e.target.value);}} placeholder="Search name, account, title, email..." style={{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:'12px 14px',color:C.text,fontSize:14,outline:'none',width:'100%',boxSizing:'border-box',fontFamily:'inherit',marginBottom:14}}/>
+                    {contacts.length===0&&<div style={{padding:40,textAlign:'center',color:C.dim,fontSize:12}}>Upload Salesforce XLSX with Contacts sheet</div>}
+                    {acctKeys.map(function(acct){
+                      var people=byAcct[acct];
+                      return<div key={acct} style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,marginBottom:8,overflow:'hidden'}}>
+                        <div style={{padding:'10px 14px',borderBottom:'1px solid '+C.border,background:C.raised}}>
+                          <div style={{fontSize:12,fontWeight:700}}>{acct}</div>
+                          <div style={{fontSize:10,color:C.dim}}>{people.length} contact{people.length>1?'s':''}</div>
+                        </div>
+                        {people.map(function(p,pi){
+                          return<div key={pi} style={{padding:'10px 14px',borderBottom:pi<people.length-1?'1px solid '+C.border+'44':'none',display:'flex',justifyContent:'space-between',alignItems:'center',gap:10}}>
+                            <div style={{flex:1,minWidth:0}}>
+                              <div style={{fontSize:12,fontWeight:600}}>{p.name}</div>
+                              {p.title&&<div style={{fontSize:10,color:C.muted}}>{p.title}{p.dept?' · '+p.dept:''}</div>}
+                            </div>
+                            <div style={{display:'flex',gap:6,flexShrink:0}}>
+                              {p.phone&&<a href={'tel:'+p.phone.replace(/[^0-9+]/g,'')} style={{padding:'6px 10px',borderRadius:4,fontSize:10,fontWeight:700,background:C.good+'15',border:'1px solid '+C.good+'33',color:C.good,textDecoration:'none'}}>📞</a>}
+                              {p.email&&<a href={'mailto:'+p.email.trim()} style={{padding:'6px 10px',borderRadius:4,fontSize:10,fontWeight:700,background:C.info+'15',border:'1px solid '+C.info+'33',color:C.info,textDecoration:'none'}}>✉</a>}
+                            </div>
+                          </div>;
+                        })}
+                      </div>;
+                    })}
+                  </div>);
                 })()}
 
                 {/* ══ BRAND ASSETS ══ */}
