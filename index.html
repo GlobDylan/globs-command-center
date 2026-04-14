@@ -1835,6 +1835,137 @@ window._STRAIN_DB=[
 
       function generateWorkOrder(){if(activeCats.length===0)return;const categories=activeCats.map(function(cat){const built=buildStrainRows(cat);return Object.assign({},cat,built,{batchData:mfgBatchData[cat.key]||{}});});setMfgWorkOrder({categories,totalCost:categories.reduce(function(s,c){return s+c.batchCost;},0),totalRev:categories.reduce(function(s,c){return s+c.batchRev;},0),totalNet:categories.reduce(function(s,c){return s+c.batchNet;},0),totalUnits:categories.reduce(function(s,c){return s+c.batchUnits;},0)});}
 
+      // ── Shared: batch data + live sell-through (used by Briefing + Investor) ──
+      var _strainAbbrev={icpj:'icecreampaintjob',snsd:'sweetnsour diesel',gc:'grandmascookies',fg:'frozengrapes',wtb:'wagyutrufflebutter',mc:'modifiedcherries',hb:'headband'};
+      function batchLiveData(batch,pipeCategory){
+        if(!displayAccounts||displayAccounts.length===0)return null;
+        // Determine days since batch hit distro/sale
+        var distroDate=batch.milestones.SALE||batch.milestones.DISTRO||batch.milestones.TRANSFER;
+        var daysSinceDrop=365;
+        if(distroDate){
+          var pts=distroDate.split(' ');// "Apr 9" or "Apr 10"
+          var dts=new Date(pts[0]+' '+pts[1]+', 2026');
+          if(!isNaN(dts))daysSinceDrop=Math.max(1,Math.round((Date.now()-dts.getTime())/86400000));
+        }
+        // Pick the smallest period that covers the batch's sales window
+        var usePeriod=daysSinceDrop<=7?7:daysSinceDrop<=30?30:daysSinceDrop<=60?60:daysSinceDrop<=90?90:daysSinceDrop<=180?180:365;
+        // Category matching
+        var isCarts=pipeCategory==='VAPE CARTS';
+        var catMatch=isCarts?function(c){var lc=c.toLowerCase();return lc.includes('cart')||lc.includes('vape');}:function(c){var lc=c.toLowerCase();return lc.includes('badder')||lc.includes('sauce')||lc.includes('concentrate')||lc.includes('shatter')||lc.includes('diamond');};
+        // Sub-category for extract batches
+        var subCatMatch=null;
+        if(batch.id.toLowerCase().includes('badder'))subCatMatch=function(c){return c.toLowerCase().includes('badder');};
+        else if(batch.id.toLowerCase().includes('sauce'))subCatMatch=function(c){return c.toLowerCase().includes('sauce');};
+        // Normalize batch strain names
+        var batchNK={};
+        (batch.strains||[]).forEach(function(s){
+          var nk=s.toLowerCase().replace(/[^a-z0-9]/g,'');
+          batchNK[nk]=true;
+          if(_strainAbbrev[nk])batchNK[_strainAbbrev[nk]]=true;
+        });
+        var totalUnits=0,totalRev=0,matchedAccounts=0;
+        displayAccounts.forEach(function(acc){
+          var accMatched=false;
+          (acc.orderedSkus||[]).forEach(function(s){
+            if(!catMatch(s.category||''))return;
+            if(subCatMatch&&!subCatMatch(s.category||''))return;
+            var sn=(s.strain||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+            var matched=false;
+            Object.keys(batchNK).forEach(function(bk){
+              if(sn===bk||sn.includes(bk)||bk.includes(sn))matched=true;
+            });
+            if(!matched)return;
+            // Use period-filtered units instead of totalQty
+            var pUnits=s.periodUnits?(s.periodUnits[usePeriod]||0):0;
+            var ws=s.wholesale||batch.ws||0;
+            totalUnits+=pUnits;
+            totalRev+=pUnits*ws;
+            if(!accMatched){accMatched=true;matchedAccounts++;}
+          });
+        });
+        // Cap at batch units
+        if(totalUnits>batch.units)totalUnits=batch.units;
+        var cappedRev=totalUnits*(totalUnits>0?totalRev/Math.max(1,totalUnits):batch.ws);
+        if(cappedRev>batch.total)cappedRev=batch.total;
+        var avgPrice=totalUnits>0?cappedRev/totalUnits:batch.ws;
+        var onHand=Math.max(0,batch.units-totalUnits);
+        return{unitsSold:totalUnits,revSold:Math.round(cappedRev),onHand:onHand,avgPrice:avgPrice,accounts:matchedAccounts,period:usePeriod,daysSinceDrop:daysSinceDrop};
+      }
+      var pipelines=[
+        {name:'VAPE CARTS',color:'#6fa8d6',batches:[
+          {id:'DROP #4 · GLO-VC-016–020',label:'5 Strains · 5,000 units · Landed Apr 13',units:5000,unitsSold:0,onHand:5000,ws:12,avgPrice:12,total:60000,revSold:0,distroRate:0.16,stage:'SALE',stageDetail:'5,000 landed at UpNorth Apr 13 — selling',strains:['Modified Cherries','ICPJ','Sweet n\' Sour Diesel','Headband','Grandma\'s Cookies'],milestones:{MFG:'Feb 18',LAB:'Apr 1',COMPLIANCE:'Apr 6',PKG:'Apr 6',TRANSFER:'Apr 9',DISTRO:'Apr 13',SALE:'Apr 13',COLLECT:'1 period · Apr (6-wk)',PAYOUT:'Jun 12'},salesPeriods:[
+            {month:'Apr',units:20,rev:240,payoutDate:'Jun 12',status:'PENDING'},
+          ],costs:[
+            {label:'Cart Hardware',detail:'VapeCartsCC D742 · 5K × $1.85 · Feb 18',amt:9527.50},
+            {label:'Extract (CAM)',detail:'5,000g × $1.02/g · CAM biomass processed',amt:5100},
+            {label:'Tubes',detail:'Treeform INV38610 + INV38884',amt:1574.88},
+            {label:'Cart Boxes',detail:'Two Pkg CB010626 · 5K of 10K @ $0.244',amt:1262.70},
+            {label:'Testing',detail:'5 strains × $400 (est — awaiting Encore inv)',amt:2000},
+            {label:'Labor',detail:'5,000 × $1.00/unit',amt:5000}
+          ]},
+          {id:'DROP #2 · Jan 20 Carts',label:'5 Strains · 5,138 produced · 5,044 sold · 94 on hand',units:5138,unitsSold:5044,onHand:94,ws:10,avgPrice:10.24,total:51635,revSold:51635,distroRate:0.16,stage:'SALE',stageDetail:'$51,635 sold · 94 units on hand · avg $10.24',strains:['Wagyu Truffle Butter','Frozen Grapes','Ms Muffin','Sweet-n-Sour Diesel','White Widow'],milestones:{MFG:'Nov 11',LAB:'Jan 14',COMPLIANCE:'Jan 19',PKG:'Jan 19',TRANSFER:'Jan 20',DISTRO:'Jan 21',SALE:'Jan 27–Apr 9',COLLECT:'4 periods · Jan–Apr',PAYOUT:'Mar 13 · Apr 10 · May 8 · Jun 12'},salesPeriods:[
+            {month:'Jan',units:2018,rev:20090,payoutDate:'Mar 13',status:'PAID'},
+            {month:'Feb',units:2300,rev:26205,payoutDate:'Apr 10',status:'DUE'},
+            {month:'Mar',units:1416,rev:12855,payoutDate:'May 8',status:'PENDING'},
+            {month:'Apr',units:125,rev:831,payoutDate:'Jun 12',status:'PENDING'},
+          ],costs:[
+            {label:'Cart Hardware',detail:'Octave 1614 · 5,138 of 8K @ $1.85 + ship/fee',amt:10076},
+            {label:'Extract (CAM)',detail:'5,138g × $1.02/g',amt:5240.76},
+            {label:'Batteries',detail:'Octave 1636 · 500 SlickBox V2 @ $8 · Jan 5',amt:4088.90},
+            {label:'Testing',detail:'Encore 2601ENC0623 · 5 panel + expedite · Jan 14',amt:2750},
+            {label:'Tubes',detail:'Treeform INV34221 stock · 5,138 × $0.08',amt:411.04},
+            {label:'Cart Boxes',detail:'Two Pkg CB010626 · 5,138 × $0.244',amt:1253.67},
+            {label:'Shrink Bands',detail:'Treeform INV37161 · 5,138 × $0.0176',amt:90.43},
+            {label:'Labor',detail:'5,138 × $1.00/unit',amt:5138}
+          ]},
+          {id:'DROP #3B · Mar 3 Carts',label:'5 Strains · 4,630 produced · 4,529 sold · 101 on hand',units:4630,unitsSold:4529,onHand:101,ws:10,avgPrice:9.12,total:41304,revSold:41304,distroRate:0.16,stage:'SALE',stageDetail:'$41,304 sold · 101 units on hand · avg $9.12',strains:['Ice Cream Paint Job','Grandma\'s Cookies','Lemon Thai','Hella Oranges','Sweet n\' Sour Diesel'],milestones:{MFG:'Feb 2026',LAB:'Feb 2026',COMPLIANCE:'Mar 3',PKG:'Mar 2',TRANSFER:'Mar 3',DISTRO:'Mar 4',SALE:'Mar 4–Apr 9',COLLECT:'2 periods · Mar–Apr',PAYOUT:'May 8 · Jun 12'},salesPeriods:[
+            {month:'Mar',units:4461,rev:39605,payoutDate:'May 8',status:'PENDING'},
+            {month:'Apr',units:207,rev:1670,payoutDate:'Jun 12',status:'PENDING'},
+          ],costs:[
+            {label:'Extract (CAM)',detail:'4,630g × $1.02/g',amt:4722.60},
+            {label:'Cart Hardware',detail:'1614 remainder 2,862 + D2037 1,768 @ $1.85',amt:8565.50},
+            {label:'Testing',detail:'5 strains × $400 (est — no Encore inv)',amt:2000},
+            {label:'Tubes',detail:'Treeform INV34221 stock · 4,630 × $0.08',amt:370.40},
+            {label:'Cart Boxes',detail:'Two Pkg CB010626 · 4,630 × $0.244',amt:1129.72},
+            {label:'Shrink Bands',detail:'Treeform INV37161 · 4,630 × $0.0176',amt:81.49},
+            {label:'Labor',detail:'4,630 × $1.00/unit',amt:4630}
+          ]}
+        ]},
+        {name:'EXTRACTS',color:'#d4a24c',batches:[
+          {id:'DROP #3 · Feb 10 Badder',label:'6 Strains · 5,766 produced · 4,173 sold · 1,593 on hand',units:5766,unitsSold:4173,onHand:1593,ws:8,avgPrice:7.34,total:46128,revSold:30648,distroRate:0.16,stage:'SALE',stageDetail:'$30,648 sold · 1,593 units on hand · avg $7.34',strains:['Hella Lemons','Grandmas Cookies','Sweet-N-Sour Diesel','Frozen Grapes','Wagyu Truffle Butter','ICPJ'],milestones:{MFG:'Dec 2025',LAB:'Jan 27',COMPLIANCE:'Feb 9',PKG:'Feb 9',TRANSFER:'Feb 10',DISTRO:'Feb 11',SALE:'Feb 17–Apr 10',COLLECT:'3 periods · Feb–Apr',PAYOUT:'Apr 10 · May 8 · Jun 12'},salesPeriods:[
+            {month:'Feb',units:1732,rev:13540,payoutDate:'Apr 10',status:'DUE'},
+            {month:'Mar',units:2650,rev:18816,payoutDate:'May 8',status:'PENDING'},
+            {month:'Apr',units:685,rev:5240,payoutDate:'Jun 12',status:'PENDING'},
+          ],costs:[
+            {label:'Extract (CAM)',detail:'5,766g × $1.02/g',amt:5881.32},
+            {label:'Jars + Caps',detail:'Treeform INV36807 · 5,766 of 15,190 @ $0.35',amt:2093},
+            {label:'Testing',detail:'Encore 2601ENC1164 · 6 terp+panel · Jan 27',amt:2400},
+            {label:'Concentrate Boxes',detail:'5,766 × $0.16',amt:922.56},
+            {label:'Labor',detail:'5,766 × $1.00/unit',amt:5766}
+          ]},
+          {id:'DROP #3B · Mar 3 Sauce',label:'4 Strains · 3,968 produced · 1,689 sold · 2,279 on hand',units:3968,unitsSold:1689,onHand:2279,ws:8,avgPrice:7.41,total:29398,revSold:12515,distroRate:0.16,stage:'SALE',stageDetail:'$12,515 sold · 2,279 units on hand · avg $7.41',strains:['Hella Oranges','Ice Cream Paint Job','Strawberry Milk','Sweet-N-Sour Diesel'],milestones:{MFG:'Feb 2026',LAB:'Feb 2026',COMPLIANCE:'Mar 2',PKG:'Mar 2',TRANSFER:'Mar 3',DISTRO:'Mar 4',SALE:'Mar 10–Apr 9',COLLECT:'2 periods · Mar–Apr',PAYOUT:'May 8 · Jun 12'},salesPeriods:[
+            {month:'Mar',units:903,rev:6785,payoutDate:'May 8',status:'PENDING'},
+            {month:'Apr',units:516,rev:3725,payoutDate:'Jun 12',status:'PENDING'},
+          ],costs:[
+            {label:'Extract (GL owed)',detail:'3,968g × $1.25/g · owed to Greenline',amt:4960},
+            {label:'Jars + Caps',detail:'Treeform INV36807 · 3,968 of 15,190 @ $0.35',amt:1388.80},
+            {label:'Testing',detail:'4 strains × $400 (est)',amt:1600},
+            {label:'Concentrate Boxes',detail:'3,968 × $0.16',amt:634.88},
+            {label:'Labor',detail:'3,968 × $1.00/unit',amt:3968}
+          ]},
+          {id:'DROP #5 · Badder',label:'6 Strains · 6,000 units · In Production — SNSD, ICPJ, GC, FG, MC, HB',units:6000,unitsSold:0,onHand:0,ws:8,avgPrice:8,total:48000,revSold:0,distroRate:0.16,stage:'MFG',stageDetail:'Greenline started batch — 6 strains × 1,000u',strains:['Sweet-N-Sour Diesel','Ice Cream Paint Job','Grandmas Cookies','Frozen Grapes','Modified Cherries','Headband'],milestones:{MFG:'Apr 9',LAB:'TBD',COMPLIANCE:'TBD',PKG:'TBD',TRANSFER:'TBD',COLLECT:'TBD',PAYOUT:'TBD'},cashStart:'2025-10-01',salesPeriods:[],costs:[
+            {label:'Jars + Caps',detail:'Treeform INV36807 · Oct 1 2025 · 6,000 of 15,190 @ $0.35',amt:2100},
+            {label:'Extract (CAM)',detail:'6,000g × $1.02/g',amt:6120},
+            {label:'Testing',detail:'6 strains × $400 (est)',amt:2400},
+            {label:'Concentrate Boxes',detail:'6,000 × $0.16',amt:960},
+            {label:'TE Lid Labels',detail:'6,000 × $0.04',amt:240},
+            {label:'Labor',detail:'6,000 × $1.00/unit',amt:6000}
+          ]}
+        ]}
+      ];
+      window._dropPipelines=pipelines;
+
+
       function tabSt(active){return{padding:'12px 0',border:'none',background:'transparent',cursor:'pointer',fontSize:10,fontWeight:active?700:400,letterSpacing:1.5,textTransform:'uppercase',color:active?C.text:C.dim,borderBottom:active?'2px solid '+C.text:'2px solid transparent',transition:'color 0.15s,border-color 0.15s'};}
       function btnSt(v){return{padding:'6px 14px',borderRadius:4,fontSize:11,fontWeight:600,cursor:'pointer',letterSpacing:0.2,border:v==='primary'?'none':v==='outline'?'1px solid '+C.borderHi:'1px solid '+C.border,background:v==='primary'?C.text:'transparent',color:v==='primary'?C.bg:v==='outline'?C.muted:C.dim,transition:'all 0.15s'};}
       const inp={background:C.surface,border:'1px solid '+C.border,borderRadius:3,color:C.text,fontSize:12,fontFamily:'inherit',padding:'3px 6px',width:70,textAlign:'right',outline:'none'};
@@ -2151,134 +2282,6 @@ window._STRAIN_DB=[
                   var STAGE_ICONS={MFG:'🔬',LAB:'🧪',COMPLIANCE:'✓',PKG:'📦',TRANSFER:'🚛',DISTRO:'🏪',SALE:'💰',COLLECT:'📋',PAYOUT:'💵'};
                   // Compute live sell-through per batch from Salesforce XLSX data
                   // Uses period-filtered SKU data to avoid counting sales from other batches
-                  var _strainAbbrev={icpj:'icecreampaintjob',snsd:'sweetnsour diesel',gc:'grandmascookies',fg:'frozengrapes',wtb:'wagyutrufflebutter',mc:'modifiedcherries',hb:'headband'};
-                  function batchLiveData(batch,pipeCategory){
-                    if(!displayAccounts||displayAccounts.length===0)return null;
-                    // Determine days since batch hit distro/sale
-                    var distroDate=batch.milestones.SALE||batch.milestones.DISTRO||batch.milestones.TRANSFER;
-                    var daysSinceDrop=365;
-                    if(distroDate){
-                      var pts=distroDate.split(' ');// "Apr 9" or "Apr 10"
-                      var dts=new Date(pts[0]+' '+pts[1]+', 2026');
-                      if(!isNaN(dts))daysSinceDrop=Math.max(1,Math.round((Date.now()-dts.getTime())/86400000));
-                    }
-                    // Pick the smallest period that covers the batch's sales window
-                    var usePeriod=daysSinceDrop<=7?7:daysSinceDrop<=30?30:daysSinceDrop<=60?60:daysSinceDrop<=90?90:daysSinceDrop<=180?180:365;
-                    // Category matching
-                    var isCarts=pipeCategory==='VAPE CARTS';
-                    var catMatch=isCarts?function(c){var lc=c.toLowerCase();return lc.includes('cart')||lc.includes('vape');}:function(c){var lc=c.toLowerCase();return lc.includes('badder')||lc.includes('sauce')||lc.includes('concentrate')||lc.includes('shatter')||lc.includes('diamond');};
-                    // Sub-category for extract batches
-                    var subCatMatch=null;
-                    if(batch.id.toLowerCase().includes('badder'))subCatMatch=function(c){return c.toLowerCase().includes('badder');};
-                    else if(batch.id.toLowerCase().includes('sauce'))subCatMatch=function(c){return c.toLowerCase().includes('sauce');};
-                    // Normalize batch strain names
-                    var batchNK={};
-                    (batch.strains||[]).forEach(function(s){
-                      var nk=s.toLowerCase().replace(/[^a-z0-9]/g,'');
-                      batchNK[nk]=true;
-                      if(_strainAbbrev[nk])batchNK[_strainAbbrev[nk]]=true;
-                    });
-                    var totalUnits=0,totalRev=0,matchedAccounts=0;
-                    displayAccounts.forEach(function(acc){
-                      var accMatched=false;
-                      (acc.orderedSkus||[]).forEach(function(s){
-                        if(!catMatch(s.category||''))return;
-                        if(subCatMatch&&!subCatMatch(s.category||''))return;
-                        var sn=(s.strain||'').toLowerCase().replace(/[^a-z0-9]/g,'');
-                        var matched=false;
-                        Object.keys(batchNK).forEach(function(bk){
-                          if(sn===bk||sn.includes(bk)||bk.includes(sn))matched=true;
-                        });
-                        if(!matched)return;
-                        // Use period-filtered units instead of totalQty
-                        var pUnits=s.periodUnits?(s.periodUnits[usePeriod]||0):0;
-                        var ws=s.wholesale||batch.ws||0;
-                        totalUnits+=pUnits;
-                        totalRev+=pUnits*ws;
-                        if(!accMatched){accMatched=true;matchedAccounts++;}
-                      });
-                    });
-                    // Cap at batch units
-                    if(totalUnits>batch.units)totalUnits=batch.units;
-                    var cappedRev=totalUnits*(totalUnits>0?totalRev/Math.max(1,totalUnits):batch.ws);
-                    if(cappedRev>batch.total)cappedRev=batch.total;
-                    var avgPrice=totalUnits>0?cappedRev/totalUnits:batch.ws;
-                    var onHand=Math.max(0,batch.units-totalUnits);
-                    return{unitsSold:totalUnits,revSold:Math.round(cappedRev),onHand:onHand,avgPrice:avgPrice,accounts:matchedAccounts,period:usePeriod,daysSinceDrop:daysSinceDrop};
-                  }
-                  var pipelines=[
-                    {name:'VAPE CARTS',color:'#6fa8d6',batches:[
-                      {id:'DROP #4 · GLO-VC-016–020',label:'5 Strains · 5,000 units · Landed Apr 13',units:5000,unitsSold:0,onHand:5000,ws:12,avgPrice:12,total:60000,revSold:0,distroRate:0.16,stage:'SALE',stageDetail:'5,000 landed at UpNorth Apr 13 — selling',strains:['Modified Cherries','ICPJ','Sweet n\' Sour Diesel','Headband','Grandma\'s Cookies'],milestones:{MFG:'Feb 18',LAB:'Apr 1',COMPLIANCE:'Apr 6',PKG:'Apr 6',TRANSFER:'Apr 9',DISTRO:'Apr 13',SALE:'Apr 13',COLLECT:'1 period · Apr (6-wk)',PAYOUT:'Jun 12'},salesPeriods:[
-                        {month:'Apr',units:20,rev:240,payoutDate:'Jun 12',status:'PENDING'},
-                      ],costs:[
-                        {label:'Cart Hardware',detail:'VapeCartsCC D742 · 5K × $1.85 · Feb 18',amt:9527.50},
-                        {label:'Extract (CAM)',detail:'5,000g × $1.02/g · CAM biomass processed',amt:5100},
-                        {label:'Tubes',detail:'Treeform INV38610 + INV38884',amt:1574.88},
-                        {label:'Cart Boxes',detail:'Two Pkg CB010626 · 5K of 10K @ $0.244',amt:1262.70},
-                        {label:'Testing',detail:'5 strains × $400 (est — awaiting Encore inv)',amt:2000},
-                        {label:'Labor',detail:'5,000 × $1.00/unit',amt:5000}
-                      ]},
-                      {id:'DROP #2 · Jan 20 Carts',label:'5 Strains · 5,138 produced · 5,044 sold · 94 on hand',units:5138,unitsSold:5044,onHand:94,ws:10,avgPrice:10.24,total:51635,revSold:51635,distroRate:0.16,stage:'SALE',stageDetail:'$51,635 sold · 94 units on hand · avg $10.24',strains:['Wagyu Truffle Butter','Frozen Grapes','Ms Muffin','Sweet-n-Sour Diesel','White Widow'],milestones:{MFG:'Nov 11',LAB:'Jan 14',COMPLIANCE:'Jan 19',PKG:'Jan 19',TRANSFER:'Jan 20',DISTRO:'Jan 21',SALE:'Jan 27–Apr 9',COLLECT:'4 periods · Jan–Apr',PAYOUT:'Mar 13 · Apr 10 · May 8 · Jun 12'},salesPeriods:[
-                        {month:'Jan',units:2018,rev:20090,payoutDate:'Mar 13',status:'PAID'},
-                        {month:'Feb',units:2300,rev:26205,payoutDate:'Apr 10',status:'DUE'},
-                        {month:'Mar',units:1416,rev:12855,payoutDate:'May 8',status:'PENDING'},
-                        {month:'Apr',units:125,rev:831,payoutDate:'Jun 12',status:'PENDING'},
-                      ],costs:[
-                        {label:'Cart Hardware',detail:'Octave 1614 · 5,138 of 8K @ $1.85 + ship/fee',amt:10076},
-                        {label:'Extract (CAM)',detail:'5,138g × $1.02/g',amt:5240.76},
-                        {label:'Batteries',detail:'Octave 1636 · 500 SlickBox V2 @ $8 · Jan 5',amt:4088.90},
-                        {label:'Testing',detail:'Encore 2601ENC0623 · 5 panel + expedite · Jan 14',amt:2750},
-                        {label:'Tubes',detail:'Treeform INV34221 stock · 5,138 × $0.08',amt:411.04},
-                        {label:'Cart Boxes',detail:'Two Pkg CB010626 · 5,138 × $0.244',amt:1253.67},
-                        {label:'Shrink Bands',detail:'Treeform INV37161 · 5,138 × $0.0176',amt:90.43},
-                        {label:'Labor',detail:'5,138 × $1.00/unit',amt:5138}
-                      ]},
-                      {id:'DROP #3B · Mar 3 Carts',label:'5 Strains · 4,630 produced · 4,529 sold · 101 on hand',units:4630,unitsSold:4529,onHand:101,ws:10,avgPrice:9.12,total:41304,revSold:41304,distroRate:0.16,stage:'SALE',stageDetail:'$41,304 sold · 101 units on hand · avg $9.12',strains:['Ice Cream Paint Job','Grandma\'s Cookies','Lemon Thai','Hella Oranges','Sweet n\' Sour Diesel'],milestones:{MFG:'Feb 2026',LAB:'Feb 2026',COMPLIANCE:'Mar 3',PKG:'Mar 2',TRANSFER:'Mar 3',DISTRO:'Mar 4',SALE:'Mar 4–Apr 9',COLLECT:'2 periods · Mar–Apr',PAYOUT:'May 8 · Jun 12'},salesPeriods:[
-                        {month:'Mar',units:4461,rev:39605,payoutDate:'May 8',status:'PENDING'},
-                        {month:'Apr',units:207,rev:1670,payoutDate:'Jun 12',status:'PENDING'},
-                      ],costs:[
-                        {label:'Extract (CAM)',detail:'4,630g × $1.02/g',amt:4722.60},
-                        {label:'Cart Hardware',detail:'1614 remainder 2,862 + D2037 1,768 @ $1.85',amt:8565.50},
-                        {label:'Testing',detail:'5 strains × $400 (est — no Encore inv)',amt:2000},
-                        {label:'Tubes',detail:'Treeform INV34221 stock · 4,630 × $0.08',amt:370.40},
-                        {label:'Cart Boxes',detail:'Two Pkg CB010626 · 4,630 × $0.244',amt:1129.72},
-                        {label:'Shrink Bands',detail:'Treeform INV37161 · 4,630 × $0.0176',amt:81.49},
-                        {label:'Labor',detail:'4,630 × $1.00/unit',amt:4630}
-                      ]}
-                    ]},
-                    {name:'EXTRACTS',color:'#d4a24c',batches:[
-                      {id:'DROP #3 · Feb 10 Badder',label:'6 Strains · 5,766 produced · 4,173 sold · 1,593 on hand',units:5766,unitsSold:4173,onHand:1593,ws:8,avgPrice:7.34,total:46128,revSold:30648,distroRate:0.16,stage:'SALE',stageDetail:'$30,648 sold · 1,593 units on hand · avg $7.34',strains:['Hella Lemons','Grandmas Cookies','Sweet-N-Sour Diesel','Frozen Grapes','Wagyu Truffle Butter','ICPJ'],milestones:{MFG:'Dec 2025',LAB:'Jan 27',COMPLIANCE:'Feb 9',PKG:'Feb 9',TRANSFER:'Feb 10',DISTRO:'Feb 11',SALE:'Feb 17–Apr 10',COLLECT:'3 periods · Feb–Apr',PAYOUT:'Apr 10 · May 8 · Jun 12'},salesPeriods:[
-                        {month:'Feb',units:1732,rev:13540,payoutDate:'Apr 10',status:'DUE'},
-                        {month:'Mar',units:2650,rev:18816,payoutDate:'May 8',status:'PENDING'},
-                        {month:'Apr',units:685,rev:5240,payoutDate:'Jun 12',status:'PENDING'},
-                      ],costs:[
-                        {label:'Extract (CAM)',detail:'5,766g × $1.02/g',amt:5881.32},
-                        {label:'Jars + Caps',detail:'Treeform INV36807 · 5,766 of 15,190 @ $0.35',amt:2093},
-                        {label:'Testing',detail:'Encore 2601ENC1164 · 6 terp+panel · Jan 27',amt:2400},
-                        {label:'Concentrate Boxes',detail:'5,766 × $0.16',amt:922.56},
-                        {label:'Labor',detail:'5,766 × $1.00/unit',amt:5766}
-                      ]},
-                      {id:'DROP #3B · Mar 3 Sauce',label:'4 Strains · 3,968 produced · 1,689 sold · 2,279 on hand',units:3968,unitsSold:1689,onHand:2279,ws:8,avgPrice:7.41,total:29398,revSold:12515,distroRate:0.16,stage:'SALE',stageDetail:'$12,515 sold · 2,279 units on hand · avg $7.41',strains:['Hella Oranges','Ice Cream Paint Job','Strawberry Milk','Sweet-N-Sour Diesel'],milestones:{MFG:'Feb 2026',LAB:'Feb 2026',COMPLIANCE:'Mar 2',PKG:'Mar 2',TRANSFER:'Mar 3',DISTRO:'Mar 4',SALE:'Mar 10–Apr 9',COLLECT:'2 periods · Mar–Apr',PAYOUT:'May 8 · Jun 12'},salesPeriods:[
-                        {month:'Mar',units:903,rev:6785,payoutDate:'May 8',status:'PENDING'},
-                        {month:'Apr',units:516,rev:3725,payoutDate:'Jun 12',status:'PENDING'},
-                      ],costs:[
-                        {label:'Extract (GL owed)',detail:'3,968g × $1.25/g · owed to Greenline',amt:4960},
-                        {label:'Jars + Caps',detail:'Treeform INV36807 · 3,968 of 15,190 @ $0.35',amt:1388.80},
-                        {label:'Testing',detail:'4 strains × $400 (est)',amt:1600},
-                        {label:'Concentrate Boxes',detail:'3,968 × $0.16',amt:634.88},
-                        {label:'Labor',detail:'3,968 × $1.00/unit',amt:3968}
-                      ]},
-                      {id:'DROP #5 · Badder',label:'6 Strains · 6,000 units · In Production — SNSD, ICPJ, GC, FG, MC, HB',units:6000,unitsSold:0,onHand:0,ws:8,avgPrice:8,total:48000,revSold:0,distroRate:0.16,stage:'MFG',stageDetail:'Greenline started batch — 6 strains × 1,000u',strains:['Sweet-N-Sour Diesel','Ice Cream Paint Job','Grandmas Cookies','Frozen Grapes','Modified Cherries','Headband'],milestones:{MFG:'Apr 9',LAB:'TBD',COMPLIANCE:'TBD',PKG:'TBD',TRANSFER:'TBD',COLLECT:'TBD',PAYOUT:'TBD'},cashStart:'2025-10-01',salesPeriods:[],costs:[
-                        {label:'Jars + Caps',detail:'Treeform INV36807 · Oct 1 2025 · 6,000 of 15,190 @ $0.35',amt:2100},
-                        {label:'Extract (CAM)',detail:'6,000g × $1.02/g',amt:6120},
-                        {label:'Testing',detail:'6 strains × $400 (est)',amt:2400},
-                        {label:'Concentrate Boxes',detail:'6,000 × $0.16',amt:960},
-                        {label:'TE Lid Labels',detail:'6,000 × $0.04',amt:240},
-                        {label:'Labor',detail:'6,000 × $1.00/unit',amt:6000}
-                      ]}
-                    ]}
-                  ];
-                  window._dropPipelines=pipelines;
                   return(<div style={{marginTop:24}}>
                     <div style={{fontSize:11,fontWeight:800,letterSpacing:3,marginBottom:16}}>PRODUCTION → CASH PIPELINE</div>
                     {(function(){
