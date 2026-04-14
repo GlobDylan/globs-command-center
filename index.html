@@ -5200,8 +5200,8 @@ window._STRAIN_DB=[
                     {s:10,t:'Release to Distribution',d:'Confirm transfer in METRC. Notify UpNorth (Ian, Brand Manager) with manifest details and ETA.',p:null,c:null}
                   ];
                   var SOPS=[
-                    {k:'carts',l:'Vape Carts',c:'#6fa8d6',steps:CART_STEPS,cost:'$5.50 all-in'},
-                    {k:'concentrates',l:'Concentrates',c:'#d4a24c',steps:CONC_STEPS,cost:'$3.08 badder / $3.00 sauce'},
+                    {k:'carts',l:'Vape Carts',c:'#6fa8d6',steps:CART_STEPS,cost:'$4.89 all-in'},
+                    {k:'concentrates',l:'Concentrates',c:'#d4a24c',steps:CONC_STEPS,cost:'$3.98 badder / $3.16 sauce'},
                     {k:'extraction',l:'Extraction',c:'#7cb87a',steps:EXT_STEPS,cost:'GL handles 100%'},
                     {k:'compliance',l:'Compliance Submission',c:'#f44336',steps:COMP_STEPS,cost:'COA + METRC + Labels → Transfer'}
                   ];
@@ -5521,7 +5521,7 @@ window._STRAIN_DB=[
                         '</div>'+
                         '<div style="border-left:3px solid #e91e63;padding:12px 14px;margin-bottom:8px;background:#e91e6308">'+
                         '<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;font-weight:700">\u2779 Production Cadence</span><span style="font-size:11px;color:#e91e63;font-weight:700">5,000\u20136,000 units/drop</span></div>'+
-                        '<div style="font-size:11px;color:#ccc;margin-top:4px;line-height:1.5">Vertically integrated supply chain enables consistent drops every 4\u20136 weeks. Drop 4 (5,000 carts) shipped Apr 9. Drop 5 (6,000 badder) in production. Revenue scales with production capacity, which is currently the constraint \u2014 not demand.</div>'+
+                        '<div style="font-size:11px;color:#ccc;margin-top:4px;line-height:1.5">Vertically integrated supply chain enables consistent drops every 4\u20136 weeks. Drop 4 (5,000 carts) landed Apr 13 and is actively selling. Drop 5 (6,000 badder) in production at Greenline. Revenue scales with production capacity, which is currently the constraint \u2014 not demand.</div>'+
                         '</div>'+
                         '<p class="note">Early-stage MoM growth rates will moderate as the base grows, but the underlying drivers are structural and repeatable. The ceiling is determined by production capacity and capital, not market demand \u2014 a capital-efficient growth story.</p></div>');
                       // Slide 4: Unit Economics (SF-derived + COGS)
@@ -5530,7 +5530,55 @@ window._STRAIN_DB=[
                       slides.push('<div class="slide"><h2>Distribution Footprint</h2><div class="grid3"><div class="stat"><div class="big">'+totalAccounts+'</div><div class="label">Total Accounts</div></div><div class="stat"><div class="big green">'+activeAll+'</div><div class="label">Active (365d)</div></div><div class="stat"><div class="big">'+active[90]+'</div><div class="label">Active (90d)</div></div></div><div class="zones"><div class="zone"><span class="dot" style="background:#ffeb3b"></span>NorCal (DNU) \u00b7 '+zoneActive.DNU+' active / '+zoneCounts.DNU+' total \u00b7 $'+Math.round(zoneRev.DNU/1000)+'K</div><div class="zone"><span class="dot" style="background:#6fa8d6"></span>Central CA (RB) \u00b7 '+zoneActive.RB+' active / '+zoneCounts.RB+' total \u00b7 $'+Math.round(zoneRev.RB/1000)+'K</div><div class="zone"><span class="dot" style="background:#f44336"></span>SoCal (ZASP) \u00b7 '+zoneActive.ZASP+' active / '+zoneCounts.ZASP+' total \u00b7 $'+Math.round(zoneRev.ZASP/1000)+'K</div></div><p class="note">Distributed by UpNorth across 3 California zone hubs: Arcata/Humboldt, Riverbank, Los Angeles. Account data from Salesforce.</p></div>');
                       // Slide 6: Product + Pipeline
                       slides.push('<div class="slide"><h2>Product + Pipeline</h2><div class="grid2"><div class="big" style="text-align:center;padding:12px">Live Resin Vape Carts (1g)</div><div class="big" style="text-align:center;padding:12px">Badder \u00b7 Sauce \u00b7 Diamonds</div></div><h3 style="margin-top:16px">Velocity (from Salesforce)</h3><div class="grid3" style="margin-top:8px"><div class="stat"><div class="big">'+units[30]+'</div><div class="label">Units (30d)</div></div><div class="stat"><div class="big">'+units[90]+'</div><div class="label">Units (90d)</div></div><div class="stat"><div class="big">'+units[365]+'</div><div class="label">Units (365d)</div></div></div><p class="note">Vertically integrated: biomass sourcing \u2192 extraction (Greenline Labs, Moss Landing) \u2192 filling \u2192 testing (Encore Labs) \u2192 packaging \u2192 distribution (UpNorth).</p></div>');
-                      // Slide 7: Competitive Landscape + Supply Chain
+                      // Slide 7: Production Pipeline (live from Drop Zone)
+                      var pipeSlideContent='';
+                      var totalBatchCost=0,totalBatchRev=0,totalBatchSold=0,totalBatchOH=0,totalBatchProduced=0;
+                      pipelines.forEach(function(pipe){pipe.batches.forEach(function(b){
+                        var bc=b.costs?b.costs.reduce(function(s,r){return s+r.amt;},0):0;
+                        var live=batchLiveData(b,pipe.name);
+                        var sold=live&&live.unitsSold>0?live.unitsSold:(b.unitsSold||0);
+                        var oh=live&&live.unitsSold>0?live.onHand:(b.onHand||0);
+                        var revS=live&&live.unitsSold>0?live.revSold:(b.revSold||0);
+                        var pct=b.units>0?Math.round(sold/b.units*100):0;
+                        var stageOv=dropStages[b.id]||{};
+                        var stage=stageOv.stage||b.stage||'MFG';
+                        totalBatchCost+=bc;totalBatchRev+=revS;totalBatchSold+=sold;totalBatchOH+=oh;totalBatchProduced+=b.units;
+                        var sc=stage==='SALE'?'#33cc66':stage==='MFG'?'#EF9F27':'#6fa8d6';
+                        pipeSlideContent+='<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid #1a1a1a;border-left:3px solid '+sc+'"><div><div style="font-size:12px;font-weight:700">'+b.id.split(' \u00b7 ')[0]+'</div><div style="font-size:10px;color:#888">'+b.strains.length+' strains \u00b7 '+b.units.toLocaleString()+' units \u00b7 '+stage+'</div></div><div style="text-align:right"><div style="font-size:14px;font-weight:800;color:'+sc+'">'+pct+'% sold</div><div style="font-size:10px;color:#888">$'+Math.round(revS/1000)+'K rev \u00b7 '+oh.toLocaleString()+' OH</div></div></div>';
+                      });});
+                      var totalSellPct=totalBatchProduced>0?Math.round(totalBatchSold/totalBatchProduced*100):0;
+                      slides.push('<div class="slide"><h2>Production Pipeline</h2>'+
+                        '<div class="grid3"><div class="stat"><div class="big">'+totalBatchProduced.toLocaleString()+'</div><div class="label">Units Produced (2026)</div></div><div class="stat hl"><div class="big green">'+totalSellPct+'%</div><div class="label">Sell-Through Rate</div></div><div class="stat"><div class="big">'+totalBatchOH.toLocaleString()+'</div><div class="label">On Hand at UpNorth</div></div></div>'+
+                        '<h3 style="margin-top:16px;margin-bottom:8px">Active Batches</h3>'+pipeSlideContent+
+                        '<p class="note">All data sourced live from Salesforce 365-day account activity. Sell-through percentages reflect period-filtered sales matched to specific batch drop dates. Production cadence: 5,000\u20136,000 units every 4\u20136 weeks.</p></div>');
+                      // Slide 8: Capital Efficiency (COGS Lifecycle)
+                      var rawMatCost=25699;// From RAW materials inventory
+                      var inProdCostDeck=0,shelfCostDeck=0,soldCostDeck=0,awaitCostDeck=0;
+                      var SALE_S_D=['DISTRO','SALE','COLLECT','PAYOUT'];
+                      pipelines.forEach(function(pipe){pipe.batches.forEach(function(b){
+                        var bc=b.costs?b.costs.reduce(function(s,r){return s+r.amt;},0):0;
+                        var stageOv=dropStages[b.id]||{};
+                        var stage=stageOv.stage||b.stage||'MFG';
+                        var atSale=SALE_S_D.includes(stage);
+                        var live=atSale?batchLiveData(b,pipe.name):null;
+                        if(live&&live.unitsSold>0){var sf=live.unitsSold/Math.max(1,b.units);soldCostDeck+=Math.round(bc*sf);shelfCostDeck+=Math.round(bc*(1-sf));}
+                        else if(atSale){var sf2=(b.unitsSold||0)/Math.max(1,b.units);soldCostDeck+=Math.round(bc*sf2);shelfCostDeck+=Math.round(bc*(1-sf2));}
+                        else{inProdCostDeck+=bc;}
+                      });});
+                      var totalTiedDeck=rawMatCost+inProdCostDeck+shelfCostDeck;
+                      slides.push('<div class="slide"><h2>Capital Efficiency</h2>'+
+                        '<div style="font-size:11px;color:#999;margin-bottom:16px;line-height:1.5">Every dollar invested is tracked through its lifecycle from raw materials to cash return. This is how a 1-person operation manages $150K+ in rolling production capital.</div>'+
+                        '<div class="grid2"><div class="stat"><div class="big" style="color:#9b8ec4">$'+Math.round(rawMatCost/1000)+'K</div><div class="label">Raw Materials (purchased, not in production)</div></div><div class="stat"><div class="big" style="color:#EF9F27">$'+Math.round(inProdCostDeck/1000)+'K</div><div class="label">In Production (at Greenline)</div></div><div class="stat"><div class="big" style="color:#6fa8d6">$'+Math.round(shelfCostDeck/1000)+'K</div><div class="label">On Shelves (unsold at UpNorth)</div></div><div class="stat hl"><div class="big green">$'+Math.round(soldCostDeck/1000)+'K</div><div class="label">Converted to Revenue</div></div></div>'+
+                        '<div style="margin-top:16px;padding:16px;background:#111;border:2px solid #fff;border-radius:8px;text-align:center"><div style="font-size:10px;color:#888;letter-spacing:2px;margin-bottom:6px">TOTAL CAPITAL DEPLOYED (NOT YET RETURNED)</div><div style="font-size:32px;font-weight:900;color:#EF9F27">$'+Math.round(totalTiedDeck/1000)+'K</div><div style="font-size:11px;color:#888;margin-top:4px">Materials + production + unsold inventory</div></div>'+
+                        '<div style="height:12px;background:#1a1a1a;border-radius:6px;margin-top:16px;overflow:hidden;display:flex">'+
+                        '<div style="height:12px;background:#9b8ec4;width:'+Math.round(rawMatCost/Math.max(1,totalTiedDeck+soldCostDeck)*100)+'%"></div>'+
+                        '<div style="height:12px;background:#EF9F27;width:'+Math.round(inProdCostDeck/Math.max(1,totalTiedDeck+soldCostDeck)*100)+'%"></div>'+
+                        '<div style="height:12px;background:#6fa8d6;width:'+Math.round(shelfCostDeck/Math.max(1,totalTiedDeck+soldCostDeck)*100)+'%"></div>'+
+                        '<div style="height:12px;background:#33cc66;width:'+Math.round(soldCostDeck/Math.max(1,totalTiedDeck+soldCostDeck)*100)+'%"></div>'+
+                        '</div>'+
+                        '<div style="display:flex;gap:16px;margin-top:8px;font-size:10px;flex-wrap:wrap"><span style="color:#9b8ec4">\u25CF Materials</span><span style="color:#EF9F27">\u25CF Production</span><span style="color:#6fa8d6">\u25CF Shelves</span><span style="color:#33cc66">\u25CF Converted</span></div>'+
+                        '<p class="note">Capital lifecycle averages ~4 months per drop: biomass purchase \u2192 extraction (2\u20134 wk) \u2192 testing + compliance (1 wk) \u2192 distribution (1 wk) \u2192 sell-through (4\u20138 wk) \u2192 payout (45 days). Greenline $75K credit line and Amex $30K float bridge the gap between spend and collection.</p></div>');
+                      // Slide 9: Competitive Landscape + Supply Chain
                       slides.push('<div class="slide"><h2>Competitive Landscape</h2>'+
                         '<div style="font-size:10px;color:#888;letter-spacing:1px;margin-bottom:6px">LIVE RESIN CARTS (1g) \u2014 CA RETAIL</div>'+
                         '<div style="border-bottom:1px solid #1a1a1a;padding:6px 0;display:flex;justify-content:space-between;font-size:11px"><span style="font-weight:700">Raw Garden</span><span style="color:#888">$25\u201335</span></div>'+
@@ -5619,20 +5667,22 @@ window._STRAIN_DB=[
                         '</div></div>'+
                         '<p class="note">Valuation premiums: vertically integrated supply chain, '+Math.round(grossMargin)+'% gross margins, '+totalAccounts+' retail accounts across 3 CA zones, established vendor relationships, proprietary strain library ('+skuCount+' SKUs), and operational analytics platform (GPI).</p></div>');
                       // Slide 12: Team
-                      slides.push('<div class="slide"><h2>Team &amp; Operations</h2><div class="team"><div class="person"><strong>Dylan</strong> \u00b7 Founder/CEO \u2014 Operations, finance, production, strategy</div><div class="person"><strong>Ian</strong> \u00b7 Brand Manager \u2014 UpNorth liaison, compliance, logistics</div><div class="person"><strong>Jonah</strong> \u00b7 Sales Director \u2014 Account management, pricing, demos</div><div class="person"><strong>Eric Ervin</strong> \u00b7 NorCal + Central CA Sales Manager</div><div class="person"><strong>Brandyn</strong> \u00b7 SoCal Sales Manager</div></div><h3 style="margin-top:20px">Key Partners</h3><div class="team"><div class="person"><strong>Greenline Labs</strong> \u2014 Extraction + filling (Moss Landing, CA)</div><div class="person"><strong>Encore Labs</strong> \u2014 Testing + COAs</div><div class="person"><strong>UpNorth</strong> \u2014 Statewide distribution (3 zones)</div><div class="person"><strong>Treeform</strong> \u2014 Custom packaging</div></div></div>');
+                      slides.push('<div class="slide"><h2>Team &amp; Operations</h2><div class="team"><div class="person"><strong>Dylan Brewington</strong> \u00b7 Founder/CEO \u2014 Operations, finance, production, technology, strategy</div><div class="person"><strong>Jonah Rabinbach</strong> \u00b7 Sales Director \u2014 Account management, pricing strategy, team coordination</div><div class="person"><strong>Ian Herndon</strong> \u00b7 Brand Manager \u2014 UpNorth liaison, compliance, logistics coordination</div></div><h3 style="margin-top:16px">Sales Team (UpNorth)</h3><div class="team"><div class="person"><strong>Eric Ervin</strong> \u00b7 NorCal + Central CA</div><div class="person"><strong>Isaac Romero</strong> \u00b7 SoCal (ZASP)</div><div class="person"><strong>Brian Bresee</strong> \u00b7 NorCal / Far Northern</div><div class="person"><strong>Brian Kiser</strong> \u00b7 Central CA (RB)</div><div class="person"><strong>Matthew Blackburn</strong> \u00b7 NorCal / YZ-HUB</div><div class="person"><strong>Christina Perpetua</strong> \u00b7 Central CA (RB)</div><div class="person"><strong>Danny Smith</strong> \u00b7 SoCal (ZASP)</div><div class="person"><strong>Daniel Rojas</strong> \u00b7 SoCal (ZASP)</div></div><h3 style="margin-top:16px">Key Partners</h3><div class="team"><div class="person"><strong>Greenline Labs</strong> \u2014 Extraction, formulation, filling (Moss Landing, CA) \u00b7 $75K credit line</div><div class="person"><strong>Encore Labs</strong> \u2014 Testing, COA generation</div><div class="person"><strong>UpNorth Distribution</strong> \u2014 Statewide 3-zone distribution + 8-person sales force</div><div class="person"><strong>Treeform Packaging</strong> \u2014 Custom packaging, boxes, labels (Concord, CA)</div><div class="person"><strong>Octave / Clean Core</strong> \u2014 Cart hardware + filling equipment</div></div></div>');
 
-                      var css='*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,system-ui,sans-serif;background:#000;color:#fff}'+
-                        '.slide{width:100%;max-width:800px;margin:0 auto 40px;padding:48px 40px;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:12px;min-height:500px;page-break-after:always}'+
-                        '.cover{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.cover .logo{font-size:64px;font-weight:900;letter-spacing:12px;margin-bottom:16px}.cover .sub{font-size:16px;color:#999;margin-bottom:40px}.cover .date{font-size:13px;color:#666}'+
-                        'h2{font-size:22px;font-weight:700;letter-spacing:3px;margin-bottom:24px;padding-bottom:12px;border-bottom:1px solid #1a1a1a}h3{font-size:14px;font-weight:600;letter-spacing:2px;color:#999}'+
-                        '.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}'+
-                        '.stat{background:#111;border:1px solid #222;border-radius:8px;padding:20px;text-align:center}.stat.hl{border-color:#33cc66}.big{font-size:28px;font-weight:800;margin-bottom:4px}.big.green{color:#33cc66}.label{font-size:11px;color:#888;letter-spacing:1px}'+
-                        '.note{font-size:12px;color:#666;margin-top:20px;line-height:1.6;border-top:1px solid #1a1a1a;padding-top:12px}'+
-                        '.zones{margin-top:20px}.zone{padding:10px 14px;border-bottom:1px solid #1a1a1a;font-size:13px;display:flex;align-items:center;gap:8px}.dot{width:10px;height:10px;border-radius:50%;display:inline-block}'+
-                        'table{width:100%;border-collapse:collapse;margin-top:16px;font-size:12px}th{text-align:left;padding:8px;border-bottom:2px solid #333;color:#999;font-weight:600}td{padding:8px;border-bottom:1px solid #1a1a1a}'+
-                        '.team{margin-top:12px}.person{padding:10px 14px;border-bottom:1px solid #1a1a1a;font-size:13px;line-height:1.5}'+
-                        '@media print{body{background:#000}.slide{border:none;margin:0;page-break-after:always;max-width:100%}}';
-                      w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>GLOBS Investor Deck</title><style>'+css+'</style></head><body>'+slides.join('')+'<div style="text-align:center;padding:40px;font-size:10px;color:#666">CONFIDENTIAL \u00b7 GLOBS \u00b7 v9.0</div></body></html>');
+                      var css='*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",system-ui,sans-serif;background:#000;color:#f0ece4;-webkit-font-smoothing:antialiased}'+
+                        '.slide{width:100%;max-width:860px;margin:0 auto 60px;padding:56px 48px;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:16px;min-height:520px;page-break-after:always;position:relative}'+
+                        '.slide::before{content:"GLOBS";position:absolute;top:18px;right:24px;font-size:9px;letter-spacing:4px;color:#333;font-weight:800}'+
+                        '.cover{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.cover::before{display:none}.cover .logo{font-size:72px;font-weight:900;letter-spacing:16px;margin-bottom:16px;background:linear-gradient(135deg,#f0ece4,#d4a24c);-webkit-background-clip:text;-webkit-text-fill-color:transparent}.cover .sub{font-size:15px;color:#888;margin-bottom:48px;letter-spacing:2px}.cover .date{font-size:12px;color:#555;letter-spacing:1px}'+
+                        'h2{font-size:20px;font-weight:700;letter-spacing:4px;text-transform:uppercase;margin-bottom:24px;padding-bottom:12px;border-bottom:1px solid #1a1a1a;color:#f0ece4}h3{font-size:12px;font-weight:600;letter-spacing:2px;color:#666;text-transform:uppercase}'+
+                        '.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}'+
+                        '.stat{background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:20px;text-align:center}.stat.hl{border-color:#33cc66;background:#33cc6608}.big{font-size:26px;font-weight:800;margin-bottom:4px;letter-spacing:1px}.big.green{color:#33cc66}.label{font-size:10px;color:#666;letter-spacing:1px}'+
+                        '.note{font-size:11px;color:#555;margin-top:24px;line-height:1.7;border-top:1px solid #1a1a1a;padding-top:14px}'+
+                        '.zones{margin-top:20px}.zone{padding:12px 14px;border-bottom:1px solid #1a1a1a;font-size:12px;display:flex;align-items:center;gap:8px}.dot{width:10px;height:10px;border-radius:50%;display:inline-block}'+
+                        'table{width:100%;border-collapse:collapse;margin-top:16px;font-size:11px}th{text-align:left;padding:8px 10px;border-bottom:2px solid #222;color:#666;font-weight:600;letter-spacing:1px;font-size:9px;text-transform:uppercase}td{padding:8px 10px;border-bottom:1px solid #111}'+
+                        '.team{margin-top:12px}.person{padding:10px 14px;border-bottom:1px solid #111;font-size:12px;line-height:1.6}'+
+                        '@media print{body{background:#000}.slide{border:none;margin:0;page-break-after:always;max-width:100%;border-radius:0}.slide::before{display:none}}'+
+                        '@media (max-width:600px){.slide{padding:32px 24px;min-height:auto}.grid2,.grid3{grid-template-columns:1fr}.big{font-size:22px}}';
+                      w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>GLOBS Investor Deck</title><style>'+css+'</style></head><body>'+slides.join('')+'<div style="text-align:center;padding:40px;font-size:10px;color:#666">CONFIDENTIAL \u00b7 GLOBS \u00b7 '+new Date().toLocaleDateString('en-US',{month:'short',year:'numeric'})+'</div></body></html>');
                       w.document.close();
                     }
 
@@ -5657,8 +5707,8 @@ window._STRAIN_DB=[
                           React.createElement('div',{style:{fontSize:9,color:C.dim}},'Blended Margin')
                         )
                       ),
-                      React.createElement('div',{style:{fontSize:10,color:C.dim,marginBottom:8}},'Deck includes 12 slides:'),
-                      ['Cover','Revenue','Growth Drivers','Unit Economics','Distribution','Product','Competitive','Lean Ops','GPI SaaS IP','Projections','Valuation','Team'].map(function(s,i){
+                      React.createElement('div',{style:{fontSize:10,color:C.dim,marginBottom:8}},'Deck includes 14 slides:'),
+                      ['Cover','Revenue','Growth Drivers','Unit Economics','Distribution','Product + Velocity','Production Pipeline','Capital Efficiency','Competitive Landscape','Lean Operations','GPI Technology IP','Projections','Valuation + Equity','Team + Partners'].map(function(s,i){
                         return React.createElement('div',{key:i,style:{padding:'6px 12px',fontSize:11,color:C.muted,borderLeft:'2px solid '+C.border}},
                           React.createElement('span',{style:{color:C.dim,marginRight:8}},(i+1)+'.'),s
                         );
