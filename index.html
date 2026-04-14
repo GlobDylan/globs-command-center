@@ -1461,6 +1461,8 @@ window._STRAIN_DB=[
       const [obShowEmail,setObShowEmail]=useState(false);
       const [obSearch,setObSearch]=useState('');
       const [financialsView,setFinancialsView]=useState('pnl'); // 'pnl' | 'cashflow'
+      const [ordersView,setOrdersView]=useState('orders'); // 'orders' | 'returns'
+      const [brandView,setBrandView]=useState('assets'); // 'assets' | 'investor'
       const [investorView,setInvestorView]=useState('org'); // 'org' | 'tasks' | 'deck'
       const [pnlDays,setPnlDays]=useState(90);
       const [snapExpanded,setSnapExpanded]=useState(null);
@@ -4074,7 +4076,7 @@ window._STRAIN_DB=[
                 })()}
 
                 {/* ══ RETURNS ══ */}
-                {tab==="returns"&&(function(){
+                {(tab==="returns"||(tab==="orders"&&ordersView==="returns"))&&(function(){
                   var SEED_RETURNS=[
                     {id:1001,date:'2026-03-26',strain:'Ice Cream Paint Job',category:'Cart',qty:4,unitValue:12,totalValue:48,reason:'Faulty',notes:'Pulled from inventory — bubbles in oil, tasted like burnt hair. Fifth and Green / Moon Vargas',status:'CREDIT APPLIED',source:'email',account:'Fifth and Green',created:'2026-03-26T23:38:17Z'},
                     {id:1002,date:'2026-03-26',strain:'Ice Cream Paint Job',category:'Cart',qty:2,unitValue:12,totalValue:24,reason:'Return',notes:'Customer returns — Fifth and Green / Moon Vargas',status:'CREDIT APPLIED',source:'email',account:'Fifth and Green',created:'2026-03-26T23:38:17Z'},
@@ -5185,8 +5187,15 @@ window._STRAIN_DB=[
                   </div>);
                 })()}
 
-                {/* ══ BRAND ASSETS ══ */}
+                {/* ══ BRAND ══ */}
                 {tab==="brand"&&(function(){
+                  return<div>
+                    <div style={{display:'flex',gap:0,marginBottom:20,borderBottom:'1px solid '+C.border}}>
+                      {[['assets','Brand Assets'],['investor','Investor Deck']].map(function(sv){return<button key={sv[0]} onClick={function(){setBrandView(sv[0]);}} style={{flex:1,padding:'12px 8px',border:'none',borderBottom:'2px solid '+(brandView===sv[0]?C.text:'transparent'),background:'transparent',color:brandView===sv[0]?C.text:C.dim,cursor:'pointer',fontSize:13,fontWeight:brandView===sv[0]?700:400,letterSpacing:1.5,textTransform:'uppercase',fontFamily:'inherit',textAlign:'center'}}>{sv[1]}</button>;})}
+                    </div>
+                  </div>;
+                })()}
+                {tab==="brand"&&brandView==="assets"&&(function(){
                   var DRIVE_LINKS=[
                     {l:'Product Photos',url:'https://drive.google.com/drive/folders/1cS7_KMloD8U0ipDfLTTx9ly1QnQaK0jr',c:'#6fa8d6'},
                     {l:'Live Resin / Carts',url:'https://drive.google.com/drive/folders/180q5S1RsnlMr2ebRtd2pbZ4-5s9z1ZuE',c:'#6fa8d6'},
@@ -5239,7 +5248,7 @@ window._STRAIN_DB=[
                 })()}
 
                 {/* ══ INVESTOR DECK ══ */}
-                {tab==="investor"&&(function(){
+                {(tab==="investor"||(tab==="brand"&&brandView==="investor"))&&(function(){
                   // investorView is React state declared at component level
                   // ── Aggregate ALL metrics from SF Account Activity ──
                   var rev={7:0,30:0,60:0,90:0,180:0,365:0};
@@ -5640,6 +5649,13 @@ window._STRAIN_DB=[
 
                 {/* ══ ORDER BUILDER ══ */}
                 {tab==="orders"&&(function(){
+                  return<div>
+                    <div style={{display:'flex',gap:0,marginBottom:20,borderBottom:'1px solid '+C.border}}>
+                      {[['orders','Orders'],['returns','Returns']].map(function(sv){return<button key={sv[0]} onClick={function(){setOrdersView(sv[0]);}} style={{flex:1,padding:'12px 8px',border:'none',borderBottom:'2px solid '+(ordersView===sv[0]?C.text:'transparent'),background:'transparent',color:ordersView===sv[0]?C.text:C.dim,cursor:'pointer',fontSize:13,fontWeight:ordersView===sv[0]?700:400,letterSpacing:1.5,textTransform:'uppercase',fontFamily:'inherit',textAlign:'center'}}>{sv[1]}</button>;})}
+                    </div>
+                  </div>;
+                })()}
+                {tab==="orders"&&ordersView==="orders"&&(function(){
                   // Build inventory from real data
                   var obInv=[];
                   Object.keys(inventoryData).forEach(function(sku){
