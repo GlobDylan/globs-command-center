@@ -2296,11 +2296,10 @@ window._STRAIN_DB=[
                       // ── Raw Materials: purchased but not yet in a batch ──
                       // These are updated manually as orders land or get used
                       var RAW=[
-                        {label:'Cart Hardware (Octave)',detail:'D742 remainder after Drop #4',qty:0,unitCost:1.85,amt:0},
-                        {label:'Jars + Caps (Treeform)',detail:'INV36807 · 15,190 ordered − 15,734 allocated',qty:0,unitCost:0.35,amt:0},
-                        {label:'Cart Boxes (Two Pkg)',detail:'CB010626 · 10K ordered − used',qty:0,unitCost:0.244,amt:0},
+                        {label:'Cart Boxes (Treeform PO34521)',detail:'11,000 × $0.21 · air shipped Apr 7 · none allocated',qty:11000,unitCost:0.21,amt:2310},
+                        {label:'20ct Master Cases (PO34525)',detail:'550 × $1.63 · air shipped',qty:550,unitCost:1.63,amt:896.50},
                         {label:'TE Lid Labels',detail:'Stock on hand',qty:4000,unitCost:0.04,amt:160},
-                        {label:'Concentrate Boxes',detail:'Stock on hand',qty:2000,unitCost:0.16,amt:320},
+                        {label:'Concentrate Boxes',detail:'Stock on hand · 6K deducted for Drop #5',qty:2000,unitCost:0.16,amt:320},
                         {label:'Tubes (Treeform)',detail:'Stock on hand',qty:1000,unitCost:0.08,amt:80}
                       ];
                       var rawTotal=RAW.reduce(function(s,r){return s+r.amt;},0);
@@ -2368,6 +2367,14 @@ window._STRAIN_DB=[
                             <span style={{color:C.info}}>{'● On Shelves $'+Math.round(shelfCost/1000)+'K'}</span>
                           </div>
                         </div>
+
+                        {rawTotal>0&&<div style={{background:C.surface,border:'1px solid #9b8ec433',borderLeft:'3px solid #9b8ec4',borderRadius:4,padding:'10px 14px',marginBottom:8}}>
+                          <div style={{fontSize:10,color:'#9b8ec4',fontWeight:700,letterSpacing:1.5,marginBottom:4}}>RAW MATERIALS — BOUGHT BUT NOT IN A BATCH</div>
+                          {RAW.filter(function(r){return r.amt>0;}).map(function(r){return<div key={r.label} style={{display:'flex',justifyContent:'space-between',fontSize:11,marginTop:4}}>
+                            <span style={{color:C.muted}}>{r.label+' ('+r.qty.toLocaleString()+')'}</span>
+                            <span style={{fontWeight:700,color:'#9b8ec4'}}>{'$'+Math.round(r.amt).toLocaleString()}</span>
+                          </div>;})}
+                        </div>}
 
                         {inProdBatches.length>0&&<div style={{background:C.surface,border:'1px solid '+C.warn+'33',borderLeft:'3px solid '+C.warn,borderRadius:4,padding:'10px 14px',marginBottom:8}}>
                           <div style={{fontSize:10,color:C.warn,fontWeight:700,letterSpacing:1.5,marginBottom:4}}>IN PRODUCTION — NOT SELLING YET</div>
