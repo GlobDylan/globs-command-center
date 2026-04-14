@@ -2377,10 +2377,12 @@ window._STRAIN_DB=[
                           var bOnHand=live?live.onHand:(batch.onHand||0);
                           var bAvgPrice=live?live.avgPrice:(batch.avgPrice||batch.ws);
                           var bTotal=live?Math.max(batch.total,bRevSold+(bOnHand*bAvgPrice)):(batch.total||0);
-                          var prodCost=batch.costs?batch.costs.reduce(function(s,r){return s+r.amt;},0):0;
+                          var prodCostFull=batch.costs?batch.costs.reduce(function(s,r){return s+r.amt;},0):0;
                           var dr=batch.distroRate||0.16;
                           var useActual=bRevSold>0;
                           var revForCalc=useActual?bRevSold:bTotal;
+                          // Prorate cost to units sold (don't charge full batch cost against partial sales)
+                          var prodCost=useActual&&bUnitsSold>0&&batch.units>0?prodCostFull*(bUnitsSold/batch.units):prodCostFull;
                           var margin=revForCalc*(1-dr)-prodCost;
                           var marginPct=revForCalc>0?Math.round(margin/revForCalc*100):0;
                           var sellPct=batch.units>0&&bUnitsSold>0?Math.round(bUnitsSold/batch.units*100):0;
@@ -2439,7 +2441,7 @@ window._STRAIN_DB=[
                                 <span style={{fontSize:10,fontWeight:700,padding:'1px 4px',borderRadius:2,background:isPaid?C.good+'22':isDue?'#d4a24c22':'transparent',color:isPaid?C.good:isDue?'#d4a24c':C.dim,border:'1px solid '+(isPaid?C.good+'44':isDue?'#d4a24c44':'transparent')}}>{sp.status}</span>
                               </div>;})}
                             </div>}
-                            {batch.costs&&batch.costs.length>0&&(function(){var prodCost=batch.costs.reduce(function(s,r){return s+r.amt;},0);var dr=batch.distroRate||0.16;var actualRev=bRevSold||0;var projRev=bTotal||0;var useActual=actualRev>0;var revForCalc=useActual?actualRev:projRev;var distroFee=Math.round(revForCalc*dr);var netRev=revForCalc-distroFee;var margin=netRev-prodCost;var pct=revForCalc>0?((margin/revForCalc)*100).toFixed(0):0;return<div style={{marginTop:8}}>
+                            {batch.costs&&batch.costs.length>0&&(function(){var prodCostFull=batch.costs.reduce(function(s,r){return s+r.amt;},0);var dr=batch.distroRate||0.16;var actualRev=bRevSold||0;var projRev=bTotal||0;var useActual=actualRev>0;var revForCalc=useActual?actualRev:projRev;var prodCost=useActual&&bUnitsSold>0&&batch.units>0?prodCostFull*(bUnitsSold/batch.units):prodCostFull;var distroFee=Math.round(revForCalc*dr);var netRev=revForCalc-distroFee;var margin=netRev-prodCost;var pct=revForCalc>0?((margin/revForCalc)*100).toFixed(0):0;return<div style={{marginTop:8}}>
                               {bUnitsSold>0&&<div style={{padding:'10px 12px',background:'#0d1117',border:'1px solid #1a1a1a',borderRadius:4,marginBottom:6,fontSize:10}}>
                                 <div style={{fontSize:10,fontWeight:700,letterSpacing:1.5,color:C.dim,marginBottom:4}}>SELL-THROUGH</div>
                                 <div style={{display:'flex',justifyContent:'space-between'}}>
@@ -2474,8 +2476,8 @@ window._STRAIN_DB=[
                                   <span style={{fontWeight:600,color:row.amt<0?C.good:C.danger,whiteSpace:'nowrap'}}>{row.amt<0?'-$'+Math.abs(row.amt).toLocaleString():'$'+row.amt.toLocaleString()}</span>
                                 </div>;})}
                                 <div style={{display:'flex',justifyContent:'space-between',fontSize:10,padding:'4px 0',borderTop:'1px solid #222',marginTop:4}}>
-                                  <span style={{fontWeight:700}}>Production Cost</span>
-                                  <span style={{fontWeight:700,color:C.danger}}>{'$'+prodCost.toLocaleString()}</span>
+                                  <span style={{fontWeight:700}}>{useActual&&bUnitsSold<batch.units?'Production Cost ('+bUnitsSold+'/'+batch.units+' units)':'Production Cost'}</span>
+                                  <span style={{fontWeight:700,color:C.danger}}>{'$'+Math.round(prodCost).toLocaleString()}</span>
                                 </div>
                                 <div style={{display:'flex',justifyContent:'space-between',fontSize:10,padding:'3px 0'}}>
                                   <span style={{color:C.muted}}>{useActual?'Revenue (actual · '+bUnitsSold+' sold × $'+bAvgPrice.toFixed(2)+')':'Revenue (projected · '+batch.units+' × $'+batch.ws+')'}</span>
@@ -2489,7 +2491,7 @@ window._STRAIN_DB=[
                                   <span style={{fontWeight:800}}>{'NET MARGIN'+(useActual?' (actual)':' (projected)')}</span>
                                   <span style={{fontWeight:800,color:margin>0?C.good:C.danger}}>{'$'+margin.toLocaleString()+' ('+pct+'%)'}</span>
                                 </div>
-                                {batch.units>0&&<div style={{fontSize:10,color:C.dim,marginTop:4}}>{'Prod: $'+(prodCost/batch.units).toFixed(2)+'/unit · COGS: $'+((prodCost+distroFee)/(useActual?bUnitsSold:batch.units)).toFixed(2)+'/unit · Margin: $'+(margin/(useActual?bUnitsSold:batch.units)).toFixed(2)+'/unit'}</div>}
+                                {batch.units>0&&<div style={{fontSize:10,color:C.dim,marginTop:4}}>{'Prod: $'+(prodCostFull/batch.units).toFixed(2)+'/unit · COGS: $'+((prodCost+distroFee)/(useActual?bUnitsSold:batch.units)).toFixed(2)+'/unit · Margin: $'+(margin/(useActual?bUnitsSold:batch.units)).toFixed(2)+'/unit'}</div>}
                               </div>}
                             </div>;})()}
                           </div>}
