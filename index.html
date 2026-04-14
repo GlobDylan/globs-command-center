@@ -1805,14 +1805,26 @@ window._STRAIN_DB=[
 
       // ═══ SHARED PIPELINE — single source of truth for drops in production ═══
       // Both Incoming tab and MFG tab read from this
-      const PIPELINE=[
-        {label:'Drop #4',status:'SHIPPING',statusKey:'good',eta:'Apr 9',source:'CAM',
+      const PIPELINE_RAW=[
+        {label:'Drop #4',dropId:'DROP #4',status:'SHIPPING',statusKey:'good',eta:'Apr 9',source:'CAM',
           items:[{strain:'Modified Cherries',cat:'Cart',qty:1000},{strain:'Ice Cream Paint Job',cat:'Cart',qty:1000},{strain:'Sweet-N-Sour Diesel',cat:'Cart',qty:1000},{strain:'Headband',cat:'Cart',qty:1000},{strain:'Grandma\'s Cookies',cat:'Cart',qty:1000}],
           stages:[{l:'Extract',done:true},{l:'Fill',done:true},{l:'Lab Test',done:true},{l:'Package',done:true},{l:'Ship',done:false,active:true}]},
-        {label:'Drop #5',status:'FORMULATION',statusKey:'warn',eta:'~Apr 18',source:'UpNorth',
+        {label:'Drop #5',dropId:'DROP #5',status:'FORMULATION',statusKey:'warn',eta:'~Apr 18',source:'UpNorth',
           items:[{strain:'Sweet-N-Sour Diesel',cat:'Badder',qty:1000},{strain:'Ice Cream Paint Job',cat:'Badder',qty:1000},{strain:'Grandma\'s Cookies',cat:'Badder',qty:1000},{strain:'Frozen Grapes',cat:'Badder',qty:1000},{strain:'Modified Cherries',cat:'Badder',qty:1000},{strain:'Headband',cat:'Badder',qty:1000}],
           stages:[{l:'Extract',done:true},{l:'Formulate',done:false,active:true},{l:'Gram + Pack',done:false},{l:'Lab Test',done:false},{l:'Ship',done:false}]},
       ];
+      // Auto-filter: remove drops that have hit SALE in the Drop Zone tracker
+      var _DROP_STAGE_DEFAULTS={'DROP #4':'SALE','DROP #5':'MFG','DROP #2':'SALE','DROP #3':'SALE','DROP #3B':'SALE'};
+      const SALE_STAGES=['DISTRO','SALE','COLLECT','PAYOUT'];
+      const PIPELINE=useMemo(function(){
+        return PIPELINE_RAW.filter(function(p){
+          // Check localStorage overrides first, then hardcoded defaults
+          var matchKey=null;
+          Object.keys(dropStages).forEach(function(k){if(k.toUpperCase().includes(p.dropId))matchKey=k;});
+          var effectiveStage=matchKey?dropStages[matchKey].stage:(_DROP_STAGE_DEFAULTS[p.dropId]||'MFG');
+          return !SALE_STAGES.includes(effectiveStage);
+        });
+      },[dropStages]);
 
       // Pipeline totals by category (excludes SHIPPING — already in inventory)
       const pipelineByCategory=useMemo(function(){
@@ -2719,7 +2731,8 @@ window._STRAIN_DB=[
 
                 {/* ══ MFG ══ */}
                 {tab==="mfg"&&(function(){
-                  const catRows=mfgVelocity.map(function(s){const onHand=mfgInventory[s.sku]!==undefined?parseInt(mfgInventory[s.sku])||0:(s.invOnHand!=null?s.invOnHand:0),daysLeft=s.dailyVel>0&&onHand>0?Math.floor(onHand/s.dailyVel):0,suggested=Math.max(0,Math.round(s.weeklyVel*mfgTargetWeeks)-onHand),orderQty=mfgOrderQty[s.sku]!==undefined?parseInt(mfgOrderQty[s.sku])||0:suggested,cogs=cogsFor(s.category),method=mfgMethod[s.sku]||'GL',unitCost=method==='CP'?cpCostPerUnit(cogs,cpBiomassLb,cpTollLb,cpYield):cogs.cost,status=daysLeft<14&&onHand>0?'critical':daysLeft<30&&onHand>0?'low':onHand===0?'nostock':'ok';return Object.assign({},s,{onHand,daysLeft,suggested,orderQty,cogs,method,unitCost,totalCost:orderQty*unitCost,estRev:orderQty*(s.wholesale||cogs.wholesale),status});});
+                  var SHELF_LAG=7;// days from UpNorth pickup to store menu
+                  const catRows=mfgVelocity.map(function(s){const onHand=mfgInventory[s.sku]!==undefined?parseInt(mfgInventory[s.sku])||0:(s.invOnHand!=null?s.invOnHand:0),rawDaysLeft=s.dailyVel>0&&onHand>0?Math.floor(onHand/s.dailyVel):0,daysLeft=rawDaysLeft,reorderBy=Math.max(0,rawDaysLeft-SHELF_LAG),suggested=Math.max(0,Math.round(s.weeklyVel*(mfgTargetWeeks+1))-onHand),orderQty=mfgOrderQty[s.sku]!==undefined?parseInt(mfgOrderQty[s.sku])||0:suggested,cogs=cogsFor(s.category),method=mfgMethod[s.sku]||'GL',unitCost=method==='CP'?cpCostPerUnit(cogs,cpBiomassLb,cpTollLb,cpYield):cogs.cost,status=reorderBy<7&&onHand>0?'critical':reorderBy<21&&onHand>0?'low':onHand===0?'nostock':'ok';return Object.assign({},s,{onHand,daysLeft,reorderBy,suggested,orderQty,cogs,method,unitCost,totalCost:orderQty*unitCost,estRev:orderQty*(s.wholesale||cogs.wholesale),status});});
                   function sst(s){return s==='critical'?{color:C.danger,bg:C.dangerBg,bdr:C.dangerBdr,label:'● CRITICAL'}:s==='low'?{color:C.warn,bg:C.warnBg,bdr:C.warnBdr,label:'● ORDER SOON'}:s==='nostock'?{color:'#777',bg:'#111',bdr:'#333',label:'⚫ NOT IN STOCK'}:{color:C.good,bg:C.goodBg,bdr:C.goodBdr,label:'● IN STOCK'};}
                   return(
                     <div>
