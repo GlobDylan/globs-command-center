@@ -2219,7 +2219,7 @@ window._STRAIN_DB=[
                   }
                   var pipelines=[
                     {name:'VAPE CARTS',color:'#6fa8d6',batches:[
-                      {id:'DROP #4 · GLO-VC-016–020',label:'5 Strains · 5,000 units · Shipping Apr 9',units:5000,unitsSold:0,onHand:5000,ws:12,avgPrice:12,total:60000,revSold:0,distroRate:0.16,stage:'SALE',stageDetail:'Delivered Apr 9 — selling',strains:['Modified Cherries','ICPJ','Sweet n\' Sour Diesel','Headband','Grandma\'s Cookies'],milestones:{MFG:'Feb 18',LAB:'Apr 1',COMPLIANCE:'Apr 6',PKG:'Apr 6',TRANSFER:'Apr 9',DISTRO:'Apr 9',SALE:'Apr 10',COLLECT:'1 period · Apr (6-wk)',PAYOUT:'Jun 12'},salesPeriods:[
+                      {id:'DROP #4 · GLO-VC-016–020',label:'5 Strains · 5,000 units · Landed Apr 13',units:5000,unitsSold:0,onHand:5000,ws:12,avgPrice:12,total:60000,revSold:0,distroRate:0.16,stage:'SALE',stageDetail:'5,000 landed at UpNorth Apr 13 — selling',strains:['Modified Cherries','ICPJ','Sweet n\' Sour Diesel','Headband','Grandma\'s Cookies'],milestones:{MFG:'Feb 18',LAB:'Apr 1',COMPLIANCE:'Apr 6',PKG:'Apr 6',TRANSFER:'Apr 9',DISTRO:'Apr 13',SALE:'Apr 13',COLLECT:'1 period · Apr (6-wk)',PAYOUT:'Jun 12'},salesPeriods:[
                         {month:'Apr',units:20,rev:240,payoutDate:'Jun 12',status:'PENDING'},
                       ],costs:[
                         {label:'Cart Hardware',detail:'VapeCartsCC D742 · 5K × $1.85 · Feb 18',amt:9527.50},
@@ -2293,52 +2293,123 @@ window._STRAIN_DB=[
                   return(<div style={{marginTop:24}}>
                     <div style={{fontSize:11,fontWeight:800,letterSpacing:3,marginBottom:16}}>PRODUCTION → CASH PIPELINE</div>
                     {(function(){
-                      var allBatches=pipelines.reduce(function(a,p){return a.concat(p.batches.map(function(b){return{b:b,pipe:p.name};}));},[]);
+                      // ── Raw Materials: purchased but not yet in a batch ──
+                      // These are updated manually as orders land or get used
+                      var RAW=[
+                        {label:'Cart Hardware (Octave)',detail:'D742 remainder after Drop #4',qty:0,unitCost:1.85,amt:0},
+                        {label:'Jars + Caps (Treeform)',detail:'INV36807 · 15,190 ordered − 15,734 allocated',qty:0,unitCost:0.35,amt:0},
+                        {label:'Cart Boxes (Two Pkg)',detail:'CB010626 · 10K ordered − used',qty:0,unitCost:0.244,amt:0},
+                        {label:'TE Lid Labels',detail:'Stock on hand',qty:4000,unitCost:0.04,amt:160},
+                        {label:'Concentrate Boxes',detail:'Stock on hand',qty:2000,unitCost:0.16,amt:320},
+                        {label:'Tubes (Treeform)',detail:'Stock on hand',qty:1000,unitCost:0.08,amt:80}
+                      ];
+                      var rawTotal=RAW.reduce(function(s,r){return s+r.amt;},0);
+
+                      // ── Compute per-stage COGS from batches ──
+                      var SALE_S=['DISTRO','SALE','COLLECT','PAYOUT'];
+                      var inProdCost=0,shelfCost=0,soldCost=0;
                       var totalProduced=0,totalSold=0,totalOnHand=0,totalRevCollected=0,totalRevProjected=0,totalProdCost=0;
-                      allBatches.forEach(function(entry){
-                        var b=entry.b;
-                        var live=batchLiveData(b,entry.pipe);
+                      var inProdBatches=[],shelfBatches=[];
+                      pipelines.forEach(function(pipe){pipe.batches.forEach(function(b){
+                        var batchCost=b.costs?b.costs.reduce(function(cs,r){return cs+r.amt;},0):0;
+                        totalProdCost+=batchCost;
+                        totalProduced+=b.units;
+                        // Check effective stage
+                        var storeOv=dropStages[b.id]||{};
+                        var effectiveStage=storeOv.stage||b.stage||'MFG';
+                        var atSale=SALE_S.includes(effectiveStage);
+                        var live=atSale?batchLiveData(b,pipe.name):null;
                         if(live&&live.unitsSold>0){
-                          totalProduced+=b.units;totalSold+=live.unitsSold;totalOnHand+=live.onHand;
-                          totalRevCollected+=live.revSold;totalRevProjected+=Math.max(b.total,live.revSold+(live.onHand*live.avgPrice));
-                        } else {
-                          totalProduced+=b.units;totalSold+=(b.unitsSold||0);totalOnHand+=(b.onHand||0);
+                          totalSold+=live.unitsSold;totalOnHand+=live.onHand;
+                          totalRevCollected+=live.revSold;
+                          totalRevProjected+=Math.max(b.total,live.revSold+(live.onHand*live.avgPrice));
+                          var soldFrac=live.unitsSold/Math.max(1,b.units);
+                          soldCost+=Math.round(batchCost*soldFrac);
+                          shelfCost+=Math.round(batchCost*(1-soldFrac));
+                          shelfBatches.push({id:b.id,cost:Math.round(batchCost*(1-soldFrac)),oh:live.onHand});
+                        } else if(atSale){
+                          totalSold+=(b.unitsSold||0);totalOnHand+=(b.onHand||0);
                           totalRevCollected+=(b.revSold||0);totalRevProjected+=(b.total||0);
+                          var sf2=(b.unitsSold||0)/Math.max(1,b.units);
+                          soldCost+=Math.round(batchCost*sf2);
+                          shelfCost+=Math.round(batchCost*(1-sf2));
+                          if((b.onHand||0)>0)shelfBatches.push({id:b.id,cost:Math.round(batchCost*(1-sf2)),oh:b.onHand||0});
+                        } else {
+                          // In production — not at sale yet
+                          inProdCost+=batchCost;
+                          inProdBatches.push({id:b.id,cost:batchCost,stage:effectiveStage});
+                          totalRevProjected+=(b.total||0);
                         }
-                        totalProdCost+=b.costs?b.costs.reduce(function(cs,r){return cs+r.amt;},0):0;
-                      });
+                      });});
+
                       var moneyBack=Math.round(totalRevCollected*0.84);
-                      var profit=moneyBack-Math.round(totalProdCost*(totalSold/Math.max(1,totalProduced)));
-                      var unsoldValue=Math.round((totalRevProjected-totalRevCollected)*0.84);
+                      var profit=moneyBack-soldCost;
+                      var totalTiedUp=rawTotal+inProdCost+shelfCost;
                       var projectedProfit=Math.round(totalRevProjected*0.84)-totalProdCost;
-                      var recoupPct=totalProdCost>0?Math.min(100,Math.round(moneyBack/totalProdCost*100)):0;
-                      var marginPct=moneyBack>0?Math.round(profit/moneyBack*100):0;
                       var sellPct=totalProduced>0?Math.round(totalSold/totalProduced*100):0;
+                      var marginPct=moneyBack>0?Math.round(profit/moneyBack*100):0;
+                      var unsoldValue=Math.round((totalRevProjected-totalRevCollected)*0.84);
+
                       return<div style={{marginBottom:24}}>
-                        <div style={{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:8}}>{'YOUR MONEY'+(displayAccounts.length>0?' · LIVE FROM SALESFORCE':'')}</div>
-                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:12}}>
-                          <div style={{background:C.danger+'12',border:'1px solid '+C.danger+'33',borderRadius:8,padding:'14px 16px'}}>
-                            <div style={{fontSize:10,color:C.danger,letterSpacing:1,fontWeight:600}}>YOU SPENT</div>
-                            <div style={{fontSize:24,fontWeight:900,color:C.danger,marginTop:4}}>{'$'+Math.round(totalProdCost/1000)+'K'}</div>
-                            <div style={{fontSize:10,color:C.dim,marginTop:2}}>{totalProduced.toLocaleString()+' units across '+allBatches.length+' batches'}</div>
+                        <div style={{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:8}}>{'WHERE YOUR MONEY IS'+(displayAccounts.length>0?' · LIVE FROM SALESFORCE':'')}</div>
+
+                        <div style={{background:'linear-gradient(135deg,#1a1215 0%,#0d1117 100%)',border:'1px solid '+C.border,borderRadius:10,padding:'16px',marginBottom:12}}>
+                          <div style={{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:12}}>$ TIED UP IN COGS</div>
+                          <div style={{fontSize:28,fontWeight:900,color:C.warn}}>{'$'+Math.round(totalTiedUp/1000)+'K'}</div>
+                          <div style={{fontSize:11,color:C.muted,marginTop:4}}>{'Total cash sitting in materials + production + unsold product'}</div>
+                          <div style={{height:8,background:'#111',borderRadius:4,marginTop:12,overflow:'hidden',display:'flex'}}>
+                            {rawTotal>0&&<div style={{height:8,background:'#9b8ec4',width:Math.round(rawTotal/Math.max(1,totalTiedUp)*100)+'%'}} title="Raw Materials"/>}
+                            {inProdCost>0&&<div style={{height:8,background:C.warn,width:Math.round(inProdCost/Math.max(1,totalTiedUp)*100)+'%'}} title="In Production"/>}
+                            {shelfCost>0&&<div style={{height:8,background:C.info,width:Math.round(shelfCost/Math.max(1,totalTiedUp)*100)+'%'}} title="On Shelves"/>}
                           </div>
-                          <div style={{background:C.good+'12',border:'1px solid '+C.good+'33',borderRadius:8,padding:'14px 16px'}}>
-                            <div style={{fontSize:10,color:C.good,letterSpacing:1,fontWeight:600}}>CAME BACK (after 16% distro)</div>
-                            <div style={{fontSize:24,fontWeight:900,color:C.good,marginTop:4}}>{'$'+Math.round(moneyBack/1000)+'K'}</div>
-                            <div style={{fontSize:10,color:C.dim,marginTop:2}}>{totalSold.toLocaleString()+' sold · '+sellPct+'% of production'}</div>
+                          <div style={{display:'flex',gap:12,marginTop:8,fontSize:10,flexWrap:'wrap'}}>
+                            {rawTotal>0&&<span style={{color:'#9b8ec4'}}>{'● Raw Materials $'+Math.round(rawTotal/1000)+'K'}</span>}
+                            {inProdCost>0&&<span style={{color:C.warn}}>{'● In Production $'+Math.round(inProdCost/1000)+'K'}</span>}
+                            <span style={{color:C.info}}>{'● On Shelves $'+Math.round(shelfCost/1000)+'K'}</span>
                           </div>
                         </div>
+
+                        {inProdBatches.length>0&&<div style={{background:C.surface,border:'1px solid '+C.warn+'33',borderLeft:'3px solid '+C.warn,borderRadius:4,padding:'10px 14px',marginBottom:8}}>
+                          <div style={{fontSize:10,color:C.warn,fontWeight:700,letterSpacing:1.5,marginBottom:4}}>IN PRODUCTION — NOT SELLING YET</div>
+                          {inProdBatches.map(function(ib){return<div key={ib.id} style={{display:'flex',justifyContent:'space-between',fontSize:11,marginTop:4}}>
+                            <span style={{color:C.muted}}>{ib.id.split(' · ')[0]+' ('+ib.stage+')'}</span>
+                            <span style={{fontWeight:700,color:C.warn}}>{'$'+Math.round(ib.cost).toLocaleString()}</span>
+                          </div>;})}
+                        </div>}
+
+                        {shelfBatches.length>0&&<div style={{background:C.surface,border:'1px solid '+C.info+'33',borderLeft:'3px solid '+C.info,borderRadius:4,padding:'10px 14px',marginBottom:12}}>
+                          <div style={{fontSize:10,color:C.info,fontWeight:700,letterSpacing:1.5,marginBottom:4}}>ON SHELVES — WAITING TO SELL</div>
+                          {shelfBatches.map(function(sb){return<div key={sb.id} style={{display:'flex',justifyContent:'space-between',fontSize:11,marginTop:4}}>
+                            <span style={{color:C.muted}}>{sb.id.split(' · ')[0]+' ('+sb.oh+' units OH)'}</span>
+                            <span style={{fontWeight:700,color:C.info}}>{'$'+Math.round(sb.cost).toLocaleString()}</span>
+                          </div>;})}
+                        </div>}
+
+                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:12}}>
+                          <div style={{background:C.danger+'12',border:'1px solid '+C.danger+'33',borderRadius:8,padding:'14px 16px'}}>
+                            <div style={{fontSize:10,color:C.danger,letterSpacing:1,fontWeight:600}}>TOTAL SPENT</div>
+                            <div style={{fontSize:24,fontWeight:900,color:C.danger,marginTop:4}}>{'$'+Math.round(totalProdCost/1000)+'K'}</div>
+                            <div style={{fontSize:10,color:C.dim,marginTop:2}}>{totalProduced.toLocaleString()+' units · '+pipelines.reduce(function(s,p){return s+p.batches.length;},0)+' batches'}</div>
+                          </div>
+                          <div style={{background:C.good+'12',border:'1px solid '+C.good+'33',borderRadius:8,padding:'14px 16px'}}>
+                            <div style={{fontSize:10,color:C.good,letterSpacing:1,fontWeight:600}}>CAME BACK (after 16%)</div>
+                            <div style={{fontSize:24,fontWeight:900,color:C.good,marginTop:4}}>{'$'+Math.round(moneyBack/1000)+'K'}</div>
+                            <div style={{fontSize:10,color:C.dim,marginTop:2}}>{totalSold.toLocaleString()+' sold · '+sellPct+'%'}</div>
+                          </div>
+                        </div>
+
                         <div style={{background:profit>0?C.good+'12':C.danger+'12',border:'1px solid '+(profit>0?C.good:C.danger)+'33',borderRadius:8,padding:'14px 16px',marginBottom:12,textAlign:'center'}}>
                           <div style={{fontSize:10,color:profit>0?C.good:C.danger,letterSpacing:1,fontWeight:600}}>{profit>0?'PROFIT ON SOLD UNITS':'LOSS ON SOLD UNITS'}</div>
                           <div style={{fontSize:28,fontWeight:900,color:profit>0?C.good:C.danger,marginTop:4}}>{'$'+Math.round(Math.abs(profit)/1000)+'K'}</div>
-                          <div style={{fontSize:11,color:C.muted,marginTop:2}}>{marginPct+'% margin · cost prorated to '+totalSold.toLocaleString()+' units sold'}</div>
+                          <div style={{fontSize:11,color:C.muted,marginTop:2}}>{marginPct+'% margin'}</div>
                         </div>
+
                         <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:'14px 16px',marginBottom:12}}>
                           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
-                            <div style={{fontSize:10,color:C.warn,letterSpacing:1,fontWeight:600}}>STILL ON SHELVES</div>
-                            <div style={{fontSize:16,fontWeight:800,color:C.warn}}>{totalOnHand.toLocaleString()+' units'}</div>
+                            <span style={{fontSize:10,color:C.warn,letterSpacing:1,fontWeight:600}}>STILL ON SHELVES</span>
+                            <span style={{fontSize:16,fontWeight:800,color:C.warn}}>{totalOnHand.toLocaleString()+' units'}</span>
                           </div>
-                          <div style={{fontSize:11,color:C.muted}}>{'Worth ~$'+Math.round(unsoldValue/1000)+'K after distro fee if it all sells'}</div>
+                          <div style={{fontSize:11,color:C.muted}}>{'Worth ~$'+Math.round(unsoldValue/1000)+'K after distro if it all sells'}</div>
                           <div style={{height:6,background:'#111',borderRadius:3,marginTop:8,overflow:'hidden'}}>
                             <div style={{height:6,borderRadius:3,background:C.good,width:sellPct+'%'}}/>
                           </div>
@@ -2347,6 +2418,7 @@ window._STRAIN_DB=[
                             <span>{(100-sellPct)+'% remaining'}</span>
                           </div>
                         </div>
+
                         <div style={{background:C.surface,border:'1px solid '+C.border,borderRadius:8,padding:'14px 16px'}}>
                           <div style={{fontSize:10,color:C.info,letterSpacing:1,fontWeight:600,marginBottom:8}}>IF EVERYTHING SELLS</div>
                           <div style={{display:'flex',justifyContent:'space-between',fontSize:12}}>
