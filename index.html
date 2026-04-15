@@ -6326,11 +6326,62 @@ window._STRAIN_DB=[
               // ── INVENTORY: on-hand SKU counts ──
               if(inventoryData&&Object.keys(inventoryData).length>0){
                 ctx+='CURRENT INVENTORY (on-hand at UpNorth):\n';
+                var totalOnHand=0;
                 Object.keys(inventoryData).forEach(function(sku){
                   var inv=inventoryData[sku];
-                  if(inv.onHand>0)ctx+=sku.replace(/^Globs - /,'')+': '+inv.onHand+' units\n';
+                  var oh=parseInt(inv.onHand)||0;
+                  if(oh>0){totalOnHand+=oh;ctx+=sku.replace(/^Globs - /,'')+': '+oh+' units\n';}
+                });
+                ctx+='TOTAL ON HAND: '+totalOnHand+' units\n\n';
+              }
+              // ── PRODUCTION PIPELINE (Drop Zone) ──
+              if(typeof pipelines!=='undefined'&&pipelines&&pipelines.length>0){
+                ctx+='PRODUCTION PIPELINE:\n';
+                pipelines.forEach(function(pipe){
+                  ctx+=pipe.name+':\n';
+                  (pipe.batches||[]).forEach(function(b){
+                    var sellThru=b.units>0?Math.round(b.unitsSold/b.units*100):0;
+                    ctx+='  '+b.id+' | '+b.units+' produced | '+b.unitsSold+' sold ('+sellThru+'%) | '+b.onHand+' on hand | $'+Math.round(b.revSold||0)+' revenue | Stage: '+b.stage+'\n';
+                  });
                 });
                 ctx+='\n';
+              }
+              // ── FINANCIAL SUMMARY ──
+              if(displayAccountsAll&&displayAccountsAll.length>0){
+                var fRev365=0,fRev90=0,fRev30=0,fUnits=0,fCogs=0;
+                displayAccountsAll.forEach(function(a){
+                  var pr=a.periodRevenue||{};
+                  fRev365+=(pr[365]||a.totalSales||0);
+                  fRev90+=(pr[90]||0);
+                  fRev30+=(pr[30]||0);
+                });
+                var fMonthly=Math.round(fRev365/12);
+                var fAnnualized30=Math.round(fRev30*12);
+                ctx+='FINANCIAL SUMMARY:\n';
+                ctx+='365d gross revenue: $'+Math.round(fRev365)+' | Monthly avg: $'+fMonthly+'\n';
+                ctx+='90d revenue: $'+Math.round(fRev90)+' | 30d revenue: $'+Math.round(fRev30)+'\n';
+                ctx+='30d annualized run rate: $'+fAnnualized30+'\n';
+                ctx+='Blended COGS: Cart $4.89, Badder $2.96, Sauce $3.16 | Distro fee: 16% | Net margin ~43%\n';
+                ctx+='UpNorth payout schedule: sales month+45 days. Feb payout ~38K (received). Mar payout ~59K (due ~May 15). Apr payout due ~Jun 12.\n';
+                ctx+='Amex balance ~26K on 30K limit (production float). GL credit line 75K.\n\n';
+              }
+              // ── OPPORTUNITY ENGINE SUMMARY ──
+              if(displayAccountsAll&&displayAccountsAll.length>0){
+                var oppOver=0,oppFallen=0,oppDue=0,oppTrack=0;
+                displayAccountsAll.forEach(function(a){
+                  if(!a.orderDayTs||a.orderDayTs.length<2)return;
+                  var ts=a.orderDayTs.slice().sort(function(x,y){return x-y;});
+                  var gaps=[];for(var i=1;i<ts.length;i++)gaps.push((ts[i]-ts[i-1])/86400000);
+                  if(gaps.length===0)return;
+                  gaps.sort(function(x,y){return x-y;});
+                  var median=gaps.length%2===0?(gaps[gaps.length/2-1]+gaps[gaps.length/2])/2:gaps[Math.floor(gaps.length/2)];
+                  var silent=(Date.now()-ts[ts.length-1])/86400000;
+                  if(silent<=median)oppTrack++;
+                  else if(silent<=median+7)oppDue++;
+                  else if(silent<=median*2.5&&silent<=90)oppOver++;
+                  else oppFallen++;
+                });
+                ctx+='ACCOUNT HEALTH: '+oppTrack+' on track, '+oppDue+' due soon, '+oppOver+' overdue, '+oppFallen+' fallen off\n\n';
               }
               // ── STRAINS ──
               if(window._STRAIN_DB&&window._STRAIN_DB.length>0){
