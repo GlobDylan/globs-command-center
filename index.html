@@ -2918,7 +2918,7 @@ window._STRAIN_DB=[
                                     <div key={i} data-mfg-qty={sf.hte&&sf.hteG?'1':'0'} style={{borderLeft:'3px solid '+typeColor(s.type)+'66',background:i%2===0?'transparent':C.raised,padding:'10px 12px',marginBottom:1}}>
                                       <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
                                         <span style={{fontSize:11,color:C.dim,width:18}}>{i+1}</span>
-                                        <span style={{fontSize:10,fontWeight:700,color:typeColor(s.type),background:typeColor(s.type)+'22',border:'1px solid '+typeColor(s.type)+'44',borderRadius:3,padding:'2px 6px'}}>{s.type.slice(0,3).toUpperCase()}</span>
+                                        <span style={{fontSize:10,fontWeight:700,color:typeColor(s.type),background:typeColor(s.type)+'22',border:'1px solid '+typeColor(s.type)+'44',borderRadius:3,padding:'2px 6px'}}>{s.type}</span>
                                         <div style={{flex:1,minWidth:0}}>
                                           <select value={pickedStrain} onChange={function(e){setMfgStrainPick(function(p){var n=Object.assign({},p);n[pickKey]=e.target.value;return n;});}} style={{fontSize:13,fontWeight:600,background:C.surface,color:C.text,border:'1px solid '+C.border,borderRadius:4,padding:'4px 8px',width:'100%',fontFamily:'inherit',cursor:'pointer'}}>
                                             {typeStrains.map(function(ts){var isSel=ts.n===pickedStrain;return<option key={ts.n} value={ts.n}>{ts.n+(isSel?'':ts.vel>0?' — '+ts.vel+'/wk':'')}</option>;})}
