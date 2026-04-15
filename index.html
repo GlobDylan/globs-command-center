@@ -6320,15 +6320,23 @@ window._STRAIN_DB=[
                 });
                 ctx+='\n';
               }
-              ctx+='Answer questions using the data above. If data is loaded, use it to answer specific questions about accounts, orders, inventory, strains. Keep answers concise (2-4 sentences) unless asked for detail.';
+              ctx+='Answer questions using the data above. IMPORTANT RULES:\n';
+              ctx+='- Use bullet points, not tables. Keep it scannable and mobile-friendly.\n';
+              ctx+='- When asked about a time window (e.g. "since April 1st"), filter by the last order date field. Only include accounts whose last order date falls within that window.\n';
+              ctx+='- Revenue figures in the data are 365-day totals. If asked about a specific period, say "365d total revenue" to be clear, or say you can only confirm they ordered within the window based on order dates.\n';
+              ctx+='- Keep responses short and punchy. No markdown tables. No headers with ===. Just bullets and numbers.\n';
+              ctx+='- Never read out loud formatting like pipes, dashes, or table borders.\n';
+              ctx+='- When listing accounts, format as: • Account Name — Rep — Last Order: Date — $Revenue';
               return ctx;
             }
             function speakText(text){
               if(aiMuted)return;window.speechSynthesis.cancel();
-              var u=new SpeechSynthesisUtterance(text);
+              // Strip markdown tables, pipes, dashes, bullets, asterisks for clean speech
+              var clean=text.replace(/\|/g,' ').replace(/[-]{2,}/g,' ').replace(/[#*_`]/g,'').replace(/\n{2,}/g,'. ').replace(/\n/g,'. ').replace(/\s{2,}/g,' ').replace(/•/g,'').replace(/\.\s*\./g,'.').trim();
+              var u=new SpeechSynthesisUtterance(clean);
               var voices=window.speechSynthesis.getVoices();
               var wc=voices.find(function(v){return v.lang.startsWith('en-US')&&/male|david|james|guy|google us/i.test(v.name);})||voices.find(function(v){return v.lang.startsWith('en-US');})||voices[0];
-              if(wc)u.voice=wc;u.lang='en-US';u.rate=1.0;u.pitch=1.0;
+              if(wc)u.voice=wc;u.lang='en-US';u.rate=1.15;u.pitch=1.0;
               u.onstart=function(){setAiSpeaking(true);};u.onend=function(){setAiSpeaking(false);};
               window.speechSynthesis.speak(u);
             }
