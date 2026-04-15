@@ -6417,10 +6417,12 @@ window._STRAIN_DB=[
               setAiSpeaking(false);
             }
             function unlockAudio(){
-              // Create and unlock audio element on first user interaction (tap/click)
               if(!aiAudioEl){
                 aiAudioEl=new Audio();
-                aiAudioEl.play().catch(function(){});// silent unlock
+                // Tiny silent WAV to unlock audio context without audible click
+                aiAudioEl.src='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
+                aiAudioEl.volume=0;
+                aiAudioEl.play().then(function(){aiAudioEl.volume=1;}).catch(function(){});
               }
             }
             function speakText(text){
