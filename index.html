@@ -6342,7 +6342,7 @@ window._STRAIN_DB=[
               }
               ctx+='Answer questions using the data above. IMPORTANT RULES:\n';
               ctx+='- Your responses will be READ ALOUD. Write like you\'re talking to Dylan in person.\n';
-              ctx+='- DOLLAR AMOUNTS: Round to natural speech. Say "about 30K" not "$30,412". Say "around 5 grand" or "just under 3K" — the way a person talks. Never say exact cents. Over $1000 use K (5K, 12K, 40K). Under $1000 just round to nearest hundred ("about 800 bucks").\n';
+              ctx+='- DOLLAR AMOUNTS: Write them as spoken words. "about thirty K" not "$30,412". "around five grand" not "$5,200". "eighteen hundred bucks" not "$1,800". Never use dollar signs or commas in numbers — write them the way you\'d say them out loud.\n';
               ctx+='- Each account has MTD (month-to-date) and 365d revenue. For "this month" or "April" use MTD. For "total" or "overall" use 365d.\n';
               ctx+='- For lists: headline number first, then TOP 3-5 only. Don\'t list every account unless asked.\n';
               ctx+='- No tables, no pipes, no markdown. Bullets only.\n';
@@ -6372,6 +6372,29 @@ window._STRAIN_DB=[
               }
               // Strip markdown for clean speech
               spoken=spoken.replace(/\|/g,' ').replace(/[-]{2,}/g,' ').replace(/[#*_`]/g,'').replace(/\n{2,}/g,'. ').replace(/\n/g,'. ').replace(/\s{2,}/g,' ').replace(/•/g,'').replace(/\.\s*\./g,'.').replace(/\(\d+d\)/g,'').trim();
+              // ── NUMBER-TO-SPEECH: natural dollar amounts and quantities ──
+              // Remove commas from numbers FIRST (prevents "1,800" reading as "1 to 800")
+              spoken=spoken.replace(/(\d),(\d{3})/g,'$1$2');
+              spoken=spoken.replace(/(\d),(\d{3})/g,'$1$2');
+              // $30K → "30 thousand dollars"
+              spoken=spoken.replace(/\$(\d+(?:\.\d+)?)\s*[Kk]\b/g,function(m,n){return n+' thousand dollars';});
+              // $XXXX → natural speech with "dollars"
+              spoken=spoken.replace(/\$(\d+)/g,function(m,n){
+                var num=parseInt(n);
+                if(num>=1000000)return Math.round(num/100000)/10+' million dollars';
+                if(num>=10000)return Math.round(num/1000)+' thousand dollars';
+                if(num>=1000){var t=Math.floor(num/1000);var h=num%1000;if(h===0)return t+' thousand dollars';if(h<100)return t+' thousand '+h+' dollars';return t+' thousand '+Math.round(h/100)+' hundred dollars';}
+                return num+' dollars';
+              });
+              // Plain big numbers with units: "16728 units" → "about 17 thousand units"
+              spoken=spoken.replace(/(\d{4,})\s*(units|carts|jars|grams|accounts|batches|strains|SKUs)/gi,function(m,n,unit){
+                var num=parseInt(n);if(num>=10000)return 'about '+Math.round(num/1000)+' thousand '+unit;
+                if(num>=1000){var t=Math.floor(num/1000);return 'about '+t+' thousand '+unit;}return num+' '+unit;
+              });
+              // Percentages: clean up
+              spoken=spoken.replace(/(\d+)%/g,'$1 percent');
+              // Remove stray $ signs
+              spoken=spoken.replace(/\$/g,'');
               if(!spoken)return;
               setAiSpeaking(true);
               var ttsUrl=aiProxyUrl.trim().replace(/\/$/,'');
