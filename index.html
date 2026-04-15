@@ -6286,19 +6286,41 @@ window._STRAIN_DB=[
               ctx+='SUPPLY CHAIN: UpNorth distribution (3 zones: DNU/RB/ZASP, 16% fee, 45-day payout). Greenline Labs extraction ($75K credit). Encore Labs testing. Treeform packaging. Octave/Clean Core hardware. Biomass: CAM $1.02/g, UpNorth $0.74/g.\n\n';
               ctx+='COGS: Cart $4.89, Badder $2.96, Sauce $3.16. ~43% gross margin.\n\n';
               ctx+='GL INVENTORY (Apr 14 2026): CAM-260216: 2,708g LD + 2,033.8g HTE. UN-260225: 20,261g LD + 14,694.2g HTE. CAM-260302: 6,083.4g Badder (committed Drop #5). CAM-260409: 457 lbs in queue. Available: ~16,728 carts (16 batches of 1K, HTE bottleneck).\n\n';
+              ctx+='TEAM: Jonah Rabinbach (Sales Dir), Ian Herndon (Brand Mgr), Eric Ervin (NorCal), Isaac Romero (SoCal), Brian Bresee, Brian Kiser, Christina Perpetua, Danny Smith, Daniel Rojas. Chere Garcia (GL Lab Dir), Ryan Cullerton (GL), Steve Pruett (UN logistics).\n\n';
+              ctx+='FINANCIAL: UN payout 45 days post month close. Amex ~$26K on $30K. GL $75K credit. COD target May-June 2026.\n\n';
+              // ── RICH DATA FEED: accounts with order dates, SKUs, revenue ──
               if(displayAccountsAll&&displayAccountsAll.length>0){
                 var totRev=0,totAccts=displayAccountsAll.length,actAccts=0;
                 displayAccountsAll.forEach(function(a){var r=a.totalSales||0;totRev+=r;if(r>0)actAccts++;});
-                ctx+='SF DATA: '+totAccts+' accounts, '+actAccts+' active. 365d revenue: $'+Math.round(totRev).toLocaleString()+'.\n';
-                var topAccts=displayAccountsAll.filter(function(a){return a.totalSales>0;}).sort(function(a,b){return(b.totalSales||0)-(a.totalSales||0);}).slice(0,10);
-                ctx+='Top 10: '+topAccts.map(function(a){return a.name.replace(/ - Corporate$/i,'')+' ($'+Math.round(a.totalSales/1000)+'K)';}).join(', ')+'.\n\n';
+                ctx+='SALESFORCE DATA ('+totAccts+' accounts, '+actAccts+' active, $'+Math.round(totRev).toLocaleString()+' 365d revenue):\n';
+                var sorted=displayAccountsAll.filter(function(a){return a.totalSales>0||a.hasSalesData;}).sort(function(a,b){return(b.totalSales||0)-(a.totalSales||0);});
+                sorted.forEach(function(a){
+                  var lastDate='';
+                  if(a.orderDayTs&&a.orderDayTs.length>0){var maxTs=Math.max.apply(null,a.orderDayTs);lastDate=new Date(maxTs).toISOString().split('T')[0];}
+                  else if(a.orderedSkus){a.orderedSkus.forEach(function(s){if(s.lastDate&&s.lastDate>lastDate)lastDate=s.lastDate;});}
+                  var skuList=(a.orderedSkus||[]).filter(function(s){return s.totalQty>0;}).sort(function(x,y){return(y.totalQty||0)-(x.totalQty||0);}).slice(0,5).map(function(s){return s.strain+' ('+Math.round(s.totalQty)+'u)';}).join(', ');
+                  ctx+=a.name+' | '+(a.zone||'?')+' | '+(a.rep||'no rep')+' | $'+Math.round(a.totalSales||0)+' | last:'+lastDate+(skuList?' | SKUs: '+skuList:'')+'\n';
+                });
+                ctx+='\n';
               }
+              // ── INVENTORY: on-hand SKU counts ──
+              if(inventoryData&&Object.keys(inventoryData).length>0){
+                ctx+='CURRENT INVENTORY (on-hand at UpNorth):\n';
+                Object.keys(inventoryData).forEach(function(sku){
+                  var inv=inventoryData[sku];
+                  if(inv.onHand>0)ctx+=sku.replace(/^Globs - /,'')+': '+inv.onHand+' units\n';
+                });
+                ctx+='\n';
+              }
+              // ── STRAINS ──
               if(window._STRAIN_DB&&window._STRAIN_DB.length>0){
-                ctx+='STRAINS: '+window._STRAIN_DB.filter(function(s){return s.c;}).length+' proprietary strains.\n\n';
+                ctx+='STRAIN LIBRARY ('+window._STRAIN_DB.filter(function(s){return s.c;}).length+' strains with genetics):\n';
+                window._STRAIN_DB.filter(function(s){return s.c;}).forEach(function(s){
+                  ctx+=s.n+' ('+s.t+', '+s.c+')\n';
+                });
+                ctx+='\n';
               }
-              ctx+='TEAM: Jonah Rabinbach (Sales Dir), Ian Herndon (Brand Mgr), Eric Ervin (NorCal), Isaac Romero (SoCal), Brian Bresee, Brian Kiser, Christina Perpetua, Danny Smith, Daniel Rojas. Chere Garcia (GL Lab Dir), Ryan Cullerton (GL), Steve Pruett (UN logistics).\n\n';
-              ctx+='FINANCIAL: UN payout 45 days post month close. Amex ~$26K on $30K. GL $75K credit. COD target May-June 2026.\n\n';
-              ctx+='Keep answers concise (2-4 sentences) unless asked for detail.';
+              ctx+='Answer questions using the data above. If data is loaded, use it to answer specific questions about accounts, orders, inventory, strains. Keep answers concise (2-4 sentences) unless asked for detail.';
               return ctx;
             }
             function speakText(text){
