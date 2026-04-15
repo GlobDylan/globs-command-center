@@ -6334,14 +6334,21 @@ window._STRAIN_DB=[
                 });
                 ctx+='TOTAL ON HAND: '+totalOnHand+' units\n\n';
               }
-              // ── PRODUCTION PIPELINE (Drop Zone) ──
+              // ── PRODUCTION PIPELINE (Drop Zone) — uses LIVE sell-through data ──
               if(typeof pipelines!=='undefined'&&pipelines&&pipelines.length>0){
                 ctx+='PRODUCTION PIPELINE:\n';
                 pipelines.forEach(function(pipe){
                   ctx+=pipe.name+':\n';
                   (pipe.batches||[]).forEach(function(b){
-                    var sellThru=b.units>0?Math.round(b.unitsSold/b.units*100):0;
-                    ctx+='  '+b.id+' | '+b.units+' produced | '+b.unitsSold+' sold ('+sellThru+'%) | '+b.onHand+' on hand | $'+Math.round(b.revSold||0)+' revenue | Stage: '+b.stage+'\n';
+                    // Use live computed data from Salesforce, not hardcoded values
+                    var live=(b.stage==='SALE'&&typeof batchLiveData==='function')?batchLiveData(b,pipe.name):null;
+                    var sold=live?live.unitsSold:b.unitsSold;
+                    var onHand=live?live.onHand:b.onHand;
+                    var rev=live?live.revSold:(b.revSold||0);
+                    var accts=live?live.accounts:0;
+                    var sellThru=b.units>0?Math.round(sold/b.units*100):0;
+                    ctx+='  '+b.id+' | '+b.units+' produced | '+sold+' sold ('+sellThru+'%) | '+onHand+' on hand | $'+Math.round(rev)+' revenue | '+accts+' accounts | Stage: '+b.stage+'\n';
+                    if(b.strains)ctx+='    Strains: '+b.strains.join(', ')+'\n';
                   });
                 });
                 ctx+='\n';
