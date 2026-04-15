@@ -6494,14 +6494,20 @@ window._STRAIN_DB=[
               });
             }
             function startListening(){
+              unlockAudio();
               var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-              if(!SR){toast('Speech recognition not supported');return;}
+              if(!SR){setAiMessages(function(p){return p.concat([{role:'assistant',content:'Mic not supported in this browser. Use Chrome.'}]);});return;}
               if(aiRecogRef.current){aiRecogRef.current.stop();aiRecogRef.current=null;setAiListening(false);return;}
-              var r=new SR();r.lang='en-US';r.interimResults=false;r.maxAlternatives=1;
+              var r=new SR();r.lang='en-US';r.interimResults=false;r.maxAlternatives=1;r.continuous=false;
               r.onresult=function(e){var t=e.results[0][0].transcript;setAiInput(t);setTimeout(function(){sendMessage(t);},100);};
               r.onend=function(){setAiListening(false);aiRecogRef.current=null;};
-              r.onerror=function(){setAiListening(false);aiRecogRef.current=null;};
-              aiRecogRef.current=r;setAiListening(true);r.start();
+              r.onerror=function(e){
+                setAiListening(false);aiRecogRef.current=null;
+                if(e.error==='not-allowed')setAiMessages(function(p){return p.concat([{role:'assistant',content:'Mic permission denied. Check browser settings.'}]);});
+                else if(e.error!=='no-speech'&&e.error!=='aborted')setAiMessages(function(p){return p.concat([{role:'assistant',content:'Mic error: '+e.error}]);});
+              };
+              aiRecogRef.current=r;setAiListening(true);
+              try{r.start();}catch(ex){setAiListening(false);setAiMessages(function(p){return p.concat([{role:'assistant',content:'Mic failed to start: '+ex.message}]);});}
             }
             function sendMessage(overrideText){
               unlockAudio();
