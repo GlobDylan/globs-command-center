@@ -6321,39 +6321,58 @@ window._STRAIN_DB=[
                 ctx+='\n';
               }
               ctx+='Answer questions using the data above. IMPORTANT RULES:\n';
+              ctx+='- Your responses will be READ ALOUD. Write like you\'re talking, not writing a report.\n';
+              ctx+='- For lists: give the headline number ("22 accounts ordered in April"), then highlight only the TOP 3-5 with quick details. Say "plus X more" for the rest. The full list shows in text.\n';
               ctx+='- Use bullet points, not tables. Keep it scannable and mobile-friendly.\n';
-              ctx+='- When asked about a time window (e.g. "since April 1st"), filter by the last order date field. Only include accounts whose last order date falls within that window.\n';
-              ctx+='- Revenue figures in the data are 365-day totals. If asked about a specific period, say "365d total revenue" to be clear, or say you can only confirm they ordered within the window based on order dates.\n';
-              ctx+='- Keep responses short and punchy. No markdown tables. No headers with ===. Just bullets and numbers.\n';
-              ctx+='- Never read out loud formatting like pipes, dashes, or table borders.\n';
-              ctx+='- When listing accounts, format as: • Account Name — Rep — Last Order: Date — $Revenue';
+              ctx+='- When asked about a time window, filter by last order date. Only include accounts within that window.\n';
+              ctx+='- Revenue in the data is 365-day total. Call it out as "365d revenue" so it\'s clear.\n';
+              ctx+='- Be conversational: "You\'ve got 22 accounts that ordered in April. Your biggest were Ganjery, Urbana, and Elevation 2477." NOT "Based on Salesforce data filtered by last order date >= April 1, 2026:"\n';
+              ctx+='- Never use markdown tables, pipe characters, or dashes as separators.\n';
+              ctx+='- Keep the total response under 150 words when possible. Dylan is listening, not reading.';
               return ctx;
+            }
+            var aiAudioRef={current:null};
+            function stopSpeaking(){
+              if(aiAudioRef.current){try{aiAudioRef.current.pause();aiAudioRef.current=null;}catch(e){}}
+              window.speechSynthesis.cancel();
+              setAiSpeaking(false);
             }
             function speakText(text){
               if(aiMuted)return;
+              // Build a spoken summary — trim lists to top 3 items max, keep it conversational
+              var lines=text.split('\n').filter(function(l){return l.trim();});
+              var bullets=lines.filter(function(l){return l.trim().startsWith('•')||l.trim().startsWith('-')||l.trim().startsWith('*');});
+              var spoken='';
+              if(bullets.length>3){
+                // Summarize: speak intro + top 3 + "and X more"
+                var intro=lines.filter(function(l){return !l.trim().startsWith('•')&&!l.trim().startsWith('-')&&!l.trim().startsWith('*');}).join('. ');
+                var top3=bullets.slice(0,3).map(function(b){return b.replace(/^[\s•\-*]+/,'').trim();}).join('. ');
+                spoken=intro+'. Top entries: '+top3+'. And '+(bullets.length-3)+' more in the list below.';
+              } else {
+                spoken=text;
+              }
               // Strip markdown for clean speech
-              var clean=text.replace(/\|/g,' ').replace(/[-]{2,}/g,' ').replace(/[#*_`]/g,'').replace(/\n{2,}/g,'. ').replace(/\n/g,'. ').replace(/\s{2,}/g,' ').replace(/•/g,'').replace(/\.\s*\./g,'.').trim();
-              if(!clean)return;
+              spoken=spoken.replace(/\|/g,' ').replace(/[-]{2,}/g,' ').replace(/[#*_`]/g,'').replace(/\n{2,}/g,'. ').replace(/\n/g,'. ').replace(/\s{2,}/g,' ').replace(/•/g,'').replace(/\.\s*\./g,'.').replace(/\(\d+d\)/g,'').trim();
+              if(!spoken)return;
               setAiSpeaking(true);
-              // ElevenLabs via Cloudflare Worker
               var ttsUrl=aiProxyUrl.trim().replace(/\/$/,'');
               fetch(ttsUrl,{
                 method:'POST',headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({service:'tts',text:clean,voice_id:'xYGBrcsWlTq1DTHc00Ft'})
+                body:JSON.stringify({service:'tts',text:spoken,voice_id:'xYGBrcsWlTq1DTHc00Ft'})
               }).then(function(r){
                 if(!r.ok)throw new Error('TTS status '+r.status);
                 return r.blob();
               }).then(function(blob){
                 var url=URL.createObjectURL(blob);
                 var audio=new Audio(url);
-                audio.onended=function(){setAiSpeaking(false);URL.revokeObjectURL(url);};
-                audio.onerror=function(){setAiSpeaking(false);URL.revokeObjectURL(url);};
+                aiAudioRef.current=audio;
+                audio.onended=function(){setAiSpeaking(false);aiAudioRef.current=null;URL.revokeObjectURL(url);};
+                audio.onerror=function(){setAiSpeaking(false);aiAudioRef.current=null;URL.revokeObjectURL(url);};
                 audio.play();
               }).catch(function(err){
-                // Fallback to browser voice if ElevenLabs fails
                 console.log('ElevenLabs failed, fallback:',err);
                 window.speechSynthesis.cancel();
-                var u=new SpeechSynthesisUtterance(clean);
+                var u=new SpeechSynthesisUtterance(spoken);
                 var voices=window.speechSynthesis.getVoices();
                 var wc=voices.find(function(v){return v.lang.startsWith('en-US');})||voices[0];
                 if(wc)u.voice=wc;u.lang='en-US';u.rate=1.15;
@@ -6403,12 +6422,12 @@ window._STRAIN_DB=[
                   React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8}},
                     React.createElement('span',{style:{fontSize:16,fontWeight:900,color:'#d4a24c',fontFamily:'system-ui'}},'G'),
                     React.createElement('span',{style:{fontSize:11,fontWeight:700,letterSpacing:2,color:'#e8e0d4'}},'ASK GPI'),
-                    aiSpeaking&&React.createElement('span',{style:{fontSize:8,color:'#4ade80',letterSpacing:1}},'SPEAKING')
+                    aiSpeaking&&React.createElement('button',{onClick:stopSpeaking,style:{fontSize:9,color:'#f44336',background:'#f4433622',border:'1px solid #f4433644',borderRadius:4,padding:'2px 8px',cursor:'pointer',letterSpacing:1,fontWeight:700,fontFamily:'inherit'}},'■ STOP')
                   ),
                   React.createElement('div',{style:{display:'flex',gap:6}},
                     React.createElement('button',{onClick:function(){setAiShowSettings(!aiShowSettings);},style:{background:'transparent',border:'none',cursor:'pointer',fontSize:14,color:aiShowSettings?'#d4a24c':'#555'}},'\u2699'),
-                    React.createElement('button',{onClick:function(){setAiMuted(!aiMuted);if(!aiMuted)window.speechSynthesis.cancel();},style:{background:'transparent',border:'none',cursor:'pointer',fontSize:14,color:aiMuted?'#555':'#e8e0d4'}},aiMuted?'\uD83D\uDD07':'\uD83D\uDD0A'),
-                    React.createElement('button',{onClick:function(){setAiOpen(false);window.speechSynthesis.cancel();},style:{background:'transparent',border:'none',cursor:'pointer',fontSize:14,color:'#555'}},'\u2715')
+                    React.createElement('button',{onClick:function(){setAiMuted(!aiMuted);if(!aiMuted)stopSpeaking();},style:{background:'transparent',border:'none',cursor:'pointer',fontSize:14,color:aiMuted?'#555':'#e8e0d4'}},aiMuted?'\uD83D\uDD07':'\uD83D\uDD0A'),
+                    React.createElement('button',{onClick:function(){setAiOpen(false);stopSpeaking();},style:{background:'transparent',border:'none',cursor:'pointer',fontSize:14,color:'#555'}},'\u2715')
                   )
                 ),
                 aiShowSettings&&React.createElement('div',{style:{padding:'12px 16px',borderBottom:'0.5px solid #1a1a1a',background:'#0f0f0f'}},
