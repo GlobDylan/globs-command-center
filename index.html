@@ -5175,71 +5175,108 @@ window._STRAIN_DB=[
                     {l:'Compliance SOP',url:'https://docs.google.com/document/d/10ECqfQ_82MWikxDdmryOZ5oB1F0m8_8W9z-cOfBBsZ4/edit',c:'#4caf50'}
                   ];
                   var CART_STEPS=[
-                    {s:1,t:'Fill Carts',d:'Load hardware into 100-unit filler. Fill with formulated oil.',p:'1ML Quad Hardware (Octave)',c:'$1.91'},
-                    {s:2,t:'QC \u2014 Oil',d:'Inspect each cart for oil outside the chamber. Reject any with external residue.',p:null,c:null},
-                    {s:3,t:'QC \u2014 Bubbles',d:'Inspect for air bubbles trapped in oil. Tap or warm to release.',p:null,c:null},
-                    {s:4,t:'Tube',d:'Insert cart into poptop tube (95mm black).',p:'Poptop Tube 95mm',c:'$0.08'},
-                    {s:5,t:'Heat Seal',d:'Apply tamper-evident heat seal band over tube closure.',p:'Tamper Heat-Seal',c:'$0.01'},
-                    {s:6,t:'Box',d:'Place sealed tube into branded cart box.',p:'Cart Box (Treeform)',c:'$0.21'},
-                    {s:7,t:'Testing Sticker',d:'Apply Encore Labs testing sticker \u2014 THC %, batch ID, test date.',p:'Testing Sticker',c:null},
-                    {s:8,t:'COA Sticker',d:'Apply final COA label over testing sticker. Greenline prints and applies.',p:'COA Label (GL)',c:null},
-                    {s:9,t:'Case Pack',d:'Pack 20 boxed carts into branded case box.',p:'Case Box 20ct',c:'$0.04'},
-                    {s:10,t:'Master Case',d:'Pack 10 case boxes (200 units) into master shipping case.',p:'Uline S-4545',c:'$0.01'}
+                    {s:1,t:'Fill Carts',d:'Load Globs 1ML Quad hardware into 100-unit automated filler. Fill with formulated live resin oil (50% THCa / 50% HTE).',p:'Globs-Owned 100-Unit Filler',warn:'Use of non-approved equipment is prohibited without written authorization from Globs.'},
+                    {s:2,t:'Visual Inspection',d:'Inspect top of each cart under adequate lighting. Check for excess oil around fill ports, mouthpiece threads, or overflow. Wipe any residue clean.',p:null,warn:'Residual oil compromises seal integrity and causes visual defects.'},
+                    {s:3,t:'Sequester Defects',d:'Pull any defective hardware — cracked tanks, crooked posts, leaking seals. Log defective count for quarterly supplier credit review.',p:'Defect Log (Quarterly)',warn:null},
+                    {s:4,t:'Rest Period (60–180 min)',d:'Allow filled carts to sit at room temperature for 60–180 minutes before tubing. Ensures fill integrity and proper wick saturation.',p:null,warn:'Do not tube carts immediately after filling.'},
+                    {s:5,t:'Tube',d:'Insert cart into child-resistant poptop tube (95mm). Cart should sit snug with no rattle.',p:'Poptop Tube 95mm (Treeform)',warn:null},
+                    {s:6,t:'Heat Seal',d:'Apply tamper-evident heat seal band over tube closure. Verify seal is clean and fully adhered.',p:'Heat-Seal Band',warn:'PLANNED CHANGE: Transitioning to top+bottom tamper-evident seals on cart box (eliminates heat seal step).'},
+                    {s:7,t:'Box + Pre-Testing Label',d:'Place sealed tube into branded Globs cart box. The 1"×1.5" pre-testing label should already be applied to the box with: strain name, batch ID, UID.',p:'Cart Box (Treeform) + Pre-Test Label (1"×1.5")',warn:'Pre-testing label is applied BEFORE testing. It will be covered by the final COA sticker.'},
+                    {s:8,t:'Front Sticker',d:'Apply 0.75" square sticker to front of cart box. Contains: strain name, THC%, terpene %, Indica/Sativa/Hybrid designation.',p:'Front ID Sticker (0.75" square)',warn:null},
+                    {s:9,t:'\u2192 Sent to Testing',d:'Batch sent to Encore Labs for full panel: potency, terpenes, pesticides, residual solvents, heavy metals, microbial. Minimum 73% total THC required.',p:'Encore Labs (30-day terms)',warn:'Any batch below 73% THC is placed on hold. \u00b13% variance max across units in a batch.'},
+                    {s:10,t:'Variable Data Sticker (Post-COA)',d:'After COA clears: apply final variable data sticker OVER the pre-testing label. Must match COA exactly — THC%, terpenes, batch ID, UID. GL creates labels from COA data, Dylan reviews before application.',p:'Variable Data Label (exact to COA)',warn:'This sticker covers the pre-testing label. Must be 100% accurate to lab results.'},
+                    {s:11,t:'Case Pack',d:'Pack 20 boxed carts into form-fitting Treeform 20ct case. Carts packed upright. Fill void with clean packing paper if needed.',p:'Treeform 20ct Form-Fit Case (Uline S-4515 backup)',warn:null},
+                    {s:12,t:'Master Case',d:'Pack 10 case boxes (200 units) into master shipping case. Label master case: MFG name, license #, pkg date, brand, strain, product type, batch #, UID, qty, barcode.',p:'Master Case (200 units)',warn:null}
                   ];
                   var CONC_STEPS=[
-                    {s:1,t:'Gram into Jar',d:'Weigh 1.0g into 5ml glass jar. Badder: whipped. Sauce: crystalline + terp layer.',p:'5ml Glass Jar',c:'$0.35'},
-                    {s:2,t:'Cap',d:'Press-fit 5ml black cap. Ensure tight seal.',p:'5ml Black Cap',c:'incl'},
-                    {s:3,t:'TE Lid Label',d:'Apply tamper-evident label across cap-to-jar seam.',p:'TE Lid Label (Treeform)',c:'$0.04'},
-                    {s:4,t:'Box',d:'Place labeled jar into concentrate box.',p:'Concentrate Box',c:'$0.16'},
-                    {s:5,t:'Testing Sticker',d:'Apply Encore Labs testing sticker.',p:'Testing Sticker',c:null},
-                    {s:6,t:'COA Sticker',d:'Apply final COA over testing sticker. Greenline prints and applies.',p:'COA Label (GL)',c:null},
-                    {s:7,t:'Case Pack',d:'Pack 20 jars into case box.',p:'Case Box 20ct',c:'$0.05'},
-                    {s:8,t:'Master Case',d:'Pack 10 case boxes into master case.',p:'Uline S-4545',c:'$0.01'}
+                    {s:1,t:'Gram + Cap',d:'Weigh exactly 1.0g of concentrate and deposit directly in center of 5ml glass jar. Do not scrape, tilt, or reposition after dispensing — product remains untouched until capped. Press-fit black cap immediately.',p:'5ml Glass Jar + Cap',warn:'Badder: whipped smooth texture. Sauce: crystal + terp separation. Product placed CENTER of jar only — never along sides.'},
+                    {s:2,t:'Tamper Seal',d:'Apply tamper-evident label across cap-to-jar seam. Verify seal is straight, fully adhered, and unbroken.',p:'TE Lid Label (Treeform)',warn:null},
+                    {s:3,t:'Bottom Clear Sticker',d:'Apply clear sticker to jar bottom. Contents top-to-bottom: product type, Indica/Sativa/Hybrid, strain name, genetics (cross), batch ID, UID, @getglobs, "1 Gram (0.035Oz)".',p:'Clear Bottom Label',warn:null},
+                    {s:4,t:'Box',d:'Place labeled jar into branded Globs concentrate box.',p:'Concentrate Box (Treeform)',warn:null},
+                    {s:5,t:'\u2192 Sent to Testing',d:'Batch sent to Encore Labs. Full panel: potency, terpenes, pesticides, solvents, metals, microbial. Minimum 73% total THC. \u00b13% variance max across jars.',p:'Encore Labs (30-day terms)',warn:'Batches deviating beyond \u00b13% THC variance are rejected. Must be remediated or retested before release.'},
+                    {s:6,t:'Side Panel Sticker (Post-COA)',d:'After COA clears: apply side panel variable data sticker. Must match COA exactly. GL creates labels from COA data, Dylan reviews before application.',p:'Side Panel Variable Data Label (exact to COA)',warn:'No product may be transferred until UpNorth confirms full compliance.'}
                   ];
-                  var EXT_STEPS=[
-                    {s:1,t:'Biomass Intake',d:'GL receives trim/flower from UpNorth or direct delivery. Manifested in METRC.',p:'Biomass ($30/lb Tier 1)',c:'varies'},
-                    {s:2,t:'Extraction',d:'Hydrocarbon closed-loop extraction. Pulls cannabinoids + terpenes.',p:'GL Processing',c:'$40/lb toll'},
-                    {s:3,t:'Post-Processing',d:'CRC filtration + winterization to remove fats/waxes.',p:null,c:null},
-                    {s:4,t:'Formulation \u2014 Carts',d:'Decarb for cart oil. Blend with strain-specific terpenes.',p:'Pre-formulated @ $1.30/g',c:null},
-                    {s:5,t:'Formulation \u2014 Badder',d:'Mechanical whipping under controlled heat. Creamy consistency.',p:'Pre-formulated @ $1.30/g',c:null},
-                    {s:6,t:'Formulation \u2014 Sauce',d:'Diamond crystallization \u2014 THCA crystals in terpene liquid.',p:'GL extract @ $1.25/g',c:null},
-                    {s:7,t:'Testing',d:'Samples to Encore Labs. THC %, terpenes, pesticides, solvents, metals.',p:'Encore Labs',c:'$400/strain'},
-                    {s:8,t:'Compliance',d:'Review results. GL prints COA stickers. Prepare METRC tags.',p:null,c:null}
+                  var CONC_CASE=[
+                    {s:7,t:'Case Pack',d:'Pack 20 labeled jars into form-fitting Treeform 20ct case. Fill void with clean packing paper.',p:'Treeform 20ct Form-Fit Case (Uline S-4850 9×4×3 backup)',warn:null},
+                    {s:8,t:'Master Case',d:'Pack 10 case boxes (200 units) into master case. Label: MFG name, license #, pkg date, brand, strain, type, unit of measure, batch #, UID, qty, barcode.',p:'Master Case (200 units)',warn:null}
                   ];
-                  var COMP_STEPS=[
-                    {s:1,t:'Gather COA + METRC',d:'Collect Encore Labs COA PDF and METRC batch tag for each strain in the drop.',p:'Encore Labs COA',c:null},
-                    {s:2,t:'Verify THC + Terpenes',d:'Cross-check THC %, CBD %, total terpenes on COA against label data. Flag discrepancies > 0.5%.',p:null,c:null},
-                    {s:3,t:'Generate Labels',d:'Use GPI Label Generator: upload COA → auto-fill strain, THC, terps, batch, METRC. Generate front circle + back rectangle stickers.',p:'OL5275 + OL285WX',c:null},
-                    {s:4,t:'Print + Apply Labels',d:'Print sheets on correct label stock. Apply front sticker (circle) to product face, back sticker (rectangle) to rear. Verify no overlap or misalignment.',p:null,c:null},
-                    {s:5,t:'METRC Package Creation',d:'In METRC: create package from source batch. Assign tag. Enter weight, item category, and unit count.',p:'METRC Portal',c:null},
-                    {s:6,t:'Transfer Manifest',d:'Create METRC transfer manifest for UpNorth distribution. Include all packages, destinations, and driver info.',p:'METRC Transfer',c:null},
-                    {s:7,t:'Packing Slip',d:'Generate packing slip with strain, qty, batch #, METRC tag. Include in shipment box.',p:null,c:null},
-                    {s:8,t:'Photo Documentation',d:'Photograph: (1) labeled product, (2) packing slip, (3) sealed cases. Upload to Drive.',p:'Google Drive',c:null},
-                    {s:9,t:'Final QC Sign-off',d:'Second person verifies: label accuracy, METRC match, unit count, seal integrity. Sign packing slip.',p:null,c:null},
-                    {s:10,t:'Release to Distribution',d:'Confirm transfer in METRC. Notify UpNorth (Ian, Brand Manager) with manifest details and ETA.',p:null,c:null}
+                  var COMPLIANCE_STEPS=[
+                    {s:1,t:'Receive COA from Encore Labs',d:'Encore emails COA PDF for each strain/batch tested. Verify: THC%, CBD%, terpenes total, sum of cannabinoids, UID, batch ID, MFG date, pkg date.',p:'Encore Labs COA PDF',warn:'All COA values must use 4 digits: 85.00% and 850.0 mg/g. Not 85% or 850 mg/g.'},
+                    {s:2,t:'GL Creates Labels from COA',d:'Greenline creates variable data labels matching COA exactly. All values must match: THC, CBD, terpenes, UID, batch ID, MFG name, MFG email/phone.',p:'GL Label Printer',warn:'Do NOT release labels until Dylan reviews and approves.'},
+                    {s:3,t:'Dylan Reviews Labels',d:'GL sends label proof + COA to Dylan for cross-check. Dylan verifies all values match, barcode present, DCC packaging requirements met.',p:'Dylan (dylan@getglobs.com)',warn:null},
+                    {s:4,t:'Submit Compliance Package to UpNorth',d:'Dylan submits to intake@upnorthhumboldt.com: (1) variable data sticker copies, (2) matching COA per strain, (3) written confirmation all label elements match COA exactly.',p:'intake@upnorthhumboldt.com',warn:null},
+                    {s:5,t:'Include Product Photo',d:'Include photo of product in jar (bottom view) for quality control verification.',p:'Photo attachment',warn:null},
+                    {s:6,t:'Transfer Request Summary',d:'Send final email to intake@ summarizing: all strains, batch quantities, product photos, case & master case quantities confirmed.',p:'Summary email',warn:null},
+                    {s:7,t:'UpNorth Compliance Review',d:'UpNorth reviews and confirms compliance. NO product may be transferred until written confirmation received from UpNorth.',p:'UpNorth approval required',warn:'Wednesday mid-day deadline to schedule Tuesday pickup the following week.'},
+                    {s:8,t:'METRC Manifest',d:'Create METRC transfer manifest prior to pickup time. Include all packages, destinations, driver info.',p:'METRC Portal',warn:'Prefer manifest created BEFORE pickup time.'},
+                    {s:9,t:'Tuesday Pickup',d:'UpNorth driver picks up after completing delivery lane. Product transported directly to Hub for intake.',p:'Weekly Tuesday pickup',warn:null}
+                  ];
+                  var FORMULATION_SPECS=[
+                    {type:'Badder',ratio:'88–92% THCa / 8–12% HTE',desc:'Smooth, homogenized texture with stable terpene distribution.',min:'≥ 73% total THC'},
+                    {type:'Sauce',ratio:'65–70% THCa / 30–35% HTE',desc:'Balanced separation and viscosity, crystals suspended evenly in terpene fraction.',min:'≥ 73% total THC'},
+                    {type:'Diamonds',ratio:'70–75% THCa / 25–30% HTE',desc:'THCa crystal fraction reintroduced with matching HTE batch for full strain flavor.',min:'≥ 73% total THC'},
+                    {type:'Carts',ratio:'50% THCa / 50% HTE',desc:'Balanced viscosity optimized for ceramic hardware with 2.0mm intake apertures.',min:'≥ 73% total THC'}
                   ];
                   var SOPS=[
-                    {k:'carts',l:'Vape Carts',c:'#6fa8d6',steps:CART_STEPS,cost:'$4.89 all-in'},
-                    {k:'concentrates',l:'Concentrates',c:'#d4a24c',steps:CONC_STEPS,cost:'$2.96 badder / $3.16 sauce'},
-                    {k:'extraction',l:'Extraction',c:'#7cb87a',steps:EXT_STEPS,cost:'GL handles 100%'},
-                    {k:'compliance',l:'Compliance Submission',c:'#f44336',steps:COMP_STEPS,cost:'COA + METRC + Labels → Transfer'}
+                    {k:'carts',l:'Vape Carts',c:'#6fa8d6',steps:CART_STEPS,summary:'12 steps · Globs 100-unit filler · 60-180 min rest · Tube + heat seal · 2 labels + post-COA variable data'},
+                    {k:'concentrates',l:'Concentrates',c:'#d4a24c',steps:CONC_STEPS.concat(CONC_CASE),summary:'8 steps · Center gram · Tamper seal · Bottom clear + post-COA side panel'},
+                    {k:'compliance',l:'Compliance',c:'#f44336',steps:COMPLIANCE_STEPS,summary:'9 steps · GL creates labels · Dylan reviews · Submit to UpNorth · Wednesday deadline → Tuesday pickup'},
+                    {k:'formulations',l:'Formulations',c:'#9b8ec4',steps:null,summary:'Badder · Sauce · Diamonds · Carts · 100% live resin · No distillate or additives'}
                   ];
+                  var sopChecks=JSON.parse(localStorage.getItem('gpi:sop-checks')||'{}');
+                  function toggleCheck(sopKey,stepNum){
+                    var key=sopKey+'-'+stepNum;
+                    var next=Object.assign({},sopChecks);
+                    if(next[key])delete next[key];else next[key]=Date.now();
+                    localStorage.setItem('gpi:sop-checks',JSON.stringify(next));
+                    setSopView(sopView);// force re-render
+                  }
                   return React.createElement('div',null,
-                    React.createElement('div',{style:{fontSize:14,fontWeight:900,letterSpacing:3,marginBottom:16}},'STANDARD OPERATING PROCEDURES'),
+                    React.createElement('div',{style:{fontSize:14,fontWeight:900,letterSpacing:3,marginBottom:4}},'STANDARD OPERATING PROCEDURES'),
+                    React.createElement('div',{style:{fontSize:11,color:C.dim,marginBottom:16}},'Verified process steps · Tap to check off completed steps'),
                     React.createElement('div',{style:{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap'}},
                       SOPS.map(function(b){var sel=sopSel===b.k;return React.createElement('button',{key:b.k,onClick:function(){setSop(b.k);},style:{padding:'8px 16px',borderRadius:4,fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'inherit',letterSpacing:1,border:'1px solid '+(sel?b.c:C.border),background:sel?b.c+'22':'transparent',color:sel?b.c:C.dim}},b.l);})
                     ),
-                    SOPS.filter(function(b){return sopSel===b.k;}).map(function(b){return React.createElement('div',{key:b.k,style:{background:C.surface,border:'1px solid '+b.c+'33',borderRadius:6,padding:16}},
-                      React.createElement('div',{style:{fontSize:10,fontWeight:700,color:b.c,marginBottom:12}},b.l.toUpperCase()+' PROCESS'),
-                      b.steps.map(function(st){return React.createElement('div',{key:st.s,style:{display:'flex',gap:12,padding:'8px 0',borderBottom:'1px solid '+C.border}},
-                        React.createElement('div',{style:{width:24,height:24,borderRadius:12,background:b.c+'22',border:'1px solid '+b.c+'44',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:800,color:b.c,flexShrink:0}},st.s),
-                        React.createElement('div',{style:{flex:1}},
-                          React.createElement('div',{style:{fontSize:10,fontWeight:700}},st.t),
-                          React.createElement('div',{style:{fontSize:11,color:C.muted,marginTop:2}},st.d),
-                          st.p?React.createElement('div',{style:{fontSize:10,color:b.c,marginTop:3}},st.p+(showDollars&&st.c&&st.c!=='incl'&&st.c!=='varies'?' \u00b7 '+st.c:'')):null
-                        ));}),
-                      showDollars?React.createElement('div',{style:{marginTop:12,padding:'10px 12px',background:C.bg,borderRadius:4,fontSize:11,color:C.dim}},b.cost):null
-                    );}),
+                    SOPS.filter(function(b){return sopSel===b.k;}).map(function(b){
+                      if(b.k==='formulations'){
+                        return React.createElement('div',{key:b.k,style:{background:C.surface,border:'1px solid '+b.c+'33',borderRadius:6,padding:16}},
+                          React.createElement('div',{style:{fontSize:10,fontWeight:700,color:b.c,marginBottom:12,letterSpacing:1.5}},'FORMULATION SPECIFICATIONS'),
+                          React.createElement('div',{style:{fontSize:10,color:C.warn,marginBottom:12,padding:'8px 12px',background:C.warn+'11',border:'1px solid '+C.warn+'33',borderRadius:4}},'100% live resin only. No distillate, reintroduced terpenes, or additives of any kind. All units within a batch must test within \u00b13% THC of each other.'),
+                          FORMULATION_SPECS.map(function(f){return React.createElement('div',{key:f.type,style:{padding:'10px 0',borderBottom:'1px solid '+C.border}},
+                            React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center'}},
+                              React.createElement('span',{style:{fontSize:12,fontWeight:700}},f.type),
+                              React.createElement('span',{style:{fontSize:10,color:C.good,fontWeight:600}},f.min)
+                            ),
+                            React.createElement('div',{style:{fontSize:11,fontWeight:600,color:b.c,marginTop:3}},f.ratio),
+                            React.createElement('div',{style:{fontSize:10,color:C.dim,marginTop:2}},f.desc)
+                          );})
+                        );
+                      }
+                      var totalSteps=b.steps.length;
+                      var checked=b.steps.filter(function(st){return sopChecks[b.k+'-'+st.s];}).length;
+                      return React.createElement('div',{key:b.k,style:{background:C.surface,border:'1px solid '+b.c+'33',borderRadius:6,padding:16}},
+                        React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}},
+                          React.createElement('div',{style:{fontSize:10,fontWeight:700,color:b.c,letterSpacing:1.5}},b.l.toUpperCase()+' PROCESS'),
+                          React.createElement('div',{style:{fontSize:10,color:checked===totalSteps?C.good:C.dim}},checked+'/'+totalSteps+' complete')
+                        ),
+                        React.createElement('div',{style:{fontSize:10,color:C.dim,marginBottom:12,padding:'6px 10px',background:C.bg,borderRadius:3}},b.summary),
+                        checked>0&&checked<totalSteps?React.createElement('div',{style:{height:3,background:C.border,borderRadius:2,marginBottom:12,overflow:'hidden'}},React.createElement('div',{style:{height:'100%',width:Math.round(checked/totalSteps*100)+'%',background:b.c,borderRadius:2}})):null,
+                        b.steps.map(function(st){
+                          var isChecked=!!sopChecks[b.k+'-'+st.s];
+                          var isTestStep=st.t.includes('\u2192');
+                          return React.createElement('div',{key:st.s,onClick:function(){if(!isTestStep)toggleCheck(b.k,st.s);},style:{display:'flex',gap:12,padding:'10px 0',borderBottom:'1px solid '+C.border+'66',cursor:isTestStep?'default':'pointer',opacity:isChecked?0.6:1}},
+                            React.createElement('div',{style:{width:26,height:26,borderRadius:13,background:isTestStep?C.warn+'22':isChecked?C.good+'33':b.c+'22',border:'2px solid '+(isTestStep?C.warn:isChecked?C.good:b.c+'66'),display:'flex',alignItems:'center',justifyContent:'center',fontSize:isChecked?14:10,fontWeight:800,color:isTestStep?C.warn:isChecked?C.good:b.c,flexShrink:0}},isTestStep?'\u26A0':isChecked?'\u2713':st.s),
+                            React.createElement('div',{style:{flex:1}},
+                              React.createElement('div',{style:{fontSize:11,fontWeight:700,textDecoration:isChecked?'line-through':'none'}},st.t),
+                              React.createElement('div',{style:{fontSize:11,color:C.muted,marginTop:2,lineHeight:1.4}},st.d),
+                              st.p?React.createElement('div',{style:{fontSize:10,color:b.c,marginTop:3}},st.p):null,
+                              st.warn?React.createElement('div',{style:{fontSize:10,color:C.warn,marginTop:4,padding:'4px 8px',background:C.warn+'11',borderRadius:3,lineHeight:1.4}},'\u26A0 '+st.warn):null
+                            )
+                          );
+                        }),
+                        checked>0?React.createElement('button',{onClick:function(){var next=Object.assign({},sopChecks);b.steps.forEach(function(st){delete next[b.k+'-'+st.s];});localStorage.setItem('gpi:sop-checks',JSON.stringify(next));setSopView(sopView);},style:{marginTop:12,padding:'6px 16px',borderRadius:3,fontSize:10,color:C.dim,background:'transparent',border:'1px solid '+C.border,cursor:'pointer',fontFamily:'inherit'}},'Reset Checklist'):null
+                      );
+                    }),
                     authRole==='mfg'&&!localStorage.getItem('gpi:sop-reviewed-'+(authUser?authUser.id:''))?React.createElement('div',{style:{background:C.warn+'15',border:'1px solid '+C.warn+'33',borderRadius:8,padding:16,marginTop:20,marginBottom:8,textAlign:'center'}},
                       React.createElement('div',{style:{fontSize:12,fontWeight:700,color:C.warn,marginBottom:6}},'SOP REVIEW REQUIRED'),
                       React.createElement('div',{style:{fontSize:11,color:C.dim,marginBottom:12}},'Please review all SOPs above before proceeding to MFG operations.'),
