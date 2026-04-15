@@ -860,7 +860,8 @@ window._STRAIN_DB=[
     function curK(n){if(!n||n<=0)return'—';return n>=1000?'$'+(n/1000).toFixed(1)+'k':'$'+n.toFixed(0);}
     function fmtDate(iso){if(!iso)return'—';return new Date(iso).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"2-digit"});}
     function getWeekKey(){const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toISOString().split("T")[0];}
-    function fuzzyMatch(a,b){const norm=function(s){return s.toLowerCase().replace(/\s*-\s*corporate/gi,"").replace(/\s*\(.*?\)/g,"").replace(/[^a-z0-9\s]/g,"").replace(/\s+/g," ").trim();};const na=norm(a),nb=norm(b);if(na===nb)return true;const wa=na.split(" ").filter(function(w){return w.length>3;}),wb=nb.split(" ").filter(function(w){return w.length>3;});return wa.filter(function(w){return wb.includes(w);}).length>=Math.min(2,wa.length,wb.length);}
+    var ACCOUNT_ALIASES={"10th Street Cannabis Co.":["10th Street Cannabis","Tenth Street Cannabis"],"365 Recreational Cannabis":["365 Cannabis","365 Recreational"],"A Therapeutic Alternative":["ATA Sacramento","A Therapeutic Alternative Sacramento"],"Alternatives Hampton":["Alternatives","Alternatives Rancho Cucamonga"],"Blissful Moments Healing Center":["Blissful Moments","Blissful Moments Emeryville"],"Cali Love":["Cali Love Chico"],"Cali Love 101":["Cali Love Cotati"],"California Street Cannabis Clement":["Cal St Cannabis Clement","California Street Cannabis"],"Desert Kush Cathedral Canyon":["Desert Kush","Desert Kush Cathedral City"],"Desert Kush Palm Canyon":["Desert Kush Palm Canyon"],"Down Under Industries":["Down Under","Down Under Petaluma"],"Dr. Greenthumb's La Mesa":["Dr Greenthumbs","Dr. Greenthumb"],"Dr.GreenRX":["Dr Green RX","Dr GreenRX Sacramento"],"EcoCann":["EcoCann Sebastopol","Eco Cann"],"EcoCannabis Oakland":["EcoCann Oakland","Eco Cannabis Oakland"],"Fig & Thistle":["Fig and Thistle","Fig Thistle"],"Green Rush Cannabis Co.":["Green Rush","Green Rush Cotati"],"Hazy Bulldog Farms":["Hazy Bulldog","Hazy Bulldog Sonora"],"Megan's Organic Market Goleta":["Megans Organic Market Goleta"],"Megan's Organic Market SLO":["Megans Organic Market","Megan's Organic Market San Luis Obispo"],"Merced Business Ventures":["Merced Dispensary"],"NUG x Sundial Collective":["NUG Sundial","Sundial Rancho Cordova"],"Nectar Markets of California LLC":["Nectar Santa Ana","Nectar Markets"],"Off the Charts Costa Mesa Harbor Blvd":["OTC Costa Mesa Harbor"],"Off the Charts SF":["OTC San Francisco"],"Off the Charts USC":["OTC USC","OTC Los Angeles"],"Palm Royale Collective Too":["Palm Royale","Palm Royale Cathedral City"],"Purple Lotus Santa Clara St.":["Purple Lotus San Jose"],"Redwood Herbal Alliance":["Redwood Herbal","Redwood Herbal Fortuna"],"Rhizome LLC (Farmhouse)":["Farmhouse","Farmhouse San Jose"],"Royal Healing Emporium Inc.":["Royal Healing Emporium","Royal Healing"],"Satori Wellness Center":["Satori","Satori McKinleyville"],"St. Andrews Green":["St Andrews Green","Saint Andrews Green"],"StashCo":["Stash Co","StashCo Northridge"],"Sustainable Therapeutics (DBA Klover)":["Klover","Klover San Mateo"],"The Hook Outlet Watsonville":["The Hook Watsonville","Hook Outlet"],"The Sweet Spot Piner Rd.":["The Sweet Spot","Sweet Spot Santa Rosa"],"Urbana Off Mission":["Urbana SF Mission"],"Urbana on Geary":["Urbana","Urbana SF Geary"]};
+    function fuzzyMatch(a,b){const norm=function(s){return s.toLowerCase().replace(/\s*-\s*corporate/gi,"").replace(/\s*\(.*?\)/g,"").replace(/[^a-z0-9\s]/g,"").replace(/\s+/g," ").trim();};const na=norm(a),nb=norm(b);if(na===nb)return true;const wa=na.split(" ").filter(function(w){return w.length>3;}),wb=nb.split(" ").filter(function(w){return w.length>3;});if(wa.filter(function(w){return wb.includes(w);}).length>=Math.min(2,wa.length,wb.length))return true;var aliases=ACCOUNT_ALIASES[a]||ACCOUNT_ALIASES[b]||[];for(var i=0;i<aliases.length;i++){if(norm(aliases[i])===na||norm(aliases[i])===nb)return true;var aw=norm(aliases[i]).split(" ").filter(function(w){return w.length>3;});if(aw.filter(function(w){return wb.includes(w)||wa.includes(w);}).length>=Math.min(2,aw.length,Math.max(wa.length,wb.length)))return true;}return false;}
     function parseWMSku(name){const p=name.replace(/^Globs\s*\|\s*/i,"").split(/\s*\|\s*/);return{strain:(p[0]&&p[0].trim())||""};}
     function skuCat(wmName){const n=wmName.toLowerCase();if(n.includes("badder"))return"Badder";if(n.includes("cartridge")||n.includes("cart"))return"Cart";if(n.includes("sauce"))return"Sauce";if(n.includes("diamonds")||n.includes("diamond"))return"Diamonds";if(n.includes("shatter"))return"Shatter";if(n.includes("battery"))return"Battery";if(n.includes("promo")||n.includes("sample"))return"Promo";return"Other";}
     function normStr(s){return s.toLowerCase().replace(/[^a-z]/g,'');}
@@ -1458,19 +1459,6 @@ window._STRAIN_DB=[
       const [mfgSubTab,setMfgSubTab]=useState('orders'); // 'orders' | 'sops'
       const [newStrain,setNewStrain]=useState({name:"",type:"Hybrid",cross:"",desc:""});
       const csvRef=useRef(),jsonRef=useRef();
-
-      // ── AI Assistant (Ask GPI) ──
-      const [aiOpen,setAiOpen]=useState(false);
-      const [aiMessages,setAiMessages]=useState([]);
-      const [aiInput,setAiInput]=useState('');
-      const [aiLoading,setAiLoading]=useState(false);
-      const [aiListening,setAiListening]=useState(false);
-      const [aiSpeaking,setAiSpeaking]=useState(false);
-      const [aiMuted,setAiMuted]=useState(false);
-      const [aiProxyUrl,setAiProxyUrl]=useState(function(){try{return localStorage.getItem('gpi:ai-proxy')||'';}catch(e){return '';}});
-      const [aiShowSettings,setAiShowSettings]=useState(false);
-      const aiRecogRef=useRef(null);
-      const aiChatRef=useRef(null);
 
       // ── Returns & Faulty Units ──
       const RETURNS_KEY='gpi-returns-log';
@@ -6267,155 +6255,7 @@ window._STRAIN_DB=[
               </div>
             </div>
           )}
-          <style>{`* { box-sizing: border-box; } ::-webkit-scrollbar { width: 4px; height: 4px; background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border-hi,#2d3f5a); border-radius: 2px; } input::placeholder { color: var(--dim,#3d4559); } textarea::placeholder { color: var(--dim,#3d4559); } button { transition: all 0.15s; } @keyframes gpiPulse{0%,100%{box-shadow:0 0 0 0 rgba(212,162,76,0.4)}50%{box-shadow:0 0 0 12px rgba(212,162,76,0)}} @keyframes gpiFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
-
-          {/* ═══ ASK GPI — AI ASSISTANT ═══ */}
-          {(function(){
-            function buildSystemPrompt(){
-              var ctx='You are GPI — the GLOBS Product Intelligence AI assistant built into the GPI Command Center. You serve Dylan Brewington, founder and CEO of GLOBS.\n\n';
-              ctx+='YOUR VOICE: You speak like Dylan — direct, data-driven, no fluff. West Coast energy, confident but respectful. You say "Hey" not "Dear", you get to the point fast, and you always back claims with specific numbers. When you don\'t know something, say so directly.\n\n';
-              ctx+='DYLAN\'S COMMUNICATION STYLE (match this):\n';
-              ctx+='- Partners & suppliers: warm opener ("Hey Amber", "Thanks for..."), grateful tone, action-oriented, always thinking ahead\n';
-              ctx+='- Compliance & ops: professional, thorough, includes manifests/tables/data, signs "Best, Dylan"\n';
-              ctx+='- Sales reps: data-first directives — account name, status, days since last, cadence, target amount. No fluff, just targets. Signs from "GPI Command Center"\n';
-              ctx+='- Internal partners (Ian, Caitlynn): direct and concise, always explains the WHY, asks don\'t demand\n';
-              ctx+='- Collections: formal, legal, zero warmth, specific invoice references\n';
-              ctx+='- Core traits: data obsessive, action-oriented, respectful but direct, strategically CCs the right people, always planning ahead\n';
-              ctx+='- Signature: Dylan Brewington / CEO - Founder / (707)334-7631\n\n';
-              ctx+='COMPANY: GLOBS — California cannabis brand. Live resin vape carts + concentrates (badder, sauce, diamonds). Asset-light white-label model — zero owned infrastructure. Federal trademark pending. Domains: getglobs.com, gotglobs.com.\n\n';
-              ctx+='SUPPLY CHAIN: Distribution through UpNorth (3 zones: NorCal DNU, Central CA RB, SoCal ZASP, 16% fee, 45-day payout terms). Extraction by Greenline Labs (Moss Landing, $75K credit line). Testing by Encore Labs. Packaging by Treeform. Cart hardware by Octave/Clean Core. Biomass from CAM ($1.02/g) and UpNorth ($0.74/g).\n\n';
-              ctx+='COGS: Cart $4.89/unit, Badder $2.96/unit, Sauce $3.16/unit. Extract rates: $1.02/g CAM, $1.25/g GL. Distribution fee 16%. Blended gross margin ~43%.\n\n';
-              ctx+='GREENLINE INVENTORY (from Chere Garcia reconciliation Apr 14 2026):\n';
-              ctx+='- CAM-260216: 2,708g LD + 2,033.8g HTE available\n';
-              ctx+='- CAM-260302: 6,083.4g Badder (likely committed to Drop #5)\n';
-              ctx+='- UN-260225: 20,261g LD + 14,694.2g HTE available (untouched)\n';
-              ctx+='- CAM-260409: 457.1 lbs biomass in queue (not yet processed)\n';
-              ctx+='- Available for carts: ~16,728 units (HTE is bottleneck). 16 batches of 1,000.\n\n';
-              if(displayAccountsAll&&displayAccountsAll.length>0){
-                var totRev=0,totAccts=displayAccountsAll.length,actAccts=0;
-                displayAccountsAll.forEach(function(a){var r=a.totalSales||0;totRev+=r;if(r>0)actAccts++;});
-                ctx+='SALESFORCE DATA: '+totAccts+' total accounts, '+actAccts+' active. Total 365d gross revenue: $'+Math.round(totRev).toLocaleString()+'.\n';
-                var topAccts=displayAccountsAll.filter(function(a){return a.totalSales>0;}).sort(function(a,b){return(b.totalSales||0)-(a.totalSales||0);}).slice(0,10);
-                ctx+='Top 10 accounts: '+topAccts.map(function(a){return a.name.replace(/ - Corporate$/i,'')+' ($'+Math.round(a.totalSales/1000)+'K)';}).join(', ')+'.\n\n';
-              }
-              if(window._STRAIN_DB&&window._STRAIN_DB.length>0){
-                var strains=window._STRAIN_DB.filter(function(s){return s.c;});
-                ctx+='STRAIN LIBRARY: '+strains.length+' proprietary strains with documented genetics. Examples: '+strains.slice(0,8).map(function(s){return s.n+' ('+s.t+', '+s.c+')';}).join('; ')+'.\n\n';
-              }
-              ctx+='TEAM:\n';
-              ctx+='- Dylan Brewington — Founder/CEO, runs everything: ops, finance, production, technology, strategy\n';
-              ctx+='- Jonah Rabinbach — Sales Director, account management, pricing strategy\n';
-              ctx+='- Ian Herndon (herndon@upnorthhumboldt.com) — Brand Manager, UpNorth liaison, compliance\n';
-              ctx+='- Sales reps (UpNorth): Eric Ervin (NorCal), Isaac Romero (SoCal), Brian Bresee (NorCal), Brian Kiser (Central CA), Matthew Blackburn, Christina Perpetua, Danny Smith, Daniel Rojas\n';
-              ctx+='- Chere Garcia (chere@gogreenline.com) — Greenline Lab Director\n';
-              ctx+='- Ryan Cullerton (ryan@gogreenline.com) — Greenline\n';
-              ctx+='- Sarah Vella (sarah@gogreenline.com) — Greenline\n';
-              ctx+='- Steve Pruett (steve@upnorthhumboldt.com) — UpNorth logistics\n';
-              ctx+='- Caitlynn Perez (caitlynn@upnorthhumboldt.com) — UpNorth marketing workbook\n';
-              ctx+='- Hunter Popovich — Treeform packaging\n\n';
-              ctx+='FINANCIAL: UpNorth payout 45 days after month close. Feb payout ~$38K (received ~Apr 13). Mar payout ~$59K (due ~May 15). Amex $26K revolving on $30K limit. GL $75K credit line. COD target May-June 2026.\n\n';
-              ctx+='When drafting messages, match Dylan\'s voice for the recipient type. When answering questions, be concise (2-4 sentences) unless asked for detail. Always reference specific data when available.';
-              return ctx;
-            }
-
-            function speakText(text){
-              if(aiMuted)return;
-              window.speechSynthesis.cancel();
-              var utter=new SpeechSynthesisUtterance(text);
-              var voices=window.speechSynthesis.getVoices();
-              var westCoast=voices.find(function(v){return v.lang.startsWith('en-US')&&/male|david|james|guy|google us/i.test(v.name);})||voices.find(function(v){return v.lang.startsWith('en-US');})||voices[0];
-              if(westCoast)utter.voice=westCoast;
-              utter.lang='en-US';utter.rate=1.0;utter.pitch=1.0;
-              utter.onstart=function(){setAiSpeaking(true);};
-              utter.onend=function(){setAiSpeaking(false);};
-              window.speechSynthesis.speak(utter);
-            }
-
-            function startListening(){
-              var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-              if(!SR){toast('Speech recognition not supported in this browser');return;}
-              if(aiRecogRef.current){aiRecogRef.current.stop();aiRecogRef.current=null;setAiListening(false);return;}
-              var recog=new SR();recog.lang='en-US';recog.interimResults=false;recog.maxAlternatives=1;
-              recog.onresult=function(e){
-                var text=e.results[0][0].transcript;
-                setAiInput(text);
-                setTimeout(function(){sendMessage(text);},100);
-              };
-              recog.onend=function(){setAiListening(false);aiRecogRef.current=null;};
-              recog.onerror=function(){setAiListening(false);aiRecogRef.current=null;};
-              aiRecogRef.current=recog;setAiListening(true);recog.start();
-            }
-
-            function sendMessage(overrideText){
-              var text=overrideText||aiInput;if(!text.trim()||aiLoading)return;
-              var endpoint=aiProxyUrl.trim();
-              if(!endpoint){setAiMessages(function(prev){return prev.concat([{role:'user',content:text.trim()},{role:'assistant',content:'\u26A0 No AI proxy URL configured. Tap the \u2699 gear icon to set your Cloudflare Worker URL.'}]);});setAiInput('');return;}
-              var userMsg={role:'user',content:text.trim()};
-              var newMsgs=aiMessages.concat([userMsg]);
-              setAiMessages(newMsgs);setAiInput('');setAiLoading(true);
-              var apiMsgs=newMsgs.map(function(m){return{role:m.role,content:m.content};});
-              fetch(endpoint,{
-                method:'POST',headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({model:'claude-3-haiku-20240307',max_tokens:1000,system:buildSystemPrompt(),messages:apiMsgs})
-              }).then(function(r){return r.json();}).then(function(data){
-                if(data.error||data.type==='error'){var errObj=data.error||data;var errMsg=typeof errObj==='string'?errObj:JSON.stringify(errObj);setAiMessages(function(prev){return prev.concat([{role:'assistant',content:'\u26A0 API Error: '+errMsg}]);});setAiLoading(false);return;}
-                if(!data.content){setAiMessages(function(prev){return prev.concat([{role:'assistant',content:'\u26A0 Unexpected response: '+JSON.stringify(data).substring(0,300)}]);});setAiLoading(false);return;}
-                var reply=(data.content||[]).filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('\n')||'No response.';
-                setAiMessages(function(prev){return prev.concat([{role:'assistant',content:reply}]);});
-                setAiLoading(false);
-                speakText(reply);
-                setTimeout(function(){if(aiChatRef.current)aiChatRef.current.scrollTop=aiChatRef.current.scrollHeight;},50);
-              }).catch(function(err){
-                var errMsg=err&&err.message?err.message:(typeof err==='string'?err:JSON.stringify(err));
-                setAiMessages(function(prev){return prev.concat([{role:'assistant',content:'\u26A0 '+errMsg+'. Check your proxy URL in settings.'}]);});
-                setAiLoading(false);
-              });
-              setTimeout(function(){if(aiChatRef.current)aiChatRef.current.scrollTop=aiChatRef.current.scrollHeight;},50);
-            }
-
-            return React.createElement('div',null,
-              !aiOpen&&React.createElement('button',{onClick:function(){setAiOpen(true);if(window.speechSynthesis)window.speechSynthesis.getVoices();},style:{position:'fixed',bottom:20,right:20,width:56,height:56,borderRadius:'50%',background:'linear-gradient(135deg,#d4a24c,#b8862d)',border:'none',cursor:'pointer',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center',animation:aiMessages.length>0?'none':'gpiPulse 2s infinite',boxShadow:'0 4px 20px rgba(212,162,76,0.3)'}},
-                React.createElement('span',{style:{fontSize:22,color:'#fff',fontWeight:900,fontFamily:'system-ui'}},'G')
-              ),
-              aiOpen&&React.createElement('div',{style:{position:'fixed',bottom:20,right:20,width:360,maxWidth:'calc(100vw - 32px)',height:480,maxHeight:'calc(100vh - 40px)',background:'#0a0a0a',border:'0.5px solid #1a1a1a',borderRadius:16,zIndex:300,display:'flex',flexDirection:'column',animation:'gpiFade 0.2s ease-out',boxShadow:'0 8px 40px rgba(0,0,0,0.5)'}},
-                React.createElement('div',{style:{padding:'14px 16px',borderBottom:'0.5px solid #1a1a1a',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}},
-                  React.createElement('div',{style:{display:'flex',alignItems:'center',gap:8}},
-                    React.createElement('span',{style:{fontSize:16,fontWeight:900,color:'#d4a24c',fontFamily:'system-ui'}},'G'),
-                    React.createElement('span',{style:{fontSize:11,fontWeight:700,letterSpacing:2,color:'#e8e0d4'}},'ASK GPI'),
-                    aiSpeaking&&React.createElement('span',{style:{fontSize:8,color:'#4ade80',letterSpacing:1}},'SPEAKING')
-                  ),
-                  React.createElement('div',{style:{display:'flex',gap:6}},
-                    React.createElement('button',{onClick:function(){setAiShowSettings(!aiShowSettings);},style:{background:'transparent',border:'none',cursor:'pointer',fontSize:14,color:aiShowSettings?'#d4a24c':'#555'}},'\u2699'),
-                    React.createElement('button',{onClick:function(){setAiMuted(!aiMuted);if(aiMuted===false)window.speechSynthesis.cancel();},style:{background:'transparent',border:'none',cursor:'pointer',fontSize:14,color:aiMuted?'#555':'#e8e0d4'}},aiMuted?'\uD83D\uDD07':'\uD83D\uDD0A'),
-                    React.createElement('button',{onClick:function(){setAiOpen(false);window.speechSynthesis.cancel();},style:{background:'transparent',border:'none',cursor:'pointer',fontSize:14,color:'#555'}},'\u2715')
-                  )
-                ),
-                aiShowSettings&&React.createElement('div',{style:{padding:'12px 16px',borderBottom:'0.5px solid #1a1a1a',background:'#0f0f0f'}},
-                  React.createElement('div',{style:{fontSize:9,color:'#666',letterSpacing:2,textTransform:'uppercase',marginBottom:6}},'AI PROXY URL'),
-                  React.createElement('input',{value:aiProxyUrl,onChange:function(e){var v=e.target.value;setAiProxyUrl(v);try{localStorage.setItem('gpi:ai-proxy',v);}catch(ex){}},placeholder:'https://your-worker.workers.dev',style:{width:'100%',background:'#111',border:'0.5px solid #1a1a1a',borderRadius:6,padding:'8px 10px',color:'#e8e0d4',fontSize:11,outline:'none',fontFamily:'monospace'}}),
-                  React.createElement('div',{style:{fontSize:9,color:'#444',marginTop:6,lineHeight:1.5}},'Deploy the Cloudflare Worker with your Anthropic API key, then paste the URL here.')
-                ),
-                React.createElement('div',{ref:aiChatRef,style:{flex:1,overflowY:'auto',padding:'12px 14px',display:'flex',flexDirection:'column',gap:10}},
-                  aiMessages.length===0&&React.createElement('div',{style:{textAlign:'center',padding:'40px 20px',color:'#333'}},
-                    React.createElement('div',{style:{fontSize:28,marginBottom:8}},'G'),
-                    React.createElement('div',{style:{fontSize:11,color:'#555',lineHeight:1.6}},'Ask me anything about GLOBS — accounts, strains, revenue, pipeline, margins. Tap the mic or type below.')
-                  ),
-                  aiMessages.map(function(m,i){return React.createElement('div',{key:i,style:{alignSelf:m.role==='user'?'flex-end':'flex-start',maxWidth:'85%'}},
-                    React.createElement('div',{style:{background:m.role==='user'?'#d4a24c22':'#111',border:'0.5px solid '+(m.role==='user'?'#d4a24c33':'#1a1a1a'),borderRadius:m.role==='user'?'12px 12px 2px 12px':'12px 12px 12px 2px',padding:'10px 14px',fontSize:12,color:'#e8e0d4',lineHeight:1.5,whiteSpace:'pre-wrap'}},m.content)
-                  );})
-                ),
-                aiLoading&&React.createElement('div',{style:{padding:'8px 14px',fontSize:11,color:'#d4a24c'}},'\u2022\u2022\u2022 thinking'),
-                React.createElement('div',{style:{padding:'10px 12px',borderTop:'0.5px solid #1a1a1a',display:'flex',gap:8,flexShrink:0}},
-                  React.createElement('button',{onClick:startListening,style:{width:40,height:40,borderRadius:'50%',border:aiListening?'2px solid #f44336':'0.5px solid #333',background:aiListening?'#f4433622':'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,animation:aiListening?'gpiPulse 1s infinite':'none'}},
-                    React.createElement('span',{style:{fontSize:16}},aiListening?'\uD83D\uDD34':'\uD83C\uDF99\uFE0F')
-                  ),
-                  React.createElement('input',{value:aiInput,onChange:function(e){setAiInput(e.target.value);},onKeyDown:function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}},placeholder:'Ask GPI anything...',style:{flex:1,background:'#111',border:'0.5px solid #1a1a1a',borderRadius:8,padding:'10px 14px',color:'#e8e0d4',fontSize:12,outline:'none',fontFamily:'inherit'}}),
-                  React.createElement('button',{onClick:function(){sendMessage();},disabled:!aiInput.trim()||aiLoading,style:{background:aiInput.trim()?'#d4a24c':'#222',border:'none',borderRadius:8,padding:'0 14px',cursor:aiInput.trim()?'pointer':'default',color:'#fff',fontSize:12,fontWeight:700,fontFamily:'inherit'}},'\u2191')
-                )
-              )
-            );
-          })()}
-
+          <style>{`* { box-sizing: border-box; } ::-webkit-scrollbar { width: 4px; height: 4px; background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border-hi,#2d3f5a); border-radius: 2px; } input::placeholder { color: var(--dim,#3d4559); } textarea::placeholder { color: var(--dim,#3d4559); } button { transition: all 0.15s; }`}</style>
           </div></>)}
         </div>
       );
