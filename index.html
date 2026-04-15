@@ -6341,12 +6341,13 @@ window._STRAIN_DB=[
                 ctx+='\n';
               }
               ctx+='Answer questions using the data above. IMPORTANT RULES:\n';
-              ctx+='- Your responses will be READ ALOUD. Write like you\'re talking, not writing a report.\n';
-              ctx+='- Each account has MTD (month-to-date, calendar month) and 365d revenue. When asked about "this month", "April sales", or current period, ALWAYS use the MTD figure. The TOTAL MTD line gives you the company-wide monthly number.\n';
-              ctx+='- For lists: give the headline number first, then highlight TOP 3-5. Don\'t list every account unless asked.\n';
-              ctx+='- No tables, no pipes, no markdown formatting. Bullets only.\n';
-              ctx+='- Be conversational: "You\'re at about $30K for April so far. Ganjery leads with $5K, then Urbana at $3K."\n';
-              ctx+='- Keep responses under 100 words. Dylan is listening, not reading.';
+              ctx+='- Your responses will be READ ALOUD. Write like you\'re talking to Dylan in person.\n';
+              ctx+='- DOLLAR AMOUNTS: Round to natural speech. Say "about 30K" not "$30,412". Say "around 5 grand" or "just under 3K" — the way a person talks. Never say exact cents. Over $1000 use K (5K, 12K, 40K). Under $1000 just round to nearest hundred ("about 800 bucks").\n';
+              ctx+='- Each account has MTD (month-to-date) and 365d revenue. For "this month" or "April" use MTD. For "total" or "overall" use 365d.\n';
+              ctx+='- For lists: headline number first, then TOP 3-5 only. Don\'t list every account unless asked.\n';
+              ctx+='- No tables, no pipes, no markdown. Bullets only.\n';
+              ctx+='- Be conversational: "You\'re sitting at about 30K for April. Ganjery\'s leading with around 5K, Urbana pulled in about 3K."\n';
+              ctx+='- Keep responses under 75 words. Short and punchy.';
               return ctx;
             }
             var aiAudioRef={current:null};
