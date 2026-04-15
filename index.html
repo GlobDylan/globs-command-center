@@ -6298,8 +6298,10 @@ window._STRAIN_DB=[
                   var lastDate='';
                   if(a.orderDayTs&&a.orderDayTs.length>0){var maxTs=Math.max.apply(null,a.orderDayTs);lastDate=new Date(maxTs).toISOString().split('T')[0];}
                   else if(a.orderedSkus){a.orderedSkus.forEach(function(s){if(s.lastDate&&s.lastDate>lastDate)lastDate=s.lastDate;});}
+                  var rev30=a.periodRevenue&&a.periodRevenue[30]?Math.round(a.periodRevenue[30]):0;
+                  var rev90=a.periodRevenue&&a.periodRevenue[90]?Math.round(a.periodRevenue[90]):0;
                   var skuList=(a.orderedSkus||[]).filter(function(s){return s.totalQty>0;}).sort(function(x,y){return(y.totalQty||0)-(x.totalQty||0);}).slice(0,5).map(function(s){return s.strain+' ('+Math.round(s.totalQty)+'u)';}).join(', ');
-                  ctx+=a.name+' | '+(a.zone||'?')+' | '+(a.rep||'no rep')+' | $'+Math.round(a.totalSales||0)+' | last:'+lastDate+(skuList?' | SKUs: '+skuList:'')+'\n';
+                  ctx+=a.name+' | '+(a.zone||'?')+' | '+(a.rep||'no rep')+' | 30d:$'+rev30+' | 90d:$'+rev90+' | 365d:$'+Math.round(a.totalSales||0)+' | last:'+lastDate+(skuList?' | SKUs: '+skuList:'')+'\n';
                 });
                 ctx+='\n';
               }
@@ -6322,13 +6324,12 @@ window._STRAIN_DB=[
               }
               ctx+='Answer questions using the data above. IMPORTANT RULES:\n';
               ctx+='- Your responses will be READ ALOUD. Write like you\'re talking, not writing a report.\n';
-              ctx+='- For lists: give the headline number ("22 accounts ordered in April"), then highlight only the TOP 3-5 with quick details. Say "plus X more" for the rest. The full list shows in text.\n';
-              ctx+='- Use bullet points, not tables. Keep it scannable and mobile-friendly.\n';
-              ctx+='- When asked about a time window, filter by last order date. Only include accounts within that window.\n';
-              ctx+='- Revenue in the data is 365-day total. Call it out as "365d revenue" so it\'s clear.\n';
-              ctx+='- Be conversational: "You\'ve got 22 accounts that ordered in April. Your biggest were Ganjery, Urbana, and Elevation 2477." NOT "Based on Salesforce data filtered by last order date >= April 1, 2026:"\n';
-              ctx+='- Never use markdown tables, pipe characters, or dashes as separators.\n';
-              ctx+='- Keep the total response under 150 words when possible. Dylan is listening, not reading.';
+              ctx+='- Each account has 30-day, 90-day, and 365-day revenue. When asked about "this month" or "April" or recent activity, use the 30d figure. When asked about total or overall, use 365d.\n';
+              ctx+='- For lists: give the headline number first, then highlight TOP 3-5 with quick details. Don\'t list every account unless specifically asked for "all of them."\n';
+              ctx+='- Use bullet points, not tables. No pipes, no dashes, no markdown formatting.\n';
+              ctx+='- When filtering by time, use the last order date.\n';
+              ctx+='- Be conversational: "You did about $15K this month across 22 accounts. Ganjery was your biggest at $5K, followed by Urbana at $3K." NOT "Based on Salesforce data filtered by..."\n';
+              ctx+='- Keep responses under 100 words when possible. Dylan is listening, not reading a report.';
               return ctx;
             }
             var aiAudioRef={current:null};
