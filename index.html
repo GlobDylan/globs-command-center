@@ -1140,6 +1140,9 @@ window._STRAIN_DB=[
       function handleLogout(){logSecurity('LOGOUT',(authUser?authUser.name:'unknown')+' signed out');setAuthRole(null);setAuthUser(null);sessionStorage.removeItem('gpi-session');}
       function setKill(key,val){var next=Object.assign({},killSwitches);next[key]=val;setKillSwitches(next);try{localStorage.setItem('gpi:gpi-kill-switches',JSON.stringify(next));}catch(e){}logSecurity('KILL_SWITCH',key+'='+(val?'ON':'OFF'));}
       var rolePerms=authRole?ROLES[authRole]:{tabs:[],canExport:false,canUpload:false,canEditMargin:false,canApprove:false,seeFinancials:false};
+      var showDollars=rolePerms.seeFinancials;
+      var safeCur=function(n){return showDollars?cur(n):'\u2014';};
+      var safeCurK=function(n){return showDollars?curK(n):'\u2014';};
       var canAccessTab=function(t){return rolePerms.tabs.includes(t);};
       // File upload hardening
       var MAX_FILE_SIZE=50*1024*1024;// 50MB
@@ -2885,7 +2888,7 @@ window._STRAIN_DB=[
                                   <div><div style={{fontSize:13,fontWeight:800,letterSpacing:2}}>{cat.label.toUpperCase()}</div><div style={{fontSize:11,color:C.dim,marginTop:2}}>{batches} batches · {batchUnits.toLocaleString()} units</div></div>
                                   <div style={{display:'flex',gap:8}}>{[['Indica',ish.Indica],['Sativa',ish.Sativa],['Hybrid',ish.Hybrid]].map(function(tv){return<div key={tv[0]} style={{background:C.bg,border:'1px solid '+typeColor(tv[0])+'44',borderRadius:5,padding:'6px 14px',textAlign:'center',minWidth:60}}><div style={{fontSize:22,fontWeight:900,color:typeColor(tv[0]),lineHeight:1}}>{tv[1]}</div><div style={{fontSize:11,color:C.dim,marginTop:2}}>{tv[0]}</div></div>;})}</div>
                                   <div style={{marginLeft:'auto',textAlign:'right'}}>
-                                    <div style={{fontSize:12,color:C.muted,marginBottom:4}}>Labor: {batchUnits.toLocaleString()} × $1.00 = ${batchUnits.toLocaleString()}</div>
+                                    {showDollars&&<div style={{fontSize:12,color:C.muted,marginBottom:4}}>Labor: {batchUnits.toLocaleString()} × $1.00 = ${batchUnits.toLocaleString()}</div>}
                                     <div style={{fontSize:11,color:C.dim,letterSpacing:1,marginBottom:4}}>EXTRACT</div>
                                     <select value={mfgCostMethod[cat.key]||'gl'} onChange={function(e){setMfgCostMethod(function(p){var n=Object.assign({},p);n[cat.key]=e.target.value;return n;});}} style={{fontSize:12,fontWeight:600,background:C.surface,color:C.text,border:'1px solid '+C.border,borderRadius:4,padding:'4px 8px',fontFamily:'inherit',cursor:'pointer',width:'100%'}}>
                                       <option value="gl">Greenline</option>
@@ -2974,7 +2977,7 @@ window._STRAIN_DB=[
                                     <input placeholder={'GLB-2026-'+String(activeCats.indexOf(cat)+1).padStart(3,'0')} value={(mfgBatchData[cat.key]&&mfgBatchData[cat.key].batchCode)||''} onChange={function(e){setBatchCode(cat.key,e.target.value);}} style={Object.assign({},inp2,{width:130,fontWeight:700})}/>
                                     <button className="no-screenshot" onClick={function(){assignInvoice(cat.key);}} style={{fontSize:9,padding:'3px 8px',borderRadius:2,border:'1px solid '+C.info,background:C.info+'22',color:C.info,cursor:'pointer',fontFamily:'inherit',fontWeight:700}}>Auto #</button>
                                     <span style={{fontSize:10,color:C.dim}}>invoice #</span>
-                                    <span style={{fontSize:11,color:C.dim,marginLeft:'auto'}}>{batches}×1,000 units · ${batchUnits.toLocaleString()} labor</span>
+                                    <span style={{fontSize:11,color:C.dim,marginLeft:'auto'}}>{batches}×1,000 units{showDollars?' · $'+batchUnits.toLocaleString()+' labor':''}</span>
                                   </div>
                                 </div>
                               </div>
@@ -3061,7 +3064,7 @@ window._STRAIN_DB=[
                             React.createElement('div',{style:{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:16}},
                               React.createElement('div',{style:{fontSize:11,color:C.dim,letterSpacing:2,marginBottom:12}},'PRODUCTION RECOMMENDATION'),
                               React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}},
-                                [{l:'Weekly Velocity',v:Math.round(totalWeeklyVel)+' units'},{l:'Monthly Demand',v:monthlyDemand.toLocaleString()+' units'},{l:'On Hand',v:totalOnHand.toLocaleString()+' units'},{l:'Weeks of Stock',v:weeksOfStock+'wk'},{l:'Target Supply',v:mfgTargetWeeks+'wk ('+targetUnits.toLocaleString()+')'},{l:'Produce This Cycle',v:prodNeeded>0?prodNeeded.toLocaleString()+' units':'\u2713 Stocked'},{l:'Rec. Batches',v:recBatches>0?recBatches+' \u00d7 1,000g':'None needed'},{l:'Est. Cost',v:prodCost>0?curK(prodCost):'\u2014'}].map(function(r,i){return React.createElement('div',{key:i,style:{padding:'6px 8px',background:C.bg,borderRadius:3,border:'1px solid '+C.border}},React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:0.5}},r.l),React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1}},r.v));})
+                                [{l:'Weekly Velocity',v:Math.round(totalWeeklyVel)+' units'},{l:'Monthly Demand',v:monthlyDemand.toLocaleString()+' units'},{l:'On Hand',v:totalOnHand.toLocaleString()+' units'},{l:'Weeks of Stock',v:weeksOfStock+'wk'},{l:'Target Supply',v:mfgTargetWeeks+'wk ('+targetUnits.toLocaleString()+')'},{l:'Produce This Cycle',v:prodNeeded>0?prodNeeded.toLocaleString()+' units':'\u2713 Stocked'},{l:'Rec. Batches',v:recBatches>0?recBatches+' \u00d7 1,000g':'None needed'},{l:'Est. Cost',v:showDollars&&prodCost>0?curK(prodCost):'\u2014'}].map(function(r,i){return React.createElement('div',{key:i,style:{padding:'6px 8px',background:C.bg,borderRadius:3,border:'1px solid '+C.border}},React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:0.5}},r.l),React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1}},r.v));})
                               ),
                               prodNeeded>0&&React.createElement('div',{style:{marginTop:12,padding:'10px 12px',borderRadius:4,background:'#1a237e22',border:'1px solid #1a237e44'}},
                                 React.createElement('div',{style:{fontSize:11,fontWeight:700,color:'#7986cb',marginBottom:4}},'PRODUCE '+prodNeeded.toLocaleString()+' UNITS \u2192 '+curK(estRevenue)+' projected revenue (84%)'),
@@ -3139,7 +3142,7 @@ window._STRAIN_DB=[
                         <div style={{fontSize:11,color:C.dim}}>Needed</div>
                       </div>
                     </div>
-                    <div style={{fontSize:11,color:C.dim}}>{(c.cost>0?cur(c.cost)+'/unit · ':'')+(c.lead<7?c.lead+'d':Math.round(c.lead/7)+'wk')+' lead'+(c.desc?' · '+c.desc:'')}</div>
+                    <div style={{fontSize:11,color:C.dim}}>{(showDollars&&c.cost>0?cur(c.cost)+'/unit · ':'')+(c.lead<7?c.lead+'d':Math.round(c.lead/7)+'wk')+' lead'+(c.desc?' · '+c.desc:'')}</div>
                   </div>);});}
                   const concCheck=matsCheck('Concentrates'),cartCheck=matsCheck('Carts');
                   return(<div>
@@ -3194,7 +3197,7 @@ window._STRAIN_DB=[
                 {tab==="labels"&&<LabelsTab C={C}/>}
 
                 {/* ══ YIELD TRACKING ══ */}
-                {tab==="yield"&&<YieldTab C={C}/>}
+                {tab==="yield"&&<YieldTab C={C} showDollars={showDollars}/>}
 
                 {/* ══ P&L ══ */}
                 {tab==="financials"&&(function(){
@@ -3707,10 +3710,9 @@ window._STRAIN_DB=[
                           return(
                           <div key={s.n} style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:12}}>
                             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
-                              <div style={{fontSize:15,fontWeight:800,color:C.text}}>{s.n}</div>
+                              <div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:11,padding:'3px 9px',borderRadius:3,background:tc2(s.t)+'22',color:tc2(s.t),border:'1px solid '+tc2(s.t)+'44',fontWeight:700}}>{s.t.charAt(0)}</span><span style={{fontSize:15,fontWeight:800,color:C.text}}>{s.n}</span></div>
                               <div style={{display:'flex',gap:6,alignItems:'center'}}>
                                 {authRole==='exec'&&wv>0&&<span style={{fontSize:11,padding:'2px 7px',borderRadius:2,background:(wv>=10?'#7cb87a':wv>=3?'#d4a24c':'#666')+'22',color:wv>=10?'#7cb87a':wv>=3?'#d4a24c':'#999',border:'1px solid '+(wv>=10?'#7cb87a':wv>=3?'#d4a24c':'#666')+'44',fontWeight:700}}>{wv.toFixed(1)}/wk</span>}
-                                <span style={{fontSize:11,padding:'3px 9px',borderRadius:3,background:tc2(s.t)+'22',color:tc2(s.t),border:'1px solid '+tc2(s.t)+'44',fontWeight:700}}>{s.t.charAt(0)}</span>
                               </div>
                             </div>
                             {cross&&<div style={{fontSize:13,color:C.muted,marginBottom:5}}>{cross}</div>}
@@ -5234,9 +5236,9 @@ window._STRAIN_DB=[
                         React.createElement('div',{style:{flex:1}},
                           React.createElement('div',{style:{fontSize:10,fontWeight:700}},st.t),
                           React.createElement('div',{style:{fontSize:11,color:C.muted,marginTop:2}},st.d),
-                          st.p?React.createElement('div',{style:{fontSize:10,color:b.c,marginTop:3}},st.p+(st.c&&st.c!=='incl'&&st.c!=='varies'?' \u00b7 '+st.c:'')):null
+                          st.p?React.createElement('div',{style:{fontSize:10,color:b.c,marginTop:3}},st.p+(showDollars&&st.c&&st.c!=='incl'&&st.c!=='varies'?' \u00b7 '+st.c:'')):null
                         ));}),
-                      React.createElement('div',{style:{marginTop:12,padding:'10px 12px',background:C.bg,borderRadius:4,fontSize:11,color:C.dim}},b.cost)
+                      showDollars?React.createElement('div',{style:{marginTop:12,padding:'10px 12px',background:C.bg,borderRadius:4,fontSize:11,color:C.dim}},b.cost):null
                     );}),
                     authRole==='mfg'&&!localStorage.getItem('gpi:sop-reviewed-'+(authUser?authUser.id:''))?React.createElement('div',{style:{background:C.warn+'15',border:'1px solid '+C.warn+'33',borderRadius:8,padding:16,marginTop:20,marginBottom:8,textAlign:'center'}},
                       React.createElement('div',{style:{fontSize:12,fontWeight:700,color:C.warn,marginBottom:6}},'SOP REVIEW REQUIRED'),
@@ -6273,23 +6275,32 @@ window._STRAIN_DB=[
           {/* ═══ ASK GPI — AI ASSISTANT ═══ */}
           {(function(){
             function buildSystemPrompt(){
-              var ctx='You are GPI — the GLOBS Product Intelligence AI assistant. You serve Dylan Brewington, founder and CEO of GLOBS.\n\n';
-              ctx+='YOUR VOICE: Direct, data-driven, no fluff. West Coast energy, confident but respectful. Get to the point fast, back claims with numbers. If you don\'t know something, say so.\n\n';
-              ctx+='DYLAN\'S COMMUNICATION MODES (match when drafting messages):\n';
-              ctx+='- Partners/suppliers: warm, grateful, action-oriented\n';
-              ctx+='- Compliance/ops: professional, thorough, tables/manifests\n';
-              ctx+='- Sales reps: data-first directives, no fluff, sign from "GPI Command Center"\n';
-              ctx+='- Internal partners: direct, explains the WHY\n';
-              ctx+='- Collections: formal, legal, zero warmth\n';
-              ctx+='- Signature: Dylan Brewington / CEO - Founder / (707)334-7631\n\n';
-              ctx+='COMPANY: GLOBS — CA cannabis brand. Live resin vape carts + concentrates. Asset-light white-label model. Federal trademark pending. getglobs.com + gotglobs.com.\n\n';
-              ctx+='SUPPLY CHAIN: UpNorth distribution (3 zones: DNU/RB/ZASP, 16% fee, 45-day payout). Greenline Labs extraction ($75K credit). Encore Labs testing. Treeform packaging. Octave/Clean Core hardware. Biomass: CAM $1.02/g, UpNorth $0.74/g.\n\n';
-              ctx+='COGS: Cart $4.89, Badder $2.96, Sauce $3.16. ~43% gross margin.\n\n';
-              ctx+='GL INVENTORY (Apr 14 2026): CAM-260216: 2,708g LD + 2,033.8g HTE. UN-260225: 20,261g LD + 14,694.2g HTE. CAM-260302: 6,083.4g Badder (committed Drop #5). CAM-260409: 457 lbs in queue. Available: ~16,728 carts (16 batches of 1K, HTE bottleneck).\n\n';
+              var isExec=authRole==='exec';
+              var isMfg=authRole==='mfg';
+              var isDistro=authRole==='distro';
+              var userName=authUser?authUser.name:'User';
+              var ctx='You are GPI — the GLOBS Product Intelligence AI assistant. You are speaking with '+userName+(isMfg?' (Manufacturing team)':isDistro?' (Distribution/Sales team)':' (Executive)')+'.\n\n';
+              ctx+='YOUR VOICE: Direct, data-driven, no fluff. West Coast energy, confident but respectful.\n\n';
+              if(isExec){
+                ctx+='DYLAN\'S COMMUNICATION MODES (match when drafting messages):\n- Partners/suppliers: warm, grateful, action-oriented\n- Compliance/ops: professional, thorough\n- Sales reps: data-first directives\n- Collections: formal, legal, zero warmth\n- Signature: Dylan Brewington / CEO - Founder / (707)334-7631\n\n';
+              }
+              ctx+='COMPANY: GLOBS — CA cannabis brand. Live resin vape carts + concentrates.\n\n';
+              if(isExec){
+                ctx+='SUPPLY CHAIN: UpNorth distribution (3 zones: DNU/RB/ZASP, 16% fee, 45-day payout). Greenline Labs extraction ($75K credit). Encore Labs testing. Treeform packaging. Biomass: CAM $1.02/g, UpNorth $0.74/g.\n\n';
+                ctx+='COGS: Cart $4.89, Badder $2.96, Sauce $3.16. ~43% gross margin.\n\n';
+                ctx+='GL INVENTORY (Apr 14 2026): CAM-260216: 2,708g LD + 2,033.8g HTE. UN-260225: 20,261g LD + 14,694.2g HTE. CAM-260302: 6,083.4g Badder (committed Drop #5). CAM-260409: 457 lbs in queue. Available: ~16,728 carts (16 batches of 1K, HTE bottleneck).\n\n';
+              }
+              if(isMfg){
+                ctx+='Your role: Help with manufacturing, production, strains, yield data, and SOPs. You do NOT have access to financial data, pricing, revenue, or account information. If asked about money or pricing, say "I don\'t have access to financial data — check with Dylan."\n\n';
+                ctx+='GL INVENTORY (extract on hand, no pricing): CAM-260216: 2,708g LD + 2,033.8g HTE. UN-260225: 20,261g LD + 14,694.2g HTE. CAM-260302: 6,083.4g Badder. CAM-260409: 457 lbs in queue.\n\n';
+              }
+              if(isDistro){
+                ctx+='Your role: Help with accounts, sales opportunities, and order data. You do NOT have access to COGS, margins, or manufacturing data. If asked about production costs, say "I don\'t have access to manufacturing data — check with Dylan."\n\n';
+              }
               ctx+='TEAM: Jonah Rabinbach (Sales Dir), Ian Herndon (Brand Mgr), Eric Ervin (NorCal), Isaac Romero (SoCal), Brian Bresee, Brian Kiser, Christina Perpetua, Danny Smith, Daniel Rojas. Chere Garcia (GL Lab Dir), Ryan Cullerton (GL), Steve Pruett (UN logistics).\n\n';
               ctx+='FINANCIAL: UN payout 45 days post month close. Amex ~$26K on $30K. GL $75K credit. COD target May-June 2026.\n\n';
-              // ── RICH DATA FEED: accounts with order dates, SKUs, revenue ──
-              if(displayAccountsAll&&displayAccountsAll.length>0){
+              // ── RICH DATA FEED: accounts (exec + distro only) ──
+              if((isExec||isDistro)&&displayAccountsAll&&displayAccountsAll.length>0){
                 var totRev=0,totAccts=displayAccountsAll.length,actAccts=0;
                 var now=new Date(),monthStart=new Date(now.getFullYear(),now.getMonth(),1);
                 var monthStartTs=monthStart.getTime();
@@ -6323,8 +6334,8 @@ window._STRAIN_DB=[
                 ctx+='\nTOTAL MTD ('+monthLabel+'): $'+Math.round(totalMTD).toLocaleString()+'\n\n';
                 ctx+='\n';
               }
-              // ── INVENTORY: on-hand SKU counts ──
-              if(inventoryData&&Object.keys(inventoryData).length>0){
+              // ── INVENTORY: on-hand SKU counts (exec + mfg) ──
+              if((isExec||isMfg)&&inventoryData&&Object.keys(inventoryData).length>0){
                 ctx+='CURRENT INVENTORY (on-hand at UpNorth):\n';
                 var totalOnHand=0;
                 Object.keys(inventoryData).forEach(function(sku){
@@ -6334,8 +6345,8 @@ window._STRAIN_DB=[
                 });
                 ctx+='TOTAL ON HAND: '+totalOnHand+' units\n\n';
               }
-              // ── PRODUCTION PIPELINE (Drop Zone) — uses LIVE sell-through data ──
-              if(typeof pipelines!=='undefined'&&pipelines&&pipelines.length>0){
+              // ── PRODUCTION PIPELINE (exec + mfg, no revenue for mfg) ──
+              if((isExec||isMfg)&&typeof pipelines!=='undefined'&&pipelines&&pipelines.length>0){
                 ctx+='PRODUCTION PIPELINE:\n';
                 pipelines.forEach(function(pipe){
                   ctx+=pipe.name+':\n';
@@ -6347,14 +6358,14 @@ window._STRAIN_DB=[
                     var rev=live?live.revSold:(b.revSold||0);
                     var accts=live?live.accounts:0;
                     var sellThru=b.units>0?Math.round(sold/b.units*100):0;
-                    ctx+='  '+b.id+' | '+b.units+' produced | '+sold+' sold ('+sellThru+'%) | '+onHand+' on hand | $'+Math.round(rev)+' revenue | '+accts+' accounts | Stage: '+b.stage+'\n';
+                    ctx+='  '+b.id+' | '+b.units+' produced | '+sold+' sold ('+sellThru+'%) | '+onHand+' on hand'+(isExec?' | $'+Math.round(rev)+' revenue':'')+' | '+accts+' accounts | Stage: '+b.stage+'\n';
                     if(b.strains)ctx+='    Strains: '+b.strains.join(', ')+'\n';
                   });
                 });
                 ctx+='\n';
               }
-              // ── FINANCIAL SUMMARY ──
-              if(displayAccountsAll&&displayAccountsAll.length>0){
+              // ── FINANCIAL SUMMARY (exec only) ──
+              if(isExec&&displayAccountsAll&&displayAccountsAll.length>0){
                 var fRev365=0,fRev90=0,fRev30=0,fUnits=0,fCogs=0;
                 displayAccountsAll.forEach(function(a){
                   var pr=a.periodRevenue||{};
@@ -6372,8 +6383,8 @@ window._STRAIN_DB=[
                 ctx+='UpNorth payout schedule: sales month+45 days. Feb payout ~38K (received). Mar payout ~59K (due ~May 15). Apr payout due ~Jun 12.\n';
                 ctx+='Amex balance ~26K on 30K limit (production float). GL credit line 75K.\n\n';
               }
-              // ── OPPORTUNITY ENGINE SUMMARY ──
-              if(displayAccountsAll&&displayAccountsAll.length>0){
+              // ── OPPORTUNITY ENGINE SUMMARY (exec + distro) ──
+              if((isExec||isDistro)&&displayAccountsAll&&displayAccountsAll.length>0){
                 var oppOver=0,oppFallen=0,oppDue=0,oppTrack=0;
                 displayAccountsAll.forEach(function(a){
                   if(!a.orderDayTs||a.orderDayTs.length<2)return;
@@ -7066,7 +7077,8 @@ window._STRAIN_DB=[
     }
 
     // ── YIELD TAB ──────────────────────────────────────────────────────────────
-    function YieldTab({C}) {
+    function YieldTab({C, showDollars}) {
+      if(showDollars===undefined)showDollars=true;
       if (!C) C = DARK_C;
       var inpSt2 = {background:C.bg,border:'1px solid '+C.border,borderRadius:8,color:C.text,fontSize:14,fontFamily:'inherit',padding:'12px 14px',outline:'none',width:'100%',boxSizing:'border-box'};
 
@@ -7229,13 +7241,13 @@ const YIELD_KEY = 'gpi-yield-log';
               </div>
             </div>
             <div style={{overflowX:'auto'}}><table style={{width:'100%',borderCollapse:'collapse',fontSize:10}}>
-              <thead><tr style={{background:C.raised}}>{['Strain','Weight (lbs)','Yield %','Biomass $/lb','Toll $/lb','Notes'].map(function(h){return<th key={h} style={{padding:'6px 8px',fontSize:10,fontWeight:700,color:C.dim,textAlign:'left',borderBottom:'1px solid '+C.border}}>{h}</th>;})}</tr></thead>
+              <thead><tr style={{background:C.raised}}>{['Strain','Weight (lbs)','Yield %',showDollars?'Biomass $/lb':null,showDollars?'Toll $/lb':null,'Notes'].filter(Boolean).map(function(h){return<th key={h} style={{padding:'6px 8px',fontSize:10,fontWeight:700,color:C.dim,textAlign:'left',borderBottom:'1px solid '+C.border}}>{h}</th>;})}</tr></thead>
               <tbody>{csvPreview.rows.slice(0,10).map(function(row,i){return<tr key={i} style={{background:i%2===0?'transparent':C.raised}}>
                 <td style={{padding:'6px 8px',fontWeight:600}}>{row.strain}</td>
                 <td style={{padding:'6px 8px'}}>{row.weightLbs||'—'}</td>
                 <td style={{padding:'6px 8px'}}>{row.yieldPct||'—'}</td>
-                <td style={{padding:'6px 8px'}}>${row.biomassPrice}</td>
-                <td style={{padding:'6px 8px'}}>${row.tollFee}</td>
+                {showDollars&&<td style={{padding:'6px 8px'}}>${row.biomassPrice}</td>}
+                {showDollars&&<td style={{padding:'6px 8px'}}>${row.tollFee}</td>}
                 <td style={{padding:'6px 8px',color:C.dim}}>{row.notes||'—'}</td>
               </tr>;})}{csvPreview.rows.length>10&&<tr><td colSpan={6} style={{padding:'6px 8px',fontSize:11,color:C.dim}}>...and {csvPreview.rows.length-10} more</td></tr>}</tbody>
             </table></div>
@@ -7246,9 +7258,9 @@ const YIELD_KEY = 'gpi-yield-log';
             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(90px,1fr))',gap:8,marginBottom:20}}>
               {[
                 {l:'Avg Yield',v:avgYield.toFixed(1)+'%',c:avgYield>=15?C.good:avgYield>=10?C.warn:C.danger},
-                {l:'Avg $/Gram',v:'$'+avgCpg.toFixed(2),c:avgCpg<1.5?C.good:avgCpg<2.5?C.warn:C.danger},
+                {l:'Avg $/Gram',v:showDollars?'$'+avgCpg.toFixed(2):'\u2014',c:showDollars?(avgCpg<1.5?C.good:avgCpg<2.5?C.warn:C.danger):C.dim},
                 {l:'Total Output',v:(totalOutput/1000).toFixed(1)+'kg',c:C.info},
-                {l:'Total Spent',v:'$'+(totalSpent/1000).toFixed(1)+'k',c:C.muted},
+                {l:'Total Spent',v:showDollars?'$'+(totalSpent/1000).toFixed(1)+'k':'\u2014',c:C.muted},
                 {l:'Batches',v:yieldLog.length,c:C.text}
               ].map(function(s){return<div key={s.l} style={{background:s.c+'15',border:'1px solid '+s.c+'33',borderRadius:8,padding:'14px 10px',textAlign:'center'}}><div style={{fontSize:18,fontWeight:800,color:C.text}}>{s.v}</div><div style={{fontSize:10,color:s.c,fontWeight:600,letterSpacing:1,marginTop:2}}>{s.l.toUpperCase()}</div></div>;})}
             </div>
@@ -7284,7 +7296,7 @@ const YIELD_KEY = 'gpi-yield-log';
                   <span style={{fontSize:13,fontWeight:800}}>COST PER GRAM</span>
                   <span style={{fontSize:22,fontWeight:900,color:costPerGram>0?(costPerGram<1.5?C.good:costPerGram<2.5?C.warn:C.danger):C.dim}}>{costPerGram>0?'$'+costPerGram.toFixed(2):'--'}</span>
                 </div>
-                {costPerGram>0&&(
+                {showDollars&&costPerGram>0&&(
                   <div style={{fontSize:11,color:C.dim,lineHeight:1.8}}>
                     At this cost/gram, a 1g cart (+ $2.17 pkg + $1.00 labor + $0.40 test) = <strong style={{color:C.text}}>${(costPerGram+2.17+1.00+0.40).toFixed(2)}</strong> vs $12 wholesale = <strong style={{color:C.good}}>${(12-costPerGram-2.17-1.00-0.40).toFixed(2)} margin</strong>
                   </div>
@@ -7339,8 +7351,8 @@ const YIELD_KEY = 'gpi-yield-log';
                         <div style={{fontSize:9,color:C.dim}}>Output</div>
                       </div>
                       <div style={{background:C.bg,borderRadius:4,padding:'6px 0',textAlign:'center'}}>
-                        <div style={{fontSize:14,fontWeight:700,color:s.avgCpg<1.5?C.good:s.avgCpg<2.5?C.warn:C.danger}}>${s.avgCpg.toFixed(2)}</div>
-                        <div style={{fontSize:9,color:C.dim}}>Avg $/g</div>
+                        <div style={{fontSize:14,fontWeight:700,color:showDollars?(s.avgCpg<1.5?C.good:s.avgCpg<2.5?C.warn:C.danger):C.dim}}>{showDollars?'$'+s.avgCpg.toFixed(2):'\u2014'}</div>
+                        <div style={{fontSize:9,color:C.dim}}>{showDollars?'Avg $/g':'Avg $/g'}</div>
                       </div>
                       <div style={{background:C.bg,borderRadius:4,padding:'6px 0',textAlign:'center'}}>
                         <div style={{fontSize:14,fontWeight:700}}>{s.totalInput.toFixed(0)} lbs</div>
@@ -7384,15 +7396,15 @@ const YIELD_KEY = 'gpi-yield-log';
                         <div style={{fontSize:9,color:C.dim}}>Output</div>
                       </div>
                       <div style={{background:C.bg,borderRadius:4,padding:'6px 0',textAlign:'center'}}>
-                        <div style={{fontSize:14,fontWeight:700,color:e.costPerGram<1.5?C.good:e.costPerGram<2.5?C.warn:C.danger}}>${e.costPerGram.toFixed(2)}</div>
-                        <div style={{fontSize:9,color:C.dim}}>$/gram</div>
+                        <div style={{fontSize:14,fontWeight:700,color:showDollars?(e.costPerGram<1.5?C.good:e.costPerGram<2.5?C.warn:C.danger):C.dim}}>{showDollars?'$'+e.costPerGram.toFixed(2):'\u2014'}</div>
+                        <div style={{fontSize:9,color:C.dim}}>{showDollars?'$/gram':'$/gram'}</div>
                       </div>
                     </div>
                     <div style={{display:'flex',gap:10,fontSize:11,color:C.dim,flexWrap:'wrap'}}>
                       {e.weightLbs>0&&<span>{e.weightLbs} lbs</span>}
-                      {e.biomassPrice>0&&<span>${e.biomassPrice}/lb bio</span>}
-                      {e.tollFee>0&&<span>${e.tollFee}/lb toll</span>}
-                      {e.totalCost>0&&<span>${e.totalCost.toLocaleString()} total</span>}
+                      {showDollars&&e.biomassPrice>0&&<span>${e.biomassPrice}/lb bio</span>}
+                      {showDollars&&e.tollFee>0&&<span>${e.tollFee}/lb toll</span>}
+                      {showDollars&&e.totalCost>0&&<span>${e.totalCost.toLocaleString()} total</span>}
                     </div>
                     {e.notes&&<div style={{fontSize:10,color:C.dim,marginTop:4,lineHeight:1.5}}>{e.notes}</div>}
                   </div>
