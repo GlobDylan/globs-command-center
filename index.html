@@ -3710,7 +3710,7 @@ window._STRAIN_DB=[
                           return(
                           <div key={s.n} style={{background:C.surface,border:'1px solid '+C.border,borderRadius:6,padding:12}}>
                             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
-                              <div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:11,padding:'3px 9px',borderRadius:3,background:tc2(s.t)+'22',color:tc2(s.t),border:'1px solid '+tc2(s.t)+'44',fontWeight:700}}>{s.t.charAt(0)}</span><span style={{fontSize:15,fontWeight:800,color:C.text}}>{s.n}</span></div>
+                              <div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:15,fontWeight:800,color:C.text}}>{s.n}</span><span style={{fontSize:11,padding:'3px 9px',borderRadius:3,background:tc2(s.t)+'22',color:tc2(s.t),border:'1px solid '+tc2(s.t)+'44',fontWeight:700}}>{s.t}</span></div>
                               <div style={{display:'flex',gap:6,alignItems:'center'}}>
                                 {authRole==='exec'&&wv>0&&<span style={{fontSize:11,padding:'2px 7px',borderRadius:2,background:(wv>=10?'#7cb87a':wv>=3?'#d4a24c':'#666')+'22',color:wv>=10?'#7cb87a':wv>=3?'#d4a24c':'#999',border:'1px solid '+(wv>=10?'#7cb87a':wv>=3?'#d4a24c':'#666')+'44',fontWeight:700}}>{wv.toFixed(1)}/wk</span>}
                               </div>
