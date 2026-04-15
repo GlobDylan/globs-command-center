@@ -6330,15 +6330,36 @@ window._STRAIN_DB=[
               return ctx;
             }
             function speakText(text){
-              if(aiMuted)return;window.speechSynthesis.cancel();
-              // Strip markdown tables, pipes, dashes, bullets, asterisks for clean speech
+              if(aiMuted)return;
+              // Strip markdown for clean speech
               var clean=text.replace(/\|/g,' ').replace(/[-]{2,}/g,' ').replace(/[#*_`]/g,'').replace(/\n{2,}/g,'. ').replace(/\n/g,'. ').replace(/\s{2,}/g,' ').replace(/•/g,'').replace(/\.\s*\./g,'.').trim();
-              var u=new SpeechSynthesisUtterance(clean);
-              var voices=window.speechSynthesis.getVoices();
-              var wc=voices.find(function(v){return v.lang.startsWith('en-US')&&/male|david|james|guy|google us/i.test(v.name);})||voices.find(function(v){return v.lang.startsWith('en-US');})||voices[0];
-              if(wc)u.voice=wc;u.lang='en-US';u.rate=1.15;u.pitch=1.0;
-              u.onstart=function(){setAiSpeaking(true);};u.onend=function(){setAiSpeaking(false);};
-              window.speechSynthesis.speak(u);
+              if(!clean)return;
+              setAiSpeaking(true);
+              // ElevenLabs via Cloudflare Worker
+              var ttsUrl=aiProxyUrl.trim().replace(/\/$/,'');
+              fetch(ttsUrl,{
+                method:'POST',headers:{'Content-Type':'application/json'},
+                body:JSON.stringify({service:'tts',text:clean,voice_id:'xYGBrcsWlTq1DTHc00Ft'})
+              }).then(function(r){
+                if(!r.ok)throw new Error('TTS status '+r.status);
+                return r.blob();
+              }).then(function(blob){
+                var url=URL.createObjectURL(blob);
+                var audio=new Audio(url);
+                audio.onended=function(){setAiSpeaking(false);URL.revokeObjectURL(url);};
+                audio.onerror=function(){setAiSpeaking(false);URL.revokeObjectURL(url);};
+                audio.play();
+              }).catch(function(err){
+                // Fallback to browser voice if ElevenLabs fails
+                console.log('ElevenLabs failed, fallback:',err);
+                window.speechSynthesis.cancel();
+                var u=new SpeechSynthesisUtterance(clean);
+                var voices=window.speechSynthesis.getVoices();
+                var wc=voices.find(function(v){return v.lang.startsWith('en-US');})||voices[0];
+                if(wc)u.voice=wc;u.lang='en-US';u.rate=1.15;
+                u.onend=function(){setAiSpeaking(false);};
+                window.speechSynthesis.speak(u);
+              });
             }
             function startListening(){
               var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
