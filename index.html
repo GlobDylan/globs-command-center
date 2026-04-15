@@ -6291,18 +6291,36 @@ window._STRAIN_DB=[
               // ── RICH DATA FEED: accounts with order dates, SKUs, revenue ──
               if(displayAccountsAll&&displayAccountsAll.length>0){
                 var totRev=0,totAccts=displayAccountsAll.length,actAccts=0;
+                var now=new Date(),monthStart=new Date(now.getFullYear(),now.getMonth(),1);
+                var monthStartTs=monthStart.getTime();
+                var monthLabel=(monthStart.toLocaleString('en-US',{month:'long'}))+' '+now.getFullYear();
+                var totalMTD=0;
                 displayAccountsAll.forEach(function(a){var r=a.totalSales||0;totRev+=r;if(r>0)actAccts++;});
+                ctx+='TODAY: '+now.toISOString().split('T')[0]+'. Current month: '+monthLabel+'.\n';
                 ctx+='SALESFORCE DATA ('+totAccts+' accounts, '+actAccts+' active, $'+Math.round(totRev).toLocaleString()+' 365d revenue):\n';
                 var sorted=displayAccountsAll.filter(function(a){return a.totalSales>0||a.hasSalesData;}).sort(function(a,b){return(b.totalSales||0)-(a.totalSales||0);});
                 sorted.forEach(function(a){
                   var lastDate='';
                   if(a.orderDayTs&&a.orderDayTs.length>0){var maxTs=Math.max.apply(null,a.orderDayTs);lastDate=new Date(maxTs).toISOString().split('T')[0];}
                   else if(a.orderedSkus){a.orderedSkus.forEach(function(s){if(s.lastDate&&s.lastDate>lastDate)lastDate=s.lastDate;});}
+                  // Compute month-to-date revenue from _rows if available
+                  var mtdRev=0;
+                  if(a._rows&&a._rows.length>0){
+                    a._rows.forEach(function(r){
+                      if(r.date&&r.date>='2026-04-01'&&r.extPrice>0)mtdRev+=r.extPrice;
+                    });
+                  } else if(a.orderDayTs&&a.orderDayTs.length>0&&a.totalSales>0){
+                    // Estimate: count orders this month × avg order value
+                    var mtdOrders=a.orderDayTs.filter(function(ts){return ts>=monthStartTs;}).length;
+                    var avgPerOrder=a.totalSales/a.orderDayTs.length;
+                    mtdRev=Math.round(mtdOrders*avgPerOrder);
+                  }
+                  totalMTD+=mtdRev;
                   var rev30=a.periodRevenue&&a.periodRevenue[30]?Math.round(a.periodRevenue[30]):0;
-                  var rev90=a.periodRevenue&&a.periodRevenue[90]?Math.round(a.periodRevenue[90]):0;
                   var skuList=(a.orderedSkus||[]).filter(function(s){return s.totalQty>0;}).sort(function(x,y){return(y.totalQty||0)-(x.totalQty||0);}).slice(0,5).map(function(s){return s.strain+' ('+Math.round(s.totalQty)+'u)';}).join(', ');
-                  ctx+=a.name+' | '+(a.zone||'?')+' | '+(a.rep||'no rep')+' | 30d:$'+rev30+' | 90d:$'+rev90+' | 365d:$'+Math.round(a.totalSales||0)+' | last:'+lastDate+(skuList?' | SKUs: '+skuList:'')+'\n';
+                  ctx+=a.name+' | '+(a.zone||'?')+' | '+(a.rep||'no rep')+' | MTD:$'+Math.round(mtdRev)+' | 365d:$'+Math.round(a.totalSales||0)+' | last:'+lastDate+(skuList?' | SKUs: '+skuList:'')+'\n';
                 });
+                ctx+='\nTOTAL MTD ('+monthLabel+'): $'+Math.round(totalMTD).toLocaleString()+'\n\n';
                 ctx+='\n';
               }
               // ── INVENTORY: on-hand SKU counts ──
@@ -6324,12 +6342,11 @@ window._STRAIN_DB=[
               }
               ctx+='Answer questions using the data above. IMPORTANT RULES:\n';
               ctx+='- Your responses will be READ ALOUD. Write like you\'re talking, not writing a report.\n';
-              ctx+='- Each account has 30-day, 90-day, and 365-day revenue. When asked about "this month" or "April" or recent activity, use the 30d figure. When asked about total or overall, use 365d.\n';
-              ctx+='- For lists: give the headline number first, then highlight TOP 3-5 with quick details. Don\'t list every account unless specifically asked for "all of them."\n';
-              ctx+='- Use bullet points, not tables. No pipes, no dashes, no markdown formatting.\n';
-              ctx+='- When filtering by time, use the last order date.\n';
-              ctx+='- Be conversational: "You did about $15K this month across 22 accounts. Ganjery was your biggest at $5K, followed by Urbana at $3K." NOT "Based on Salesforce data filtered by..."\n';
-              ctx+='- Keep responses under 100 words when possible. Dylan is listening, not reading a report.';
+              ctx+='- Each account has MTD (month-to-date, calendar month) and 365d revenue. When asked about "this month", "April sales", or current period, ALWAYS use the MTD figure. The TOTAL MTD line gives you the company-wide monthly number.\n';
+              ctx+='- For lists: give the headline number first, then highlight TOP 3-5. Don\'t list every account unless asked.\n';
+              ctx+='- No tables, no pipes, no markdown formatting. Bullets only.\n';
+              ctx+='- Be conversational: "You\'re at about $30K for April so far. Ganjery leads with $5K, then Urbana at $3K."\n';
+              ctx+='- Keep responses under 100 words. Dylan is listening, not reading.';
               return ctx;
             }
             var aiAudioRef={current:null};
