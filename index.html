@@ -1028,18 +1028,6 @@ window._STRAIN_DB=[
     function fbGet(key){return fetch(FIREBASE_URL+'/'+key+'.json').then(function(r){return r.json();}).then(function(v){return typeof v==='string'?JSON.parse(v):v;}).catch(function(e){console.warn('Firebase read failed:',e);return null;});}
     function fbGetAll(){return fetch(FIREBASE_URL+'.json').then(function(r){return r.json();}).then(function(obj){if(!obj||typeof obj!=='object')return null;var out={};Object.keys(obj).forEach(function(k){try{out[k]=typeof obj[k]==='string'?JSON.parse(obj[k]):obj[k];}catch(e){out[k]=obj[k];}});return out;}).catch(function(e){console.warn('Firebase read all failed:',e);return null;})}
 
-    // Error Boundary — prevents blank screen on any rendering crash
-    class GPIErrorBoundary extends React.Component{
-      constructor(p){super(p);this.state={hasError:false,error:null};}
-      static getDerivedStateFromError(e){return{hasError:true,error:e};}
-      componentDidCatch(e,info){console.error('GPI Render Error:',e,info);}
-      render(){if(this.state.hasError){return React.createElement('div',{style:{background:'#0a0806',color:'#e8e0d4',minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',padding:40,fontFamily:'system-ui'}},
-        React.createElement('div',{style:{fontSize:20,marginBottom:16,color:'#d4a24c'}},'GPI encountered an error'),
-        React.createElement('div',{style:{fontSize:12,color:'#999',marginBottom:20,maxWidth:400,textAlign:'center'}},(this.state.error&&this.state.error.message)||'Unknown error'),
-        React.createElement('button',{onClick:function(){try{Object.keys(localStorage).filter(function(k){return k.startsWith('gpi:');}).forEach(function(k){localStorage.removeItem(k);});}catch(e){}window.location.reload();},style:{padding:'12px 24px',background:'#d4a24c',color:'#0a0806',border:'none',borderRadius:6,fontSize:14,fontWeight:700,cursor:'pointer'}},'Clear Data & Reload'));}
-      return this.props.children;}
-    }
-
     function GPI() {
       const [tab,setTab]=useState("accounts");
       function switchTab(t){try{document.activeElement.blur();}catch(e){}setTab(t);}
@@ -7684,7 +7672,7 @@ const YIELD_KEY = 'gpi-yield-log';
     // ── RENDER ────────────────────────────────────────────────────────────────
     const rootEl = document.getElementById('root');
     ReactDOM.createRoot(rootEl).render(
-      React.createElement(GPIErrorBoundary, null, React.createElement(GPI))
+      React.createElement(GPI)
     );
   </script>
 </body>
