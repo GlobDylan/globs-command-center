@@ -1516,33 +1516,17 @@ window._STRAIN_DB=[
       async function cloudSync(){
         if(cloudSyncing)return;
         setCloudSyncing(true);toast('\u2601 Syncing from cloud...');
-        try{
-          var loaded=[];
-          var keys=[
-            {k:'gpi-accounts',s:setAccounts,label:'accounts',isArr:true},
-            {k:'gpi-promo-accounts',s:setPromoAccounts},
-            {k:'gpi-prices',s:setPriceData},
-            {k:'gpi-snaps',s:setSnapshots},
-            {k:'gpi-contacts',s:setContactsData},
-            {k:'gpi-returns-log',s:setReturnsLog}
-          ];
-          for(var i=0;i<keys.length;i++){
-            try{
-              var d=await fbGet(keys[i].k);
-              if(d){
-                try{keys[i].s(d);}catch(setErr){console.warn('setState error for '+keys[i].k+':',setErr);continue;}
-                if(keys[i].isArr&&Array.isArray(d))loaded.push(d.length+' '+(keys[i].label||keys[i].k));
-                try{await window.storage.set(keys[i].k,JSON.stringify(d));}catch(stErr){}
-              }
-            }catch(e){console.warn('Sync '+keys[i].k+' failed:',e);}
-          }
-          try{
-            var inv=await fbGet('gpi-inventory');
-            if(inv&&typeof inv==='object'){try{setInventoryData(inv);var oh={};Object.keys(inv).forEach(function(k2){oh[k2]=inv[k2].onHand;});setMfgInventory(oh);loaded.push(Object.keys(inv).length+' SKUs');await window.storage.set('gpi-inventory',JSON.stringify(inv));}catch(invErr){console.warn('Inventory sync error:',invErr);}}
-          }catch(e){}
-          try{var ts=await fbGet('gpi-sync');if(ts)setLastSync(ts);}catch(e){}
-          toast(loaded.length>0?'\u2601 Synced: '+loaded.join(' \u00b7 '):'\u2601 Cloud is empty \u2014 upload XLSX first');
-        }catch(e){toast('\u2717 Cloud sync failed: '+(e.message||e));console.error(e);}
+        var loaded=[];
+        function delay(ms){return new Promise(function(r){setTimeout(r,ms);});}
+        // Load keys one at a time with delays
+        try{var d1=await fbGet('gpi-accounts');if(d1&&Array.isArray(d1)){setAccounts(d1);loaded.push(d1.length+' accounts');await window.storage.set('gpi-accounts',JSON.stringify(d1));await delay(200);}}catch(e){console.warn('sync accounts failed',e);}
+        try{var d2=await fbGet('gpi-inventory');if(d2&&typeof d2==='object'){setInventoryData(d2);var oh={};Object.keys(d2).forEach(function(k2){oh[k2]=d2[k2].onHand;});setMfgInventory(oh);loaded.push(Object.keys(d2).length+' SKUs');await window.storage.set('gpi-inventory',JSON.stringify(d2));await delay(200);}}catch(e){console.warn('sync inventory failed',e);}
+        try{var d3=await fbGet('gpi-contacts');if(d3){setContactsData(d3);await window.storage.set('gpi-contacts',JSON.stringify(d3));await delay(100);}}catch(e){}
+        try{var d4=await fbGet('gpi-promo-accounts');if(d4){setPromoAccounts(d4);await window.storage.set('gpi-promo-accounts',JSON.stringify(d4));await delay(100);}}catch(e){}
+        try{var d5=await fbGet('gpi-prices');if(d5){setPriceData(d5);await window.storage.set('gpi-prices',JSON.stringify(d5));await delay(100);}}catch(e){}
+        try{var d6=await fbGet('gpi-returns-log');if(d6){setReturnsLog(d6);await window.storage.set('gpi-returns-log',JSON.stringify(d6));}}catch(e){}
+        try{var ts=await fbGet('gpi-sync');if(ts)setLastSync(ts);}catch(e){}
+        toast(loaded.length>0?'\u2601 Synced: '+loaded.join(' \u00b7 '):'\u2601 Cloud is empty \u2014 upload XLSX first');
         setCloudSyncing(false);
       }
       async function persist(k,v){try{await window.storage.set(k,JSON.stringify(v));await window.storage.set("gpi-sync",new Date().toISOString());setLastSync(new Date().toISOString());fbPut(k,v);}catch(e){console.error(e);}}
