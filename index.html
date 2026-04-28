@@ -1028,6 +1028,18 @@ window._STRAIN_DB=[
     function fbGet(key){return fetch(FIREBASE_URL+'/'+key+'.json').then(function(r){return r.json();}).then(function(v){return typeof v==='string'?JSON.parse(v):v;}).catch(function(e){console.warn('Firebase read failed:',e);return null;});}
     function fbGetAll(){return fetch(FIREBASE_URL+'.json').then(function(r){return r.json();}).then(function(obj){if(!obj||typeof obj!=='object')return null;var out={};Object.keys(obj).forEach(function(k){try{out[k]=typeof obj[k]==='string'?JSON.parse(obj[k]):obj[k];}catch(e){out[k]=obj[k];}});return out;}).catch(function(e){console.warn('Firebase read all failed:',e);return null;})}
 
+    // Error Boundary — prevents blank screen on any rendering crash
+    class GPIErrorBoundary extends React.Component{
+      constructor(p){super(p);this.state={hasError:false,error:null};}
+      static getDerivedStateFromError(e){return{hasError:true,error:e};}
+      componentDidCatch(e,info){console.error('GPI Render Error:',e,info);}
+      render(){if(this.state.hasError){return React.createElement('div',{style:{background:'#0a0806',color:'#e8e0d4',minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',padding:40,fontFamily:'system-ui'}},
+        React.createElement('div',{style:{fontSize:20,marginBottom:16,color:'#d4a24c'}},'GPI encountered an error'),
+        React.createElement('div',{style:{fontSize:12,color:'#999',marginBottom:20,maxWidth:400,textAlign:'center'}},(this.state.error&&this.state.error.message)||'Unknown error'),
+        React.createElement('button',{onClick:function(){try{Object.keys(localStorage).filter(function(k){return k.startsWith('gpi:');}).forEach(function(k){localStorage.removeItem(k);});}catch(e){}window.location.reload();},style:{padding:'12px 24px',background:'#d4a24c',color:'#0a0806',border:'none',borderRadius:6,fontSize:14,fontWeight:700,cursor:'pointer'}},'Clear Data & Reload'));}
+      return this.props.children;}
+    }
+
     function GPI() {
       const [tab,setTab]=useState("accounts");
       function switchTab(t){try{document.activeElement.blur();}catch(e){}setTab(t);}
@@ -1518,19 +1530,19 @@ window._STRAIN_DB=[
             try{
               var d=await fbGet(keys[i].k);
               if(d){
-                keys[i].s(d);
+                try{keys[i].s(d);}catch(setErr){console.warn('setState error for '+keys[i].k+':',setErr);continue;}
                 if(keys[i].isArr&&Array.isArray(d))loaded.push(d.length+' '+(keys[i].label||keys[i].k));
-                await window.storage.set(keys[i].k,JSON.stringify(d));
+                try{await window.storage.set(keys[i].k,JSON.stringify(d));}catch(stErr){}
               }
             }catch(e){console.warn('Sync '+keys[i].k+' failed:',e);}
           }
           try{
             var inv=await fbGet('gpi-inventory');
-            if(inv&&typeof inv==='object'){setInventoryData(inv);var oh={};Object.keys(inv).forEach(function(k2){oh[k2]=inv[k2].onHand;});setMfgInventory(oh);loaded.push(Object.keys(inv).length+' SKUs');await window.storage.set('gpi-inventory',JSON.stringify(inv));}
+            if(inv&&typeof inv==='object'){try{setInventoryData(inv);var oh={};Object.keys(inv).forEach(function(k2){oh[k2]=inv[k2].onHand;});setMfgInventory(oh);loaded.push(Object.keys(inv).length+' SKUs');await window.storage.set('gpi-inventory',JSON.stringify(inv));}catch(invErr){console.warn('Inventory sync error:',invErr);}}
           }catch(e){}
           try{var ts=await fbGet('gpi-sync');if(ts)setLastSync(ts);}catch(e){}
           toast(loaded.length>0?'\u2601 Synced: '+loaded.join(' \u00b7 '):'\u2601 Cloud is empty \u2014 upload XLSX first');
-        }catch(e){toast('\u2717 Cloud sync failed: '+e.message);console.error(e);}
+        }catch(e){toast('\u2717 Cloud sync failed: '+(e.message||e));console.error(e);}
         setCloudSyncing(false);
       }
       async function persist(k,v){try{await window.storage.set(k,JSON.stringify(v));await window.storage.set("gpi-sync",new Date().toISOString());setLastSync(new Date().toISOString());fbPut(k,v);}catch(e){console.error(e);}}
@@ -7688,7 +7700,7 @@ const YIELD_KEY = 'gpi-yield-log';
     // ── RENDER ────────────────────────────────────────────────────────────────
     const rootEl = document.getElementById('root');
     ReactDOM.createRoot(rootEl).render(
-      React.createElement(GPI)
+      React.createElement(GPIErrorBoundary, null, React.createElement(GPI))
     );
   </script>
 </body>
