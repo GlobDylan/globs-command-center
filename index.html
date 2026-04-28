@@ -4473,7 +4473,10 @@ window._STRAIN_DB=[
                           isExp?React.createElement('div',{style:{borderTop:'1px solid #1a1714'}},
                             // Section: SKU BASELINE
                             React.createElement('div',{style:{padding:'8px 12px',borderBottom:'1px solid #1a1714'}},
-                              React.createElement('div',{style:{fontSize:7,letterSpacing:2,color:'#444',fontWeight:700,marginBottom:5}},'MENU INTELLIGENCE'),
+                              React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:5}},
+                                React.createElement('div',{style:{fontSize:7,letterSpacing:2,color:'#444',fontWeight:700}},'MENU INTELLIGENCE'),
+                                o.pricing&&o.pricing.menuUrl?React.createElement('a',{href:o.pricing.menuUrl,target:'_blank',rel:'noopener',onClick:function(e){e.stopPropagation();},style:{fontSize:7,color:'#6fa8d6',textDecoration:'none',fontWeight:600}},'View Menu \u2197'):null
+                              ),
                               // Gap analysis table
                               React.createElement('div',{style:{display:'grid',gridTemplateColumns:'55px 1fr 1fr 1fr 1fr',gap:2,marginBottom:6}},
                                 // Header row
