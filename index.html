@@ -566,13 +566,24 @@ window._STRAIN_DB=[
         const mk=account+"|||"+sku;
         if (!soMap[mk]) soMap[mk]=new Set(); if (soNum) soMap[mk].add(soNum);
         if (!accs[account]) {
-          accs[account]={name:account,rep:rep,zone:zone,totalSales:0,months:3,hasSalesData:true,allLocations:false,promotions:[],soNumbers:new Set(),orderedSkus:[],totalQty:0,catRevenue90:{},soDates:{},_rows:[]};
+          accs[account]={name:account,rep:rep,zone:zone,totalSales:0,months:3,hasSalesData:true,allLocations:false,promotions:[],soNumbers:new Set(),orderedSkus:[],totalQty:0,catRevenue90:{},soDates:{},_rows:[],_soCatStrains:{}};
         }
         const a=accs[account];
         if (rep&&!a.rep) a.rep=rep; if (zone&&!a.zone) a.zone=zone;
         if (soNum) a.soNumbers.add(soNum); if (soNum&&date&&!a.soDates[soNum]) a.soDates[soNum]=date;
         if (extPrice>0) { a.totalSales+=extPrice; a.totalQty+=qty; a._rows.push({date:date,qty:qty,extPrice:extPrice,category:category,sku:sku}); }
         const strain=sku.replace(/^Globs\s*-\s*/i,"").split(" - ")[0].trim();
+        // Track unique strains per category per SO (for per-order baseline ceiling)
+        if(soNum&&extPrice>0){
+          var _cl=category.toLowerCase(),_sn=(sku||'').toLowerCase();
+          if(!_sn.includes('promo')&&!_sn.includes('sample')){
+            var _cat=_cl.includes('cart')||_cl.includes('vape')?'cart':_cl.includes('badder')?'badder':_cl.includes('sauce')?'sauce':_cl.includes('diamond')?'diamonds':null;
+            if(_cat){
+              if(!a._soCatStrains[soNum])a._soCatStrains[soNum]={cart:new Set(),badder:new Set(),sauce:new Set(),diamonds:new Set()};
+              a._soCatStrains[soNum][_cat].add(strain);
+            }
+          }
+        }
         // Parse date to timestamp for proper chronological comparison
         var _dp=date?date.split('/'):null;
         var _dts=_dp&&_dp.length>=3?new Date(parseInt(_dp[2]),parseInt(_dp[0])-1,parseInt(_dp[1])).getTime():0;
@@ -650,7 +661,27 @@ window._STRAIN_DB=[
         });
         a.orderDayTs=Object.keys(ods).map(Number).sort(function(a,b){return a-b;});
         a.futureRev=a._futureRev||0;a.futureOrders=a._futureOrders||0;
-        delete a._rows;delete a._futureRev;delete a._futureOrders;
+        // Compute average strains per category per order from SO-level tracking
+        var catAvgPerOrder={cart:0,badder:0,sauce:0,diamonds:0};
+        if(a._soCatStrains){
+          var catOrderSums={cart:[],badder:[],sauce:[],diamonds:[]};
+          Object.keys(a._soCatStrains).forEach(function(so){
+            var cats=a._soCatStrains[so];
+            Object.keys(cats).forEach(function(cat){
+              var count=cats[cat].size;
+              if(count>0)catOrderSums[cat].push(count);
+            });
+          });
+          Object.keys(catOrderSums).forEach(function(cat){
+            var arr=catOrderSums[cat];
+            if(arr.length>0){
+              var sum=arr.reduce(function(s,v){return s+v;},0);
+              catAvgPerOrder[cat]=Math.round(sum/arr.length);
+            }
+          });
+        }
+        a.catAvgPerOrder=catAvgPerOrder;
+        delete a._rows;delete a._futureRev;delete a._futureOrders;delete a._soCatStrains;
       });
       const SUP=["upnorth samples","internal","test account"];
       return Object.values(accs)
@@ -1431,6 +1462,9 @@ window._STRAIN_DB=[
       const [dHovCity,setDHovCity]=useState(null);
       const [oZone,setOZone]=useState("ALL");
       const [oStatus,setOStatus]=useState("ALL");
+      const [oCat,setOCat]=useState("ALL");
+      const [oHideMock,setOHideMock]=useState(true);
+      const [oppExpanded,setOppExpanded]=useState({});
       const [oRep,setORep]=useState(function(){try{var s=JSON.parse(sessionStorage.getItem('gpi-session'));if(s&&s.repName&&s.role==='distro')return s.repName;return'ALL';}catch(e){return'ALL';}});
       const [openOpps,setOpenOpps]=useState({});
       const [strainSearch,setStrainSearch]=useState("");
@@ -1484,6 +1518,9 @@ window._STRAIN_DB=[
       const [returnsEmailParsing,setReturnsEmailParsing]=useState(false);
       const [showReturnsForm,setShowReturnsForm]=useState(false);
       const [contactsData,setContactsData]=useState({});
+      const [missingMoney,setMissingMoney]=useState([]);
+      const [noMockList,setNoMockList]=useState([]);
+      const [pricingData,setPricingData]=useState({});
 
       useEffect(function(){boot();},[]); // eslint-disable-line
       async function boot(){
@@ -1499,6 +1536,9 @@ window._STRAIN_DB=[
         try{const r=await window.storage.get("gpi-sync");if(r)setLastSync(r.value);}catch(e){}
         await load(RETURNS_KEY,setReturnsLog);
         await load("gpi-contacts",setContactsData);
+        await load("gpi-missing-money",setMissingMoney);
+        await load("gpi-no-mock",setNoMockList);
+        await load("gpi-pricing",setPricingData);
       }
       const [cloudSyncing,setCloudSyncing]=useState(false);
       async function cloudSync(){
@@ -1506,13 +1546,12 @@ window._STRAIN_DB=[
         setCloudSyncing(true);toast('\u2601 Syncing from cloud...');
         var loaded=[];
         function delay(ms){return new Promise(function(r){setTimeout(r,ms);});}
-        // Load keys one at a time with delays
-        try{var d1=await fbGet('gpi-accounts');if(d1&&Array.isArray(d1)){setAccounts(d1);loaded.push(d1.length+' accounts');await window.storage.set('gpi-accounts',JSON.stringify(d1));await delay(200);}}catch(e){console.warn('sync accounts failed',e);}
-        try{var d2=await fbGet('gpi-inventory');if(d2&&typeof d2==='object'){setInventoryData(d2);var oh={};Object.keys(d2).forEach(function(k2){oh[k2]=d2[k2].onHand;});setMfgInventory(oh);loaded.push(Object.keys(d2).length+' SKUs');await window.storage.set('gpi-inventory',JSON.stringify(d2));await delay(200);}}catch(e){console.warn('sync inventory failed',e);}
-        try{var d3=await fbGet('gpi-contacts');if(d3){setContactsData(d3);await window.storage.set('gpi-contacts',JSON.stringify(d3));await delay(100);}}catch(e){}
-        try{var d4=await fbGet('gpi-promo-accounts');if(d4){setPromoAccounts(d4);await window.storage.set('gpi-promo-accounts',JSON.stringify(d4));await delay(100);}}catch(e){}
-        try{var d5=await fbGet('gpi-prices');if(d5){setPriceData(d5);await window.storage.set('gpi-prices',JSON.stringify(d5));await delay(100);}}catch(e){}
-        try{var d6=await fbGet('gpi-returns-log');if(d6){setReturnsLog(d6);await window.storage.set('gpi-returns-log',JSON.stringify(d6));}}catch(e){}
+        try{var d1=await fbGet('gpi-accounts');if(d1&&Array.isArray(d1)){setAccounts(d1);loaded.push(d1.length+' accounts');try{await window.storage.set('gpi-accounts',JSON.stringify(d1));}catch(e){}await delay(200);}}catch(e){console.warn('sync accounts failed',e);}
+        try{var d2=await fbGet('gpi-inventory');if(d2&&typeof d2==='object'){setInventoryData(d2);var oh={};Object.keys(d2).forEach(function(k2){oh[k2]=d2[k2].onHand;});setMfgInventory(oh);loaded.push(Object.keys(d2).length+' SKUs');try{await window.storage.set('gpi-inventory',JSON.stringify(d2));}catch(e){}await delay(200);}}catch(e){console.warn('sync inventory failed',e);}
+        try{var d3=await fbGet('gpi-contacts');if(d3){setContactsData(d3);try{await window.storage.set('gpi-contacts',JSON.stringify(d3));}catch(e){}await delay(100);}}catch(e){}
+        try{var d4=await fbGet('gpi-promo-accounts');if(d4){setPromoAccounts(d4);try{await window.storage.set('gpi-promo-accounts',JSON.stringify(d4));}catch(e){}await delay(100);}}catch(e){}
+        try{var d5=await fbGet('gpi-prices');if(d5){setPriceData(d5);try{await window.storage.set('gpi-prices',JSON.stringify(d5));}catch(e){}await delay(100);}}catch(e){}
+        try{var d6=await fbGet('gpi-returns-log');if(d6){setReturnsLog(d6);try{await window.storage.set('gpi-returns-log',JSON.stringify(d6));}catch(e){}}}catch(e){}
         try{var ts=await fbGet('gpi-sync');if(ts)setLastSync(ts);}catch(e){}
         toast(loaded.length>0?'\u2601 Synced: '+loaded.join(' \u00b7 '):'\u2601 Cloud is empty \u2014 upload XLSX first');
         setCloudSyncing(false);
@@ -1623,9 +1662,145 @@ window._STRAIN_DB=[
                   var mktR=parseCSV(mktCsv);
                   if(mktR.type==='account'&&mktR.data){setPromoAccounts(mktR.data);persist('gpi-promo-accounts',mktR.data);loaded.push(mktR.data.length+' promo accounts');}
                 }
+                // Missing Money Sheet
+                var mmSheet=wb.SheetNames.find(function(n){return n.toLowerCase().includes('missing money');});
+                if(mmSheet){
+                  try{
+                    var mmRows=XLSX.utils.sheet_to_json(wb.Sheets[mmSheet],{header:1,defval:''});
+                    var mmData=[];
+                    for(var mi=1;mi<mmRows.length;mi++){
+                      var mr=mmRows[mi];
+                      var acct=String(mr[1]||'').trim();
+                      if(!acct)continue;
+                      mmData.push({
+                        rep:String(mr[0]||'').trim(),
+                        account:acct,
+                        arHealth:String(mr[2]||'').trim(),
+                        jan:parseFloat(mr[3])||0,
+                        feb:parseFloat(mr[4])||0,
+                        mar:parseFloat(mr[5])||0,
+                        apr:parseFloat(mr[6])||0,
+                        menuCarts:parseInt(mr[7])||0,
+                        menuBattery:parseInt(mr[8])||0,
+                        menuBadder:parseInt(mr[9])||0,
+                        menuSauce:parseInt(mr[10])||0,
+                        avg3mo:parseFloat(mr[11])||0,
+                        missingThisMo:parseFloat(mr[12])||0,
+                        stockPct:mr[13]&&typeof mr[13]==='number'?Math.round(mr[13]*100):null,
+                        notes:String(mr[14]||'').trim()
+                      });
+                    }
+                    if(mmData.length>0){setMissingMoney(mmData);persist('gpi-missing-money',mmData);loaded.push(mmData.length+' missing money accts');}
+                  }catch(mmErr){loaded.push('MM ERR:'+mmErr.message);}
+                }
+                // No Mock List
+                var nmSheet=wb.SheetNames.find(function(n){return n.toLowerCase().includes('no mock');});
+                if(nmSheet){
+                  try{
+                    var nmRows=XLSX.utils.sheet_to_json(wb.Sheets[nmSheet],{header:1,defval:''});
+                    var nmData=[];
+                    for(var ni=1;ni<nmRows.length;ni++){
+                      var nm=String(nmRows[ni][0]||'').trim();
+                      if(nm)nmData.push({account:nm,note:String(nmRows[ni][1]||'').trim()});
+                    }
+                    if(nmData.length>0){setNoMockList(nmData);persist('gpi-no-mock',nmData);loaded.push(nmData.length+' no-mock accts');}
+                  }catch(nmErr){loaded.push('NM ERR:'+nmErr.message);}
+                }
+                // Pricing Intel (Account Rollup sheet)
+                var prSheet=wb.SheetNames.find(function(n){return n.toLowerCase().includes('account rollup');});
+                if(prSheet){
+                  try{
+                    var prRows=XLSX.utils.sheet_to_json(wb.Sheets[prSheet],{header:1,defval:''});
+                    var prHeaders=prRows[0]||[];
+                    var prMap={};
+                    // Find column indices
+                    var ci={};
+                    prHeaders.forEach(function(h,idx){
+                      var hl=String(h).toLowerCase();
+                      if(hl.includes('account'))ci.account=idx;
+                      if(hl.includes('city'))ci.city=idx;
+                      if(hl.includes('status'))ci.status=idx;
+                      if(hl.includes('globs listed'))ci.listed=idx;
+                      if(hl==='# skus'||hl.includes('# sku'))ci.skuCount=idx;
+                      if(hl.includes('min price'))ci.minPrice=idx;
+                      if(hl.includes('avg price'))ci.avgPrice=idx;
+                      if(hl.includes('max price'))ci.maxPrice=idx;
+                      if(hl.includes('has cart'))ci.hasCarts=idx;
+                      if(hl.includes('has badder'))ci.hasBadder=idx;
+                      if(hl.includes('has sauce'))ci.hasSauce=idx;
+                      if(hl.includes('has shatter'))ci.hasShatter=idx;
+                      if(hl.includes('has diamond'))ci.hasDiamonds=idx;
+                      if(hl.includes('categories'))ci.categories=idx;
+                      if(hl.includes('platform'))ci.platform=idx;
+                      if(hl.includes('menu url'))ci.menuUrl=idx;
+                      if(hl.includes('notes'))ci.notes=idx;
+                    });
+                    for(var pi=1;pi<prRows.length;pi++){
+                      var pr=prRows[pi];
+                      var acctName=String(pr[ci.account]||'').trim();
+                      if(!acctName)continue;
+                      prMap[acctName.toLowerCase()]={
+                        account:acctName,
+                        city:String(pr[ci.city]||'').trim(),
+                        status:String(pr[ci.status]||'').trim(),
+                        listed:String(pr[ci.listed]||'').toLowerCase()==='yes',
+                        skuCount:parseInt(pr[ci.skuCount])||0,
+                        minPrice:parseFloat(pr[ci.minPrice])||0,
+                        avgPrice:parseFloat(pr[ci.avgPrice])||0,
+                        maxPrice:parseFloat(pr[ci.maxPrice])||0,
+                        hasCarts:String(pr[ci.hasCarts]||'').toLowerCase()==='yes',
+                        hasBadder:String(pr[ci.hasBadder]||'').toLowerCase()==='yes',
+                        hasSauce:String(pr[ci.hasSauce]||'').toLowerCase()==='yes',
+                        hasShatter:String(pr[ci.hasShatter]||'').toLowerCase()==='yes',
+                        hasDiamonds:String(pr[ci.hasDiamonds]||'').toLowerCase()==='yes',
+                        categories:String(pr[ci.categories]||'').trim(),
+                        platform:String(pr[ci.platform]||'').trim(),
+                        menuUrl:String(pr[ci.menuUrl]||'').trim(),
+                        notes:String(pr[ci.notes]||'').trim()
+                      };
+                    }
+                    var prCount=Object.keys(prMap).length;
+                    if(prCount>0){setPricingData(prMap);persist('gpi-pricing',prMap);loaded.push(prCount+' pricing accts');}
+                  }catch(prErr){loaded.push('PR ERR:'+prErr.message);}
+                }
+                // All Listings (strain-level menu data per account)
+                var alSheet=wb.SheetNames.find(function(n){return n.toLowerCase().includes('all listings');});
+                if(alSheet){
+                  try{
+                    var alRows=XLSX.utils.sheet_to_json(wb.Sheets[alSheet],{header:1,defval:''});
+                    var alHeaders=alRows[0]||[];
+                    var ai={};
+                    alHeaders.forEach(function(h,idx){
+                      var hl=String(h).toLowerCase();
+                      if(hl.includes('account'))ai.account=idx;
+                      if(hl==='sku'||hl.includes('sku'))ai.sku=idx;
+                      if(hl.includes('category'))ai.category=idx;
+                      if(hl.includes('price'))ai.price=idx;
+                    });
+                    var menuMap={};
+                    for(var ali=1;ali<alRows.length;ali++){
+                      var alr=alRows[ali];
+                      var alAcct=String(alr[ai.account]||'').trim().toLowerCase();
+                      if(!alAcct)continue;
+                      var alSku=String(alr[ai.sku]||'').trim();
+                      var alCat=String(alr[ai.category]||'').toLowerCase().trim();
+                      var alPrice=parseFloat(alr[ai.price])||0;
+                      var alStrain=alSku.replace(/^Globs\s*[-–]\s*/i,'').split(/\s*[-–]\s*Live Resin/i)[0].split(/\s*[-–]\s*1g/i)[0].trim();
+                      var bucket=alCat.includes('cart')||alCat.includes('vape')?'cart':alCat.includes('badder')?'badder':alCat.includes('sauce')?'sauce':alCat.includes('diamond')?'diamonds':alCat.includes('shatter')?'shatter':'other';
+                      if(!menuMap[alAcct])menuMap[alAcct]={cart:[],badder:[],sauce:[],diamonds:[],shatter:[]};
+                      if(menuMap[alAcct][bucket])menuMap[alAcct][bucket].push({strain:alStrain,price:alPrice,sku:alSku});
+                    }
+                    // Merge into pricingData
+                    Object.keys(menuMap).forEach(function(k){
+                      if(prMap[k])prMap[k].menuStrains=menuMap[k];
+                      else prMap[k]={menuStrains:menuMap[k]};
+                    });
+                    if(Object.keys(menuMap).length>0){setPricingData(prMap);persist('gpi-pricing',prMap);loaded.push(Object.keys(menuMap).length+' menu strain maps');}
+                  }catch(alErr){loaded.push('AL ERR:'+alErr.message);}
+                }
                 if(loaded.length>0){
                   var _now=new Date().toISOString();setSfLoadTime(_now);try{localStorage.setItem('gpi:sf-load-time',_now);}catch(e){}
-                  var parsed=['Account Activity','Inventory','Contacts','Marketing'].filter(function(s){return wb.SheetNames.some(function(n){return n.toLowerCase().includes(s.toLowerCase().split(' ')[0]);});});
+                  var parsed=['Account Activity','Inventory','Contacts','Marketing','Missing Money','No Mock','Account Rollup'].filter(function(s){return wb.SheetNames.some(function(n){return n.toLowerCase().includes(s.toLowerCase().split(' ')[0]);});});
                   var skipped=wb.SheetNames.filter(function(n){return!parsed.some(function(p){return n.toLowerCase().includes(p.toLowerCase().split(' ')[0]);});});
                   toast('\u2713 Loaded: '+loaded.join(' \u00b7 ')+(skipped.length>0?' \u00b7 Skipped sheets: '+skipped.join(', '):''));
                 }
@@ -2112,7 +2287,6 @@ window._STRAIN_DB=[
               <button className="hdr-hide-mobile" style={Object.assign({},btnSt('ghost'),{fontSize:12})} onClick={function(){setShowUniSearch(true);}} title="Universal Search">⌕</button>
               <button style={{padding:'8px 14px',fontSize:12,border:'1px solid '+C.info,background:C.info+'15',color:C.info,borderRadius:6,fontFamily:'inherit',fontWeight:600,cursor:'pointer'}} onClick={cloudSync} disabled={cloudSyncing} title="Sync data from cloud">{cloudSyncing?'Syncing...':'Sync'}</button>
               <button className="hdr-hide-mobile" style={btnSt('ghost')} disabled={csvLoading} onClick={function(){csvRef.current&&csvRef.current.click();}}>{csvLoading?'Parsing…':(function(){var labels={accounts:'Upload Account Data',opportunities:'Upload Sales Data',dispatch:'Upload Dispatch Data',returns:'Upload Returns Data',executive:'Upload Financial Data',pnl:'Upload P&L Data',cashflow:'Upload Cash Flow Data',strains:'Upload Strain Data',mfg:'Upload MFG Data',packaging:'Upload Inventory Data'};return labels[tab]||'Upload Salesforce XLSX';})()}</button>
-              <button className="hdr-hide-mobile" style={btnSt('outline')} onClick={function(){jsonRef.current&&jsonRef.current.click();}}>Import Scan</button>
               <button className="hdr-hide-mobile" style={btnSt('ghost')} onClick={function(){
                 if(!rolePerms.canExport||killSwitches.disableExports){toast('✗ Export not permitted for your role');return;}
                 try{
@@ -3718,6 +3892,26 @@ window._STRAIN_DB=[
 
                   // ── Build OPP list with scores + targets ──
                   var OPP=[];
+                  // Build No Mock lookup (normalize names for fuzzy matching)
+                  var noMockSet={};
+                  (noMockList||[]).forEach(function(nm){
+                    var n=nm.account.toLowerCase().replace(/[^a-z0-9]/g,'');
+                    noMockSet[n]=nm.note||'';
+                  });
+                  function isNoMock(name){
+                    var n=name.toLowerCase().replace(/[^a-z0-9]/g,'');
+                    if(noMockSet[n]!==undefined)return true;
+                    // Check if any noMock entry is a parent match (e.g., "Purple Lotus" matches "Purple Lotus Santa Clara")
+                    return Object.keys(noMockSet).some(function(k){return n.indexOf(k)===0||k.indexOf(n)===0;});
+                  }
+                  // Build Missing Money lookup by account name
+                  var mmLookup={};
+                  (missingMoney||[]).forEach(function(mm){
+                    var n=mm.account.toLowerCase().replace(/\s+/g,' ').trim();
+                    mmLookup[n]=mm;
+                  });
+                  // Build Pricing lookup by account name
+                  var prLookup=pricingData||{};
                   displayAccounts.forEach(function(acc){
                     if(!acc.orderDayTs||acc.orderDayTs.length<1)return;
                     var ts=acc.orderDayTs.slice().sort(function(a,b){return a-b;});
@@ -3734,6 +3928,44 @@ window._STRAIN_DB=[
                     else if(daysSince>median)status="DUE SOON";
                     var rev=pRev(acc);if(rev<1)return;
                     var skus=(acc.orderedSkus||[]).filter(function(s){return s.totalQty>0&&!((s.sku||'').toLowerCase().includes('promo')||(s.sku||'').toLowerCase().includes('sample'));});
+                    // Track promo and premium promo (staff ed samples) from ALL SKUs including filtered ones
+                    var promoUnits=0,premiumPromoUnits=0,hasStaffEd=false;
+                    (acc.orderedSkus||[]).forEach(function(s){
+                      var sn=(s.sku||s.strain||s.name||'').toLowerCase();
+                      if(sn.includes('premium promo')||sn.includes('premium_promo')){premiumPromoUnits+=(s.totalQty||0);hasStaffEd=true;}
+                      else if(sn.includes('promo')||sn.includes('sample')){promoUnits+=(s.totalQty||0);}
+                    });
+                    // Use per-order strain ceiling computed during parsing (max strains per category on any single order)
+                    // Fallback: if catCeiling missing (cached data), estimate from orderedSkus
+                    var strainsPerOrder;
+                    if(acc.catAvgPerOrder&&(acc.catAvgPerOrder.cart>0||acc.catAvgPerOrder.badder>0||acc.catAvgPerOrder.sauce>0||acc.catAvgPerOrder.diamonds>0)){
+                      strainsPerOrder=acc.catAvgPerOrder;
+                    } else {
+                      // Fallback without SO data: sum orderCounts / max orderCount per category
+                      // maxOC = most any single strain appeared = minimum # of orders with that category
+                      strainsPerOrder={cart:0,badder:0,sauce:0,diamonds:0};
+                      var catOC={cart:[],badder:[],sauce:[],diamonds:[]};
+                      (acc.orderedSkus||[]).forEach(function(s){
+                        var cl=(s.category||'').toLowerCase();var sn=(s.sku||'').toLowerCase();
+                        if(sn.includes('promo')||sn.includes('sample')||sn.includes('batter'))return;
+                        var cat=cl.includes('cart')||cl.includes('vape')?'cart':cl.includes('badder')?'badder':cl.includes('sauce')?'sauce':cl.includes('diamond')?'diamonds':null;
+                        if(cat)catOC[cat].push(s.orderCount||1);
+                      });
+                      Object.keys(catOC).forEach(function(c){
+                        var arr=catOC[c];if(arr.length===0)return;
+                        var maxOC=Math.max.apply(null,arr);
+                        var sumOC=arr.reduce(function(s,v){return s+v;},0);
+                        // avg strains per order = total appearances / orders containing this category
+                        strainsPerOrder[c]=maxOC>0?Math.round(sumOC/maxOC):arr.length;
+                      });
+                    }
+                    var totalUniqueStrains={cart:0,badder:0,sauce:0,diamonds:0};
+                    (acc.orderedSkus||[]).forEach(function(s){
+                      var cl=(s.category||'').toLowerCase();var sn=(s.sku||'').toLowerCase();
+                      if(sn.includes('promo')||sn.includes('sample')||sn.includes('batter'))return;
+                      var cat=cl.includes('cart')||cl.includes('vape')?'cart':cl.includes('badder')?'badder':cl.includes('sauce')?'sauce':cl.includes('diamond')?'diamonds':null;
+                      if(cat)totalUniqueStrains[cat]++;
+                    });
                     var cadenceFactor=median>0?Math.min(4,30/median):0.5;
                     var score=rev*cadenceFactor*(status==='OVERDUE'?1.5:status==='FALLEN OFF'?1.2:status==='DUE SOON'?1.3:1);
                     // Compute avg order qty per category
@@ -3760,7 +3992,52 @@ window._STRAIN_DB=[
                     var rev90=(acc.periodRevenue&&acc.periodRevenue[90]!=null)?acc.periodRevenue[90]:0;
                     var recentPaceAnnualized=rev90>0?Math.round(rev90/90*365):0;
                     var goalPct=growthTarget>0?Math.round(recentPaceAnnualized/growthTarget*100):0;
-                    OPP.push({name:acc.name.replace(/ - Corporate$/i,""),zone:zone,orders:n,median:median,daysSince:daysSince,status:status,rev:Math.round(rev),rep:acc.rep||'',skus:skus,score:score,avgOrderVal:avgOrderVal,budget:budget,catAvgQty:catAvgQty,hasPeriodActivity:daysSince<=periodDays,periodRev:Math.round(periodRev),growthTarget:growthTarget,recentPace:recentPaceAnnualized,goalPct:goalPct});
+                    OPP.push({name:acc.name.replace(/ - Corporate$/i,""),zone:zone,orders:n,median:median,daysSince:daysSince,status:status,rev:Math.round(rev),rep:(acc.rep||'').trim(),skus:skus,score:score,avgOrderVal:avgOrderVal,budget:budget,catAvgQty:catAvgQty,hasPeriodActivity:daysSince<=periodDays,periodRev:Math.round(periodRev),growthTarget:growthTarget,recentPace:recentPaceAnnualized,goalPct:goalPct,
+                      isNoMock:isNoMock(acc.name),
+                      mm:(function(){var n=acc.name.replace(/ - Corporate$/i,'').toLowerCase().replace(/\s+/g,' ').trim();return mmLookup[n]||null;})(),
+                      pricing:(function(){var n=acc.name.replace(/ - Corporate$/i,'').toLowerCase().replace(/\s+/g,' ').trim();return prLookup[n]||null;})(),
+                      promoUnits:promoUnits,premiumPromoUnits:premiumPromoUnits,hasStaffEd:hasStaffEd,strainsPerOrder:strainsPerOrder,totalUniqueStrains:totalUniqueStrains,
+                      // Last 3 orders category breakdown
+                      catBreakdown:(function(){
+                        var cats={cart:0,badder:0,sauce:0,diamonds:0};
+                        skus.forEach(function(s){
+                          var cl=(s.category||'').toLowerCase();
+                          var cat=cl.includes('cart')||cl.includes('vape')?'cart':cl.includes('badder')?'badder':cl.includes('sauce')?'sauce':cl.includes('diamond')?'diamonds':null;
+                          if(cat){
+                            var strainKey=(s.strain||s.sku||'').toLowerCase();
+                            cats[cat]++;
+                          }
+                        });
+                        return cats;
+                      })(),
+                      // Smart reorder: dominant category + upsell opportunities
+                      smartReorder:(function(){
+                        var cats={cart:0,badder:0,sauce:0,diamonds:0};
+                        skus.forEach(function(s){
+                          var cl=(s.category||'').toLowerCase();
+                          if(cl.includes('cart')||cl.includes('vape'))cats.cart+=(s.totalQty||0);
+                          else if(cl.includes('badder'))cats.badder+=(s.totalQty||0);
+                          else if(cl.includes('sauce'))cats.sauce+=(s.totalQty||0);
+                          else if(cl.includes('diamond'))cats.diamonds+=(s.totalQty||0);
+                        });
+                        var dominant=null,maxQ=0;
+                        Object.keys(cats).forEach(function(c){if(cats[c]>maxQ){maxQ=cats[c];dominant=c;}});
+                        var zeroCats=Object.keys(cats).filter(function(c){return cats[c]===0;});
+                        // Only flag upsell for higher-tier accounts AND categories we have in stock
+                        var isHighTier=n>=5;
+                        var inStockCats={};
+                        Object.keys(inventoryData||{}).forEach(function(k){
+                          var oh=parseInt((inventoryData[k].onHand||inventoryData[k])||0);if(oh<=0)return;
+                          var kl=k.toLowerCase();
+                          if(kl.includes('cart')||kl.includes('vape'))inStockCats.cart=true;
+                          else if(kl.includes('badder'))inStockCats.badder=true;
+                          else if(kl.includes('sauce'))inStockCats.sauce=true;
+                          else if(kl.includes('diamond'))inStockCats.diamonds=true;
+                        });
+                        var upsellFiltered=isHighTier?zeroCats.filter(function(c){return inStockCats[c];}):[];
+                        return {dominant:dominant,dominantQty:maxQ,upsell:upsellFiltered,cats:cats};
+                      })()
+                    });
                   });
                   OPP.sort(function(a,b){return b.score-a.score;});
 
@@ -3830,37 +4107,96 @@ window._STRAIN_DB=[
                       else if(cat==='battery')ok=(buysCart&&!hasBattery)||buysCat(o,cat);
                       else ok=buysCat(o,cat);
                       if(!ok)return;
+                      // Get IHS type for balancing
+                      var strainName=p.sku.replace(/^Globs\s*-\s*/i,'').split(' - ')[0].trim();
+                      var sluIHS=strainLookup(strainName);
+                      var ihsType=sluIHS&&sluIHS.t?sluIHS.t:'Hybrid';
                       // Group concentrates into one pool for min 3 rule
                       var poolKey=(cat==='badder'||cat==='sauce'||cat==='diamonds')?'concentrate':cat;
                       if(!catPool[poolKey])catPool[poolKey]=[];
-                      catPool[poolKey].push({k:k,cat:cat,ws:catWs(cat),isNew:p.isNew,vel30:p.vel30||0});
+                      catPool[poolKey].push({k:k,cat:cat,ws:catWs(cat),isNew:p.isNew,vel30:p.vel30||0,ihs:ihsType});
                     });
                     // Fixed depth: 20 per cart, 10 per concentrate/battery
-                    // Minimum 3 strains per pool before cap kicks in
+                    // Use account's strains-per-order baseline to set strain count targets
+                    var baseline=o.strainsPerOrder||{cart:0,badder:0,sauce:0,diamonds:0};
                     Object.keys(catPool).forEach(function(poolKey){
                       var pool=catPool[poolKey];
                       var qtyPerStrain=poolKey==='cart'?20:10;
+                      // Determine target strain count from baseline
+                      var targetStrains;
+                      if(poolKey==='concentrate'){
+                        // Sum badder+sauce+diamonds baselines for concentrate pool
+                        targetStrains=Math.round((baseline.badder||0)+(baseline.sauce||0)+(baseline.diamonds||0));
+                        if(targetStrains<3&&(baseline.badder>0||baseline.sauce>0||baseline.diamonds>0))targetStrains=3;// minimum 3 if they buy any concentrates
+                      } else if(poolKey==='cart'){
+                        targetStrains=Math.round(baseline.cart||0);
+                        if(targetStrains<3&&baseline.cart>0)targetStrains=3;// minimum 3 if they buy carts
+                      } else if(poolKey==='battery'){
+                        targetStrains=1;// 1 battery per order max
+                      } else {
+                        targetStrains=3;// fallback
+                      }
+                      if(targetStrains<1)targetStrains=3;// absolute minimum for accounts with no baseline data
+                      // Build set of strain names currently on this store's menu (from pricing scrape)
+                      var onMenuStrains={};
+                      if(o.pricing&&o.pricing.menuStrains){
+                        Object.keys(o.pricing.menuStrains).forEach(function(cat){
+                          (o.pricing.menuStrains[cat]||[]).forEach(function(ms){
+                            var sn=ms.strain.toLowerCase().replace(/[^a-z0-9]/g,'');
+                            if(sn&&sn!=='extracts'&&sn!=='1gliveresinsauce'&&sn!=='1gliveresincart'&&sn!=='1gliveresinavapecart')onMenuStrains[sn]=true;
+                          });
+                        });
+                      }
                       pool.sort(function(a,b){
+                        var pA=invPool[a.k];var pB=invPool[b.k];
+                        var strainA=(pA.sku||'').replace(/^Globs\s*-\s*/i,'').split(' - ')[0].trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+                        var strainB=(pB.sku||'').replace(/^Globs\s*-\s*/i,'').split(' - ')[0].trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+                        var aOnMenu=onMenuStrains[strainA]?1:0;
+                        var bOnMenu=onMenuStrains[strainB]?1:0;
+                        // Strains NOT on menu come first (fill gaps), then by velocity
+                        if(aOnMenu!==bOnMenu)return aOnMenu-bOnMenu;
                         var sa=a.isNew?50:a.vel30;
                         var sb=b.isNew?50:b.vel30;
                         return sb-sa;
                       });
+                      // IHS balance: after sorting, interleave types so we don't stack all one type
+                      var ihsCounts={Indica:0,Sativa:0,Hybrid:0};
+                      pool.sort(function(a,b){
+                        var pA=invPool[a.k];var pB=invPool[b.k];
+                        var strainA=(pA.sku||'').replace(/^Globs\s*-\s*/i,'').split(' - ')[0].trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+                        var strainB=(pB.sku||'').replace(/^Globs\s*-\s*/i,'').split(' - ')[0].trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+                        var aOnMenu=onMenuStrains[strainA]?1:0;
+                        var bOnMenu=onMenuStrains[strainB]?1:0;
+                        if(aOnMenu!==bOnMenu)return aOnMenu-bOnMenu;
+                        // Within same on-menu status, deprioritize overrepresented IHS types
+                        var aIHS=a.ihs||'Hybrid';var bIHS=b.ihs||'Hybrid';
+                        if(aIHS!==bIHS){
+                          var aDensity=ihsCounts[aIHS]||0;
+                          var bDensity=ihsCounts[bIHS]||0;
+                          if(aDensity!==bDensity)return aDensity-bDensity;// favor less-represented type
+                        }
+                        var sa=a.isNew?50:a.vel30;var sb=b.isNew?50:b.vel30;
+                        return sb-sa;
+                      });
                       var catCount=0;
                       pool.forEach(function(m){
-                        // First 3 strains per category always get allocated, then cap applies
-                        if(catCount>=3&&spent>=cap)return;
+                        // Allocate up to targetStrains, then cap applies to extras
+                        if(catCount>=targetStrains&&spent>=cap)return;
                         var p=invPool[m.k];if(p.rem<=0)return;
-                        var qty=catCount>=3?Math.min(qtyPerStrain,p.rem,Math.floor((cap-spent)/m.ws)):Math.min(qtyPerStrain,p.rem);
+                        var qty=catCount>=targetStrains?Math.min(qtyPerStrain,p.rem,Math.floor((cap-spent)/m.ws)):Math.min(qtyPerStrain,p.rem);
                         if(qty<10)return;
                         qty=Math.round(qty/10)*10;
                         if(qty<10)return;
                         p.rem-=qty;spent+=qty*m.ws;catCount++;
+                        ihsCounts[m.ihs||'Hybrid']=(ihsCounts[m.ihs||'Hybrid']||0)+1;
                         var strain=p.sku.replace(/^Globs\s*-\s*/i,'').split(' - ')[0].trim();
                         var catLabel=m.cat==='cart'?'Vape Cart - Live Resin':m.cat.charAt(0).toUpperCase()+m.cat.slice(1);
                         var skuNk=nk(p.sku);var strainNk=nk(strain);
                         var isNewForStore=!o.skus.some(function(s){return nk(s.sku)===skuNk||nk(s.strain||'')===strainNk;});
+                        var strainClean=strain.toLowerCase().replace(/[^a-z0-9]/g,'');
+                        var isOnMenu=onMenuStrains[strainClean]||false;
                         var slu=strainLookup(strain);var genetics=(slu&&slu.c)?slu.c.replace(/\bx\b/gi,' \u00d7 '):(slu&&slu.d)?extractCross(slu.d):'';
-                        lineArr.push({strain:strain,sku:p.sku,cat:catLabel,qty:qty,ws:m.ws,lineRev:qty*m.ws,onHand:p.onHand,zoneStart:p.onHand,zn:zoneLabel[o.zone]||o.zone||'',low:qty<10,isNew:p.isNew,isNewForStore:isNewForStore,genetics:genetics});
+                        lineArr.push({strain:strain,sku:p.sku,cat:catLabel,qty:qty,ws:m.ws,lineRev:qty*m.ws,onHand:p.onHand,zoneStart:p.onHand,zn:zoneLabel[o.zone]||o.zone||'',low:qty<10,isNew:p.isNew,isNewForStore:isNewForStore,isOnMenu:isOnMenu,genetics:genetics});
                       });
                     });
                     if(lineArr.length>0){alloc[o.name]=lineArr;allocCount++;}
@@ -3870,16 +4206,25 @@ window._STRAIN_DB=[
                   var pctAlloc=totalInvStart>0?Math.round((totalInvStart-totalRemaining)/totalInvStart*100):0;
 
                   // Filters
-                  var repSet={};var repZoneMap={};OPP.forEach(function(o){if(o.rep){repSet[o.rep]=true;if(!repZoneMap[o.rep])repZoneMap[o.rep]={};repZoneMap[o.rep][o.zone]=(repZoneMap[o.rep][o.zone]||0)+1;}});
-                  // Include ALL reps from displayAccounts so filter shows everyone
-                  displayAccounts.forEach(function(a){if(a.rep){repSet[a.rep]=true;var zRaw=(a.zone||'').trim();var z=zRaw.toLowerCase().includes('upnorth')||zRaw==='RB UpNorth'?'RB':zRaw.toLowerCase().includes('dnu')||zRaw.toLowerCase().includes('yz')?'DNU':zRaw==='ZASP'||zRaw.toLowerCase().includes('zasp')?'ZASP':'RB';if(!repZoneMap[a.rep])repZoneMap[a.rep]={};repZoneMap[a.rep][z]=(repZoneMap[a.rep][z]||0)+1;}});
-                  var uniqueReps=Object.keys(repSet).sort();
+                  var repSet={};var repZoneMap={};OPP.forEach(function(o){var rp=(o.rep||'').trim();if(rp){repSet[rp]=true;if(!repZoneMap[rp])repZoneMap[rp]={};repZoneMap[rp][o.zone]=(repZoneMap[rp][o.zone]||0)+1;}});
+                  displayAccounts.forEach(function(a){var rp=(a.rep||'').trim();if(rp){repSet[rp]=true;var zRaw=(a.zone||'').trim();var z=zRaw.toLowerCase().includes('upnorth')||zRaw==='RB UpNorth'?'RB':zRaw.toLowerCase().includes('dnu')||zRaw.toLowerCase().includes('yz')?'DNU':zRaw==='ZASP'||zRaw.toLowerCase().includes('zasp')?'ZASP':'RB';if(!repZoneMap[rp])repZoneMap[rp]={};repZoneMap[rp][z]=(repZoneMap[rp][z]||0)+1;}});
+                  var uniqueReps=Object.keys(repSet).filter(function(r){return r.length>0;}).sort();
                   function repToZone(rep){var zm=repZoneMap[rep];if(!zm)return'ALL';var best='ALL',max=0;Object.keys(zm).forEach(function(z){if(zm[z]>max){max=zm[z];best=z;}});return best;}
                   var oFilt=OPP.filter(function(o){
+                    if(oHideMock&&o.isNoMock)return false;
                     if(oZone!=="ALL"){var z=o.zone==="DNU"||o.zone==="YZ"?"DNU":o.zone;if(z!==oZone)return false;}
                     if(oStatus!=="ALL"&&o.status!==oStatus)return false;
                     if(oRep!=="ALL"&&o.rep!==oRep)return false;
-                    // Period-scope: OVERDUE/FALLEN OFF only show if last order was within the period window
+                    // Category filter: only show accounts that buy this category
+                    if(oCat!=="ALL"){
+                      var hasCat=o.skus.some(function(s){var cl=(s.category||'').toLowerCase();
+                        if(oCat==='cart')return cl.includes('cart')||cl.includes('vape')||cl.includes('batter');
+                        if(oCat==='badder')return cl.includes('badder');
+                        if(oCat==='sauce')return cl.includes('sauce');
+                        if(oCat==='diamonds')return cl.includes('diamond');
+                        return false;});
+                      if(!hasCat)return false;
+                    }
                     if((o.status==='OVERDUE'||o.status==='FALLEN OFF')&&o.daysSince>periodDays)return false;
                     return true;
                   });
@@ -3946,6 +4291,14 @@ window._STRAIN_DB=[
                       React.createElement('div',{style:{marginBottom:8}},
                         React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:6}},'STATUS'),
                         React.createElement('div',{style:{display:'flex',background:C.surface,borderRadius:8,border:'1px solid '+C.border,overflow:'hidden',overflowX:'auto',WebkitOverflowScrolling:'touch'}},["ALL","OVERDUE","FALLEN OFF","DUE SOON","ACTIVE"].map(function(s,i,arr){return React.createElement('button',{key:s,onClick:function(){setOStatus(s);},style:{flex:'0 0 auto',padding:'10px 12px',fontSize:11,fontWeight:oStatus===s?700:400,border:'none',borderRight:i<arr.length-1?'1px solid '+C.border:'none',background:oStatus===s?C.text:'transparent',color:oStatus===s?C.bg:C.muted,fontFamily:'inherit',cursor:'pointer',whiteSpace:'nowrap'}},s==="ALL"?"All":s==="ACTIVE"?"On Track":s);}))
+                      ),
+                      React.createElement('div',{style:{marginBottom:8}},
+                        React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:6}},'CATEGORY'),
+                        React.createElement('div',{style:{display:'flex',background:C.surface,borderRadius:8,border:'1px solid '+C.border,overflow:'hidden'}},["ALL","cart","badder","sauce","diamonds"].map(function(c,i,arr){return React.createElement('button',{key:c,onClick:function(){setOCat(c);},style:{flex:1,padding:'10px 0',fontSize:11,fontWeight:oCat===c?700:400,border:'none',borderRight:i<arr.length-1?'1px solid '+C.border:'none',background:oCat===c?C.text:'transparent',color:oCat===c?C.bg:C.muted,fontFamily:'inherit',cursor:'pointer'}},c==="ALL"?"All":c.charAt(0).toUpperCase()+c.slice(1));}))
+                      ),
+                      React.createElement('div',{style:{display:'flex',gap:8,marginBottom:8,alignItems:'center'}},
+                        React.createElement('button',{onClick:function(){setOHideMock(!oHideMock);},style:{padding:'6px 12px',borderRadius:4,fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'inherit',letterSpacing:0.5,border:'1px solid '+(oHideMock?C.good+'66':C.warn+'66'),background:oHideMock?C.good+'15':C.warn+'15',color:oHideMock?C.good:C.warn}},oHideMock?'\u2713 No-Mock Hidden ('+OPP.filter(function(o){return o.isNoMock;}).length+')':'Show All (incl. '+OPP.filter(function(o){return o.isNoMock;}).length+' No-Mock)'),
+                        missingMoney.length>0?React.createElement('span',{style:{fontSize:9,color:C.dim}},'Missing Money: '+missingMoney.length+' accounts loaded'):null
                       ),
                       authRole==='exec'?React.createElement('div',{style:{marginBottom:8}},
                         React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:6}},'REP'),
@@ -4064,97 +4417,228 @@ window._STRAIN_DB=[
                     ),
                     React.createElement('div',{style:{display:'flex',flexDirection:'column',gap:6}},
                       oFilt.map(function(o,i){
-                        var ratio=o.median>0?(o.daysSince/o.median).toFixed(1):'?';
-                        var isOpen=!!openOpps[o.name];
-                        var lines=(alloc[o.name]||[]).slice().sort(function(a,b){return b.lineRev-a.lineRev;});
+                        var lines=(alloc[o.name]||[]).slice();
+                        if(oCat!=='ALL'){lines=lines.filter(function(l){var lc=(l.cat||'').toLowerCase();if(oCat==='cart')return lc.includes('cart')||lc.includes('vape')||lc.includes('batter');if(oCat==='badder')return lc.includes('badder');if(oCat==='sauce')return lc.includes('sauce');if(oCat==='diamonds')return lc.includes('diamond');return true;});}
+                        lines.sort(function(a,b){return b.lineRev-a.lineRev;});
                         var orderRev=lines.reduce(function(s,l){return s+l.lineRev;},0);
                         var orderUnits=lines.reduce(function(s,l){return s+l.qty;},0);
                         var sc2=o.status==="FALLEN OFF"?C.danger:o.status==="OVERDUE"?C.warn:o.status==="DUE SOON"?C.info:C.good;
                         var isOnTrack=o.status==='ACTIVE';
-                        var dimCard=!o.hasPeriodActivity&&(isOnTrack||o.status==='DUE SOON');
                         var statusLabel=isOnTrack?'ON TRACK':o.status;
-                        return React.createElement('div',{key:o.name+i,id:'opp-card-'+i,style:{background:C.surface,border:'1px solid '+C.border,borderLeft:'3px solid '+sc2,borderRadius:0,opacity:dimCard?0.5:1}},
-                          React.createElement('div',{onClick:function(){setOpenOpps(function(p){var n2=Object.assign({},p);n2[o.name]=!n2[o.name];return n2;});},style:{padding:'12px 12px',cursor:'pointer',background:isOpen?C.raised:'transparent',WebkitTapHighlightColor:'transparent'}},
-                            React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}},
-                              React.createElement('div',{style:{fontSize:14,fontWeight:700}},o.name),
-                              React.createElement('div',{style:{display:'flex',gap:6,alignItems:'center'}},
-                                o.hasPeriodActivity?React.createElement('span',{style:{fontSize:8,padding:'2px 5px',borderRadius:2,background:C.good+'22',color:C.good,fontWeight:700}},periodDays+'d'):null,
-                                React.createElement('span',{style:{fontSize:10,padding:'2px 7px',borderRadius:3,background:C.border,color:C.muted,fontWeight:600}},o.zone),
-                                React.createElement('span',{style:{fontSize:10,padding:'2px 7px',borderRadius:3,background:sc2+'22',color:sc2,fontWeight:700}},statusLabel),
-                                React.createElement('span',{style:{color:C.dim,fontSize:10}},isOpen?'\u25BC':'\u25B6'))
-                            ),
-                            React.createElement('div',{style:{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:4,marginBottom:6}},
-                              React.createElement('div',{style:{background:C.bg,borderRadius:3,padding:'4px 0',textAlign:'center'}},React.createElement('div',{style:{fontSize:12,fontWeight:700}},curK(o.rev)),React.createElement('div',{style:{fontSize:8,color:C.dim}},'365d Rev')),
-                              isOnTrack?React.createElement('div',{style:{background:C.good+'22',borderRadius:3,padding:'4px 0',textAlign:'center'}},React.createElement('div',{style:{fontSize:14,color:C.good}},'\u2713'),React.createElement('div',{style:{fontSize:9,color:C.good,fontWeight:600}},'On Track')):React.createElement('div',{style:{background:C.bg,borderRadius:3,padding:'4px 0',textAlign:'center'}},React.createElement('div',{style:{fontSize:12,fontWeight:700,color:o.daysSince>90?C.danger:o.daysSince>45?C.warn:C.text}},o.daysSince+'d'),React.createElement('div',{style:{fontSize:8,color:C.dim}},'Last Order')),
-                              React.createElement('div',{style:{background:C.bg,borderRadius:3,padding:'4px 0',textAlign:'center'}},React.createElement('div',{style:{fontSize:12,fontWeight:700}},o.median+'d'),React.createElement('div',{style:{fontSize:9,color:C.dim}},'Cadence')),
-                              React.createElement('div',{style:{background:C.bg,borderRadius:3,padding:'4px 0',textAlign:'center'}},React.createElement('div',{style:{fontSize:12,fontWeight:700}},o.orders),React.createElement('div',{style:{fontSize:9,color:C.dim}},'Orders')),
-                              React.createElement('div',{style:{background:(o.goalPct>=80?C.good:o.goalPct>=50?C.warn:C.danger)+'22',borderRadius:3,padding:'4px 0',textAlign:'center'}},React.createElement('div',{style:{fontSize:12,fontWeight:700,color:o.goalPct>=80?C.good:o.goalPct>=50?C.warn:C.danger}},o.goalPct+'%'),React.createElement('div',{style:{fontSize:9,color:C.dim}},'Goal'))
-                            ),
-                            React.createElement('div',{style:{display:'flex',gap:8,fontSize:11,color:C.dim,alignItems:'center'}},
-                              o.rep?React.createElement('span',null,o.rep):null,
-                              React.createElement('span',{className:'no-screenshot',style:{fontWeight:600,color:o.goalPct>=80?C.good:o.goalPct>=50?C.warn:C.danger}},curK(o.recentPace)+' pace / '+curK(o.growthTarget)+' target'),
-                              !isOnTrack&&lines.length>0?React.createElement('span',{style:{color:C.good,marginLeft:'auto'}},lines.length+' SKUs \u00b7 '+curK(orderRev)):null,
-                              isOnTrack?React.createElement('span',{style:{color:C.dim,marginLeft:'auto',fontSize:10}},'\u223c'+(o.median-o.daysSince)+'d to next order'):null
-                            )
-                          ),
-                          isOpen&&lines.length>0?React.createElement('div',{style:{borderTop:'1px solid '+C.border,padding:'10px 12px'}},
-                            React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:1.5,textTransform:'uppercase',marginBottom:8,fontWeight:700}},'SUGGESTED REORDER \u00b7 '+lines.length+' SKUs \u00b7 '+curK(orderRev)+' total'),
-                            lines.map(function(l,li){return React.createElement('div',{key:l.sku||li,style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px solid '+C.border+'33',gap:8,flexWrap:'wrap'}},
-                              React.createElement('div',{style:{flex:1,minWidth:0}},
-                                React.createElement('div',{style:{fontSize:11,fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:4,flexWrap:'wrap'}},l.strain,l.isNew?React.createElement('span',{style:{fontSize:7,fontWeight:700,color:'#00bcd4',background:'#00bcd422',padding:'1px 4px',borderRadius:2}},'NEW SKU'):null,l.isNewForStore&&!l.isNew?React.createElement('span',{style:{fontSize:7,fontWeight:700,color:'#ff9800',background:'#ff980022',padding:'1px 4px',borderRadius:2}},'NEW FOR STORE'):null,l.isNewForStore&&l.isNew?React.createElement('span',{style:{fontSize:7,fontWeight:700,color:'#ff9800',background:'#ff980022',padding:'1px 4px',borderRadius:2}},'1ST ORDER'):null),
-                                l.genetics?React.createElement('div',{style:{fontSize:9,color:C.dim,fontStyle:'italic',marginTop:-1}},l.genetics):null,
-                                React.createElement('div',{style:{fontSize:10,color:C.dim}},l.cat)
+                        var dimCard=!o.hasPeriodActivity&&(isOnTrack||o.status==='DUE SOON');
+                        var isExp=!!oppExpanded[o.name];
+                        // Group lines by category for reorder display
+                        var cartLines=lines.filter(function(l){var lc=(l.cat||'').toLowerCase();return lc.includes('cart')||lc.includes('vape')||lc.includes('batter');});
+                        var badderLines=lines.filter(function(l){return(l.cat||'').toLowerCase().includes('badder');});
+                        var sauceLines=lines.filter(function(l){return(l.cat||'').toLowerCase().includes('sauce');});
+                        var diaLines=lines.filter(function(l){return(l.cat||'').toLowerCase().includes('diamond');});
+                        return React.createElement('div',{key:o.name+i,id:'opp-card-'+i,style:{background:C.surface,border:o.isNoMock?'1px dashed #ff980044':'1px solid '+C.border,borderRadius:8,marginBottom:6,overflow:'hidden',opacity:dimCard?0.5:o.isNoMock?0.5:1}},
+                          // ── CARD HEADER (always visible) ──
+                          React.createElement('div',{onClick:function(){setOppExpanded(function(p){var n2=Object.assign({},p);n2[o.name]=!n2[o.name];return n2;});},style:{display:'flex',gap:8,alignItems:'center',padding:'10px 12px',cursor:'pointer',WebkitTapHighlightColor:'transparent'}},
+                            React.createElement('div',{style:{width:4,alignSelf:'stretch',borderRadius:2,background:sc2,flexShrink:0}}),
+                            React.createElement('div',{style:{flex:1,minWidth:0}},
+                              React.createElement('div',{style:{display:'flex',alignItems:'center',gap:5,flexWrap:'wrap'}},
+                                React.createElement('span',{style:{fontSize:12,fontWeight:700}},o.name),
+                                React.createElement('span',{style:{fontSize:7,padding:'1.5px 5px',borderRadius:2,fontWeight:700,background:sc2+'22',color:sc2}},statusLabel+(o.daysSince>0&&!isOnTrack?' '+o.daysSince+'d':'')),
+                                !o.hasStaffEd?React.createElement('span',{style:{fontSize:7,padding:'1.5px 5px',borderRadius:2,background:'#e91e6322',color:'#e91e63',fontWeight:700}},'NEEDS SAMPLES'):null,
+                                o.isNoMock?React.createElement('span',{style:{fontSize:7,padding:'1.5px 5px',borderRadius:2,background:'#ff980022',color:'#ff9800',fontWeight:700}},'NO MOCK'):null
                               ),
-                              React.createElement('div',{style:{display:'flex',gap:12,alignItems:'center',flexShrink:0}},
-                                React.createElement('span',{style:{fontSize:11,fontWeight:700}},l.qty+'x'),
-                                React.createElement('span',{style:{fontSize:10,color:C.muted}},'@'+cur(l.ws)),
-                                React.createElement('span',{style:{fontSize:11,fontWeight:700,color:C.good,minWidth:50,textAlign:'right'}},cur(l.lineRev))
-                              )
-                            );}),
-                            React.createElement('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:8,marginTop:4}},
-                              React.createElement('span',{style:{fontSize:11,fontWeight:800}},orderUnits+' units'),
-                              React.createElement('span',{style:{fontSize:13,fontWeight:900,color:C.good}},curK(orderRev)+' total'),
-                              React.createElement('span',{className:'no-screenshot',style:{fontSize:10,color:C.dim,marginLeft:4}},'(cap '+curK(Math.round(o.avgOrderVal*1.15))+')')
+                              React.createElement('div',{style:{display:'flex',gap:6,fontSize:9,color:'#666',marginTop:3}},
+                                o.rep?React.createElement('span',null,o.rep):null,
+                                React.createElement('span',null,o.zone),
+                                React.createElement('span',null,o.orders+' orders'),
+                                React.createElement('span',null,'every '+o.median+'d')
+                              ),
+                              // Visual cadence bar — always visible
+                              o.median>0?React.createElement('div',{style:{marginTop:5}},
+                                React.createElement('div',{style:{display:'flex',justifyContent:'space-between',fontSize:8,color:'#555',marginBottom:2}},
+                                  React.createElement('span',null,o.daysSince+'d since last order'),
+                                  React.createElement('span',null,o.median+'d cadence')
+                                ),
+                                React.createElement('div',{style:{height:4,background:'#1a1714',borderRadius:2,overflow:'visible',position:'relative'}},
+                                  // Expected cadence marker
+                                  React.createElement('div',{style:{position:'absolute',left:Math.min(100,100)+'%',top:-1,width:1,height:6,background:'#555',zIndex:1}}),
+                                  // Progress fill
+                                  React.createElement('div',{style:{height:'100%',width:Math.min(o.daysSince/o.median*100,150)+'%',maxWidth:'150%',background:o.daysSince<=o.median?C.good:o.daysSince<=o.median*1.5?C.warn:C.danger,borderRadius:2,transition:'width .3s'}})
+                                )
+                              ):null
                             ),
-                            React.createElement('div',{style:{display:'flex',gap:6,marginTop:10,justifyContent:'flex-end',flexWrap:'wrap'}},
-                              React.createElement('button',{onClick:function(){window._goAcct&&window._goAcct(o.name);},style:{padding:'8px 16px',borderRadius:3,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.border,background:'transparent',color:C.muted}},'View Account'),
-                              React.createElement('button',{className:'no-screenshot',onClick:async function(){
-                                try{
-                                  var el=document.getElementById('opp-card-'+i);
-                                  if(!el||!window.html2canvas){toast('\u2717 Screenshot not available');return;}
-                                  toast('\uD83D\uDCF2 Capturing...');
-                                  var hide=el.querySelectorAll('.no-screenshot');hide.forEach(function(h){h.style.display='none';});
-                                  var canvas=await html2canvas(el,{backgroundColor:'#0a0a0a',scale:2});
-                                  hide.forEach(function(h){h.style.display='';});
-                                  canvas.toBlob(async function(blob){
-                                    var fname='globs-'+o.name.replace(/[^a-z0-9]/gi,'-').toLowerCase()+'.png';
-                                    if(navigator.share&&navigator.canShare){
-                                      var file=new File([blob],fname,{type:'image/png'});
-                                      if(navigator.canShare({files:[file]})){await navigator.share({title:'Globs — '+o.name,files:[file]});toast('\u2713 Shared');return;}
+                            React.createElement('div',{style:{textAlign:'right',flexShrink:0}},
+                              React.createElement('div',{style:{fontSize:15,fontWeight:300,fontFamily:'monospace'}},curK(o.rev)),
+                              React.createElement('div',{style:{fontSize:8,color:'#555'}},'365d'+(o.mm&&o.mm.avg3mo>0?' \u00b7 '+curK(o.mm.avg3mo)+'/mo':''))
+                            ),
+                            React.createElement('div',{style:{fontSize:10,color:'#555',transition:'transform .2s',transform:isExp?'rotate(90deg)':'none',flexShrink:0}},'\u25B6')
+                          ),
+                          // ── EXPANDABLE BODY ──
+                          isExp?React.createElement('div',{style:{borderTop:'1px solid #1a1714'}},
+                            // Section: SKU BASELINE
+                            React.createElement('div',{style:{padding:'8px 12px',borderBottom:'1px solid #1a1714'}},
+                              React.createElement('div',{style:{fontSize:7,letterSpacing:2,color:'#444',fontWeight:700,marginBottom:5}},'MENU INTELLIGENCE'),
+                              // Gap analysis table
+                              React.createElement('div',{style:{display:'grid',gridTemplateColumns:'55px 1fr 1fr 1fr 1fr',gap:2,marginBottom:6}},
+                                // Header row
+                                React.createElement('div',{style:{fontSize:7,color:'#333'}},''),
+                                React.createElement('div',{style:{fontSize:7,color:'#6fa8d6',textAlign:'center',fontWeight:700}},'Carts'),
+                                React.createElement('div',{style:{fontSize:7,color:'#d4a24c',textAlign:'center',fontWeight:700}},'Badder'),
+                                React.createElement('div',{style:{fontSize:7,color:'#7cb87a',textAlign:'center',fontWeight:700}},'Sauce'),
+                                React.createElement('div',{style:{fontSize:7,color:'#9b8ec4',textAlign:'center',fontWeight:700}},'Diamonds'),
+                                // Ordering row
+                                React.createElement('div',{style:{fontSize:7,color:'#555',fontWeight:600}},'Ordering'),
+                                [['cart','#6fa8d6'],['badder','#d4a24c'],['sauce','#7cb87a'],['diamonds','#9b8ec4']].map(function(c){
+                                  var v=o.strainsPerOrder?Math.round(o.strainsPerOrder[c[0]]||0):0;
+                                  return React.createElement('div',{key:'ord-'+c[0],style:{textAlign:'center',fontSize:9,fontWeight:600,color:v>0?c[1]:'#333'}},v||'\u2014');
+                                }),
+                                // On Menu row (scraped)
+                                React.createElement('div',{style:{fontSize:7,color:'#555',fontWeight:600}},'On Menu'),
+                                (function(){
+                                  var ms=o.pricing&&o.pricing.menuStrains;
+                                  return [['cart','#6fa8d6'],['badder','#d4a24c'],['sauce','#7cb87a'],['diamonds','#9b8ec4']].map(function(c){
+                                    var v=ms&&ms[c[0]]?ms[c[0]].length:0;
+                                    // Fallback to Missing Money data
+                                    if(v===0&&o.mm){
+                                      if(c[0]==='cart')v=o.mm.menuCarts||0;
+                                      if(c[0]==='badder')v=o.mm.menuBadder||0;
+                                      if(c[0]==='sauce')v=o.mm.menuSauce||0;
                                     }
-                                    var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download=fname;a.click();URL.revokeObjectURL(url);toast('\u2713 Saved');
-                                  },'image/png');
-                                }catch(e){toast('\u2717 Failed');}
-                              },style:{padding:'8px 16px',borderRadius:3,fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.info,background:C.info+'22',color:C.info}},'\uD83D\uDCF2 Screenshot')
+                                    return React.createElement('div',{key:'menu-'+c[0],style:{textAlign:'center',fontSize:9,fontWeight:600,color:v>0?c[1]:'#333'}},v||'\u2014');
+                                  });
+                                })(),
+                                // In Stock row (from inventory)
+                                React.createElement('div',{style:{fontSize:7,color:'#555',fontWeight:600}},'In Stock'),
+                                (function(){
+                                  var cats={cart:0,badder:0,sauce:0,diamonds:0};
+                                  Object.keys(inventoryData||{}).forEach(function(k){
+                                    var oh=parseInt((inventoryData[k].onHand||inventoryData[k])||0);
+                                    if(oh<=0)return;
+                                    var kl=k.toLowerCase();
+                                    if(kl.includes('cart')||kl.includes('vape'))cats.cart++;
+                                    else if(kl.includes('badder'))cats.badder++;
+                                    else if(kl.includes('sauce'))cats.sauce++;
+                                    else if(kl.includes('diamond'))cats.diamonds++;
+                                  });
+                                  return [['cart','#6fa8d6'],['badder','#d4a24c'],['sauce','#7cb87a'],['diamonds','#9b8ec4']].map(function(c){
+                                    return React.createElement('div',{key:'inv-'+c[0],style:{textAlign:'center',fontSize:9,fontWeight:600,color:cats[c[0]]>0?'#4ade80':'#333'}},cats[c[0]]||'\u2014');
+                                  });
+                                })(),
+                                // Gap row
+                                React.createElement('div',{style:{fontSize:7,color:C.warn,fontWeight:700}},'Gap'),
+                                (function(){
+                                  var ms=o.pricing&&o.pricing.menuStrains;
+                                  var cats={cart:0,badder:0,sauce:0,diamonds:0};
+                                  Object.keys(inventoryData||{}).forEach(function(k){
+                                    var oh=parseInt((inventoryData[k].onHand||inventoryData[k])||0);
+                                    if(oh<=0)return;
+                                    var kl=k.toLowerCase();
+                                    if(kl.includes('cart')||kl.includes('vape'))cats.cart++;
+                                    else if(kl.includes('badder'))cats.badder++;
+                                    else if(kl.includes('sauce'))cats.sauce++;
+                                    else if(kl.includes('diamond'))cats.diamonds++;
+                                  });
+                                  return [['cart','#6fa8d6'],['badder','#d4a24c'],['sauce','#7cb87a'],['diamonds','#9b8ec4']].map(function(c){
+                                    var onMenu=ms&&ms[c[0]]?ms[c[0]].length:0;
+                                    if(onMenu===0&&o.mm){
+                                      if(c[0]==='cart')onMenu=o.mm.menuCarts||0;
+                                      if(c[0]==='badder')onMenu=o.mm.menuBadder||0;
+                                      if(c[0]==='sauce')onMenu=o.mm.menuSauce||0;
+                                    }
+                                    var avail=cats[c[0]]-onMenu;
+                                    return React.createElement('div',{key:'gap-'+c[0],style:{textAlign:'center',fontSize:9,fontWeight:700,color:avail>0?'#4ade80':avail<0?'#555':'#333'}},avail>0?'+'+avail:avail===0?'\u2014':avail);
+                                  });
+                                })()
+                              ),
+                              // Strain-level detail if available
+                              o.pricing&&o.pricing.menuStrains?(function(){
+                                var ms=o.pricing.menuStrains;
+                                var hasStrains=Object.keys(ms).some(function(k){return ms[k].length>0&&ms[k][0].strain&&!ms[k][0].strain.includes('Live Resin')&&!ms[k][0].strain.includes('Extracts');});
+                                if(!hasStrains)return null;
+                                var catColors={cart:'#6fa8d6',badder:'#d4a24c',sauce:'#7cb87a',diamonds:'#9b8ec4',shatter:'#c95f4f'};
+                                var catLabels={cart:'Cart',badder:'Badder',sauce:'Sauce',diamonds:'Diamonds',shatter:'Shatter'};
+                                return React.createElement('div',{style:{fontSize:8,color:'#666',marginTop:2}},
+                                  React.createElement('span',{style:{color:'#555',fontWeight:600}},'On shelf: '),
+                                  Object.keys(ms).filter(function(k){return ms[k].length>0;}).map(function(k,ki){
+                                    var validStrains=ms[k].filter(function(s){return s.strain&&!s.strain.includes('Live Resin')&&!s.strain.includes('Extracts')&&!s.strain.includes('1g');});
+                                    if(validStrains.length===0)return null;
+                                    return validStrains.map(function(s,si){
+                                      return React.createElement('span',{key:k+'-'+si,style:{marginRight:6}},
+                                        React.createElement('span',{style:{color:'#e8e0d4'}},s.strain),
+                                        React.createElement('span',{style:{color:catColors[k]||'#888',fontSize:7,marginLeft:2}},'('+catLabels[k]+')')
+                                      );
+                                    });
+                                  })
+                                );
+                              })():null,
+                              // Retail pricing
+                              o.pricing&&o.pricing.avgPrice>0?React.createElement('div',{style:{display:'flex',gap:8,marginTop:4,fontSize:8,alignItems:'center',padding:'3px 0',borderTop:'1px solid #1a1714'}},
+                                React.createElement('span',{style:{color:'#555',fontWeight:600}},'Retail:'),
+                                React.createElement('span',{style:{color:o.pricing.avgPrice<18?'#f44336':o.pricing.avgPrice>24?'#4ade80':'#e8e0d4',fontWeight:700}},'$'+o.pricing.avgPrice.toFixed(0)+' avg'),
+                                o.pricing.minPrice!==o.pricing.maxPrice?React.createElement('span',{style:{color:'#555'}},'($'+o.pricing.minPrice.toFixed(0)+'\u2013$'+o.pricing.maxPrice.toFixed(0)+')'):null,
+                                o.pricing.avgPrice<16?React.createElement('span',{style:{fontSize:7,padding:'1px 4px',borderRadius:2,background:'#f4433622',color:'#f44336',fontWeight:700}},'BELOW FLOOR'):null,
+                                o.pricing.platform?React.createElement('span',{style:{fontSize:7,color:'#444',marginLeft:'auto'}},o.pricing.platform):null
+                              ):null,
+                              o.smartReorder&&o.smartReorder.dominant?React.createElement('div',{style:{fontSize:8,color:'#666',marginTop:3}},
+                                React.createElement('span',{style:{fontWeight:600,color:C.muted}},'Lean: '),React.createElement('span',{style:{textTransform:'capitalize'}},o.smartReorder.dominant),
+                                o.smartReorder.upsell.length>0?React.createElement('span',{style:{color:C.warn,marginLeft:6}},' \u00b7 Upsell: '+o.smartReorder.upsell.map(function(c){return c.charAt(0).toUpperCase()+c.slice(1);}).join(', ')):null
+                              ):null
+                            ),
+                            // Section: UPNORTH · AR
+                            o.mm?React.createElement('div',{style:{padding:'8px 12px',borderBottom:'1px solid #1a1714'}},
+                              React.createElement('div',{style:{fontSize:7,letterSpacing:2,color:'#444',fontWeight:700,marginBottom:5}},'UPNORTH \u00b7 AR'),
+                              React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:4}},
+                                React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px'}},React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'AR HEALTH'),React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1,color:o.mm.arHealth==='Good'?C.good:o.mm.arHealth==='Moderate'?C.warn:'#f44336'}},o.mm.arHealth||'\u2014')),
+                                React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px'}},React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'STOCK'),React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1}},o.mm.stockPct!==null?o.mm.stockPct+'%':'\u2014')),
+                                React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px'}},React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'3MO AVG'),React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1}},o.mm.avg3mo>0?curK(o.mm.avg3mo):'\u2014')),
+                                React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px'}},React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'MISSING'),React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1,color:o.mm.missingThisMo<0?'#f44336':o.mm.missingThisMo>0?C.good:'#888'}},o.mm.missingThisMo<0?'-'+curK(Math.abs(o.mm.missingThisMo)):o.mm.missingThisMo>0?'+'+curK(o.mm.missingThisMo):'\u2014'))
+                              )
+                            ):null,
+                            // Section: PROMO STATUS
+                            React.createElement('div',{style:{padding:'8px 12px',borderBottom:'1px solid #1a1714'}},
+                              React.createElement('div',{style:{fontSize:7,letterSpacing:2,color:'#444',fontWeight:700,marginBottom:5}},'PROMO STATUS'),
+                              React.createElement('div',{style:{display:'flex',gap:6,alignItems:'center'}},
+                                o.promoUnits>0?React.createElement('span',{style:{fontSize:8,padding:'2px 6px',borderRadius:3,background:'#9c27b022',border:'1px solid #9c27b044',color:'#9c27b0',fontWeight:600}},o.promoUnits+' promo'):null,
+                                o.premiumPromoUnits>0?React.createElement('span',{style:{fontSize:8,padding:'2px 6px',borderRadius:3,background:C.good+'22',border:'1px solid '+C.good+'44',color:C.good,fontWeight:600}},o.premiumPromoUnits+' staff ed \u2713'):React.createElement('span',{style:{fontSize:8,padding:'2px 6px',borderRadius:3,background:'#e91e6311',border:'1px solid #e91e6333',color:'#e91e63',fontWeight:600}},'0 staff ed')
+                              )
+                            ),
+                            // Section: SUGGESTED REORDER
+                            lines.length>0&&!isOnTrack?React.createElement('div',{style:{padding:'8px 12px',background:'#0a0806'}},
+                              React.createElement('div',{style:{fontSize:7,letterSpacing:2,color:C.good+'88',fontWeight:700,marginBottom:5}},'SUGGESTED REORDER'),
+                              lines.map(function(l,li){
+                                // Get IHS type from strain lookup
+                                var slu2=strainLookup(l.strain);
+                                var ihs=slu2&&slu2.t?slu2.t:'';
+                                var ihsColor=ihs==='Indica'?'#9b8ec4':ihs==='Sativa'?'#d4a24c':ihs==='Hybrid'?'#6fa8d6':'#555';
+                                var catShort=l.cat.includes('Cart')?'Cart':l.cat.includes('Badder')||l.cat==='Badder'?'Badder':l.cat.includes('Sauce')||l.cat==='Sauce'?'Sauce':l.cat.includes('Diamond')?'Diamonds':l.cat.includes('Batter')||l.cat==='Battery'?'Battery':l.cat;
+                                return React.createElement('div',{key:l.sku||li,style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'3px 0',fontSize:9}},
+                                React.createElement('span',{style:{color:C.text,fontWeight:500,display:'flex',alignItems:'center',gap:4,flexWrap:'wrap'}},
+                                  l.strain,
+                                  React.createElement('span',{style:{fontSize:7,color:'#888',fontWeight:400}},catShort),
+                                  ihs?React.createElement('span',{style:{fontSize:6,color:ihsColor,fontWeight:600}},ihs.charAt(0)):null,
+                                  l.isOnMenu?React.createElement('span',{style:{fontSize:6,padding:'1px 3px',borderRadius:2,background:'#55555522',color:'#888',fontWeight:700}},'ON MENU'):null,
+                                  !l.isOnMenu&&!l.isNew?React.createElement('span',{style:{fontSize:6,padding:'1px 3px',borderRadius:2,background:'#4ade8022',color:'#4ade80',border:'1px solid #4ade8044',fontWeight:700}},'GAP FILL'):null,
+                                  l.isNew?React.createElement('span',{style:{fontSize:6,padding:'1px 3px',borderRadius:2,background:'#00bcd422',color:'#00bcd4',border:'1px solid #00bcd444',fontWeight:700}},'NEW SKU'):null,
+                                  l.isNewForStore&&!l.isNew&&!l.isOnMenu?React.createElement('span',{style:{fontSize:6,padding:'1px 3px',borderRadius:2,background:'#ff980022',color:'#ff9800',fontWeight:700}},'NEW FOR STORE'):null
+                                ),
+                                React.createElement('span',{style:{color:C.good,fontWeight:700,fontFamily:'monospace',fontSize:10}},l.qty)
+                              );}),
+                              React.createElement('div',{style:{display:'flex',justifyContent:'space-between',paddingTop:6,marginTop:4,borderTop:'1px solid #1a1714',fontSize:9,color:'#888'}},
+                                React.createElement('span',null,lines.length+' SKUs \u00b7 '+orderUnits+' units'),
+                                React.createElement('span',{style:{color:C.good,fontWeight:700}},'~'+curK(orderRev))
+                              )
+                            ):isOnTrack?React.createElement('div',{style:{padding:'8px 12px',background:'#0a0806'}},
+                              React.createElement('div',{style:{fontSize:7,letterSpacing:2,color:C.good+'88',fontWeight:700,marginBottom:5}},'ON TRACK'),
+                              React.createElement('div',{style:{display:'flex',justifyContent:'space-between',fontSize:9,marginBottom:4}},React.createElement('span',{style:{color:'#666'}},'Pace (90d annualized)'),React.createElement('span',{style:{fontWeight:700}},curK(o.recentPace))),
+                              React.createElement('div',{style:{display:'flex',justifyContent:'space-between',fontSize:9,marginBottom:4}},React.createElement('span',{style:{color:'#666'}},'Target (365d +15%)'),React.createElement('span',{style:{fontWeight:700}},curK(o.growthTarget))),
+                              React.createElement('div',{style:{height:4,background:'#111',borderRadius:2,overflow:'hidden',marginBottom:4}},React.createElement('div',{style:{width:Math.min(100,o.goalPct)+'%',height:'100%',background:o.goalPct>=80?C.good:o.goalPct>=50?C.warn:C.danger,borderRadius:2}})),
+                              React.createElement('div',{style:{textAlign:'center',fontSize:10,fontWeight:700,color:o.goalPct>=80?C.good:o.goalPct>=50?C.warn:C.danger}},o.goalPct+'% of goal'),
+                              React.createElement('div',{style:{textAlign:'center',fontSize:8,color:'#555',marginTop:2}},'~'+(o.median-o.daysSince)+'d to next order')
+                            ):null,
+                            // Action buttons
+                            React.createElement('div',{style:{display:'flex',gap:6,padding:'8px 12px',justifyContent:'flex-end',borderTop:'1px solid #1a1714'}},
+                              React.createElement('button',{onClick:function(){window._goAcct&&window._goAcct(o.name);},style:{padding:'6px 14px',borderRadius:3,fontSize:9,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.border,background:'transparent',color:C.muted}},'View Account'),
+                              React.createElement('button',{className:'no-screenshot',onClick:async function(){
+                                try{var el=document.getElementById('opp-card-'+i);if(!el||!window.html2canvas){toast('\u2717 Screenshot not available');return;}toast('\uD83D\uDCF2 Capturing...');var hide=el.querySelectorAll('.no-screenshot');hide.forEach(function(h){h.style.display='none';});var canvas=await html2canvas(el,{backgroundColor:'#0a0a0a',scale:2});hide.forEach(function(h){h.style.display='';});canvas.toBlob(async function(blob){var fname='globs-'+o.name.replace(/[^a-z0-9]/gi,'-').toLowerCase()+'.png';if(navigator.share&&navigator.canShare){var file=new File([blob],fname,{type:'image/png'});if(navigator.canShare({files:[file]})){await navigator.share({title:'Globs \u2014 '+o.name,files:[file]});toast('\u2713 Shared');return;}}var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download=fname;a.click();URL.revokeObjectURL(url);toast('\u2713 Saved');},'image/png');}catch(e){toast('\u2717 Failed');}
+                              },style:{padding:'6px 14px',borderRadius:3,fontSize:9,fontWeight:700,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.info,background:C.info+'22',color:C.info}},'\uD83D\uDCF2 Share')
                             )
-                          ):isOpen&&isOnTrack?React.createElement('div',{style:{borderTop:'1px solid '+C.border,padding:'12px'}},
-                            React.createElement('div',{style:{fontSize:10,color:C.good,letterSpacing:1.5,textTransform:'uppercase',marginBottom:8,fontWeight:700}},'ON TRACK \u00b7 '+o.daysSince+'d / '+o.median+'d cadence'),
-                            React.createElement('div',{style:{display:'flex',justifyContent:'space-between',fontSize:11,marginBottom:6}},
-                              React.createElement('span',{style:{color:C.dim}},'Annualized pace (from 90d)'),
-                              React.createElement('span',{style:{fontWeight:700}},curK(o.recentPace))
-                            ),
-                            React.createElement('div',{style:{display:'flex',justifyContent:'space-between',fontSize:11,marginBottom:6}},
-                              React.createElement('span',{style:{color:C.dim}},'Growth target (365d +15%)'),
-                              React.createElement('span',{style:{fontWeight:700}},curK(o.growthTarget))
-                            ),
-                            React.createElement('div',{style:{height:6,background:'#111',borderRadius:3,overflow:'hidden',marginBottom:6}},
-                              React.createElement('div',{style:{width:Math.min(100,o.goalPct)+'%',height:'100%',background:o.goalPct>=80?C.good:o.goalPct>=50?C.warn:C.danger,borderRadius:3}})
-                            ),
-                            React.createElement('div',{style:{textAlign:'center',fontSize:12,fontWeight:700,color:o.goalPct>=80?C.good:o.goalPct>=50?C.warn:C.danger}},o.goalPct+'% of goal'),
-                            React.createElement('div',{style:{textAlign:'center',fontSize:9,color:C.dim,marginTop:4}},'Next order expected in ~'+(o.median-o.daysSince)+'d \u00b7 No inventory allocated'),
-                            React.createElement('div',{style:{display:'flex',gap:6,marginTop:10,justifyContent:'flex-end'}},
-                              React.createElement('button',{onClick:function(){window._goAcct&&window._goAcct(o.name);},style:{padding:'8px 16px',borderRadius:3,fontSize:10,cursor:'pointer',fontFamily:'inherit',border:'1px solid '+C.border,background:'transparent',color:C.muted}},'View Account'))
-                          ):isOpen?React.createElement('div',{style:{borderTop:'1px solid '+C.border,padding:'16px',textAlign:'center',fontSize:11,color:C.dim}},inStockCount===0?'Upload Salesforce XLSX with inventory to enable suggestions':'No in-stock SKUs match this account\'s purchase categories'):null
+                          ):null
                         );
                       })
                     )
@@ -4605,6 +5089,18 @@ window._STRAIN_DB=[
                   if(dfu.length>0)priorities.push({num:priorities.length+1,text:'Close '+dfu.length+' demo follow-up'+(dfu.length>1?'s':'')+': '+dfu.map(function(d){return d.account;}).join(', '),tab:'Marketing'});
                   // 7. Single-order accounts
                   if(singleOrd.length>20)priorities.push({num:priorities.length+1,text:singleOrd.length+' accounts ordered once and never came back. Schedule demos for top 5.',tab:'Marketing'});
+                  // Missing Money alerts
+                  var mmDropped=(missingMoney||[]).filter(function(mm){return mm.missingThisMo<-500;}).sort(function(a,b){return a.missingThisMo-b.missingThisMo;});
+                  var mmTotalMissing=mmDropped.reduce(function(s,mm){return s+Math.abs(mm.missingThisMo);},0);
+                  if(mmDropped.length>0)priorities.push({num:priorities.length+1,text:'$'+Math.round(mmTotalMissing).toLocaleString()+' missing revenue across '+mmDropped.length+' accounts. Top: '+mmDropped.slice(0,3).map(function(mm){return mm.account+' (-'+curK(Math.abs(mm.missingThisMo))+')';}).join(', '),tab:'Opportunities'});
+                  // Pricing intel alerts
+                  if(pricingData&&Object.keys(pricingData).length>0){
+                    var prKeys=Object.keys(pricingData);
+                    var belowFloor=prKeys.filter(function(k){return pricingData[k].listed&&pricingData[k].minPrice>0&&pricingData[k].minPrice<16;});
+                    var notListed=prKeys.filter(function(k){return !pricingData[k].listed&&pricingData[k].status==='Sales target';});
+                    if(belowFloor.length>0)priorities.push({num:priorities.length+1,text:belowFloor.length+' stores pricing Globs below $16 floor: '+belowFloor.slice(0,3).map(function(k){return pricingData[k].account+' ($'+pricingData[k].minPrice+')';}).join(', '),tab:'Accounts'});
+                    if(notListed.length>5)priorities.push({num:priorities.length+1,text:notListed.length+' active accounts don\'t list Globs on their online menu — potential shelf presence gap.',tab:'Opportunities'});
+                  }
                   // 8. GL payment upcoming
                   var nextGL=glOwedActive.filter(function(r){return new Date(r.due+' 2026')>today;}).sort(function(a,b){return new Date(a.due+' 2026')-new Date(b.due+' 2026');})[0];
                   if(nextGL){var nextGLDays=Math.max(0,Math.round((new Date(nextGL.due+' 2026')-today)/86400000));if(nextGLDays<=21)priorities.push({num:priorities.length+1,text:'GL payment $'+nextGL.amt.toLocaleString()+' ('+nextGL.label+') due in '+nextGLDays+'d.',tab:'Executive'});}
@@ -6421,6 +6917,20 @@ window._STRAIN_DB=[
                   else oppFallen++;
                 });
                 ctx+='ACCOUNT HEALTH: '+oppTrack+' on track, '+oppDue+' due soon, '+oppOver+' overdue, '+oppFallen+' fallen off\n\n';
+              }
+              // ── PRICING INTEL ──
+              if(pricingData&&Object.keys(pricingData).length>0){
+                var prKeys=Object.keys(pricingData);
+                var listed=prKeys.filter(function(k){return pricingData[k].listed;});
+                var notListed=prKeys.filter(function(k){return !pricingData[k].listed&&pricingData[k].status!=='No menu found';});
+                var allPrices=listed.filter(function(k){return pricingData[k].avgPrice>0;}).map(function(k){return pricingData[k].avgPrice;});
+                var avgRetail=allPrices.length>0?Math.round(allPrices.reduce(function(s,v){return s+v;},0)/allPrices.length*100)/100:0;
+                var cheapest=listed.filter(function(k){return pricingData[k].minPrice>0;}).sort(function(a,b){return pricingData[a].minPrice-pricingData[b].minPrice;});
+                ctx+='PRICING INTEL (scraped '+prKeys.length+' accounts):\n';
+                ctx+=listed.length+' stores list Globs online, '+notListed.length+' have menus but dont list Globs\n';
+                ctx+='Average retail price: $'+avgRetail+'\n';
+                if(cheapest.length>0)ctx+='Cheapest: '+pricingData[cheapest[0]].account+' at $'+pricingData[cheapest[0]].minPrice+'\n';
+                ctx+='\n';
               }
               // ── STRAINS ──
               if(window._STRAIN_DB&&window._STRAIN_DB.length>0){
