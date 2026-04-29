@@ -1779,6 +1779,8 @@ window._STRAIN_DB=[
                       if(hl==='sku'||hl.includes('sku'))ai.sku=idx;
                       if(hl.includes('category'))ai.category=idx;
                       if(hl.includes('price'))ai.price=idx;
+                      if(hl.includes('menu url'))ai.menuUrl=idx;
+                      if(hl.includes('platform'))ai.platform=idx;
                     });
                     var menuMap={};
                     for(var ali=1;ali<alRows.length;ali++){
@@ -1791,12 +1793,40 @@ window._STRAIN_DB=[
                       var alStrain=alSku.replace(/^Globs\s*[-–]\s*/i,'').split(/\s*[-–]\s*Live Resin/i)[0].split(/\s*[-–]\s*1g/i)[0].trim();
                       var bucket=alCat.includes('cart')||alCat.includes('vape')?'cart':alCat.includes('badder')?'badder':alCat.includes('sauce')?'sauce':alCat.includes('diamond')?'diamonds':alCat.includes('shatter')?'shatter':'other';
                       if(!menuMap[alAcct])menuMap[alAcct]={cart:[],badder:[],sauce:[],diamonds:[],shatter:[]};
-                      if(menuMap[alAcct][bucket])menuMap[alAcct][bucket].push({strain:alStrain,price:alPrice,sku:alSku});
+                      if(menuMap[alAcct][bucket])menuMap[alAcct][bucket].push({strain:alStrain,price:alPrice,sku:alSku,url:ai.menuUrl!==undefined?String(alr[ai.menuUrl]||'').trim():'',platform:ai.platform!==undefined?String(alr[ai.platform]||'').trim():''});
                     }
-                    // Merge into pricingData
+                    // Merge into pricingData — build rollup from All Listings when Account Rollup is missing
                     Object.keys(menuMap).forEach(function(k){
-                      if(prMap[k])prMap[k].menuStrains=menuMap[k];
-                      else prMap[k]={menuStrains:menuMap[k]};
+                      var ms=menuMap[k];
+                      if(prMap[k]){
+                        prMap[k].menuStrains=ms;
+                      } else {
+                        // Build rollup from strain data
+                        var totalSkus=0;
+                        var hc=false,hb=false,hs=false,hd=false;
+                        var prices=[];
+                        var url='';var platform='';
+                        Object.keys(ms).forEach(function(cat){
+                          var items=ms[cat]||[];
+                          totalSkus+=items.length;
+                          if(cat==='cart'&&items.length>0)hc=true;
+                          if(cat==='badder'&&items.length>0)hb=true;
+                          if(cat==='sauce'&&items.length>0)hs=true;
+                          if(cat==='diamonds'&&items.length>0)hd=true;
+                          items.forEach(function(it){if(it.price>0)prices.push(it.price);});
+                        });
+                        // Get URL and platform from first strain entry
+                        Object.keys(ms).some(function(cat){return ms[cat].some(function(it){if(it.url){url=it.url;platform=it.platform||'';return true;}return false;});});
+                        prMap[k]={
+                          account:k,listed:totalSkus>0,skuCount:totalSkus,
+                          minPrice:prices.length>0?Math.min.apply(null,prices):0,
+                          avgPrice:prices.length>0?Math.round(prices.reduce(function(s,v){return s+v;},0)/prices.length*100)/100:0,
+                          maxPrice:prices.length>0?Math.max.apply(null,prices):0,
+                          hasCarts:hc,hasBadder:hb,hasSauce:hs,hasDiamonds:hd,
+                          menuStrains:ms,menuUrl:url,platform:platform,
+                          status:'Carries Globs',categories:'',notes:'Built from All Listings'
+                        };
+                      }
                     });
                     if(Object.keys(menuMap).length>0){setPricingData(prMap);persist('gpi-pricing',prMap);loaded.push(Object.keys(menuMap).length+' menu strain maps');}
                   }catch(alErr){loaded.push('AL ERR:'+alErr.message);}
