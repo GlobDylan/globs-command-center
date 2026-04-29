@@ -938,7 +938,7 @@ window._STRAIN_DB=[
       {key:'ytd',label:'YTD'}
     ];
 
-    function AccountRow({account,open,onToggle,skuAvgs,periodDays,acctPeriod,returnsLog}){
+    function AccountRow({account,open,onToggle,skuAvgs,periodDays,acctPeriod,returnsLog,pricingData}){
       const [section,setSection]=useState("pricing");
       const tier=computeTier(account.orderDayTs),tax=getTaxRate(account.name);
       const isCorp=account.allLocations||account.name.toLowerCase().includes("corporate");
@@ -998,7 +998,10 @@ window._STRAIN_DB=[
               </div>
               {section==="pricing"&&(
                 <div style={{padding:'12px 12px'}}>
-                  <div style={{fontSize:10,color:C.dim,marginBottom:10}}>{'Tax: ~'+Math.round(tax*100)+'% consumer burden · 2×–2.5× markup target'}</div>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+                    <div style={{fontSize:10,color:C.dim}}>{'Tax: ~'+Math.round(tax*100)+'% consumer burden · 2×–2.5× markup target'}</div>
+                    {(function(){var prKey=account.name.replace(/ - Corporate$/i,'').toLowerCase().replace(/\s+/g,' ').trim();var pr=pricingData&&pricingData[prKey];return pr&&pr.menuUrl?<a href={pr.menuUrl} target="_blank" rel="noopener" onClick={function(e){e.stopPropagation();}} style={{fontSize:8,color:'#6fa8d6',textDecoration:'none',fontWeight:600,flexShrink:0}}>{'View Menu \u2197'}</a>:null;})()}
+                  </div>
                   {rows.length>0?<div style={{display:'flex',flexDirection:'column',gap:6}}>
                     {rows.map(function(r,i){const mu=r.mu,isOut=mu?!mu.aligned:false;return<div key={i} style={{background:isOut?C.dangerBg:C.surface,border:'1px solid '+(isOut?C.dangerBdr:C.border),borderRadius:6,padding:'10px 12px'}}>
                       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
@@ -2409,7 +2412,7 @@ window._STRAIN_DB=[
                     </div>
                     <div style={{border:'1px solid '+C.border,borderRadius:6,overflow:'hidden'}}>
                       {filteredAccounts.length===0&&<div style={{padding:40,textAlign:'center',color:C.dim,fontSize:12}}>No accounts match</div>}
-                      {filteredAccounts.map(function(acc){return<AccountRow key={acc.name} account={acc} open={!!openAccts[acc.name]} onToggle={function(){setOpenAccts(function(p){const n=Object.assign({},p);n[acc.name]=!n[acc.name];return n;});}} skuAvgs={skuAvgs} periodDays={periodDays} acctPeriod={acctPeriod} returnsLog={returnsLog}/>;}) }
+                      {filteredAccounts.map(function(acc){return<AccountRow key={acc.name} account={acc} open={!!openAccts[acc.name]} onToggle={function(){setOpenAccts(function(p){const n=Object.assign({},p);n[acc.name]=!n[acc.name];return n;});}} skuAvgs={skuAvgs} periodDays={periodDays} acctPeriod={acctPeriod} returnsLog={returnsLog} pricingData={pricingData}/>;}) }
                     </div>
                     {filteredAccounts.length>0&&<div style={{display:'flex',gap:8,marginTop:10}}><button style={Object.assign({},btnSt('ghost'),{fontSize:10,color:C.dim})} onClick={function(){const o={};filteredAccounts.forEach(function(a){o[a.name]=true;});setOpenAccts(o);}}>Expand All</button><button style={Object.assign({},btnSt('ghost'),{fontSize:10,color:C.dim})} onClick={function(){setOpenAccts({});}}>Collapse All</button></div>}
                     <div style={{display:'flex',gap:10,marginTop:14,flexWrap:'wrap',alignItems:'center',padding:'10px 0',borderTop:'1px solid '+C.border}}>
