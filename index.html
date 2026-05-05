@@ -246,7 +246,7 @@
   <!-- localStorage shim — replaces Claude's window.storage API -->
   <script>
     var PFX = 'gpi:';
-    try{if(!localStorage.getItem('gpi:cw-clean-v2')){Object.keys(localStorage).filter(function(k){return k.startsWith('gpi:');}).forEach(function(k){localStorage.removeItem(k);});localStorage.setItem('gpi:cw-clean-v2','1');}}catch(e){}
+    try{if(!localStorage.getItem('gpi:cw-clean-v3')){Object.keys(localStorage).filter(function(k){return k.startsWith('gpi:');}).forEach(function(k){localStorage.removeItem(k);});localStorage.setItem('gpi:cw-clean-v3','1');}}catch(e){}
     window.storage = {
       get: async function(key) {
         try { var v = localStorage.getItem(PFX+key); return v ? { key:key, value:v } : null; } catch(e) { return null; }
