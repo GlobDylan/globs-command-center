@@ -8,7 +8,7 @@
   <meta http-equiv="Expires" content="0" />
   <script>
     // GPI Build: 5a669cd
-    var GPI_BUILD='6cd6a00';
+    var GPI_BUILD='74e7311';
     try{fetch('https://api.github.com/repos/GlobDylan/globs-command-center/commits/main',{headers:{Accept:'application/vnd.github.v3.sha'}}).then(function(r){return r.text();}).then(function(sha){var latest=sha.trim().substring(0,7);if(latest&&latest!==GPI_BUILD&&!sessionStorage.getItem('gpi-reloaded-'+latest)){sessionStorage.setItem('gpi-reloaded-'+latest,'1');window.location.href=window.location.pathname+'?v='+latest;}}).catch(function(){});}catch(e){}
   </script>
   <title>Globs Price Intelligence</title>
@@ -4320,6 +4320,7 @@ window._STRAIN_DB=[
                           });
                         });
                       }
+                      var ihsCounts={Indica:0,Sativa:0,Hybrid:0};
                       pool.sort(function(a,b){
                         var pA=invPool[a.k];var pB=invPool[b.k];
                         var strainA=(pA.sku||'').replace(/^Globs\s*-\s*/i,'').split(' - ')[0].trim().toLowerCase().replace(/[^a-z0-9]/g,'');
