@@ -8,7 +8,7 @@
   <meta http-equiv="Expires" content="0" />
   <script>
     // GPI Build: 5a669cd
-    var GPI_BUILD='4ee2b87';
+    var GPI_BUILD='6cd6a00';
     try{fetch('https://api.github.com/repos/GlobDylan/globs-command-center/commits/main',{headers:{Accept:'application/vnd.github.v3.sha'}}).then(function(r){return r.text();}).then(function(sha){var latest=sha.trim().substring(0,7);if(latest&&latest!==GPI_BUILD&&!sessionStorage.getItem('gpi-reloaded-'+latest)){sessionStorage.setItem('gpi-reloaded-'+latest,'1');window.location.href=window.location.pathname+'?v='+latest;}}).catch(function(){});}catch(e){}
   </script>
   <title>Globs Price Intelligence</title>
@@ -4305,11 +4305,18 @@ window._STRAIN_DB=[
                       if(targetStrains<1)targetStrains=3;// absolute minimum for accounts with no baseline data
                       // Build set of strain names currently on this store's menu (from pricing scrape)
                       var onMenuStrains={};
+                      var outOfStockStrains={};
                       if(o.pricing&&o.pricing.menuStrains){
                         Object.keys(o.pricing.menuStrains).forEach(function(cat){
                           (o.pricing.menuStrains[cat]||[]).forEach(function(ms){
                             var sn=ms.strain.toLowerCase().replace(/[^a-z0-9]/g,'');
-                            if(sn&&sn!=='extracts'&&sn!=='1gliveresinsauce'&&sn!=='1gliveresincart'&&sn!=='1gliveresinavapecart')onMenuStrains[sn]=true;
+                            if(sn&&sn!=='extracts'&&sn!=='1gliveresinsauce'&&sn!=='1gliveresincart'&&sn!=='1gliveresinavapecart'){
+                              if(ms.inStock===false||ms.inStock==='no'){
+                                outOfStockStrains[sn]={daysOut:ms.daysOut||0};
+                              } else {
+                                onMenuStrains[sn]=true;
+                              }
+                            }
                           });
                         });
                       }
@@ -4317,30 +4324,22 @@ window._STRAIN_DB=[
                         var pA=invPool[a.k];var pB=invPool[b.k];
                         var strainA=(pA.sku||'').replace(/^Globs\s*-\s*/i,'').split(' - ')[0].trim().toLowerCase().replace(/[^a-z0-9]/g,'');
                         var strainB=(pB.sku||'').replace(/^Globs\s*-\s*/i,'').split(' - ')[0].trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+                        // Priority 1: Out of stock at store (proven sellers — they had it, sold through)
+                        var aOOS=outOfStockStrains[strainA]?1:0;
+                        var bOOS=outOfStockStrains[strainB]?1:0;
+                        if(aOOS!==bOOS)return bOOS-aOOS;// OOS items first
+                        // Priority 2: NOT on menu (gap fills)
                         var aOnMenu=onMenuStrains[strainA]?1:0;
                         var bOnMenu=onMenuStrains[strainB]?1:0;
-                        // Strains NOT on menu come first (fill gaps), then by velocity
-                        if(aOnMenu!==bOnMenu)return aOnMenu-bOnMenu;
-                        var sa=a.isNew?50:a.vel30;
-                        var sb=b.isNew?50:b.vel30;
-                        return sb-sa;
-                      });
-                      // IHS balance: after sorting, interleave types so we don't stack all one type
-                      var ihsCounts={Indica:0,Sativa:0,Hybrid:0};
-                      pool.sort(function(a,b){
-                        var pA=invPool[a.k];var pB=invPool[b.k];
-                        var strainA=(pA.sku||'').replace(/^Globs\s*-\s*/i,'').split(' - ')[0].trim().toLowerCase().replace(/[^a-z0-9]/g,'');
-                        var strainB=(pB.sku||'').replace(/^Globs\s*-\s*/i,'').split(' - ')[0].trim().toLowerCase().replace(/[^a-z0-9]/g,'');
-                        var aOnMenu=onMenuStrains[strainA]?1:0;
-                        var bOnMenu=onMenuStrains[strainB]?1:0;
-                        if(aOnMenu!==bOnMenu)return aOnMenu-bOnMenu;
-                        // Within same on-menu status, deprioritize overrepresented IHS types
+                        if(aOnMenu!==bOnMenu)return aOnMenu-bOnMenu;// not-on-menu first
+                        // Priority 3: IHS balance
                         var aIHS=a.ihs||'Hybrid';var bIHS=b.ihs||'Hybrid';
                         if(aIHS!==bIHS){
                           var aDensity=ihsCounts[aIHS]||0;
                           var bDensity=ihsCounts[bIHS]||0;
-                          if(aDensity!==bDensity)return aDensity-bDensity;// favor less-represented type
+                          if(aDensity!==bDensity)return aDensity-bDensity;
                         }
+                        // Priority 4: Velocity
                         var sa=a.isNew?50:a.vel30;var sb=b.isNew?50:b.vel30;
                         return sb-sa;
                       });
@@ -4361,8 +4360,9 @@ window._STRAIN_DB=[
                         var isNewForStore=!o.skus.some(function(s){return nk(s.sku)===skuNk||nk(s.strain||'')===strainNk;});
                         var strainClean=strain.toLowerCase().replace(/[^a-z0-9]/g,'');
                         var isOnMenu=onMenuStrains[strainClean]||false;
+                        var isOutOfStock=outOfStockStrains[strainClean]||false;
                         var slu=strainLookup(strain);var genetics=(slu&&slu.c)?slu.c.replace(/\bx\b/gi,' \u00d7 '):(slu&&slu.d)?extractCross(slu.d):'';
-                        lineArr.push({strain:strain,sku:p.sku,cat:catLabel,qty:qty,ws:m.ws,lineRev:qty*m.ws,onHand:p.onHand,zoneStart:p.onHand,zn:zoneLabel[o.zone]||o.zone||'',low:qty<10,isNew:p.isNew,isNewForStore:isNewForStore,isOnMenu:isOnMenu,genetics:genetics});
+                        lineArr.push({strain:strain,sku:p.sku,cat:catLabel,qty:qty,ws:m.ws,lineRev:qty*m.ws,onHand:p.onHand,zoneStart:p.onHand,zn:zoneLabel[o.zone]||o.zone||'',low:qty<10,isNew:p.isNew,isNewForStore:isNewForStore,isOnMenu:isOnMenu,isOutOfStock:isOutOfStock,genetics:genetics});
                       });
                     });
                     if(lineArr.length>0){alloc[o.name]=lineArr;allocCount++;}
@@ -4813,8 +4813,9 @@ window._STRAIN_DB=[
                                   l.strain,
                                   React.createElement('span',{style:{fontSize:7,color:'#888',fontWeight:400}},catShort),
                                   ihs?React.createElement('span',{style:{fontSize:6,color:ihsColor,fontWeight:600}},ihs.charAt(0)):null,
-                                  l.isOnMenu?React.createElement('span',{style:{fontSize:6,padding:'1px 3px',borderRadius:2,background:'#55555522',color:'#888',fontWeight:700}},'ON MENU'):null,
-                                  !l.isOnMenu&&!l.isNew?React.createElement('span',{style:{fontSize:6,padding:'1px 3px',borderRadius:2,background:'#4ade8022',color:'#4ade80',border:'1px solid #4ade8044',fontWeight:700}},'GAP FILL'):null,
+                                  l.isOutOfStock?React.createElement('span',{style:{fontSize:6,padding:'1px 3px',borderRadius:2,background:'#f4433622',color:'#f44336',border:'1px solid #f4433644',fontWeight:700}},'RESTOCK'):null,
+                                  l.isOnMenu&&!l.isOutOfStock?React.createElement('span',{style:{fontSize:6,padding:'1px 3px',borderRadius:2,background:'#55555522',color:'#888',fontWeight:700}},'ON MENU'):null,
+                                  !l.isOnMenu&&!l.isNew&&!l.isOutOfStock?React.createElement('span',{style:{fontSize:6,padding:'1px 3px',borderRadius:2,background:'#4ade8022',color:'#4ade80',border:'1px solid #4ade8044',fontWeight:700}},'GAP FILL'):null,
                                   l.isNew?React.createElement('span',{style:{fontSize:6,padding:'1px 3px',borderRadius:2,background:'#00bcd422',color:'#00bcd4',border:'1px solid #00bcd444',fontWeight:700}},'NEW SKU'):null,
                                   l.isNewForStore&&!l.isNew&&!l.isOnMenu?React.createElement('span',{style:{fontSize:6,padding:'1px 3px',borderRadius:2,background:'#ff980022',color:'#ff9800',fontWeight:700}},'NEW FOR STORE'):null
                                 ),
