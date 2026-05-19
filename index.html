@@ -1867,7 +1867,121 @@ window._STRAIN_DB=[
           reader.onerror=function(){setCsvLoading(false);toast('\u2717 Failed to read CSV');};
           reader.onload=function(ev){
             try{
-              const r=parseCSV(ev.target.result);
+              var csvText=ev.target.result;
+              var firstLine=csvText.split('\n')[0]||'';
+              // ── Stock Report Detection ──
+              if(firstLine.includes('Products in stock')||firstLine.includes('Latest Price')){
+                // Parse stock report CSVs
+                var rows=[];
+                var lines=csvText.split('\n');
+                var hdr=[];
+                // Simple CSV parser that handles quoted fields
+                function parseCSVLine(line){
+                  var result=[];var field='';var inQuotes=false;
+                  for(var ci=0;ci<line.length;ci++){
+                    var ch=line[ci];
+                    if(ch==='"'){inQuotes=!inQuotes;}
+                    else if(ch===','&&!inQuotes){result.push(field.trim());field='';}
+                    else{field+=ch;}
+                  }
+                  result.push(field.trim());
+                  return result;
+                }
+                hdr=parseCSVLine(lines[0]);
+                for(var li=1;li<lines.length;li++){
+                  if(!lines[li].trim())continue;
+                  var vals=parseCSVLine(lines[li]);
+                  var obj={};
+                  hdr.forEach(function(h,hi){obj[h]=vals[hi]||'';});
+                  rows.push(obj);
+                }
+                // Determine if this is summary or detail
+                var isSummary=firstLine.includes('Products in stock');
+                var isDetail=firstLine.includes('Latest Price');
+                if(isDetail){
+                  // Stock Detail: build per-store product listings
+                  var storeMap={};
+                  rows.forEach(function(r){
+                    var store=r['Store']||'';if(!store)return;
+                    var sk=store.toLowerCase().replace(/[^a-z0-9]/g,'');
+                    if(!storeMap[sk])storeMap[sk]={account:store,menuUrl:r['Menu Url']||'',cart:[],badder:[],sauce:[],diamonds:[],shatter:[],allProducts:[]};
+                    var product=r['Product']||'';
+                    var price=parseFloat(r['Latest Price'])||0;
+                    var inStock=String(r['In stock']||'').toLowerCase()==='yes';
+                    var daysOut=parseInt(r['Days out of stock'])||0;
+                    var lastSeen=r['Last seen']||'';
+                    var subCat=String(r['Sub-category']||'').toLowerCase();
+                    var cat=String(r['Category']||'').toLowerCase();
+                    // Extract strain name from product string
+                    var strain=product.replace(/^Globs\s*-\s*/i,'').split(/\s*-\s*1g/i)[0].split(/\s*-\s*Live/i)[0].split(/\s*-\s*Cured/i)[0].split(/\s*-\s*Distillate/i)[0].trim();
+                    // Determine bucket
+                    var bucket='other';
+                    if(cat.includes('vape')||subCat.includes('cartridge'))bucket='cart';
+                    else if(subCat.includes('live')||product.toLowerCase().includes('badder'))bucket='badder';
+                    else if(product.toLowerCase().includes('sauce'))bucket='sauce';
+                    else if(product.toLowerCase().includes('diamond'))bucket='diamonds';
+                    else if(subCat.includes('cured')){
+                      if(product.toLowerCase().includes('badder'))bucket='badder';
+                      else if(product.toLowerCase().includes('sauce'))bucket='sauce';
+                      else bucket='sauce';// default cured concentrates to sauce
+                    }
+                    var entry={strain:strain,price:price,sku:product,inStock:inStock,daysOut:daysOut,lastSeen:lastSeen};
+                    if(storeMap[sk][bucket])storeMap[sk][bucket].push(entry);
+                    storeMap[sk].allProducts.push(Object.assign({bucket:bucket},entry));
+                  });
+                  // Build pricingData format
+                  var prMap=Object.assign({},pricingData||{});
+                  var storeCount=0;
+                  Object.keys(storeMap).forEach(function(sk){
+                    var sd=storeMap[sk];
+                    var inStockItems=sd.allProducts.filter(function(p){return p.inStock;});
+                    var allPrices=inStockItems.filter(function(p){return p.price>0;}).map(function(p){return p.price;});
+                    var hc=sd.cart.some(function(p){return p.inStock;});
+                    var hb=sd.badder.some(function(p){return p.inStock;});
+                    var hs=sd.sauce.some(function(p){return p.inStock;});
+                    var hd=sd.diamonds.some(function(p){return p.inStock;});
+                    // Store using normalized account name as key
+                    var nk=sd.account.toLowerCase().replace(/\s*-\s*/g,' ').replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ').trim();
+                    prMap[nk]={
+                      account:sd.account,
+                      listed:inStockItems.length>0,
+                      skuCount:inStockItems.length,
+                      totalProducts:sd.allProducts.length,
+                      outOfStock:sd.allProducts.length-inStockItems.length,
+                      minPrice:allPrices.length>0?Math.min.apply(null,allPrices):0,
+                      avgPrice:allPrices.length>0?Math.round(allPrices.reduce(function(s,v){return s+v;},0)/allPrices.length*100)/100:0,
+                      maxPrice:allPrices.length>0?Math.max.apply(null,allPrices):0,
+                      hasCarts:hc,hasBadder:hb,hasSauce:hs,hasDiamonds:hd,
+                      menuUrl:sd.menuUrl,
+                      platform:sd.menuUrl.includes('dutchie')?'dutchie':sd.menuUrl.includes('weedmaps')?'weedmaps':sd.menuUrl.includes('jane')?'jane':sd.menuUrl.includes('treez')?'treez':'other',
+                      menuStrains:{cart:sd.cart,badder:sd.badder,sauce:sd.sauce,diamonds:sd.diamonds},
+                      source:'stock_report',
+                      notes:'Stock report '+new Date().toISOString().split('T')[0]
+                    };
+                    storeCount++;
+                  });
+                  setPricingData(prMap);persist('gpi-pricing',prMap);
+                  toast('\u2713 Stock report: '+storeCount+' stores, '+rows.length+' products loaded');
+                } else if(isSummary){
+                  // Stock Summary: update menu URLs and stock counts
+                  var prMap2=Object.assign({},pricingData||{});
+                  var urlCount=0;
+                  rows.forEach(function(r){
+                    var store=r['Store']||'';if(!store)return;
+                    var nk2=store.toLowerCase().replace(/\s*-\s*/g,' ').replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ').trim();
+                    if(!prMap2[nk2])prMap2[nk2]={account:store,listed:false,skuCount:0};
+                    prMap2[nk2].menuUrl=r['Menu Url']||prMap2[nk2].menuUrl||'';
+                    prMap2[nk2].summaryInStock=parseInt(r['Products in stock'])||0;
+                    prMap2[nk2].summaryOutOfStock=parseInt(r['Products out of stock'])||0;
+                    if(prMap2[nk2].menuUrl)urlCount++;
+                  });
+                  setPricingData(prMap2);persist('gpi-pricing',prMap2);
+                  toast('\u2713 Stock summary: '+rows.length+' stores, '+urlCount+' menu URLs loaded');
+                }
+                setCsvLoading(false);return;
+              }
+              // ── Original CSV parsing ──
+              const r=parseCSV(csvText);
               if(r.type==="inventory"){setInventoryData(r.data);var oh2={};Object.keys(r.data).forEach(function(k){oh2[k]=r.data[k].onHand;});setMfgInventory(oh2);persist("gpi-inventory",r.data);toast('\u2713 Loaded inventory: '+Object.keys(r.data).length+' SKUs');}
               else if(r.type==="account90"){
                 if(!r.data||r.data.length===0){toast('\u26a0 CSV parsed but 0 accounts found');setCsvLoading(false);return;}
@@ -4029,7 +4143,20 @@ window._STRAIN_DB=[
                     OPP.push({name:acc.name.replace(/ - Corporate$/i,""),zone:zone,orders:n,median:median,daysSince:daysSince,status:status,rev:Math.round(rev),rep:(acc.rep||'').trim(),skus:skus,score:score,avgOrderVal:avgOrderVal,budget:budget,catAvgQty:catAvgQty,hasPeriodActivity:daysSince<=periodDays,periodRev:Math.round(periodRev),growthTarget:growthTarget,recentPace:recentPaceAnnualized,goalPct:goalPct,
                       isNoMock:isNoMock(acc.name),
                       mm:(function(){var n=acc.name.replace(/ - Corporate$/i,'').toLowerCase().replace(/\s+/g,' ').trim();return mmLookup[n]||null;})(),
-                      pricing:(function(){var n=acc.name.replace(/ - Corporate$/i,'').toLowerCase().replace(/\s+/g,' ').trim();return prLookup[n]||null;})(),
+                      pricing:(function(){
+                        var n=acc.name.replace(/ - Corporate$/i,'').toLowerCase().replace(/\s+/g,' ').trim();
+                        if(prLookup[n])return prLookup[n];
+                        // Try stock report normalization (strips punctuation, normalizes dashes to spaces)
+                        var n2=n.replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ').trim();
+                        if(prLookup[n2])return prLookup[n2];
+                        // Try partial match — find key that contains or is contained by the account name
+                        var prKeys=Object.keys(prLookup);
+                        for(var pi=0;pi<prKeys.length;pi++){
+                          var pk=prKeys[pi];
+                          if(pk.length>4&&n2.length>4&&(n2.includes(pk)||pk.includes(n2)))return prLookup[pk];
+                        }
+                        return null;
+                      })(),
                       promoUnits:promoUnits,premiumPromoUnits:premiumPromoUnits,hasStaffEd:hasStaffEd,strainsPerOrder:strainsPerOrder,totalUniqueStrains:totalUniqueStrains,
                       // Last 3 orders category breakdown
                       catBreakdown:(function(){
