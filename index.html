@@ -8,7 +8,7 @@
   <meta http-equiv="Expires" content="0" />
   <script>
     // GPI Build: 5a669cd
-    var GPI_BUILD='a801838';
+    var GPI_BUILD='4b9a80e';
     try{fetch('https://api.github.com/repos/GlobDylan/globs-command-center/commits/main',{headers:{Accept:'application/vnd.github.v3.sha'}}).then(function(r){return r.text();}).then(function(sha){var latest=sha.trim().substring(0,7);if(latest&&latest!==GPI_BUILD&&!sessionStorage.getItem('gpi-reloaded-'+latest)){sessionStorage.setItem('gpi-reloaded-'+latest,'1');window.location.href=window.location.pathname+'?v='+latest;}}).catch(function(){});}catch(e){}
   </script>
   <title>Globs Price Intelligence</title>
@@ -1472,6 +1472,7 @@ window._STRAIN_DB=[
       const [oZone,setOZone]=useState("ALL");
       const [oStatus,setOStatus]=useState("ALL");
       const [oCat,setOCat]=useState("ALL");
+      const [oDiff,setODiff]=useState("ALL");
       const [oHideMock,setOHideMock]=useState(true);
       const [oppExpanded,setOppExpanded]=useState({});
       const [oRep,setORep]=useState(function(){try{var s=JSON.parse(sessionStorage.getItem('gpi-session'));if(s&&s.repName&&s.role==='distro')return s.repName;return'ALL';}catch(e){return'ALL';}});
@@ -4202,6 +4203,61 @@ window._STRAIN_DB=[
                         });
                         var upsellFiltered=isHighTier?zeroCats.filter(function(c){return inStockCats[c];}):[];
                         return {dominant:dominant,dominantQty:maxQ,upsell:upsellFiltered,cats:cats};
+                      })(),
+                      // Difficulty scoring: Easy = just place order, Medium = needs conversation, Hard = needs promo/samples
+                      difficulty:(function(){
+                        var pr=null;
+                        var pn=acc.name.replace(/ - Corporate$/i,'').toLowerCase().replace(/\s+/g,' ').trim();
+                        var pn2=pn.replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ').trim();
+                        pr=prLookup[pn]||prLookup[pn2]||null;
+                        if(!pr)return n>=3?'MEDIUM':'HARD';// no scrape data = unknown
+                        var ms=pr.menuStrains;
+                        if(!ms)return n>=3?'MEDIUM':'HARD';
+                        // Count positive and negative gaps
+                        var posGaps=0;var negGaps=0;var negCats=[];
+                        var invCC={cart:0,badder:0,sauce:0,diamonds:0};
+                        Object.keys(inventoryData||{}).forEach(function(ik){
+                          var ioh2=parseInt((inventoryData[ik].onHand||inventoryData[ik])||0);if(ioh2<=0)return;
+                          var ikl2=ik.toLowerCase();
+                          if(ikl2.includes('cart')||ikl2.includes('vape'))invCC.cart++;
+                          else if(ikl2.includes('badder'))invCC.badder++;
+                          else if(ikl2.includes('sauce'))invCC.sauce++;
+                          else if(ikl2.includes('diamond'))invCC.diamonds++;
+                        });
+                        ['cart','badder','sauce','diamonds'].forEach(function(gc){
+                          var onM=ms[gc]?ms[gc].filter(function(s){return s.inStock!==false;}).length:0;
+                          var gap=invCC[gc]-onM;
+                          if(gap>0)posGaps++;
+                          if(gap<0){negGaps++;negCats.push(gc);}
+                        });
+                        if(status==='ON TRACK'&&posGaps>=2)return 'EASY';
+                        if((status==='DUE SOON'||status==='OVERDUE')&&posGaps>=1)return 'EASY';
+                        if(status==='FALLEN OFF')return 'HARD';
+                        if(negGaps>=2)return 'HARD';
+                        return 'MEDIUM';
+                      })(),
+                      // Categories needing promo/samples (negative gaps — they carry more than we stock)
+                      promoNeeded:(function(){
+                        var pr2=null;
+                        var pn3=acc.name.replace(/ - Corporate$/i,'').toLowerCase().replace(/\s+/g,' ').trim();
+                        var pn4=pn3.replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ').trim();
+                        pr2=prLookup[pn3]||prLookup[pn4]||null;
+                        if(!pr2||!pr2.menuStrains)return [];
+                        var result=[];
+                        var invCC2={cart:0,badder:0,sauce:0,diamonds:0};
+                        Object.keys(inventoryData||{}).forEach(function(ik3){
+                          var ioh3=parseInt((inventoryData[ik3].onHand||inventoryData[ik3])||0);if(ioh3<=0)return;
+                          var ikl3=ik3.toLowerCase();
+                          if(ikl3.includes('cart')||ikl3.includes('vape'))invCC2.cart++;
+                          else if(ikl3.includes('badder'))invCC2.badder++;
+                          else if(ikl3.includes('sauce'))invCC2.sauce++;
+                          else if(ikl3.includes('diamond'))invCC2.diamonds++;
+                        });
+                        ['cart','badder','sauce','diamonds'].forEach(function(gc2){
+                          var onM2=pr2.menuStrains[gc2]?pr2.menuStrains[gc2].filter(function(s){return s.inStock!==false;}).length:0;
+                          if(invCC2[gc2]>0&&onM2>invCC2[gc2])result.push({cat:gc2,onMenu:onM2,weStock:invCC2[gc2],gap:invCC2[gc2]-onM2});
+                        });
+                        return result;
                       })()
                     });
                   });
@@ -4418,6 +4474,7 @@ window._STRAIN_DB=[
                       if(!hasCat)return false;
                     }
                     if((o.status==='OVERDUE'||o.status==='FALLEN OFF')&&o.daysSince>periodDays)return false;
+                    if(oDiff!=="ALL"&&o.difficulty!==oDiff)return false;
                     return true;
                   });
                   var oFallen=oFilt.filter(function(o){return o.status==="FALLEN OFF";}),oOverdue=oFilt.filter(function(o){return o.status==="OVERDUE";}),oDueSoon=oFilt.filter(function(o){return o.status==="DUE SOON";}),oActive=oFilt.filter(function(o){return o.status==="ACTIVE";});
@@ -4487,6 +4544,14 @@ window._STRAIN_DB=[
                       React.createElement('div',{style:{marginBottom:8}},
                         React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:6}},'CATEGORY'),
                         React.createElement('div',{style:{display:'flex',background:C.surface,borderRadius:8,border:'1px solid '+C.border,overflow:'hidden'}},["ALL","cart","badder","sauce","diamonds"].map(function(c,i,arr){return React.createElement('button',{key:c,onClick:function(){setOCat(c);},style:{flex:1,padding:'10px 0',fontSize:11,fontWeight:oCat===c?700:400,border:'none',borderRight:i<arr.length-1?'1px solid '+C.border:'none',background:oCat===c?C.text:'transparent',color:oCat===c?C.bg:C.muted,fontFamily:'inherit',cursor:'pointer'}},c==="ALL"?"All":c.charAt(0).toUpperCase()+c.slice(1));}))
+                      ),
+                      React.createElement('div',{style:{marginBottom:8}},
+                        React.createElement('div',{style:{fontSize:10,color:C.dim,letterSpacing:2,marginBottom:6}},'DIFFICULTY'),
+                        React.createElement('div',{style:{display:'flex',background:C.surface,borderRadius:8,border:'1px solid '+C.border,overflow:'hidden'}},["ALL","EASY","MEDIUM","HARD"].map(function(d,i,arr){
+                          var dColors={ALL:'',EASY:'#4ade80',MEDIUM:'#ff9800',HARD:'#f44336'};
+                          var dCounts={ALL:OPP.length,EASY:OPP.filter(function(o){return o.difficulty==='EASY';}).length,MEDIUM:OPP.filter(function(o){return o.difficulty==='MEDIUM';}).length,HARD:OPP.filter(function(o){return o.difficulty==='HARD';}).length};
+                          return React.createElement('button',{key:d,onClick:function(){setODiff(d);},style:{flex:1,padding:'10px 0',fontSize:11,fontWeight:oDiff===d?700:400,border:'none',borderRight:i<arr.length-1?'1px solid '+C.border:'none',background:oDiff===d?(dColors[d]||C.text)+'22':'transparent',color:oDiff===d?(dColors[d]||C.text):C.muted,fontFamily:'inherit',cursor:'pointer'}},d==='ALL'?'All ('+dCounts.ALL+')':d+' ('+dCounts[d]+')');
+                        }))
                       ),
                       React.createElement('div',{style:{display:'flex',gap:8,marginBottom:8,alignItems:'center'}},
                         React.createElement('button',{onClick:function(){setOHideMock(!oHideMock);},style:{padding:'6px 12px',borderRadius:4,fontSize:10,fontWeight:700,cursor:'pointer',fontFamily:'inherit',letterSpacing:0.5,border:'1px solid '+(oHideMock?C.good+'66':C.warn+'66'),background:oHideMock?C.good+'15':C.warn+'15',color:oHideMock?C.good:C.warn}},oHideMock?'\u2713 No-Mock Hidden ('+OPP.filter(function(o){return o.isNoMock;}).length+')':'Show All (incl. '+OPP.filter(function(o){return o.isNoMock;}).length+' No-Mock)'),
@@ -4633,6 +4698,8 @@ window._STRAIN_DB=[
                                 React.createElement('span',{style:{fontSize:12,fontWeight:700}},o.name),
                                 React.createElement('span',{style:{fontSize:7,padding:'1.5px 5px',borderRadius:2,fontWeight:700,background:sc2+'22',color:sc2}},statusLabel+(o.daysSince>0&&!isOnTrack?' '+o.daysSince+'d':'')),
                                 !o.hasStaffEd?React.createElement('span',{style:{fontSize:7,padding:'1.5px 5px',borderRadius:2,background:'#e91e6322',color:'#e91e63',fontWeight:700}},'NEEDS SAMPLES'):null,
+                                o.promoNeeded&&o.promoNeeded.length>0?React.createElement('span',{style:{fontSize:7,padding:'1.5px 5px',borderRadius:2,background:'#9c27b022',color:'#9c27b0',fontWeight:700}},'PROMO DAY'):null,
+                                o.difficulty?React.createElement('span',{style:{fontSize:7,padding:'1.5px 5px',borderRadius:2,background:o.difficulty==='EASY'?'#4ade8022':o.difficulty==='HARD'?'#f4433622':'#ff980022',color:o.difficulty==='EASY'?'#4ade80':o.difficulty==='HARD'?'#f44336':'#ff9800',fontWeight:700}},o.difficulty):null,
                                 o.isNoMock?React.createElement('span',{style:{fontSize:7,padding:'1.5px 5px',borderRadius:2,background:'#ff980022',color:'#ff9800',fontWeight:700}},'NO MOCK'):null
                               ),
                               React.createElement('div',{style:{display:'flex',gap:6,fontSize:9,color:'#666',marginTop:3}},
