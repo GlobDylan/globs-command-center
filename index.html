@@ -8,7 +8,7 @@
   <meta http-equiv="Expires" content="0" />
   <script>
     // GPI Build: 5a669cd
-    var GPI_BUILD='4b9a80e';
+    var GPI_BUILD='6f8a674';
     try{fetch('https://api.github.com/repos/GlobDylan/globs-command-center/commits/main',{headers:{Accept:'application/vnd.github.v3.sha'}}).then(function(r){return r.text();}).then(function(sha){var latest=sha.trim().substring(0,7);if(latest&&latest!==GPI_BUILD&&!sessionStorage.getItem('gpi-reloaded-'+latest)){sessionStorage.setItem('gpi-reloaded-'+latest,'1');window.location.href=window.location.pathname+'?v='+latest;}}).catch(function(){});}catch(e){}
   </script>
   <title>Globs Price Intelligence</title>
@@ -687,6 +687,22 @@ window._STRAIN_DB=[
           });
         }
         a.catAvgPerOrder=catAvgPerOrder;
+        // Last order category breakdown (most recent SO)
+        var lastOrderCats={cart:0,badder:0,sauce:0,diamonds:0};
+        if(a._soCatStrains&&a.soDates){
+          var soByDate=Object.keys(a.soDates).sort(function(x,y){return new Date(a.soDates[y])-new Date(a.soDates[x]);});
+          if(soByDate.length>0){
+            var lastSO=soByDate[0];
+            var lastCats=a._soCatStrains[lastSO];
+            if(lastCats){
+              if(lastCats.cart)lastOrderCats.cart=lastCats.cart.size;
+              if(lastCats.badder)lastOrderCats.badder=lastCats.badder.size;
+              if(lastCats.sauce)lastOrderCats.sauce=lastCats.sauce.size;
+              if(lastCats.diamonds)lastOrderCats.diamonds=lastCats.diamonds.size;
+            }
+          }
+        }
+        a.lastOrderCats=lastOrderCats;
         delete a._rows;delete a._futureRev;delete a._futureOrders;delete a._soCatStrains;
       });
       const SUP=["upnorth samples","internal","test account"];
@@ -4163,7 +4179,7 @@ window._STRAIN_DB=[
                         }
                         return null;
                       })(),
-                      promoUnits:promoUnits,premiumPromoUnits:premiumPromoUnits,hasStaffEd:hasStaffEd,strainsPerOrder:strainsPerOrder,totalUniqueStrains:totalUniqueStrains,
+                      promoUnits:promoUnits,premiumPromoUnits:premiumPromoUnits,hasStaffEd:hasStaffEd,strainsPerOrder:strainsPerOrder,totalUniqueStrains:totalUniqueStrains,lastOrderCats:acc.lastOrderCats||{cart:0,badder:0,sauce:0,diamonds:0},
                       // Last 3 orders category breakdown
                       catBreakdown:(function(){
                         var cats={cart:0,badder:0,sauce:0,diamonds:0};
@@ -4745,9 +4761,9 @@ window._STRAIN_DB=[
                                 React.createElement('div',{style:{fontSize:7,color:'#7cb87a',textAlign:'center',fontWeight:700}},'Sauce'),
                                 React.createElement('div',{style:{fontSize:7,color:'#9b8ec4',textAlign:'center',fontWeight:700}},'Diamonds'),
                                 // Ordering row
-                                React.createElement('div',{style:{fontSize:7,color:'#555',fontWeight:600}},'Ordering'),
+                                React.createElement('div',{style:{fontSize:7,color:'#555',fontWeight:600}},'Last Order'),
                                 [['cart','#6fa8d6'],['badder','#d4a24c'],['sauce','#7cb87a'],['diamonds','#9b8ec4']].map(function(c){
-                                  var v=o.strainsPerOrder?Math.round(o.strainsPerOrder[c[0]]||0):0;
+                                  var v=o.lastOrderCats?o.lastOrderCats[c[0]]||0:0;
                                   return React.createElement('div',{key:'ord-'+c[0],style:{textAlign:'center',fontSize:9,fontWeight:600,color:v>0?c[1]:'#333'}},v||'\u2014');
                                 }),
                                 // On Menu row (scraped)
