@@ -8,7 +8,7 @@
   <meta http-equiv="Expires" content="0" />
   <script>
     // GPI Build: 5a669cd
-    var GPI_BUILD='74e7311';
+    var GPI_BUILD='a801838';
     try{fetch('https://api.github.com/repos/GlobDylan/globs-command-center/commits/main',{headers:{Accept:'application/vnd.github.v3.sha'}}).then(function(r){return r.text();}).then(function(sha){var latest=sha.trim().substring(0,7);if(latest&&latest!==GPI_BUILD&&!sessionStorage.getItem('gpi-reloaded-'+latest)){sessionStorage.setItem('gpi-reloaded-'+latest,'1');window.location.href=window.location.pathname+'?v='+latest;}}).catch(function(){});}catch(e){}
   </script>
   <title>Globs Price Intelligence</title>
@@ -4320,6 +4320,24 @@ window._STRAIN_DB=[
                           });
                         });
                       }
+                      // Calculate category gaps — skip categories with negative or zero gap
+                      var catGaps={cart:99,badder:99,sauce:99,diamonds:99};
+                      if(o.pricing&&o.pricing.menuStrains){
+                        var invCatCounts={cart:0,badder:0,sauce:0,diamonds:0};
+                        Object.keys(inventoryData||{}).forEach(function(ik){
+                          var ioh=parseInt((inventoryData[ik].onHand||inventoryData[ik])||0);if(ioh<=0)return;
+                          var ikl=ik.toLowerCase();
+                          if(ikl.includes('cart')||ikl.includes('vape'))invCatCounts.cart++;
+                          else if(ikl.includes('badder'))invCatCounts.badder++;
+                          else if(ikl.includes('sauce'))invCatCounts.sauce++;
+                          else if(ikl.includes('diamond'))invCatCounts.diamonds++;
+                        });
+                        var pms=o.pricing.menuStrains;
+                        ['cart','badder','sauce','diamonds'].forEach(function(gc){
+                          var onMenu=pms[gc]?pms[gc].filter(function(s){return s.inStock!==false;}).length:0;
+                          catGaps[gc]=invCatCounts[gc]-onMenu;
+                        });
+                      }
                       var ihsCounts={Indica:0,Sativa:0,Hybrid:0};
                       pool.sort(function(a,b){
                         var pA=invPool[a.k];var pB=invPool[b.k];
@@ -4349,6 +4367,13 @@ window._STRAIN_DB=[
                         // Allocate up to targetStrains, then cap applies to extras
                         if(catCount>=targetStrains&&spent>=cap)return;
                         var p=invPool[m.k];if(p.rem<=0)return;
+                        // Skip categories where store already has more on menu than we have in stock
+                        // Exception: RESTOCK items (out of stock at store) always get suggested
+                        var strainCheck=(p.sku||'').replace(/^Globs\s*-\s*/i,'').split(' - ')[0].trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+                        var isRestock=outOfStockStrains[strainCheck]?true:false;
+                        var isAlreadyOnMenu=onMenuStrains[strainCheck]?true:false;
+                        if(!isRestock&&isAlreadyOnMenu&&catGaps[m.cat]<=0)return;// they have enough of this category
+                        if(!isRestock&&!isAlreadyOnMenu&&catGaps[m.cat]<=0)return;// no room for new items in this category either
                         var qty=catCount>=targetStrains?Math.min(qtyPerStrain,p.rem,Math.floor((cap-spent)/m.ws)):Math.min(qtyPerStrain,p.rem);
                         if(qty<10)return;
                         qty=Math.round(qty/10)*10;
