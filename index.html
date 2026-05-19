@@ -8,7 +8,7 @@
   <meta http-equiv="Expires" content="0" />
   <script>
     // GPI Build: 5a669cd
-    var GPI_BUILD='3cbeda7';
+    var GPI_BUILD='4ee2b87';
     try{fetch('https://api.github.com/repos/GlobDylan/globs-command-center/commits/main',{headers:{Accept:'application/vnd.github.v3.sha'}}).then(function(r){return r.text();}).then(function(sha){var latest=sha.trim().substring(0,7);if(latest&&latest!==GPI_BUILD&&!sessionStorage.getItem('gpi-reloaded-'+latest)){sessionStorage.setItem('gpi-reloaded-'+latest,'1');window.location.href=window.location.pathname+'?v='+latest;}}).catch(function(){});}catch(e){}
   </script>
   <title>Globs Price Intelligence</title>
@@ -4736,65 +4736,61 @@ window._STRAIN_DB=[
                                   })
                                 );
                               })():null,
-                              // Catalog coverage — compact box like stock %
-                              (function(){
-                                var invCats={cart:0,badder:0,sauce:0,diamonds:0};
-                                Object.keys(inventoryData||{}).forEach(function(k){
-                                  var oh=parseInt((inventoryData[k].onHand||inventoryData[k])||0);if(oh<=0)return;
-                                  var kl=k.toLowerCase();
-                                  if(kl.includes('cart')||kl.includes('vape'))invCats.cart++;
-                                  else if(kl.includes('badder'))invCats.badder++;
-                                  else if(kl.includes('sauce'))invCats.sauce++;
-                                  else if(kl.includes('diamond'))invCats.diamonds++;
-                                });
-                                var ms=o.pricing&&o.pricing.menuStrains;
-                                if(!ms)return null;
-                                var carrying=0;var available=0;
-                                ['cart','badder','sauce','diamonds'].forEach(function(cat){
-                                  if(invCats[cat]>0){
-                                    available+=invCats[cat];
-                                    var onMenu=ms[cat]?ms[cat].filter(function(s){return s.inStock!==false;}).length:0;
-                                    carrying+=Math.min(onMenu,invCats[cat]);
-                                  }
-                                });
-                                if(available===0)return null;
-                                var coverPct=Math.round(carrying/available*100);
-                                var outOfStock=o.pricing.outOfStock||0;
-                                var coverColor=coverPct>=60?'#4ade80':coverPct>=30?'#ff9800':'#f44336';
-                                return React.createElement('div',{style:{display:'flex',gap:6,marginTop:4,padding:'4px 0',borderTop:'1px solid #1a1714',flexWrap:'wrap'}},
-                                  React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px',minWidth:55}},
-                                    React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'CATALOG'),
-                                    React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1,color:coverColor}},coverPct+'%')
-                                  ),
-                                  React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px',minWidth:55}},
-                                    React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'ON MENU'),
-                                    React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1}},carrying+'/'+available)
-                                  ),
-                                  outOfStock>0?React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px',minWidth:55}},
-                                    React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'OUT OF STOCK'),
-                                    React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1,color:'#ff9800'}},outOfStock)
-                                  ):null,
-                                  o.pricing&&o.pricing.avgPrice>0?React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px',minWidth:55}},
-                                    React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'RETAIL'),
-                                    React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1,color:o.pricing.avgPrice<16?'#f44336':'#e8e0d4'}},'$'+o.pricing.avgPrice.toFixed(0))
-                                  ):null
-                                );
-                              })(),
                               o.smartReorder&&o.smartReorder.dominant?React.createElement('div',{style:{fontSize:8,color:'#666',marginTop:3}},
                                 React.createElement('span',{style:{fontWeight:600,color:C.muted}},'Lean: '),React.createElement('span',{style:{textTransform:'capitalize'}},o.smartReorder.dominant),
                                 o.smartReorder.upsell.length>0?React.createElement('span',{style:{color:C.warn,marginLeft:6}},' \u00b7 Upsell: '+o.smartReorder.upsell.map(function(c){return c.charAt(0).toUpperCase()+c.slice(1);}).join(', ')):null
                               ):null
                             ),
-                            // Section: UPNORTH · AR
-                            o.mm?React.createElement('div',{style:{padding:'8px 12px',borderBottom:'1px solid #1a1714'}},
-                              React.createElement('div',{style:{fontSize:7,letterSpacing:2,color:'#444',fontWeight:700,marginBottom:5}},'UPNORTH \u00b7 AR'),
-                              React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:4}},
-                                React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px'}},React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'AR HEALTH'),React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1,color:o.mm.arHealth==='Good'?C.good:o.mm.arHealth==='Moderate'?C.warn:'#f44336'}},o.mm.arHealth||'\u2014')),
-                                React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px'}},React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'STOCK'),React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1}},o.mm.stockPct!==null?o.mm.stockPct+'%':'\u2014')),
-                                React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px'}},React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'3MO AVG'),React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1}},o.mm.avg3mo>0?curK(o.mm.avg3mo):'\u2014')),
-                                React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px'}},React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'MISSING'),React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1,color:o.mm.missingThisMo<0?'#f44336':o.mm.missingThisMo>0?C.good:'#888'}},o.mm.missingThisMo<0?'-'+curK(Math.abs(o.mm.missingThisMo)):o.mm.missingThisMo>0?'+'+curK(o.mm.missingThisMo):'\u2014'))
+                            // Section: ACCOUNT INTEL (catalog + stock + AR combined)
+                            React.createElement('div',{style:{padding:'8px 12px',borderBottom:'1px solid #1a1714'}},
+                              React.createElement('div',{style:{fontSize:7,letterSpacing:2,color:'#444',fontWeight:700,marginBottom:5}},'ACCOUNT INTEL'),
+                              React.createElement('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:4}},
+                                // STOCK % (from Missing Money — always show if available)
+                                o.mm?React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px'}},React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'STOCK'),React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1,color:o.mm.stockPct!==null&&o.mm.stockPct<50?'#f44336':o.mm.stockPct!==null&&o.mm.stockPct<75?'#ff9800':'#4ade80'}},o.mm.stockPct!==null?o.mm.stockPct+'%':'\u2014')):null,
+                                // CATALOG % (from stock report + inventory)
+                                (function(){
+                                  var invCats={cart:0,badder:0,sauce:0,diamonds:0};
+                                  Object.keys(inventoryData||{}).forEach(function(k){
+                                    var oh=parseInt((inventoryData[k].onHand||inventoryData[k])||0);if(oh<=0)return;
+                                    var kl=k.toLowerCase();
+                                    if(kl.includes('cart')||kl.includes('vape'))invCats.cart++;
+                                    else if(kl.includes('badder'))invCats.badder++;
+                                    else if(kl.includes('sauce'))invCats.sauce++;
+                                    else if(kl.includes('diamond'))invCats.diamonds++;
+                                  });
+                                  var ms=o.pricing&&o.pricing.menuStrains;
+                                  if(!ms)return null;
+                                  var carrying=0;var available=0;
+                                  ['cart','badder','sauce','diamonds'].forEach(function(cat){
+                                    if(invCats[cat]>0){
+                                      available+=invCats[cat];
+                                      var onMenu=ms[cat]?ms[cat].filter(function(s){return s.inStock!==false;}).length:0;
+                                      carrying+=Math.min(onMenu,invCats[cat]);
+                                    }
+                                  });
+                                  if(available===0)return null;
+                                  var coverPct=Math.round(carrying/available*100);
+                                  var coverColor=coverPct>=60?'#4ade80':coverPct>=30?'#ff9800':'#f44336';
+                                  return React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px'}},React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'CATALOG'),React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1,color:coverColor}},coverPct+'%'));
+                                })(),
+                                // ON MENU count
+                                (function(){
+                                  var ms=o.pricing&&o.pricing.menuStrains;
+                                  if(!ms)return null;
+                                  var total=0;
+                                  ['cart','badder','sauce','diamonds'].forEach(function(cat){total+=(ms[cat]?ms[cat].length:0);});
+                                  var inStock=0;
+                                  ['cart','badder','sauce','diamonds'].forEach(function(cat){if(ms[cat])ms[cat].forEach(function(s){if(s.inStock!==false)inStock++;});});
+                                  return React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px'}},React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'ON MENU'),React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1}},inStock+'/'+total));
+                                })(),
+                                // OUT OF STOCK
+                                o.pricing&&o.pricing.outOfStock>0?React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px'}},React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'OUT OF STOCK'),React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1,color:'#ff9800'}},o.pricing.outOfStock)):null,
+                                // RETAIL
+                                o.pricing&&o.pricing.avgPrice>0?React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px'}},React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'RETAIL'),React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1,color:o.pricing.avgPrice<16?'#f44336':'#e8e0d4'}},'$'+o.pricing.avgPrice.toFixed(0))):null,
+                                // MISSING $ (keep from MM)
+                                o.mm&&o.mm.missingThisMo<0?React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px'}},React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'MISSING'),React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1,color:'#f44336'}},'-'+curK(Math.abs(o.mm.missingThisMo)))):null
                               )
-                            ):null,
+                            ),
                             // Section: PROMO STATUS
                             React.createElement('div',{style:{padding:'8px 12px',borderBottom:'1px solid #1a1714'}},
                               React.createElement('div',{style:{fontSize:7,letterSpacing:2,color:'#444',fontWeight:700,marginBottom:5}},'PROMO STATUS'),
