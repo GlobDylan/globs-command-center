@@ -4731,15 +4731,7 @@ window._STRAIN_DB=[
                                   })
                                 );
                               })():null,
-                              // Retail pricing + catalog coverage
-                              o.pricing&&o.pricing.avgPrice>0?React.createElement('div',{style:{display:'flex',gap:8,marginTop:4,fontSize:8,alignItems:'center',padding:'3px 0',borderTop:'1px solid #1a1714',flexWrap:'wrap'}},
-                                React.createElement('span',{style:{color:'#555',fontWeight:600}},'Retail:'),
-                                React.createElement('span',{style:{color:o.pricing.avgPrice<18?'#f44336':o.pricing.avgPrice>24?'#4ade80':'#e8e0d4',fontWeight:700}},'$'+o.pricing.avgPrice.toFixed(0)+' avg'),
-                                o.pricing.minPrice!==o.pricing.maxPrice?React.createElement('span',{style:{color:'#555'}},'($'+o.pricing.minPrice.toFixed(0)+'\u2013$'+o.pricing.maxPrice.toFixed(0)+')'):null,
-                                o.pricing.avgPrice<16?React.createElement('span',{style:{fontSize:7,padding:'1px 4px',borderRadius:2,background:'#f4433622',color:'#f44336',fontWeight:700}},'BELOW FLOOR'):null,
-                                o.pricing.platform?React.createElement('span',{style:{fontSize:7,color:'#444',marginLeft:'auto'}},o.pricing.platform):null
-                              ):null,
-                              // Catalog coverage — what % of our inventory categories they carry
+                              // Catalog coverage — compact box like stock %
                               (function(){
                                 var invCats={cart:0,badder:0,sauce:0,diamonds:0};
                                 Object.keys(inventoryData||{}).forEach(function(k){
@@ -4763,11 +4755,24 @@ window._STRAIN_DB=[
                                 if(available===0)return null;
                                 var coverPct=Math.round(carrying/available*100);
                                 var outOfStock=o.pricing.outOfStock||0;
-                                return React.createElement('div',{style:{display:'flex',gap:8,marginTop:3,fontSize:8,alignItems:'center',flexWrap:'wrap'}},
-                                  React.createElement('span',{style:{color:'#555',fontWeight:600}},'Coverage:'),
-                                  React.createElement('span',{style:{color:coverPct>=60?'#4ade80':coverPct>=30?'#ff9800':'#f44336',fontWeight:700}},coverPct+'% of catalog'),
-                                  React.createElement('span',{style:{color:'#555'}},carrying+'/'+available+' SKUs we stock'),
-                                  outOfStock>0?React.createElement('span',{style:{fontSize:7,padding:'1px 4px',borderRadius:2,background:'#ff980022',color:'#ff9800',fontWeight:600}},outOfStock+' out of stock'):null
+                                var coverColor=coverPct>=60?'#4ade80':coverPct>=30?'#ff9800':'#f44336';
+                                return React.createElement('div',{style:{display:'flex',gap:6,marginTop:4,padding:'4px 0',borderTop:'1px solid #1a1714',flexWrap:'wrap'}},
+                                  React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px',minWidth:55}},
+                                    React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'CATALOG'),
+                                    React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1,color:coverColor}},coverPct+'%')
+                                  ),
+                                  React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px',minWidth:55}},
+                                    React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'ON MENU'),
+                                    React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1}},carrying+'/'+available)
+                                  ),
+                                  outOfStock>0?React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px',minWidth:55}},
+                                    React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'OUT OF STOCK'),
+                                    React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1,color:'#ff9800'}},outOfStock)
+                                  ):null,
+                                  o.pricing&&o.pricing.avgPrice>0?React.createElement('div',{style:{background:'#1a1714',borderRadius:4,padding:'5px 8px',minWidth:55}},
+                                    React.createElement('div',{style:{fontSize:7,color:'#444',letterSpacing:1,fontWeight:700}},'RETAIL'),
+                                    React.createElement('div',{style:{fontSize:11,fontWeight:600,marginTop:1,color:o.pricing.avgPrice<16?'#f44336':'#e8e0d4'}},'$'+o.pricing.avgPrice.toFixed(0))
+                                  ):null
                                 );
                               })(),
                               o.smartReorder&&o.smartReorder.dominant?React.createElement('div',{style:{fontSize:8,color:'#666',marginTop:3}},
