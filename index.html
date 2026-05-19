@@ -8,7 +8,7 @@
   <meta http-equiv="Expires" content="0" />
   <script>
     // GPI Build: 5a669cd
-    var GPI_BUILD='6f8a674';
+    var GPI_BUILD='29cad55';
     try{fetch('https://api.github.com/repos/GlobDylan/globs-command-center/commits/main',{headers:{Accept:'application/vnd.github.v3.sha'}}).then(function(r){return r.text();}).then(function(sha){var latest=sha.trim().substring(0,7);if(latest&&latest!==GPI_BUILD&&!sessionStorage.getItem('gpi-reloaded-'+latest)){sessionStorage.setItem('gpi-reloaded-'+latest,'1');window.location.href=window.location.pathname+'?v='+latest;}}).catch(function(){});}catch(e){}
   </script>
   <title>Globs Price Intelligence</title>
@@ -4911,6 +4911,18 @@ window._STRAIN_DB=[
                             // Section: SUGGESTED REORDER
                             lines.length>0&&!isOnTrack?React.createElement('div',{style:{padding:'8px 12px',background:'#0a0806'}},
                               React.createElement('div',{style:{fontSize:7,letterSpacing:2,color:C.good+'88',fontWeight:700,marginBottom:5}},'SUGGESTED REORDER'),
+                              // Staff ed sample lines for negative gap categories
+                              (o.promoNeeded||[]).map(function(pn){
+                                var catLabel=pn.cat==='cart'?'Cart':pn.cat.charAt(0).toUpperCase()+pn.cat.slice(1);
+                                return React.createElement('div',{key:'promo-'+pn.cat,style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'4px 0',fontSize:9,borderBottom:'1px dashed #1a1714'}},
+                                  React.createElement('span',{style:{color:'#9c27b0',fontWeight:500,display:'flex',alignItems:'center',gap:4}},
+                                    'Staff Ed Samples - '+catLabel,
+                                    React.createElement('span',{style:{fontSize:6,padding:'1px 3px',borderRadius:2,background:'#9c27b022',color:'#9c27b0',border:'1px solid #9c27b044',fontWeight:700}},'PROMO'),
+                                    React.createElement('span',{style:{fontSize:7,color:'#888'}},pn.onMenu+' on menu / '+pn.weStock+' we stock')
+                                  ),
+                                  React.createElement('span',{style:{fontSize:8,color:'#9c27b0',fontWeight:600}},'2 samples')
+                                );
+                              }),
                               lines.map(function(l,li){
                                 // Get IHS type from strain lookup
                                 var slu2=strainLookup(l.strain);
