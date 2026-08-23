@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>Globs ¥en</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Shippori+Mincho:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#000000;
+    --paper:#FFFFFF;
+    --hinomaru:#C8102E;
+    --dim:#8A8A8A;
+    --hairline:#1F1F1F;
+    --panel:#0B0B0B;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Space Grotesk',system-ui,sans-serif;
+    display:flex;flex-direction:column;
+    min-height:100dvh;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:20px 22px 10px;
+  }
+  .wordmark{font-weight:700;letter-spacing:.14em;font-size:13px;text-transform:uppercase}
+  .wordmark span{color:var(--hinomaru)}
+  .tag{font-size:11px;color:var(--dim);letter-spacing:.08em}
+
+  main{flex:1;display:flex;flex-direction:column;justify-content:center;gap:0;padding:8px 16px}
+
+  .panel{
+    position:relative;
+    background:var(--panel);
+    border:1px solid var(--hairline);
+    border-radius:22px;
+    padding:22px 22px 18px;
+    overflow:hidden;
+    transition:border-color .25s ease;
+  }
+  .panel.active{border-color:var(--hinomaru)}
+  .glyph{
+    position:absolute;right:-8px;top:50%;transform:translateY(-54%);
+    font-family:'Shippori Mincho',serif;font-weight:700;
+    font-size:190px;line-height:1;
+    color:#141414;user-select:none;pointer-events:none;
+    transition:color .25s ease;
+  }
+  .panel.active .glyph{color:#2A0A10}
+  .cur-row{display:flex;align-items:baseline;justify-content:space-between;position:relative;z-index:1}
+  .cur-code{font-size:13px;font-weight:700;letter-spacing:.18em}
+  .cur-name{font-size:11px;color:var(--dim);letter-spacing:.06em}
+  .amount{
+    width:100%;
+    background:transparent;border:none;outline:none;
+    color:var(--paper);
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:500;
+    font-size:clamp(40px,13vw,64px);
+    font-variant-numeric:tabular-nums;
+    letter-spacing:-.01em;
+    padding:10px 0 2px;
+    position:relative;z-index:1;
+    caret-color:var(--hinomaru);
+  }
+  .amount::placeholder{color:#3A3A3A}
+
+  .chips{display:flex;gap:8px;position:relative;z-index:1;margin-top:6px}
+  .chip{
+    border:1px solid var(--hairline);border-radius:999px;
+    background:transparent;color:var(--dim);
+    font-family:'Space Grotesk',sans-serif;
+    font-size:12px;font-weight:500;letter-spacing:.04em;
+    padding:7px 14px;cursor:pointer;
+    transition:color .15s,border-color .15s;
+  }
+  .chip:active{color:var(--paper);border-color:var(--paper)}
+
+  .swap-row{display:flex;justify-content:center;position:relative;height:0;z-index:5}
+  .swap{
+    width:58px;height:58px;border-radius:50%;
+    background:var(--hinomaru);border:4px solid var(--ink);
+    color:#fff;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transform:translateY(-50%);
+    transition:transform .35s cubic-bezier(.2,.8,.2,1.2);
+    box-shadow:0 6px 24px rgba(200,16,46,.35);
+  }
+  .swap svg{width:24px;height:24px}
+  .swap.flipped{transform:translateY(-50%) rotate(180deg)}
+  .swap:focus-visible{outline:2px solid #fff;outline-offset:2px}
+  .chip:focus-visible,.amount:focus-visible{outline:none}
+
+  footer{padding:14px 22px calc(18px + env(safe-area-inset-bottom))}
+  .rate-strip{
+    display:flex;align-items:center;justify-content:space-between;
+    border-top:1px solid var(--hairline);padding-top:14px;gap:12px;
+  }
+  .rate-main{font-size:14px;font-weight:500;font-variant-numeric:tabular-nums}
+  .rate-sub{font-size:11px;color:var(--dim);margin-top:3px;letter-spacing:.04em}
+  .rate-sub.warn{color:var(--hinomaru)}
+  .refresh{
+    border:1px solid var(--hairline);background:transparent;color:var(--paper);
+    border-radius:999px;padding:9px 16px;
+    font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:500;
+    cursor:pointer;letter-spacing:.06em;white-space:nowrap;
+  }
+  .refresh:active{border-color:var(--paper)}
+  .refresh.spinning{color:var(--dim)}
+
+  @media (prefers-reduced-motion:reduce){
+    .swap,.panel,.glyph{transition:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark">Globs <span>¥</span>en</div>
+  <div class="tag">USD ⇄ JPY</div>
+</header>
+
+<main>
+  <section class="panel active" id="panelTop">
+    <div class="cur-row">
+      <span class="cur-code" id="codeTop">USD</span>
+      <span class="cur-name" id="nameTop">US Dollar</span>
+    </div>
+    <span class="glyph" id="glyphTop">$</span>
+    <input class="amount" id="amtTop" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-label="Amount top">
+    <div class="chips" id="chipsTop"></div>
+  </section>
+
+  <div class="swap-row">
+    <button class="swap" id="swapBtn" aria-label="Swap currencies">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7 4v13M7 4L3.5 7.5M7 4l3.5 3.5"/>
+        <path d="M17 20V7M17 20l3.5-3.5M17 20l-3.5-3.5"/>
+      </svg>
+    </button>
+  </div>
+
+  <section class="panel" id="panelBottom" style="padding-top:34px">
+    <div class="cur-row">
+      <span class="cur-code" id="codeBottom">JPY</span>
+      <span class="cur-name" id="nameBottom">Japanese Yen</span>
+    </div>
+    <span class="glyph" id="glyphBottom">円</span>
+    <input class="amount" id="amtBottom" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-label="Amount bottom">
+    <div class="chips" id="chipsBottom"></div>
+  </section>
+</main>
+
+<footer>
+  <div class="rate-strip">
+    <div>
+      <div class="rate-main" id="rateLine">Loading rate…</div>
+      <div class="rate-sub" id="rateSub">Fetching live mid-market rate</div>
+    </div>
+    <button class="refresh" id="refreshBtn">Refresh</button>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var FALLBACK_RATE = 155;            // rough USD→JPY estimate if offline; clearly flagged in UI
+  var state = {
+    rate: null,                        // JPY per 1 USD
+    updated: null,
+    live: false,
+    topIsUSD: true
+  };
+
+  var $ = function(id){ return document.getElementById(id); };
+  var amtTop = $('amtTop'), amtBottom = $('amtBottom');
+
+  var CUR = {
+    USD: { code:'USD', name:'US Dollar', glyph:'$', chips:[10,20,50,100], dec:2 },
+    JPY: { code:'JPY', name:'Japanese Yen', glyph:'円', chips:[500,1000,5000,10000], dec:0 }
+  };
+
+  function topCur(){ return state.topIsUSD ? CUR.USD : CUR.JPY; }
+  function bottomCur(){ return state.topIsUSD ? CUR.JPY : CUR.USD; }
+
+  function fmt(n, dec){
+    if (!isFinite(n)) return '';
+    return n.toLocaleString('en-US', { minimumFractionDigits:0, maximumFractionDigits:dec });
+  }
+  function parseAmt(s){
+    var v = parseFloat(String(s).replace(/[^0-9.]/g,''));
+    return isFinite(v) ? v : 0;
+  }
+
+  function convert(fromField){
+    if (!state.rate) return;
+    var usdToJpy = state.rate;
+    var src = fromField === 'top' ? amtTop : amtBottom;
+    var dst = fromField === 'top' ? amtBottom : amtTop;
+    var srcCur = fromField === 'top' ? topCur() : bottomCur();
+    var dstCur = fromField === 'top' ? bottomCur() : topCur();
+    var v = parseAmt(src.value);
+    if (src.value.trim() === ''){ dst.value = ''; return; }
+    var out = srcCur.code === 'USD' ? v * usdToJpy : v / usdToJpy;
+    dst.value = fmt(out, dstCur.dec);
+    setActive(fromField);
+  }
+
+  function setActive(which){
+    $('panelTop').classList.toggle('active', which === 'top');
+    $('panelBottom').classList.toggle('active', which === 'bottom');
+  }
+
+  function renderPanels(){
+    var t = topCur(), b = bottomCur();
+    $('codeTop').textContent = t.code;   $('nameTop').textContent = t.name;   $('glyphTop').textContent = t.glyph;
+    $('codeBottom').textContent = b.code; $('nameBottom').textContent = b.name; $('glyphBottom').textContent = b.glyph;
+    renderChips('chipsTop', t, amtTop, 'top');
+    renderChips('chipsBottom', b, amtBottom, 'bottom');
+  }
+
+  function renderChips(id, cur, field, side){
+    var box = $(id); box.innerHTML = '';
+    cur.chips.forEach(function(v){
+      var btn = document.createElement('button');
+      btn.className = 'chip';
+      btn.textContent = (cur.code === 'USD' ? '$' : '¥') + v.toLocaleString('en-US');
+      btn.addEventListener('click', function(){
+        field.value = String(v);
+        convert(side);
+        field.focus();
+      });
+      box.appendChild(btn);
+    });
+  }
+
+  function renderRate(){
+    if (!state.rate){ return; }
+    $('rateLine').textContent = '1 USD = ' + fmt(state.rate, 2) + ' JPY';
+    var sub = $('rateSub');
+    if (state.live){
+      sub.className = 'rate-sub';
+      sub.textContent = 'Live mid-market · updated ' + state.updated;
+    } else {
+      sub.className = 'rate-sub warn';
+      sub.textContent = 'Offline — using rough estimate, refresh when connected';
+    }
+  }
+
+  function applyRate(rate, updatedLabel, live){
+    state.rate = rate;
+    state.updated = updatedLabel;
+    state.live = live;
+    renderRate();
+    // re-run conversion from whichever field has content
+    if (amtTop === document.activeElement || (amtTop.value && !amtBottom.value)) convert('top');
+    else if (amtBottom.value) convert('bottom');
+    else if (amtTop.value) convert('top');
+  }
+
+  function fetchRate(){
+    var btn = $('refreshBtn');
+    btn.classList.add('spinning'); btn.textContent = '…';
+    $('rateSub').className = 'rate-sub';
+    $('rateSub').textContent = 'Fetching live mid-market rate';
+
+    // Primary: open.er-api.com (no key, daily updates). Fallback: frankfurter.app (ECB).
+    fetch('https://open.er-api.com/v6/latest/USD')
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (d && d.rates && d.rates.JPY){
+          var when = d.time_last_update_utc ? new Date(d.time_last_update_utc) : new Date();
+          applyRate(d.rates.JPY, when.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}), true);
+        } else { throw new Error('bad payload'); }
+      })
+      .catch(function(){
+        return fetch('https://api.frankfurter.app/latest?from=USD&to=JPY')
+          .then(function(r){ return r.json(); })
+          .then(function(d){
+            if (d && d.rates && d.rates.JPY){
+              applyRate(d.rates.JPY, d.date + ' (ECB)', true);
+            } else { throw new Error('bad payload'); }
+          });
+      })
+      .catch(function(){
+        if (!state.rate) applyRate(FALLBACK_RATE, null, false);
+        else { state.live = state.live; renderRate(); }
+      })
+      .finally ? null : null;
+
+    // cheap "finally"
+    setTimeout(function(){ btn.classList.remove('spinning'); btn.textContent = 'Refresh'; }, 900);
+  }
+
+  // events
+  amtTop.addEventListener('input', function(){ convert('top'); });
+  amtBottom.addEventListener('input', function(){ convert('bottom'); });
+  amtTop.addEventListener('focus', function(){ setActive('top'); this.select(); });
+  amtBottom.addEventListener('focus', function(){ setActive('bottom'); this.select(); });
+
+  $('swapBtn').addEventListener('click', function(){
+    state.topIsUSD = !state.topIsUSD;
+    this.classList.toggle('flipped');
+    // carry values across the swap
+    var tv = amtTop.value, bv = amtBottom.value;
+    renderPanels();
+    amtTop.value = bv; amtBottom.value = tv;
+  });
+
+  $('refreshBtn').addEventListener('click', fetchRate);
+
+  renderPanels();
+  fetchRate();
+})();
+</script>
+</body>
+</html>
